@@ -66,11 +66,10 @@ function renderNavItem($pageNow, $targetPage, $url, $icon, $text) {
     /* Scrollable nav collapse */
     #sidenav-main .navbar-collapse {
         display: block !important;
-        flex: 1 1 auto !important;
+        flex: 1 1 0% !important;
+        min-height: 0 !important;
         overflow-y: auto !important;
         overflow-x: hidden !important;
-        height: auto !important;
-        max-height: none !important;
     }
     #sidenav-main .navbar-collapse::-webkit-scrollbar { width: 5px; }
     #sidenav-main .navbar-collapse::-webkit-scrollbar-track { background: transparent; }
