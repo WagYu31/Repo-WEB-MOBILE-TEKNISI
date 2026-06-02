@@ -21,6 +21,9 @@ if (isset($_GET['error'])) {
         echo "<script>alert('Berhasil menambahkan invoice.');</script>";
     } elseif ($_GET['success'] == 2) {
         echo "<script>alert('Status pembayaran berhasil diperbarui.');</script>";
+    } elseif ($_GET['success'] == 3) {
+        $count = intval($_GET['count'] ?? 0);
+        echo "<script>alert('Berhasil menghapus $count kegiatan.');</script>";
     }
 }
 
@@ -102,9 +105,10 @@ $active_tab = $_GET['tab'] ?? 'belum_lunas'; // Default ke 'belum_lunas'
                                 <table class="table table-hover align-middle mb-0">
                                     <thead class="table-light">
                                         <tr>
-                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-4 w-35">Customer</th>
-                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 w-25">Invoice</th>
-                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 w-30">Teknisi & Absensi</th>
+                                            <th class="text-center ps-3" style="width:40px;"><input type="checkbox" id="selectAll" style="width:16px;height:16px;cursor:pointer;"></th>
+                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2 w-30">Customer</th>
+                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 w-20">Invoice</th>
+                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 w-25">Teknisi & Absensi</th>
                                             <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 pe-4">Aksi</th>
                                         </tr>
                                     </thead>
@@ -145,7 +149,8 @@ $active_tab = $_GET['tab'] ?? 'belum_lunas'; // Default ke 'belum_lunas'
                                                 $lunas_class = (!empty($row_main['lunas']) && $row_main['lunas'] != '0000-00-00') ? 'lunas-background' : '';
                                         ?>
                                                 <tr style="border-bottom:1px solid #adb5bd">
-                                                    <td class="ps-4 customer-info text-wrap">
+                                                    <td class="text-center ps-3" style="width:40px;"><input type="checkbox" class="row-checkbox" value="<?= $kodeTransaksi; ?>" data-customer="<?= htmlspecialchars($row_main['nama_cust']); ?>" style="width:16px;height:16px;cursor:pointer;"></td>
+                                                    <td class="ps-2 customer-info text-wrap">
                                                         <a href="view-kegiatan.php?kode_transaksi=<?= $kodeTransaksi; ?>" target="_blank">
                                                             <h6 class="font-weight-bold mb-1"><?= htmlspecialchars($row_main['nama_cust']); ?></h6>
                                                         </a>
@@ -344,6 +349,85 @@ $active_tab = $_GET['tab'] ?? 'belum_lunas'; // Default ke 'belum_lunas'
             });
         });
     });
+    </script>
+
+    <!-- Floating Bulk Delete Button -->
+    <div id="bulkDeleteBar" style="display:none; position:fixed; bottom:20px; left:50%; transform:translateX(-50%); z-index:9999; background:linear-gradient(135deg,#e74c3c,#c0392b); color:#fff; padding:12px 24px; border-radius:50px; box-shadow:0 8px 25px rgba(231,76,60,0.4); cursor:pointer; transition:all 0.3s ease; animation:slideUp 0.3s ease;" onclick="confirmBulkDelete()">
+        <i class="material-icons" style="font-size:18px;vertical-align:middle;margin-right:6px;">delete_sweep</i>
+        <span style="font-weight:700;font-size:14px;">Hapus Terpilih (<span id="selectedCount">0</span>)</span>
+    </div>
+
+    <!-- Hidden form for bulk delete -->
+    <form id="bulkDeleteForm" method="POST" action="bulk-delete-kegiatan.php" style="display:none;">
+        <input type="hidden" name="redirect" value="lap-kegiatan-selesai.php?tab=<?= htmlspecialchars($active_tab); ?>">
+    </form>
+
+    <style>
+    @keyframes slideUp { from { opacity:0; transform:translateX(-50%) translateY(30px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }
+    #bulkDeleteBar:hover { transform:translateX(-50%) scale(1.05); box-shadow:0 12px 35px rgba(231,76,60,0.5); }
+    .row-checkbox:checked { accent-color: #e74c3c; }
+    tr:has(.row-checkbox:checked) { background-color: rgba(231,76,60,0.05) !important; }
+    </style>
+
+    <script>
+    // Select All checkbox
+    document.getElementById('selectAll')?.addEventListener('change', function() {
+        document.querySelectorAll('.row-checkbox').forEach(cb => { cb.checked = this.checked; });
+        updateBulkBar();
+    });
+
+    // Individual checkbox
+    document.querySelectorAll('.row-checkbox').forEach(cb => {
+        cb.addEventListener('change', function() {
+            const allBoxes = document.querySelectorAll('.row-checkbox');
+            const checkedBoxes = document.querySelectorAll('.row-checkbox:checked');
+            document.getElementById('selectAll').checked = allBoxes.length === checkedBoxes.length;
+            updateBulkBar();
+        });
+    });
+
+    function updateBulkBar() {
+        const count = document.querySelectorAll('.row-checkbox:checked').length;
+        document.getElementById('selectedCount').textContent = count;
+        document.getElementById('bulkDeleteBar').style.display = count > 0 ? 'block' : 'none';
+    }
+
+    function confirmBulkDelete() {
+        const checked = document.querySelectorAll('.row-checkbox:checked');
+        const count = checked.length;
+        const names = [];
+        checked.forEach(cb => { names.push(cb.dataset.customer); });
+        const nameList = names.slice(0, 5).join(', ') + (names.length > 5 ? ` dan ${names.length - 5} lainnya` : '');
+
+        Swal.fire({
+            title: `Hapus ${count} Kegiatan?`,
+            html: `<p style="margin:0;color:#666;">Customer: <strong>${nameList}</strong></p>
+                   <p style="margin-top:10px;color:#e74c3c;font-size:13px;">Semua data yang dipilih akan dihapus dan tidak dapat dikembalikan!</p>`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e74c3c',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: `<i class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:4px;">delete_sweep</i> Ya, Hapus ${count} Data`,
+            cancelButtonText: 'Batal',
+            reverseButtons: true,
+            focusCancel: true,
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const form = document.getElementById('bulkDeleteForm');
+                // Clear old inputs
+                form.querySelectorAll('input[name="kode_list[]"]').forEach(el => el.remove());
+                // Add selected kodes
+                checked.forEach(cb => {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'kode_list[]';
+                    input.value = cb.value;
+                    form.appendChild(input);
+                });
+                form.submit();
+            }
+        });
+    }
     </script>
 </body>
 </html>
