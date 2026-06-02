@@ -1,4 +1,5 @@
-<div class="row" style="gap:0;">
+<div style="position:sticky;top:0;z-index:100;background:#f0f2f5;padding:4px 0 0;margin:0 -24px;padding-left:24px;padding-right:24px;">
+<div class="row" style="gap:0;margin-bottom:0 !important;">
   <div class="col-12 col-sm-6 col-md-4 col-lg mb-4">
     <div class="card h-100" style="border:none;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06);background:linear-gradient(135deg,#1e293b 0%,#334155 100%);transition:all 0.2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(30,41,59,0.25)'" onmouseout="this.style.transform='none';this.style.boxShadow='0 2px 8px rgba(0,0,0,0.06)'">
       <div class="card-body p-3">
@@ -135,4 +136,5 @@
       </div>
     </div>
   <?php endif; ?>
+</div>
 </div>
