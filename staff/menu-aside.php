@@ -173,8 +173,40 @@ function renderNavItem($pageNow, $targetPage, $url, $icon, $text) {
         flex-shrink: 0 !important;
     }
     #sidenav-main .sidenav-footer .nav-link {
+        display: flex !important;
+        align-items: center !important;
         padding: 0.5rem 0.75rem !important;
         margin: 0 !important;
+        margin-bottom: 2px !important;
+        border-radius: 0.375rem !important;
+        color: #9CA3AF !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        text-decoration: none !important;
+        white-space: nowrap !important;
+        transition: background 0.15s ease, color 0.15s ease !important;
+    }
+    #sidenav-main .sidenav-footer .nav-link:hover {
+        background: #1F2937 !important;
+        color: #FFFFFF !important;
+    }
+    #sidenav-main .sidenav-footer .nav-link .nav-icon,
+    #sidenav-main .sidenav-footer .nav-link > i {
+        width: 1.25rem !important;
+        min-width: 1.25rem !important;
+        text-align: center !important;
+        margin-right: 0.625rem !important;
+        font-size: 0.85rem !important;
+        color: inherit !important;
+    }
+    #sidenav-main .sidenav-footer .nav-link p,
+    #sidenav-main .sidenav-footer .nav-link span {
+        margin: 0 !important;
+        font-size: 0.8125rem !important;
+        color: inherit !important;
+        display: inline !important;
+        opacity: 1 !important;
+        visibility: visible !important;
     }
 
     /* Kill framework text-dark/text-white overrides from JS darkMode() */
