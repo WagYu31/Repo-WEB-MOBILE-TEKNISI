@@ -18,28 +18,20 @@ function renderNavItem($pageNow, $targetPage, $url, $icon, $text) {
 <!-- Font Awesome sudah dimuat di head.php -->
 
 <style>
-    :root {
-        --sidebar-bg: #111827;
-        --sidebar-text: #9CA3AF;
-        --sidebar-text-hover: #FFFFFF;
-        --sidebar-bg-hover: #1F2937;
-        --sidebar-active-text: #FFFFFF;
-        --sidebar-active-bg: rgba(59, 130, 246, 0.1);
-        --sidebar-active-indicator: #3B82F6;
-        --sidebar-header-text: #6B7280;
-        --sidebar-border: #374151;
-    }
-
-    .sidenav-gemini-dark {
-        background-color: var(--sidebar-bg);
-        border-right: none;
-        width: 250px;
-        height: calc(100vh - 2rem);
+    /* ====== SIDEBAR - forced !important to beat material-dashboard.css ====== */
+    .sidenav-gemini-dark,
+    .sidenav.sidenav-gemini-dark,
+    aside.sidenav-gemini-dark {
+        background-color: #111827 !important;
+        background-image: none !important;
+        border-right: none !important;
+        width: 250px !important;
+        height: calc(100vh - 2rem) !important;
         top: 1rem !important;
-        border-radius: 0.75rem;
-        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
-        display: flex;
-        flex-direction: column;
+        border-radius: 0.75rem !important;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1) !important;
+        display: flex !important;
+        flex-direction: column !important;
     }
 
     .sidenav-gemini-dark .navbar-collapse {
@@ -47,87 +39,99 @@ function renderNavItem($pageNow, $targetPage, $url, $icon, $text) {
         overflow-y: auto;
         overflow-x: hidden;
     }
-
     .sidenav-gemini-dark .navbar-collapse::-webkit-scrollbar { width: 6px; }
     .sidenav-gemini-dark .navbar-collapse::-webkit-scrollbar-track { background: transparent; }
     .sidenav-gemini-dark .navbar-collapse::-webkit-scrollbar-thumb { background: #4B5563; border-radius: 6px; }
     .sidenav-gemini-dark .navbar-collapse::-webkit-scrollbar-thumb:hover { background: #6B7280; }
 
     .sidenav-gemini-dark .sidenav-header {
-        padding: 1.25rem 1rem;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 60px;
-        border-bottom: 1px solid var(--sidebar-border);
+        padding: 1.25rem 1rem !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        height: 60px !important;
+        border-bottom: 1px solid #374151 !important;
+        background: transparent !important;
     }
-    .sidenav-gemini-dark .navbar-brand-img { max-height: 2.5rem; }
+    .sidenav-gemini-dark .navbar-brand-img { max-height: 2.5rem !important; }
 
-    .sidenav-gemini-dark .navbar-nav {
-        padding: 0.75rem;
-    }
-    .sidenav-gemini-dark .nav-item { margin-bottom: 0.2rem; }
+    .sidenav-gemini-dark .navbar-nav { padding: 0.75rem !important; }
+    .sidenav-gemini-dark .nav-item { margin-bottom: 0.2rem !important; }
+    
     .sidenav-gemini-dark .nav-link {
-        display: flex;
-        align-items: center;
-        padding: 0.75rem 1rem;
-        border-radius: 0.375rem;
-        color: var(--sidebar-text);
-        transition: background-color 0.2s ease, color 0.2s ease;
-        position: relative;
+        display: flex !important;
+        align-items: center !important;
+        padding: 0.75rem 1rem !important;
+        border-radius: 0.375rem !important;
+        color: #9CA3AF !important;
+        background-color: transparent !important;
+        transition: background-color 0.2s ease, color 0.2s ease !important;
+        position: relative !important;
+        box-shadow: none !important;
+        margin: 0 !important;
     }
     .sidenav-gemini-dark .nav-link:hover {
-        background-color: var(--sidebar-bg-hover);
-        color: var(--sidebar-text-hover);
+        background-color: #1F2937 !important;
+        color: #FFFFFF !important;
     }
     .sidenav-gemini-dark .nav-link.active {
-        background-color: var(--sidebar-active-bg);
-        color: var(--sidebar-active-text);
-        font-weight: 500;
+        background-color: rgba(59, 130, 246, 0.1) !important;
+        color: #FFFFFF !important;
+        font-weight: 500 !important;
     }
     .sidenav-gemini-dark .nav-link.active::before {
-        content: "";
-        position: absolute;
-        left: 0;
-        top: 15%;
-        height: 70%;
-        width: 3px;
-        background-color: var(--sidebar-active-indicator);
-        border-top-right-radius: 3px;
-        border-bottom-right-radius: 3px;
+        content: "" !important;
+        position: absolute !important;
+        left: 0 !important;
+        top: 15% !important;
+        height: 70% !important;
+        width: 3px !important;
+        background-color: #3B82F6 !important;
+        border-top-right-radius: 3px !important;
+        border-bottom-right-radius: 3px !important;
     }
     .sidenav-gemini-dark .nav-icon {
-        width: 1.5rem;
-        text-align: center;
-        margin-right: 0.75rem;
-        font-size: 0.9rem;
+        width: 1.5rem !important;
+        text-align: center !important;
+        margin-right: 0.75rem !important;
+        font-size: 0.9rem !important;
+        color: inherit !important;
     }
-    .sidenav-gemini-dark .nav-link p { margin: 0; font-size: 0.875rem; }
+    .sidenav-gemini-dark .nav-link p {
+        margin: 0 !important;
+        font-size: 0.875rem !important;
+        color: inherit !important;
+    }
 
     .sidenav-gemini-dark .nav-header {
-        padding: 1rem 1rem 0.5rem;
-        font-size: 0.7rem;
-        font-weight: 600;
-        color: var(--sidebar-header-text);
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
+        padding: 1rem 1rem 0.5rem !important;
+        font-size: 0.7rem !important;
+        font-weight: 600 !important;
+        color: #6B7280 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
+        background: transparent !important;
     }
 
     .sidenav-gemini-dark .sidenav-footer {
-        padding: 1rem;
-        border-top: 1px solid var(--sidebar-border);
-        margin-top: auto;
+        padding: 1rem !important;
+        border-top: 1px solid #374151 !important;
+        margin-top: auto !important;
+        background: transparent !important;
+    }
+    .sidenav-gemini-dark .sidenav-footer .nav-link {
+        padding: 0.5rem 1rem !important;
     }
     
     .sidenav-gemini-dark .btn-group-switcher a {
-        background-color: #374151;
-        color: #9CA3AF;
-        border: none;
-        padding: 0.6rem;
+        background-color: #374151 !important;
+        color: #9CA3AF !important;
+        border: none !important;
+        padding: 0.6rem !important;
     }
     .sidenav-gemini-dark .btn-group-switcher a.active {
-        background-color: var(--sidebar-active-indicator);
-        color: #FFFFFF;
+        background-color: #3B82F6 !important;
+        color: #FFFFFF !important;
     }
 </style>
 
