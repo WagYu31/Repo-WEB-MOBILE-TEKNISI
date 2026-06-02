@@ -272,7 +272,7 @@ if (isset($_GET['export'])) {
                           <?php if ($pageNow != 'Task') : ?>
                             <!--<button class="btn btn-warning edit-btn" data-id="<?= $kodeTransaksi; ?>"><i class="material-icons" style="font-size:12px;">edit</i></button>-->
                             <a class="btn btn-warning edit-btn" href="edit_kegiatan.php?kode_transaksi=<?= $kodeTransaksi; ?>"><i class="material-icons" style="font-size:12px;">edit</i></a>
-                            <a class="btn btn-danger" href="delete-kegiatan.php?kode=<?= $kodeTransaksi; ?>"><i class="material-icons" style="font-size:12px;">delete</i></a>
+                            <button class="btn btn-danger btn-delete" data-kode="<?= $kodeTransaksi; ?>" data-customer="<?= htmlspecialchars($data['nama_customer']); ?>"><i class="material-icons" style="font-size:12px;">delete</i></button>
                           <?php endif; ?>
                         </div>
                       </div>
@@ -377,7 +377,7 @@ if (isset($_GET['export'])) {
                           <?php if ($pageNow != 'Task') : ?>
                             <!--<button class="btn btn-warning edit-btn" data-id="<?= $kodeTransaksi; ?>"><i class="material-icons" style="font-size:12px;">edit</i></button>-->
                             <a class="btn btn-warning edit-btn" href="edit_kegiatan.php?kode_transaksi=<?= $kodeTransaksi; ?>"><i class="material-icons" style="font-size:12px;">edit</i></a>
-                            <a class="btn btn-danger" href="delete-kegiatan.php?kode=<?= $kodeTransaksi; ?>"><i class="material-icons" style="font-size:12px;">delete</i></a>
+                            <button class="btn btn-danger btn-delete" data-kode="<?= $kodeTransaksi; ?>" data-customer="<?= htmlspecialchars($data['nama_customer']); ?>"><i class="material-icons" style="font-size:12px;">delete</i></button>
                           <?php endif; ?>
                         </div>
                       </div>
@@ -684,6 +684,32 @@ if (isset($_GET['export'])) {
 
     $('#jam').on('input', function() {
       if(this.value < "07:00" || this.value > "20:00") { alert("Jam operasional 07:00 - 20:00"); this.value = ""; }
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    document.querySelectorAll('.btn-delete').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const kode = this.dataset.kode;
+        const customer = this.dataset.customer;
+        Swal.fire({
+          title: 'Hapus Kegiatan?',
+          html: `<p style="margin:0;color:#666;">Kode: <strong>${kode}</strong></p><p style="margin:0;color:#666;">Customer: <strong>${customer}</strong></p><p style="margin-top:10px;color:#e74c3c;font-size:13px;">Data yang dihapus tidak dapat dikembalikan!</p>`,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#e74c3c',
+          cancelButtonColor: '#6c757d',
+          confirmButtonText: '<i class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:4px;">delete</i> Ya, Hapus',
+          cancelButtonText: 'Batal',
+          reverseButtons: true,
+          focusCancel: true,
+          customClass: { popup: 'shadow-lg' }
+        }).then((result) => {
+          if (result.isConfirmed) {
+            window.location.href = 'delete-kegiatan.php?kode=' + kode;
+          }
+        });
+      });
     });
   </script>
 </body>
