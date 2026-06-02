@@ -82,17 +82,46 @@ if (isset($_GET['export'])) {
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
     ul#data-tek li:nth-child(odd) { background-color: white; }
-    ul#data-tek li:nth-child(even) { background-color: #efefef; border-radius: 0; }
+    ul#data-tek li:nth-child(even) { background-color: #f8fafc; border-radius: 0; }
     #toggleLoadMore, #toggleLoadMore1, #toggleLoadMore2 { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
     input[type="checkbox"] { -webkit-appearance: checkbox; -moz-appearance: checkbox; appearance: checkbox; }
     #reasonHistoryList::-webkit-scrollbar { width: 6px; }
-    #reasonHistoryList::-webkit-scrollbar-track { background: #f1f1f1; }
-    #reasonHistoryList::-webkit-scrollbar-thumb { background: #bbb; border-radius: 10px; }
-    #reasonHistoryList::-webkit-scrollbar-thumb:hover { background: #888; }
+    #reasonHistoryList::-webkit-scrollbar-track { background: #f8fafc; }
+    #reasonHistoryList::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    #reasonHistoryList::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    /* Section header */
+    .section-header { display:flex; align-items:center; gap:8px; padding:12px 16px; background:#fff; border:1px solid #e2e8f0; border-radius:10px 10px 0 0; cursor:pointer; transition:background 0.15s; }
+    .section-header:hover { background:#f8fafc; }
+    .section-header h6 { margin:0; font-size:13px; font-weight:700; color:#1e293b; letter-spacing:0.02em; text-transform:uppercase; }
+    .section-header .material-icons { font-size:18px; color:#64748b; }
+    .btn-export { font-size:12px; padding:6px 14px; background:#f8fafc; color:#1e293b; border:1px solid #e2e8f0; border-radius:6px; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:4px; transition:all 0.2s; }
+    .btn-export:hover { background:#1e293b; color:#fff; border-color:#1e293b; }
+    /* Clean card */
+    .section-card { border:1px solid #e2e8f0; border-radius:0 0 10px 10px; border-top:none; box-shadow:0 1px 3px rgba(0,0,0,0.04); }
+    /* Status badges */
+    .badge-status { font-size:10px; font-weight:600; padding:3px 8px; border-radius:4px; letter-spacing:0.02em; }
+    .badge-selesai { background:#dcfce7; color:#166534; }
+    .badge-dikerjakan { background:#dbeafe; color:#1e40af; }
+    .badge-lanjut { background:#f1f5f9; color:#475569; }
+    .badge-dilanjutkan { background:#e0e7ff; color:#3730a3; }
+    .badge-dijadwalkan { background:#f1f5f9; color:#64748b; }
+    .badge-menunggu { background:#fef3c7; color:#92400e; }
+    /* Kegiatan type badge */
+    .badge-type { font-size:9px; font-weight:700; padding:3px 8px; border-radius:4px; letter-spacing:0.04em; text-transform:uppercase; }
+    .badge-survey { background:#fef3c7; color:#92400e; }
+    .badge-service { background:#e0e7ff; color:#3730a3; }
+    .badge-pasang { background:#dcfce7; color:#166534; }
+    .badge-default { background:#f1f5f9; color:#475569; }
+    /* Action buttons */
+    .btn-act { width:30px; height:30px; padding:0; display:inline-flex; align-items:center; justify-content:center; border-radius:6px; border:1px solid #e2e8f0; background:#fff; transition:all 0.15s; cursor:pointer; text-decoration:none; }
+    .btn-act:hover { background:#f8fafc; }
+    .btn-act-view { color:#3b82f6; } .btn-act-view:hover { background:#eff6ff; border-color:#bfdbfe; }
+    .btn-act-edit { color:#d97706; } .btn-act-edit:hover { background:#fffbeb; border-color:#fde68a; }
+    .btn-act-delete { color:#dc2626; } .btn-act-delete:hover { background:#fef2f2; border-color:#fecaca; }
     <?php include "css/floating-menu2.css"; ?>
     @media (min-width: 992px) { .w-lg-30 { width: 30% !important; } }
-@media (min-width: 768px) and (max-width: 991px) { .w-md-70 { width: 50% !important; } }
-@media (max-width: 767px) { .w-sm-100 { width: 60% !important; } }
+    @media (min-width: 768px) and (max-width: 991px) { .w-md-70 { width: 50% !important; } }
+    @media (max-width: 767px) { .w-sm-100 { width: 60% !important; } }
   </style>
 </head>
 
@@ -153,15 +182,16 @@ if (isset($_GET['export'])) {
         }
         ?>
         <div class="col-lg-12 mt-4 mb-0">
-          <div class="row">
-            <div class="col-12 d-flex flex-wrap gap-2">
-  <button id="toggleLoadMore1" type="button" class="btn bg-gradient-info font-weight-bold w-sm-100 w-md-70 w-lg-30" style="font-size:16px;">Kegiatan Hari Ini</button>
-  <a href="?export=hari_ini" class="btn btn-success w-auto d-flex align-items-center"><i class="material-icons me-2">download</i>TXT</a>
-</div>
+          <div class="d-flex justify-content-between align-items-center section-header" id="toggleLoadMore1">
+            <div class="d-flex align-items-center gap-2">
+              <i class="material-icons">today</i>
+              <h6>Kegiatan Hari Ini</h6>
+            </div>
+            <a href="?export=hari_ini" class="btn-export" onclick="event.stopPropagation();"><i class="material-icons" style="font-size:14px;">download</i> Export TXT</a>
           </div>
         </div>
-        <div class="col-lg-12 mt-n3 mb-4" id="loadMoreX1" style="display: block;">
-          <div class="card h-100 py-3" style="border-top-left-radius:0;">
+        <div class="col-lg-12 mt-0 mb-4" id="loadMoreX1" style="display: block;">
+          <div class="card section-card h-100 py-3">
             <?php
             $current_date = date("Y-m-d");
             
@@ -285,15 +315,16 @@ if (isset($_GET['export'])) {
         </div>
 
         <div class="col-lg-12 mt-4 mb-0">
-          <div class="row">
-            <div class="col-12 d-flex flex-wrap gap-2">
-  <button id="toggleLoadMore2" type="button" class="btn bg-gradient-primary font-weight-bold w-sm-100 w-md-70 w-lg-30" style="font-size:16px;">Kegiatan Akan Datang</button>
-  <a href="?export=akan_datang" class="btn btn-success w-auto d-flex align-items-center"><i class="material-icons me-2">download</i>TXT</a>
-</div>
+          <div class="d-flex justify-content-between align-items-center section-header" id="toggleLoadMore2">
+            <div class="d-flex align-items-center gap-2">
+              <i class="material-icons">event_upcoming</i>
+              <h6>Kegiatan Akan Datang</h6>
+            </div>
+            <a href="?export=akan_datang" class="btn-export" onclick="event.stopPropagation();"><i class="material-icons" style="font-size:14px;">download</i> Export TXT</a>
           </div>
         </div>
-        <div class="col-lg-12 mt-n3 mb-4" id="loadMoreX2" style="display: block;">
-          <div class="card h-100 py-3" style="border-top-left-radius:0;">
+        <div class="col-lg-12 mt-0 mb-4" id="loadMoreX2" style="display: block;">
+          <div class="card section-card h-100 py-3">
             <?php
             // $sql_upcoming = "SELECT k.*, c.nama AS nama_customer, c.telp AS cust_nomor, c.alamat, c.id AS customer_id FROM kegiatan k LEFT JOIN customer c ON k.customer_id = c.id WHERE k.status != 'waiting' AND DATE(k.jadwal) > ? AND k.deleted_at IS NULL ORDER BY k.jadwal ASC";
             // $stmt_upcoming = $conn->prepare($sql_upcoming);
