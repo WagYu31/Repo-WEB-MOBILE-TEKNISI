@@ -164,15 +164,7 @@ $active_tab = $_GET['tab'] ?? 'belum_lunas'; // Default ke 'belum_lunas'
         ?>
         <div class="container-fluid py-4">
             <div class="row">
-                <div class="col-12">
-                    <div class="btn-group w-100" role="group">
-                        <a href="lap-kegiatan.php" class="btn btn-dark m-0">Belum Input Invoice</a>
-                        <a href="lap-kegiatan-selesai.php" class="btn btn-dark m-0">Selesai</a>
-                        <a href="lap-noinv.php" class="btn bg-dark m-0 text-light font-weight-bold">No Invoice</a>
-                        <a href="lap-loss.php" class="btn bg-gradient-danger m-0">Tidak Selesai</a>
-                        <a href="laporan-bulanan.php" class="btn btn-secondary m-0" target="_blank"><i class="material-icons text-sm">print</i></a>
-                    </div>
-                </div>
+                    <?php include 'nav-laporan.php'; ?>
             </div>
 
             <div class="row mt-4">
