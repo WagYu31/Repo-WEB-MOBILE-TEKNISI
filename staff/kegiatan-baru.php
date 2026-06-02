@@ -283,8 +283,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_kegiatan'])) {
                 map.setView(latlng, 16);
                 document.getElementById('lat').value = latlng.lat;
                 document.getElementById('lon').value = latlng.lng;
-                document.getElementById('lat_display').value = latlng.lat.toFixed(8);
-                document.getElementById('lon_display').value = latlng.lng.toFixed(8);
+                document.getElementById('lat_display').value = latlng.lat;
+                document.getElementById('lon_display').value = latlng.lng;
                 document.getElementById('radius').value = r;
                 document.getElementById('radius_input').value = r;
 
