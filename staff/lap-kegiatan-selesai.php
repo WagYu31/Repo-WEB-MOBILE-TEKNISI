@@ -82,7 +82,7 @@ $active_tab = $_GET['tab'] ?? 'belum_lunas'; // Default ke 'belum_lunas'
                                 <form method="GET" action="" class="w-100 w-md-50">
                                     <div class="input-group">
                                         <input type="hidden" name="tab" value="<?= htmlspecialchars($active_tab); ?>">
-                                        <input type="text" name="cari" class="form-control p-4" style="border-bottom:1px solid #adb5bd" placeholder="Cari nama customer..." value="<?= htmlspecialchars($_GET['cari'] ?? '') ?>">
+                                        <input type="text" name="cari" class="form-control p-4" style="border-bottom:1px solid #adb5bd" placeholder="Cari nama customer atau no. invoice..." value="<?= htmlspecialchars($_GET['cari'] ?? '') ?>">
                                         <button class="btn btn-primary mb-0" type="submit"><i class="material-icons text-sm">search</i></button>
                                     </div>
                                 </form>
@@ -116,6 +116,7 @@ $active_tab = $_GET['tab'] ?? 'belum_lunas'; // Default ke 'belum_lunas'
                                                     FROM kegiatan k
                                                     LEFT JOIN customer c ON k.customer_id = c.id
                                                     LEFT JOIN pelaksanaan_kegiatan p ON k.kode = p.kode
+                                                    LEFT JOIN pendapatan_kegiatan inv ON k.kode = inv.kode AND inv.deleted_at IS NULL
                                                     WHERE k.status != 'waiting' AND k.paid = 'yes' AND k.deleted_at IS NULL AND p.kode IS NOT NULL";
 
                                         if ($active_tab == 'belum_lunas') {
@@ -125,14 +126,14 @@ $active_tab = $_GET['tab'] ?? 'belum_lunas'; // Default ke 'belum_lunas'
                                         }
 
                                         if (!empty($search)) {
-                                            $sql_main .= " AND c.nama LIKE ?";
+                                            $sql_main .= " AND (c.nama LIKE ? OR inv.no_invoice LIKE ?)";
                                         }
                                         $sql_main .= " GROUP BY k.kode ORDER BY k.created_at DESC";
 
                                         $stmt_main = $conn->prepare($sql_main);
                                         if (!empty($search)) {
                                             $search_param = "%$search%";
-                                            $stmt_main->bind_param("s", $search_param);
+                                            $stmt_main->bind_param("ss", $search_param, $search_param);
                                         }
                                         $stmt_main->execute();
                                         $result_main = $stmt_main->get_result();
