@@ -5,7 +5,7 @@
                         <div class="col-lg-6 mb-lg-0 mb-3">
                             <div class="copyright text-center text-sm text-muted text-lg-start">
                                 © <script>
-                                </script>2024 Gravitti Technology
+                                </script>2026 Gravitti Technology
                             </div>
                         </div>
                     </div>
