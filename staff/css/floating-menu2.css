@@ -1,0 +1,67 @@
+        .floating-menu {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        .menu-btn {
+            width: 60px;
+            height: 55px;
+            border-radius: 50%;
+            background: red;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: transform 0.3s;
+            font-size: 30px;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            25% { transform: scale(1.1); }
+            50% { transform: scale(1); }
+            75% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        .menu-btn:hover {
+            transform: scale(1.2);
+        }
+        .submenu {
+            position: absolute;
+            bottom: 70px;
+            right: 0;
+            display: none;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 10px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease-in-out;
+        }
+        .submenu.show {
+            opacity: 1;
+            display: flex;
+            transform: translateY(0);
+        }
+        .submenu .menu-item {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            gap: 8px;
+            padding: 10px 15px;
+            border-radius: 25px;
+            background: #28a745;
+            color: white;
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: normal;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease-in-out;
+        }
+        .submenu .menu-item:hover {
+            background: #218838;
+            transform: scale(1.1);
+        }

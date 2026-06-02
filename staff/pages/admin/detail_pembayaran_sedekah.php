@@ -1,0 +1,403 @@
+<?php
+include "../../conn.php";
+$pageNow = "Detail Pembayaran";
+?>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <?php
+    include "head.php";
+    ?>
+    <style>
+        .aktif {
+            color: #21d375;
+        }
+
+        .tidak {
+            color: #d0342c;
+        }
+    </style>
+</head>
+
+<body class="g-sidenav-show  bg-gray-200">
+    <?php
+    include "cek-menu.php";
+    ?>
+    <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg ">
+        <!-- Navbar -->
+        <?php
+        $pageNow = "Verifikasi Pembayaran";
+        include "nav-top.php";
+        ?>
+        <!-- End Navbar -->
+        <div class="container-fluid py-4">
+            <div class="row">
+                <div class="col-12 col-md-6">
+                    <div class="card h-100 py-3">
+                        <div class="card-header pb-0 p-3">
+                            <div class="row">
+                                <div class="col-12 d-flex align-items-center">
+                                    <h6 class="mb-0 mx-1">Verifikasi Pembayaran</h6>
+                                </div>
+
+                            </div>
+                        </div>
+                        <div class="card-body p-4 pb-0">
+                            <ul class="list-group">
+                                <?php
+                                $getKodePembayaran = $_GET['kode_pembayaran'];
+                                setlocale(LC_TIME, 'id_ID.utf8');
+
+                                $query = "SELECT sedekah.*,
+                                data_warga.nik,
+                                data_warga.nama AS nama_warga
+                            FROM sedekah
+                            JOIN data_warga ON sedekah.id_warga = data_warga.id_warga
+                            WHERE sedekah.kode_pembayaran = ? 
+                            GROUP BY sedekah.kode_pembayaran, data_warga.nik, data_warga.nama, sedekah.tgl_sedekah, sedekah.status";
+
+                                $stmt = mysqli_prepare($conn, $query);
+                                mysqli_stmt_bind_param($stmt, "s", $getKodePembayaran);
+                                mysqli_stmt_execute($stmt);
+                                $result = mysqli_stmt_get_result($stmt);
+
+
+                                while ($row = mysqli_fetch_assoc($result)) {
+                                    $idSedekah = $row['id_sedekah'];
+                                    $kodePembayaran = $row['kode_pembayaran'];
+                                    $nik = $row['nik'];
+                                    $namaWarga = $row['nama_warga'];
+                                    $keterangan = $row['keterangan'];
+                                    $tglBayar = strftime("%d %B %Y", strtotime($row['tgl_sedekah'])); // Format tanggal dalam bahasa Indonesia
+                                    $buktiPembayaran = $row['bukti_pembayaran'];
+                                    $pembayaranVia = $row['id_bank'];
+                                    $jumlahSedekah = $row['jumlah'];
+                                    $statusPembayaran = $row['status'];
+                                    if ($statusPembayaran == "Pending") {
+                                        $statusPembayaran = "Menunggu Verifikasi";
+                                    } elseif ($statusPembayaran == "Verified") {
+                                        $statusPembayaran = "Berhasil";
+                                    } elseif ($statusPembayaran == "Tolak") {
+                                        $statusPembayaran = "Ditolak";
+                                    } else {
+                                        $statusPembayaran = "?";
+                                    }
+                                }
+
+                                $queryBk = "SELECT * FROM bank_account WHERE id_bank = '$pembayaranVia'";
+                                $resultBk = mysqli_query($conn, $queryBk);
+                                while ($rowBk = mysqli_fetch_assoc($resultBk)) {
+                                    $nmBank = $rowBk['nama_bank'];
+                                }
+                                ?>
+
+                                <li class="list-group-item border-0 d-flex flex-column justify-content-between ps-0 mb-2 border-radius-lg">
+                                    <div class="row">
+                                        <div class="col-12 col-md-12 mb-2 mb-md-0">
+                                            <h6 class="mb-1 text-dark font-weight-bold text-lg text-uppercase">Kode Pembayaran : <?php echo $kodePembayaran; ?></h6>
+                                        </div>
+
+                                        <div class="col-7 col-md-6 mb-2 mb-md-0">
+                                            <h6 class="mb-1 text-dark font-weight-bold"><?php echo $namaWarga; ?></h6>
+                                        </div>
+
+                                        <div class="col-5 col-md-6 mb-2 mb-md-0">
+                                            <span class="text-sm"><?php echo $tglBayar; ?></span><br>
+                                        </div>
+
+                                        <div class="col-12 col-md-12 mb-0 mb-md-0 mt-4">
+                                            <h6 class="mb-1 text-dark font-weight-bold text-sm text-uppercase">Detail Pembayaran</h6>
+                                        </div>
+
+                                        <div class="col-7 col-md-6 mb-2 mb-md-0">
+                                            <span class="text-sm text-dark"><?php echo $keterangan; ?></span>
+                                        </div>
+
+                                        <div class="col-5 col-md-6 mb-2 mb-md-0">
+                                            <span class="text-sm text-dark">Rp <?php echo number_format($jumlahSedekah, 0, ',', '.'); ?></span>
+                                        </div>
+
+                                        <div class="col-7 col-md-6 mb-2 mb-md-0"></div>
+
+                                        <div class="col-5 col-md-3 mb-2 mb-md-0" style="border-top:1px solid #ddd;">
+                                            <h6 class="mb-1 text-dark text-sm">Rp <?php echo number_format($jumlahSedekah, 0, ',', '.'); ?></h6>
+                                        </div>
+
+                                        <div class="col-12 col-md-12 mb-0 mb-md-0 mt-3">
+                                            <h6 class="mb-1 text-dark font-weight-bold text-sm text-uppercase">Pembayaran</h6>
+                                        </div>
+
+                                        <div class="col-6 col-md-6 mb-2 mb-md-0">
+                                            <span class="text-sm text-dark">Metode Pembayaran</span><br>
+                                            <span class="text-sm text-dark">Jumlah Pembayaran</span><br>
+                                            <span class="text-sm text-dark">Status Pembayaran</span><br>
+                                            <span class="text-sm text-dark">Bukti Pembayaran</span>
+                                        </div>
+
+                                        <div class="col-6 col-md-6 mb-2 mb-md-0">
+                                            <h6 class="mb-1 text-dark text-sm"><?php echo $nmBank; ?></h6>
+                                            <h6 class="mb-1 text-dark text-sm">Rp <?php echo number_format($jumlahSedekah, 0, ',', '.'); ?></h6>
+                                            <h6 class="mb-1 text-dark text-sm"><?php echo $statusPembayaran; ?></h6>
+                                            <a href="#" data-toggle="modal" data-target="#imageModal" data-image="../../assets/img/uploads/<?php echo $buktiPembayaran; ?>">
+                                                <img src="../../assets/img/uploads/<?php echo $buktiPembayaran; ?>" class="w-60 d-none d-md-block">
+                                            </a>
+                                        </div>
+
+                                        <div class="col-12 col-md-12 mb-2 mb-md-0">
+                                            <a href="#" data-toggle="modal" data-target="#imageModal" data-image="../../assets/img/uploads/<?php echo $buktiPembayaran; ?>">
+                                                <img src="../../assets/img/uploads/<?php echo $buktiPembayaran; ?>" class="w-70 w-md-30 d-block d-md-none">
+                                            </a>
+                                        </div>
+
+                                        <div class="col-12 col-md-12 mb-2 mb-md-0 mt-3 text-start text-md-center">
+                                            <form action="proses_verifikasi_sedekah.php" method="post">
+                                                <input type="hidden" name="kode_pembayaran" value="<?php echo $kodePembayaran; ?>">
+                                                <button type="submit" class="btn btn-outline-primary w-100" name="verifikasi_submit">VERIFIKASI</button>
+                                            </form>
+                                            <form action="proses_tolak_verifikasi_sedekah.php" method="post">
+                                                <input type="hidden" name="kode_pembayaran" value="<?php echo $kodePembayaran; ?>">
+                                                <button type="submit" class="btn btn-outline-warning w-100" name="verifikasi_tolak">PEMBAYARAN TIDAK VALID</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </li>
+
+                            </ul>
+
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6">
+                    <div class="card h-100 py-3">
+                        <div class="card-header pb-0 p-3">
+                            <div class="row">
+                                <div class="col-12 d-flex align-items-center">
+                                    <h6 class="mb-0 mx-1">Antrian Verifikasi</h6>
+                                </div>
+
+                            </div>
+                        </div>
+                        <div class="card-body p-4 pb-0">
+                            <ul class="list-group">
+                                <?php
+                                setlocale(LC_TIME, 'id_ID.utf8');
+                                $query = "SELECT 
+                                    sedekah.*,
+                                    data_warga.nik,
+                                    data_warga.nama AS nama_warga
+                                FROM 
+                                    sedekah
+                                JOIN 
+                                    data_warga ON sedekah.id_warga = data_warga.id_warga
+                                WHERE 
+                                    sedekah.status = 'Pending'
+                                GROUP BY 
+                                    sedekah.kode_pembayaran, 
+                                    data_warga.nik, 
+                                    data_warga.nama, 
+                                    sedekah.tgl_sedekah, 
+                                    sedekah.status";
+
+                                $stmt = mysqli_prepare($conn, $query);
+                                mysqli_stmt_execute($stmt);
+                                $result = mysqli_stmt_get_result($stmt);
+
+                                $counter = 0;
+
+                                while ($row = mysqli_fetch_assoc($result)) {
+                                    $kodePembayaran = $row['kode_pembayaran'];
+                                    $nik = $row['nik'];
+                                    $namaWarga = $row['nama_warga'];
+                                    $tglBayar = strftime("%d %B %Y", strtotime($row['tgl_sedekah']));
+                                    $totalJumlah = $row['jumlah'];
+                                    $statusPembayaran = ($row['status'] == "Verified") ? "Berhasil" : "Menunggu Verifikasi";
+
+
+                                    $counter++;
+                                ?>
+
+                                    <li class="list-group-item border-0 d-flex flex-column justify-content-between p-3 mb-2 border-radius-lg bg-gradient-secondary">
+                                        <a href="detail_pembayaran_sedekah.php?kode_pembayaran=<?php echo $kodePembayaran; ?>" class="text-decoration-none">
+                                            <div class="row">
+                                                <div class="col-12 col-md-3 mb-2 mb-md-0 text-start text-md-center">
+                                                    <h6 class="mb-1 text-light text-sm"><?php echo $statusPembayaran; ?></h6>
+                                                </div>
+                                                <div class="col-6 col-md-4 mb-2 mb-md-0">
+                                                    <h6 class="mb-1 text-light font-weight-bold text-sm"><?php echo $namaWarga; ?></h6>
+                                                    <h6 class="mb-1 text-light font-weight-bold text-sm">Rp <?php echo number_format($totalJumlah, 0, ',', '.') . ",00"; ?></h6>
+                                                </div>
+
+                                                <div class="col-6 col-md-3 mb-2 mb-md-0 mt-n1">
+                                                    <span class="text-light text-sm text-uppercase font-weight-bold">Kode : <?php echo $kodePembayaran; ?></span><br>
+                                                    <span class="text-light text-xs"><?php echo $tglBayar; ?></span>
+                                                </div>
+
+                                            </div>
+                                        </a>
+                                    </li>
+
+                                <?php
+                                    if ($counter >= 10) {
+                                        break; // Hentikan loop setelah 10 list
+                                    }
+                                }
+                                // Memeriksa apakah ada data yang ditemukan
+                                if (mysqli_num_rows($result) == 0) {
+                                    echo "Belum ada pembayaran";
+                                }
+                                ?>
+                            </ul>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <?php
+            include "../footer.php";
+            ?>
+        </div>
+    </main>
+    <div class="fixed-plugin">
+        <a class="fixed-plugin-button text-dark position-fixed px-3 py-2">
+            <i class="material-icons py-2">settings</i>
+        </a>
+    </div>
+
+
+    <div class="modal fade" id="imageModal" tabindex="-1" role="dialog" aria-labelledby="imageModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="imageModalLabel">Bukti Pembayaran</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <img id="modalImage" class="w-100" src="../../assets/img/uploads/<?php echo $buktiPembayaran; ?>" alt="Bukti Pembayaran">
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+    <!--   Core JS Files   -->
+    <?php
+    include "js-include.php";
+    ?>
+
+    <script>
+        function submitDeleteForm(idBank) {
+            if (confirm("Apakah Anda yakin ingin menghapus rekening bank ini?")) {
+                document.getElementById('deleteForm_' + idBank).submit();
+            }
+        }
+    </script>
+
+    <script>
+        function populateEditModal(idBank, namaBank, nomorRekening, atasNama) {
+            document.getElementById('editBankSelect').value = idBank; // Set the selected value
+            document.getElementById('atasNama').value = atasNama;
+            document.getElementById('editNomorRekening').value = nomorRekening;
+        }
+    </script>
+
+    <script>
+        var win = navigator.platform.indexOf('Win') > -1;
+        if (win && document.querySelector('#sidenav-scrollbar')) {
+            var options = {
+                damping: '0.5'
+            }
+            Scrollbar.init(document.querySelector('#sidenav-scrollbar'), options);
+        }
+    </script>
+    <!-- Github buttons -->
+    <script async defer src="https://buttons.github.io/buttons.js"></script>
+    <!-- Control Center for Material Dashboard: parallax effects, scripts for the example pages etc -->
+    <script src="../../assets/js/material-dashboard.min.js?v=3.1.0"></script>
+
+    <!-- Tambahkan script ini di bagian head atau sebelum penutup tag body -->
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $(".toggle-status").click(function() {
+                var button = $(this);
+
+                var idTagihan = button.data("id");
+                var currentStatus = button.data("status");
+                var newStatus = (currentStatus == "Y") ? "N" : "Y";
+
+                $.ajax({
+                    type: "POST",
+                    url: "update_status_tagihan.php", // Gantilah dengan URL yang sesuai
+                    data: {
+                        idTagihan: idTagihan,
+                        newStatus: newStatus
+                    },
+                    success: function(response) {
+                        if (response == "success") {
+                            // Reload halaman secara langsung
+                            location.reload();
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+
+    <script>
+        // Ambil formulir tambah tagihan
+        const formTambahTagihan = document.getElementById('formTambahTagihan');
+
+        // Tambahkan event listener untuk event submit
+        formTambahTagihan.addEventListener('submit', function(e) {
+            e.preventDefault(); // Mencegah aksi bawaan formulir (submit)
+
+            // Kirim data formulir menggunakan AJAX
+            fetch(this.action, {
+                    method: this.method,
+                    body: new FormData(this),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // Jika penyisipan berhasil, tutup modal dan lakukan reload halaman
+                        alert(data.message);
+                        $('#tambahTagihanModal').modal('hide');
+                        location.reload();
+                    } else {
+                        // Jika ada kesalahan, tampilkan pesan kesalahan
+                        alert(data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        });
+
+
+        function formatRupiah(input) {
+            // Remove non-numeric characters
+            var rawValue = input.value.replace(/[^\d]/g, '');
+
+            // Format as currency for display
+            var formattedValue = 'Rp ' + new Intl.NumberFormat('id-ID').format(rawValue);
+
+            // Update the displayed value
+            input.value = formattedValue;
+
+            // Update the hidden input with the raw numeric value
+            document.getElementById('jumlahTagihanHidden').value = rawValue;
+        }
+    </script>
+
+
+
+</body>
+
+</html>

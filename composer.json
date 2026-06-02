@@ -1,0 +1,7 @@
+{
+    "require": {
+        "picqer/php-barcode-generator": "^2.4",
+        "endroid/qr-code": "^4.6",
+        "bacon/bacon-qr-code": "^2.0"
+    }
+}

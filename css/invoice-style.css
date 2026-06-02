@@ -1,0 +1,77 @@
+
+        .invoice-container {
+            border: 2px solid #000;
+            padding: 30px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        .container-fluid{
+            margin-left:-2.5vw;
+        }
+        .kepada{
+            text-align:left;
+        }
+        .kepada p{
+            margin-top:-10px;
+        }
+        h4{
+            margin-bottom:20px;
+        }
+        .english-text {
+            font-style: italic;
+            margin-top:-15px;
+            font-size:14px;
+        }
+        .actions {
+            text-align: right;
+            margin-top: 50px;
+            margin-right:7vw;
+        }
+        p.warn{
+            text-align:center;
+            color:red;
+            margin-top:2vh;
+            font-style:italic;
+        }
+        .navbar {
+            background-color: white;
+            box-shadow: 5px 3px 15px rgba(0, 0, 0, 0.5);
+        }
+        
+        li.nav-item a i, li.nav-item span{
+            color:#4723D9;
+        }
+        
+        ul.menuv li i{
+            color:white;
+        }
+        .menuv li a span {
+            width:65px;
+            left:-17%;
+        }
+        .menuv li a span.tg{
+            left:-45%;
+        }
+        .navv input:checked ~ .menuv li:nth-child(1) {
+          top: -80px;
+          transition-delay: 0.1s;
+        }
+        
+        @media print {
+            .no-print, .footer, .navbar {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .actions{
+                margin-right:2vw;
+                margin-bottom:2vh;
+            }
+            .footer{
+                margin-bottom:13vh;
+            }
+            .container-fluid{
+                margin-left:0;
+            }
+        }

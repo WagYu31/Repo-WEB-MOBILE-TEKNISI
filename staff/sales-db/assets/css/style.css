@@ -1,0 +1,26 @@
+body {
+    background-color: #f8f9fa;
+    padding-top: 20px;
+}
+
+.card {
+    margin-bottom: 20px;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.card-header {
+    font-weight: bold;
+}
+
+.table th {
+    background-color: #f8f9fa;
+}
+
+.search-box {
+    max-width: 400px;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}

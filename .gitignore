@@ -1,0 +1,36 @@
+# Environment & credentials
+conn.php
+staff/conn.php
+.env
+*.env
+loewix-teknisi-mobile-main/lib/constants/app_constants.dart
+
+# Database dumps
+*.sql
+
+# Vendor dependencies
+vendor/
+staff/vendor/
+node_modules/
+
+# Uploads & user files
+uploads/
+staff/uploads/
+qr_codes/
+
+# Logs
+log/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+
+# aaPanel
+.user.ini
+404.html
+502.html

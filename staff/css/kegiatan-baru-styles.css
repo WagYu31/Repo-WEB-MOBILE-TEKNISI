@@ -1,0 +1,85 @@
+/* Styling untuk baris ganjil/genap pada history */
+ul#data-kegiatan-cust li:nth-child(odd) {
+    background-color: white;
+}
+
+ul#data-kegiatan-cust li:nth-child(even) {
+    background-color: #efefef;
+    border-radius: 0;
+}
+
+/* Styling untuk dropdown customer kustom */
+.dropdown {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+.dropdown-button {
+    padding: 10px;
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.dropdown-button .icon {
+    margin-left: 10px;
+}
+
+#dropdownSearch {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+}
+
+#dropdownItems {
+    display: none;
+    position: absolute;
+    background-color: #f1f1f1;
+    width: 100%;
+    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+    z-index: 10; /* Menaikkan z-index agar di atas elemen lain */
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.dropdown-item {
+    color: black;
+    padding: 8px 16px;
+    text-decoration: none;
+    display: block;
+    cursor: pointer;
+}
+
+.dropdown-item:hover {
+    background-color: #ddd;
+}
+
+/* Styling untuk layout form yang sejajar */
+.form-row-container {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 1rem;
+}
+
+.form-row-container .form-group {
+    flex-grow: 1;
+    margin-top: 0;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.form-row-container .form-group input[type="date"],
+.form-row-container .form-group select {
+    width: 100%;
+    min-width: 120px;
+}

@@ -1,0 +1,3412 @@
+.
+├── 404.html
+├── 502.html
+├── add-kegiatan.php
+├── admin_assmn.php
+├── admin-dijadwalkan.php
+├── admin_full.php
+├── admin-selesai.php
+├── assmn.php
+├── backup_edit_kegiatan.php
+├── backUp_get_kegiatan_teknisi.php
+├── backup_index.php
+├── back-up-login.php
+├── bc-index-sa.php
+├── berhasil.php
+├── btm-nav-adm.php
+├── btm-nav.php
+├── btm-nav-tek.php
+├── cek_nomor_telepon.php
+├── cek-resi.php
+├── center-login.php
+├── composer.json
+├── composer.lock
+├── conn.php
+├── cron.php
+├── css
+│   ├── floating-menu2.css
+│   ├── foot.css
+│   ├── invoice-style.css
+│   └── style.css
+├── customer-detail.php
+├── customer_detail.php
+├── dashboard-dijadwalkan.php
+├── dashboard-ongoing.php
+├── dashboard-sa.php
+├── dashboard-tidak-selesai.php
+├── data-customer.php
+├── data_kegiatan_akan_datang.php
+├── data_kegiatan_hari_ini_bu.php
+├── data_kegiatan_hari_ini.php
+├── data-sales
+│   ├── index.php
+│   ├── PHPExcel
+│   │   ├── changelog.txt
+│   │   ├── Classes
+│   │   │   ├── PHPExcel
+│   │   │   │   ├── Autoloader.php
+│   │   │   │   ├── CachedObjectStorage
+│   │   │   │   │   ├── APC.php
+│   │   │   │   │   ├── CacheBase.php
+│   │   │   │   │   ├── DiscISAM.php
+│   │   │   │   │   ├── ICache.php
+│   │   │   │   │   ├── Igbinary.php
+│   │   │   │   │   ├── Memcache.php
+│   │   │   │   │   ├── MemoryGZip.php
+│   │   │   │   │   ├── Memory.php
+│   │   │   │   │   ├── MemorySerialized.php
+│   │   │   │   │   ├── PHPTemp.php
+│   │   │   │   │   ├── SQLite3.php
+│   │   │   │   │   ├── SQLite.php
+│   │   │   │   │   └── Wincache.php
+│   │   │   │   ├── CachedObjectStorageFactory.php
+│   │   │   │   ├── CalcEngine
+│   │   │   │   │   ├── CyclicReferenceStack.php
+│   │   │   │   │   └── Logger.php
+│   │   │   │   ├── Calculation
+│   │   │   │   │   ├── Database.php
+│   │   │   │   │   ├── DateTime.php
+│   │   │   │   │   ├── Engineering.php
+│   │   │   │   │   ├── ExceptionHandler.php
+│   │   │   │   │   ├── Exception.php
+│   │   │   │   │   ├── Financial.php
+│   │   │   │   │   ├── FormulaParser.php
+│   │   │   │   │   ├── FormulaToken.php
+│   │   │   │   │   ├── functionlist.txt
+│   │   │   │   │   ├── Function.php
+│   │   │   │   │   ├── Functions.php
+│   │   │   │   │   ├── Logical.php
+│   │   │   │   │   ├── LookupRef.php
+│   │   │   │   │   ├── MathTrig.php
+│   │   │   │   │   ├── Statistical.php
+│   │   │   │   │   ├── TextData.php
+│   │   │   │   │   └── Token
+│   │   │   │   │       └── Stack.php
+│   │   │   │   ├── Calculation.php
+│   │   │   │   ├── Cell
+│   │   │   │   │   ├── AdvancedValueBinder.php
+│   │   │   │   │   ├── DataType.php
+│   │   │   │   │   ├── DataValidation.php
+│   │   │   │   │   ├── DefaultValueBinder.php
+│   │   │   │   │   ├── Hyperlink.php
+│   │   │   │   │   └── IValueBinder.php
+│   │   │   │   ├── Cell.php
+│   │   │   │   ├── Chart
+│   │   │   │   │   ├── Axis.php
+│   │   │   │   │   ├── DataSeries.php
+│   │   │   │   │   ├── DataSeriesValues.php
+│   │   │   │   │   ├── Exception.php
+│   │   │   │   │   ├── GridLines.php
+│   │   │   │   │   ├── Layout.php
+│   │   │   │   │   ├── Legend.php
+│   │   │   │   │   ├── PlotArea.php
+│   │   │   │   │   ├── Properties.php
+│   │   │   │   │   ├── Renderer
+│   │   │   │   │   │   ├── jpgraph.php
+│   │   │   │   │   │   └── PHP Charting Libraries.txt
+│   │   │   │   │   └── Title.php
+│   │   │   │   ├── Chart.php
+│   │   │   │   ├── Comment.php
+│   │   │   │   ├── DocumentProperties.php
+│   │   │   │   ├── DocumentSecurity.php
+│   │   │   │   ├── Exception.php
+│   │   │   │   ├── HashTable.php
+│   │   │   │   ├── Helper
+│   │   │   │   │   └── HTML.php
+│   │   │   │   ├── IComparable.php
+│   │   │   │   ├── IOFactory.php
+│   │   │   │   ├── locale
+│   │   │   │   │   ├── bg
+│   │   │   │   │   │   └── config
+│   │   │   │   │   ├── cs
+│   │   │   │   │   │   ├── config
+│   │   │   │   │   │   └── functions
+│   │   │   │   │   ├── da
+│   │   │   │   │   │   ├── config
+│   │   │   │   │   │   └── functions
+│   │   │   │   │   ├── de
+│   │   │   │   │   │   ├── config
+│   │   │   │   │   │   └── functions
+│   │   │   │   │   ├── en
+│   │   │   │   │   │   └── uk
+│   │   │   │   │   │       └── config
+│   │   │   │   │   ├── es
+│   │   │   │   │   │   ├── config
+│   │   │   │   │   │   └── functions
+│   │   │   │   │   ├── fi
+│   │   │   │   │   │   ├── config
+│   │   │   │   │   │   └── functions
+│   │   │   │   │   ├── fr
+│   │   │   │   │   │   ├── config
+│   │   │   │   │   │   └── functions
+│   │   │   │   │   ├── hu
+│   │   │   │   │   │   ├── config
+│   │   │   │   │   │   └── functions
+│   │   │   │   │   ├── it
+│   │   │   │   │   │   ├── config
+│   │   │   │   │   │   └── functions
+│   │   │   │   │   ├── nl
+│   │   │   │   │   │   ├── config
+│   │   │   │   │   │   └── functions
+│   │   │   │   │   ├── no
+│   │   │   │   │   │   ├── config
+│   │   │   │   │   │   └── functions
+│   │   │   │   │   ├── pl
+│   │   │   │   │   │   ├── config
+│   │   │   │   │   │   └── functions
+│   │   │   │   │   ├── pt
+│   │   │   │   │   │   ├── br
+│   │   │   │   │   │   │   ├── config
+│   │   │   │   │   │   │   └── functions
+│   │   │   │   │   │   ├── config
+│   │   │   │   │   │   └── functions
+│   │   │   │   │   ├── ru
+│   │   │   │   │   │   ├── config
+│   │   │   │   │   │   └── functions
+│   │   │   │   │   ├── sv
+│   │   │   │   │   │   ├── config
+│   │   │   │   │   │   └── functions
+│   │   │   │   │   └── tr
+│   │   │   │   │       ├── config
+│   │   │   │   │       └── functions
+│   │   │   │   ├── NamedRange.php
+│   │   │   │   ├── Reader
+│   │   │   │   │   ├── Abstract.php
+│   │   │   │   │   ├── CSV.php
+│   │   │   │   │   ├── DefaultReadFilter.php
+│   │   │   │   │   ├── Excel2003XML.php
+│   │   │   │   │   ├── Excel2007
+│   │   │   │   │   │   ├── Chart.php
+│   │   │   │   │   │   └── Theme.php
+│   │   │   │   │   ├── Excel2007.php
+│   │   │   │   │   ├── Excel5
+│   │   │   │   │   │   ├── Color
+│   │   │   │   │   │   │   ├── BIFF5.php
+│   │   │   │   │   │   │   ├── BIFF8.php
+│   │   │   │   │   │   │   └── BuiltIn.php
+│   │   │   │   │   │   ├── Color.php
+│   │   │   │   │   │   ├── ErrorCode.php
+│   │   │   │   │   │   ├── Escher.php
+│   │   │   │   │   │   ├── MD5.php
+│   │   │   │   │   │   ├── RC4.php
+│   │   │   │   │   │   └── Style
+│   │   │   │   │   │       ├── Border.php
+│   │   │   │   │   │       └── FillPattern.php
+│   │   │   │   │   ├── Excel5.php
+│   │   │   │   │   ├── Exception.php
+│   │   │   │   │   ├── Gnumeric.php
+│   │   │   │   │   ├── HTML.php
+│   │   │   │   │   ├── IReader.php
+│   │   │   │   │   ├── IReadFilter.php
+│   │   │   │   │   ├── OOCalc.php
+│   │   │   │   │   └── SYLK.php
+│   │   │   │   ├── ReferenceHelper.php
+│   │   │   │   ├── RichText
+│   │   │   │   │   ├── ITextElement.php
+│   │   │   │   │   ├── Run.php
+│   │   │   │   │   └── TextElement.php
+│   │   │   │   ├── RichText.php
+│   │   │   │   ├── Settings.php
+│   │   │   │   ├── Shared
+│   │   │   │   │   ├── CodePage.php
+│   │   │   │   │   ├── Date.php
+│   │   │   │   │   ├── Drawing.php
+│   │   │   │   │   ├── Escher
+│   │   │   │   │   │   ├── DgContainer
+│   │   │   │   │   │   │   ├── SpgrContainer
+│   │   │   │   │   │   │   │   └── SpContainer.php
+│   │   │   │   │   │   │   └── SpgrContainer.php
+│   │   │   │   │   │   ├── DgContainer.php
+│   │   │   │   │   │   ├── DggContainer
+│   │   │   │   │   │   │   ├── BstoreContainer
+│   │   │   │   │   │   │   │   ├── BSE
+│   │   │   │   │   │   │   │   │   └── Blip.php
+│   │   │   │   │   │   │   │   └── BSE.php
+│   │   │   │   │   │   │   └── BstoreContainer.php
+│   │   │   │   │   │   └── DggContainer.php
+│   │   │   │   │   ├── Escher.php
+│   │   │   │   │   ├── Excel5.php
+│   │   │   │   │   ├── File.php
+│   │   │   │   │   ├── Font.php
+│   │   │   │   │   ├── JAMA
+│   │   │   │   │   │   ├── CHANGELOG.TXT
+│   │   │   │   │   │   ├── CholeskyDecomposition.php
+│   │   │   │   │   │   ├── EigenvalueDecomposition.php
+│   │   │   │   │   │   ├── LUDecomposition.php
+│   │   │   │   │   │   ├── Matrix.php
+│   │   │   │   │   │   ├── QRDecomposition.php
+│   │   │   │   │   │   ├── SingularValueDecomposition.php
+│   │   │   │   │   │   └── utils
+│   │   │   │   │   │       ├── Error.php
+│   │   │   │   │   │       └── Maths.php
+│   │   │   │   │   ├── OLE
+│   │   │   │   │   │   ├── ChainedBlockStream.php
+│   │   │   │   │   │   ├── PPS
+│   │   │   │   │   │   │   ├── File.php
+│   │   │   │   │   │   │   └── Root.php
+│   │   │   │   │   │   └── PPS.php
+│   │   │   │   │   ├── OLE.php
+│   │   │   │   │   ├── OLERead.php
+│   │   │   │   │   ├── PasswordHasher.php
+│   │   │   │   │   ├── PCLZip
+│   │   │   │   │   │   ├── gnu-lgpl.txt
+│   │   │   │   │   │   ├── pclzip.lib.php
+│   │   │   │   │   │   └── readme.txt
+│   │   │   │   │   ├── String.php
+│   │   │   │   │   ├── TimeZone.php
+│   │   │   │   │   ├── trend
+│   │   │   │   │   │   ├── bestFitClass.php
+│   │   │   │   │   │   ├── exponentialBestFitClass.php
+│   │   │   │   │   │   ├── linearBestFitClass.php
+│   │   │   │   │   │   ├── logarithmicBestFitClass.php
+│   │   │   │   │   │   ├── polynomialBestFitClass.php
+│   │   │   │   │   │   ├── powerBestFitClass.php
+│   │   │   │   │   │   └── trendClass.php
+│   │   │   │   │   ├── XMLWriter.php
+│   │   │   │   │   ├── ZipArchive.php
+│   │   │   │   │   └── ZipStreamWrapper.php
+│   │   │   │   ├── Style
+│   │   │   │   │   ├── Alignment.php
+│   │   │   │   │   ├── Border.php
+│   │   │   │   │   ├── Borders.php
+│   │   │   │   │   ├── Color.php
+│   │   │   │   │   ├── Conditional.php
+│   │   │   │   │   ├── Fill.php
+│   │   │   │   │   ├── Font.php
+│   │   │   │   │   ├── NumberFormat.php
+│   │   │   │   │   ├── Protection.php
+│   │   │   │   │   └── Supervisor.php
+│   │   │   │   ├── Style.php
+│   │   │   │   ├── Worksheet
+│   │   │   │   │   ├── AutoFilter
+│   │   │   │   │   │   ├── Column
+│   │   │   │   │   │   │   └── Rule.php
+│   │   │   │   │   │   └── Column.php
+│   │   │   │   │   ├── AutoFilter.php
+│   │   │   │   │   ├── BaseDrawing.php
+│   │   │   │   │   ├── CellIterator.php
+│   │   │   │   │   ├── ColumnCellIterator.php
+│   │   │   │   │   ├── ColumnDimension.php
+│   │   │   │   │   ├── ColumnIterator.php
+│   │   │   │   │   ├── Column.php
+│   │   │   │   │   ├── Dimension.php
+│   │   │   │   │   ├── Drawing
+│   │   │   │   │   │   └── Shadow.php
+│   │   │   │   │   ├── Drawing.php
+│   │   │   │   │   ├── HeaderFooterDrawing.php
+│   │   │   │   │   ├── HeaderFooter.php
+│   │   │   │   │   ├── MemoryDrawing.php
+│   │   │   │   │   ├── PageMargins.php
+│   │   │   │   │   ├── PageSetup.php
+│   │   │   │   │   ├── Protection.php
+│   │   │   │   │   ├── RowCellIterator.php
+│   │   │   │   │   ├── RowDimension.php
+│   │   │   │   │   ├── RowIterator.php
+│   │   │   │   │   ├── Row.php
+│   │   │   │   │   └── SheetView.php
+│   │   │   │   ├── WorksheetIterator.php
+│   │   │   │   ├── Worksheet.php
+│   │   │   │   └── Writer
+│   │   │   │       ├── Abstract.php
+│   │   │   │       ├── CSV.php
+│   │   │   │       ├── Excel2007
+│   │   │   │       │   ├── Chart.php
+│   │   │   │       │   ├── Comments.php
+│   │   │   │       │   ├── ContentTypes.php
+│   │   │   │       │   ├── DocProps.php
+│   │   │   │       │   ├── Drawing.php
+│   │   │   │       │   ├── Rels.php
+│   │   │   │       │   ├── RelsRibbon.php
+│   │   │   │       │   ├── RelsVBA.php
+│   │   │   │       │   ├── StringTable.php
+│   │   │   │       │   ├── Style.php
+│   │   │   │       │   ├── Theme.php
+│   │   │   │       │   ├── Workbook.php
+│   │   │   │       │   ├── Worksheet.php
+│   │   │   │       │   └── WriterPart.php
+│   │   │   │       ├── Excel2007.php
+│   │   │   │       ├── Excel5
+│   │   │   │       │   ├── BIFFwriter.php
+│   │   │   │       │   ├── Escher.php
+│   │   │   │       │   ├── Font.php
+│   │   │   │       │   ├── Parser.php
+│   │   │   │       │   ├── Workbook.php
+│   │   │   │       │   ├── Worksheet.php
+│   │   │   │       │   └── Xf.php
+│   │   │   │       ├── Excel5.php
+│   │   │   │       ├── Exception.php
+│   │   │   │       ├── HTML.php
+│   │   │   │       ├── IWriter.php
+│   │   │   │       ├── OpenDocument
+│   │   │   │       │   ├── Cell
+│   │   │   │       │   │   └── Comment.php
+│   │   │   │       │   ├── Content.php
+│   │   │   │       │   ├── MetaInf.php
+│   │   │   │       │   ├── Meta.php
+│   │   │   │       │   ├── Mimetype.php
+│   │   │   │       │   ├── Settings.php
+│   │   │   │       │   ├── Styles.php
+│   │   │   │       │   ├── Thumbnails.php
+│   │   │   │       │   └── WriterPart.php
+│   │   │   │       ├── OpenDocument.php
+│   │   │   │       ├── PDF
+│   │   │   │       │   ├── Core.php
+│   │   │   │       │   ├── DomPDF.php
+│   │   │   │       │   ├── mPDF.php
+│   │   │   │       │   └── tcPDF.php
+│   │   │   │       └── PDF.php
+│   │   │   └── PHPExcel.php
+│   │   ├── composer.json
+│   │   ├── Documentation
+│   │   │   ├── assets
+│   │   │   │   └── ClassDiagrams
+│   │   │   │       ├── Architecture.cd
+│   │   │   │       ├── Architecture.png
+│   │   │   │       ├── ClassDiagrams.csproj
+│   │   │   │       ├── ClassDiagrams.csproj.user
+│   │   │   │       ├── ClassDiagrams.sln
+│   │   │   │       ├── Classes
+│   │   │   │       │   ├── IReader.cs
+│   │   │   │       │   ├── IWriter.cs
+│   │   │   │       │   ├── PHPExcel.cs
+│   │   │   │       │   ├── PHPExcel_IOFactory.cs
+│   │   │   │       │   ├── PHPExcel_Reader_Excel2007.cs
+│   │   │   │       │   ├── PHPExcel_Reader_Excel5.cs
+│   │   │   │       │   ├── PHPExcel_Reader_Serialized.cs
+│   │   │   │       │   ├── PHPExcel_Writer_Excel2007.cs
+│   │   │   │       │   ├── PHPExcel_Writer_Serialized.cs
+│   │   │   │       │   └── Worksheet.cs
+│   │   │   │       ├── Exports
+│   │   │   │       │   ├── Architecture.png
+│   │   │   │       │   └── ReaderWriter.png
+│   │   │   │       ├── ReaderWriter.cd
+│   │   │   │       └── ReaderWriter.png
+│   │   │   ├── Examples
+│   │   │   │   ├── Calculations
+│   │   │   │   │   ├── Database
+│   │   │   │   │   │   ├── DAVERAGE.php
+│   │   │   │   │   │   ├── DCOUNT.php
+│   │   │   │   │   │   ├── DGET.php
+│   │   │   │   │   │   ├── DMAX.php
+│   │   │   │   │   │   ├── DMIN.php
+│   │   │   │   │   │   ├── DPRODUCT.php
+│   │   │   │   │   │   ├── DSTDEV.php
+│   │   │   │   │   │   ├── DSTDEVP.php
+│   │   │   │   │   │   ├── DVAR.php
+│   │   │   │   │   │   └── DVARP.php
+│   │   │   │   │   ├── DateTime
+│   │   │   │   │   │   ├── DATE.php
+│   │   │   │   │   │   ├── DATEVALUE.php
+│   │   │   │   │   │   ├── TIME.php
+│   │   │   │   │   │   └── TIMEVALUE.php
+│   │   │   │   │   └── index.php
+│   │   │   │   ├── index.php
+│   │   │   │   ├── Reader
+│   │   │   │   │   ├── exampleReader01.php
+│   │   │   │   │   ├── exampleReader02.php
+│   │   │   │   │   ├── exampleReader03.php
+│   │   │   │   │   ├── exampleReader04.php
+│   │   │   │   │   ├── exampleReader05.php
+│   │   │   │   │   ├── exampleReader06.php
+│   │   │   │   │   ├── exampleReader07.php
+│   │   │   │   │   ├── exampleReader08.php
+│   │   │   │   │   ├── exampleReader09.php
+│   │   │   │   │   ├── exampleReader10.php
+│   │   │   │   │   ├── exampleReader11.php
+│   │   │   │   │   ├── exampleReader12.php
+│   │   │   │   │   ├── exampleReader13.php
+│   │   │   │   │   ├── exampleReader14.php
+│   │   │   │   │   ├── exampleReader15.php
+│   │   │   │   │   ├── exampleReader16.php
+│   │   │   │   │   ├── exampleReader17.php
+│   │   │   │   │   ├── exampleReader18.php
+│   │   │   │   │   ├── exampleReader19.php
+│   │   │   │   │   └── sampleData
+│   │   │   │   │       ├── example1.csv
+│   │   │   │   │       ├── example1.tsv
+│   │   │   │   │       ├── example1.xls
+│   │   │   │   │       ├── example2.csv
+│   │   │   │   │       └── example2.xls
+│   │   │   │   └── Reading WorkBook Data
+│   │   │   │       ├── exampleWorkBookReader01.php
+│   │   │   │       ├── exampleWorkBookReader02.php
+│   │   │   │       ├── exampleWorkBookReader03.php
+│   │   │   │       ├── exampleWorkBookReader04.php
+│   │   │   │       └── sampleData
+│   │   │   │           ├── example1.xls
+│   │   │   │           ├── example1.xlsx
+│   │   │   │           └── example2.xls
+│   │   │   ├── Functionality Cross-Reference.xls
+│   │   │   ├── FunctionListByCategory.txt
+│   │   │   ├── FunctionListByName.txt
+│   │   │   ├── markdown
+│   │   │   │   ├── CalculationEngine
+│   │   │   │   │   └── FunctionReference
+│   │   │   │   │       ├── 01-Introduction.md
+│   │   │   │   │       ├── 02-01-Date-and-Time-Handling.md
+│   │   │   │   │       ├── 02-General-Introduction.md
+│   │   │   │   │       ├── 03-01-Cube-Functions.md
+│   │   │   │   │       ├── 03-02-Database-Functions.md
+│   │   │   │   │       └── 03-03-Date-and-Time-Functions.md
+│   │   │   │   ├── Features
+│   │   │   │   │   └── Autofilters
+│   │   │   │   │       ├── 01-Autofilters.md
+│   │   │   │   │       ├── 02-Setting-an-Autofilter.md
+│   │   │   │   │       ├── 03-Autofilter-Expressions.md
+│   │   │   │   │       ├── 04-01-Autofilter-Expressions-Simple.md
+│   │   │   │   │       ├── 04-02-Autofilter-Expressions-Dategroup.md
+│   │   │   │   │       ├── 04-03-Autofilter-Expressions-Custom.md
+│   │   │   │   │       ├── 04-04-Autofilter-Expressions-Dynamic.md
+│   │   │   │   │       ├── 04-05-Autofilter-Expressions-Topten.md
+│   │   │   │   │       ├── 05-Executing-Autofilters.md
+│   │   │   │   │       ├── 06-Autofilter-Sorting.md
+│   │   │   │   │       └── images
+│   │   │   │   │           ├── 01-01-autofilter.png
+│   │   │   │   │           ├── 01-02-autofilter.png
+│   │   │   │   │           ├── 01-03-filter-icon-1.png
+│   │   │   │   │           ├── 01-03-filter-icon-2.png
+│   │   │   │   │           ├── 01-04-autofilter.png
+│   │   │   │   │           ├── 04-01-simple-autofilter.png
+│   │   │   │   │           ├── 04-02-dategroup-autofilter.png
+│   │   │   │   │           ├── 04-03-custom-autofilter-1.png
+│   │   │   │   │           ├── 04-03-custom-autofilter-2.png
+│   │   │   │   │           ├── 04-04-dynamic-autofilter.png
+│   │   │   │   │           ├── 04-05-topten-autofilter-1.png
+│   │   │   │   │           └── 04-05-topten-autofilter-2.png
+│   │   │   │   ├── Functions
+│   │   │   │   │   ├── FunctionListByCategory.md
+│   │   │   │   │   └── FunctionListByName.md
+│   │   │   │   ├── Overview
+│   │   │   │   │   ├── 01-Getting-Started.md
+│   │   │   │   │   ├── 02-Architecture.md
+│   │   │   │   │   ├── 03-Creating-a-Spreadsheet.md
+│   │   │   │   │   ├── 04-Configuration-Settings.md
+│   │   │   │   │   ├── 05-Deleting-a-Workbook.md
+│   │   │   │   │   ├── 06-Worksheets.md
+│   │   │   │   │   ├── 07-Accessing-Cells.md
+│   │   │   │   │   ├── 08-Recipes.md
+│   │   │   │   │   ├── 09-Calculation-Engine.md
+│   │   │   │   │   ├── 10-Reading-and-Writing.md
+│   │   │   │   │   ├── 11-Appendices.md
+│   │   │   │   │   └── images
+│   │   │   │   │       ├── 01-schematic.png
+│   │   │   │   │       ├── 02-readers-writers.png
+│   │   │   │   │       ├── 07-simple-example-1.png
+│   │   │   │   │       ├── 07-simple-example-2.png
+│   │   │   │   │       ├── 07-simple-example-3.png
+│   │   │   │   │       ├── 07-simple-example-4.png
+│   │   │   │   │       ├── 08-cell-comment.png
+│   │   │   │   │       ├── 08-column-width.png
+│   │   │   │   │       ├── 08-page-setup-margins.png
+│   │   │   │   │       ├── 08-page-setup-scaling-options.png
+│   │   │   │   │       ├── 08-styling-border-options.png
+│   │   │   │   │       ├── 09-command-line-calculation.png
+│   │   │   │   │       ├── 09-formula-in-cell-1.png
+│   │   │   │   │       └── 09-formula-in-cell-2.png
+│   │   │   │   └── ReadingSpreadsheetFiles
+│   │   │   │       ├── 01-File-Formats.md
+│   │   │   │       ├── 02-Security.md
+│   │   │   │       ├── 03-Loading-a-Spreadsheet.md
+│   │   │   │       ├── 04-Loading-with-a-Reader.md
+│   │   │   │       ├── 05-Reader-Options.md
+│   │   │   │       ├── 06-Error-Handling.md
+│   │   │   │       └── 07-Helper-Methods.md
+│   │   │   ├── PHPExcel AutoFilter Reference developer documentation.doc
+│   │   │   ├── PHPExcel developer documentation.doc
+│   │   │   ├── PHPExcel Function Reference developer documentation.doc
+│   │   │   └── PHPExcel User Documentation - Reading Spreadsheet Files.doc
+│   │   ├── Examples
+│   │   │   ├── 01pharSimple.php
+│   │   │   ├── 01simple-download-ods.php
+│   │   │   ├── 01simple-download-pdf.php
+│   │   │   ├── 01simple-download-xls.php
+│   │   │   ├── 01simple-download-xlsx.php
+│   │   │   ├── 01simplePCLZip.php
+│   │   │   ├── 01simple.php
+│   │   │   ├── 02types.php
+│   │   │   ├── 02types-xls.php
+│   │   │   ├── 03formulas.php
+│   │   │   ├── 04printing.php
+│   │   │   ├── 05featuredemo.inc.php
+│   │   │   ├── 05featuredemo.php
+│   │   │   ├── 06largescale.php
+│   │   │   ├── 06largescale-with-cellcaching.php
+│   │   │   ├── 06largescale-with-cellcaching-sqlite3.php
+│   │   │   ├── 06largescale-with-cellcaching-sqlite.php
+│   │   │   ├── 06largescale-xls.php
+│   │   │   ├── 07readerPCLZip.php
+│   │   │   ├── 07reader.php
+│   │   │   ├── 08conditionalformatting2.php
+│   │   │   ├── 08conditionalformatting.php
+│   │   │   ├── 09pagebreaks.php
+│   │   │   ├── 10autofilter.php
+│   │   │   ├── 10autofilter-selection-1.php
+│   │   │   ├── 10autofilter-selection-2.php
+│   │   │   ├── 10autofilter-selection-display.php
+│   │   │   ├── 11documentsecurity.php
+│   │   │   ├── 11documentsecurity-xls.php
+│   │   │   ├── 12cellProtection.php
+│   │   │   ├── 13calculationCyclicFormulae.php
+│   │   │   ├── 13calculation.php
+│   │   │   ├── 14excel5.php
+│   │   │   ├── 15datavalidation.php
+│   │   │   ├── 15datavalidation-xls.php
+│   │   │   ├── 16csv.php
+│   │   │   ├── 17html.php
+│   │   │   ├── 18extendedcalculation.php
+│   │   │   ├── 19namedrange.php
+│   │   │   ├── 20readexcel5.php
+│   │   │   ├── 21pdf.php
+│   │   │   ├── 22heavilyformatted.php
+│   │   │   ├── 23sharedstyles.php
+│   │   │   ├── 24readfilter.php
+│   │   │   ├── 25inmemoryimage.php
+│   │   │   ├── 26utf8.php
+│   │   │   ├── 27imagesexcel5.php
+│   │   │   ├── 28iterator.php
+│   │   │   ├── 29advancedvaluebinder.php
+│   │   │   ├── 30template.php
+│   │   │   ├── 31docproperties_write.php
+│   │   │   ├── 31docproperties_write-xls.php
+│   │   │   ├── 32chartreadwrite.php
+│   │   │   ├── 33chartcreate-area.php
+│   │   │   ├── 33chartcreate-bar.php
+│   │   │   ├── 33chartcreate-bar-stacked.php
+│   │   │   ├── 33chartcreate-column-2.php
+│   │   │   ├── 33chartcreate-column.php
+│   │   │   ├── 33chartcreate-composite.php
+│   │   │   ├── 33chartcreate-line.php
+│   │   │   ├── 33chartcreate-multiple-charts.php
+│   │   │   ├── 33chartcreate-pie.php
+│   │   │   ├── 33chartcreate-radar.php
+│   │   │   ├── 33chartcreate-scatter.php
+│   │   │   ├── 33chartcreate-stock.php
+│   │   │   ├── 34chartupdate.php
+│   │   │   ├── 35chartrender.php
+│   │   │   ├── 36chartreadwriteHTML.php
+│   │   │   ├── 36chartreadwritePDF.php
+│   │   │   ├── 37page_layout_view.php
+│   │   │   ├── 38cloneWorksheet.php
+│   │   │   ├── 39dropdown.php
+│   │   │   ├── 40duplicateStyle.php
+│   │   │   ├── 41password.php
+│   │   │   ├── 42richText.php
+│   │   │   ├── 43mergeWorkbooks.php
+│   │   │   ├── 44worksheetInfo.php
+│   │   │   ├── data
+│   │   │   │   └── continents
+│   │   │   │       ├── Africa.txt
+│   │   │   │       ├── Asia.txt
+│   │   │   │       ├── Europe.txt
+│   │   │   │       ├── North America.txt
+│   │   │   │       ├── Oceania.txt
+│   │   │   │       └── South America.txt
+│   │   │   ├── Excel2003XMLReader.php
+│   │   │   ├── Excel2003XMLTest.xml
+│   │   │   ├── .gitignore
+│   │   │   ├── GnumericReader.php
+│   │   │   ├── GnumericTest.gnumeric
+│   │   │   ├── images
+│   │   │   │   ├── officelogo.jpg
+│   │   │   │   ├── paid.png
+│   │   │   │   ├── phpexcel_logo.gif
+│   │   │   │   └── termsconditions.jpg
+│   │   │   ├── OOCalcReaderPCLZip.php
+│   │   │   ├── OOCalcReader.php
+│   │   │   ├── OOCalcTest.ods
+│   │   │   ├── Quadratic2.php
+│   │   │   ├── Quadratic.php
+│   │   │   ├── Quadratic.xlsx
+│   │   │   ├── runall.php
+│   │   │   ├── SylkReader.php
+│   │   │   ├── SylkTest.slk
+│   │   │   ├── templates
+│   │   │   │   ├── 26template.xlsx
+│   │   │   │   ├── 27template.xls
+│   │   │   │   ├── 30template.xls
+│   │   │   │   ├── 31docproperties.xls
+│   │   │   │   ├── 31docproperties.xlsx
+│   │   │   │   ├── 32chartreadwrite.xlsx
+│   │   │   │   ├── 32complexChartreadwrite.xlsx
+│   │   │   │   ├── 32readwriteAreaChart1.xlsx
+│   │   │   │   ├── 32readwriteAreaChart2.xlsx
+│   │   │   │   ├── 32readwriteAreaChart3D1.xlsx
+│   │   │   │   ├── 32readwriteAreaChart3.xlsx
+│   │   │   │   ├── 32readwriteAreaPercentageChart1.xlsx
+│   │   │   │   ├── 32readwriteAreaPercentageChart2.xlsx
+│   │   │   │   ├── 32readwriteAreaPercentageChart3D1.xlsx
+│   │   │   │   ├── 32readwriteAreaStackedChart1.xlsx
+│   │   │   │   ├── 32readwriteAreaStackedChart2.xlsx
+│   │   │   │   ├── 32readwriteAreaStackedChart3D1.xlsx
+│   │   │   │   ├── 32readwriteBarChart1.xlsx
+│   │   │   │   ├── 32readwriteBarChart2.xlsx
+│   │   │   │   ├── 32readwriteBarChart3D1.xlsx
+│   │   │   │   ├── 32readwriteBarChart3.xlsx
+│   │   │   │   ├── 32readwriteBarPercentageChart1.xlsx
+│   │   │   │   ├── 32readwriteBarPercentageChart2.xlsx
+│   │   │   │   ├── 32readwriteBarPercentageChart3D1.xlsx
+│   │   │   │   ├── 32readwriteBarStackedChart1.xlsx
+│   │   │   │   ├── 32readwriteBarStackedChart2.xlsx
+│   │   │   │   ├── 32readwriteBarStackedChart3D1.xlsx
+│   │   │   │   ├── 32readwriteBubbleChart1.xlsx
+│   │   │   │   ├── 32readwriteBubbleChart3D1.xlsx
+│   │   │   │   ├── 32readwriteChartWithImages1.xlsx
+│   │   │   │   ├── 32readwriteColumnChart1.xlsx
+│   │   │   │   ├── 32readwriteColumnChart2.xlsx
+│   │   │   │   ├── 32readwriteColumnChart3D1.xlsx
+│   │   │   │   ├── 32readwriteColumnChart3.xlsx
+│   │   │   │   ├── 32readwriteColumnChart4.xlsx
+│   │   │   │   ├── 32readwriteColumnPercentageChart1.xlsx
+│   │   │   │   ├── 32readwriteColumnPercentageChart2.xlsx
+│   │   │   │   ├── 32readwriteColumnPercentageChart3D1.xlsx
+│   │   │   │   ├── 32readwriteColumnStackedChart1.xlsx
+│   │   │   │   ├── 32readwriteColumnStackedChart2.xlsx
+│   │   │   │   ├── 32readwriteColumnStackedChart3D1.xlsx
+│   │   │   │   ├── 32readwriteDonutChart1.xlsx
+│   │   │   │   ├── 32readwriteDonutChart2.xlsx
+│   │   │   │   ├── 32readwriteDonutChart3.xlsx
+│   │   │   │   ├── 32readwriteDonutChart4.xlsx
+│   │   │   │   ├── 32readwriteDonutChartExploded1.xlsx
+│   │   │   │   ├── 32readwriteDonutChartMultiseries1.xlsx
+│   │   │   │   ├── 32readwriteLineChart1.xlsx
+│   │   │   │   ├── 32readwriteLineChart2.xlsx
+│   │   │   │   ├── 32readwriteLineChart3D1.xlsx
+│   │   │   │   ├── 32readwriteLineChart3.xlsx
+│   │   │   │   ├── 32readwriteLineChartNoPointMarkers1.xlsx
+│   │   │   │   ├── 32readwriteLinePercentageChart1.xlsx
+│   │   │   │   ├── 32readwriteLinePercentageChart2.xlsx
+│   │   │   │   ├── 32readwriteLineStackedChart1.xlsx
+│   │   │   │   ├── 32readwriteLineStackedChart2.xlsx
+│   │   │   │   ├── 32readwritePieChart1.xlsx
+│   │   │   │   ├── 32readwritePieChart2.xlsx
+│   │   │   │   ├── 32readwritePieChart3D1.xlsx
+│   │   │   │   ├── 32readwritePieChart3.xlsx
+│   │   │   │   ├── 32readwritePieChart4.xlsx
+│   │   │   │   ├── 32readwritePieChartExploded1.xlsx
+│   │   │   │   ├── 32readwritePieChartExploded3D1.xlsx
+│   │   │   │   ├── 32readwriteRadarChart1.xlsx
+│   │   │   │   ├── 32readwriteRadarChart2.xlsx
+│   │   │   │   ├── 32readwriteRadarChart3.xlsx
+│   │   │   │   ├── 32readwriteScatterChart1.xlsx
+│   │   │   │   ├── 32readwriteScatterChart2.xlsx
+│   │   │   │   ├── 32readwriteScatterChart3.xlsx
+│   │   │   │   ├── 32readwriteScatterChart4.xlsx
+│   │   │   │   ├── 32readwriteScatterChart5.xlsx
+│   │   │   │   ├── 32readwriteStockChart1.xlsx
+│   │   │   │   ├── 32readwriteStockChart2.xlsx
+│   │   │   │   ├── 32readwriteStockChart3.xlsx
+│   │   │   │   ├── 32readwriteStockChart4.xlsx
+│   │   │   │   ├── 32readwriteSurfaceChart1.xlsx
+│   │   │   │   ├── 32readwriteSurfaceChart2.xlsx
+│   │   │   │   ├── 32readwriteSurfaceChart3.xlsx
+│   │   │   │   ├── 32readwriteSurfaceChart4.xlsx
+│   │   │   │   ├── 36writeLineChart1.xlsx
+│   │   │   │   ├── 43mergeBook1.xlsx
+│   │   │   │   └── 43mergeBook2.xlsx
+│   │   │   ├── XMLReader.php
+│   │   │   └── XMLTest.xml
+│   │   ├── .gitattributes
+│   │   ├── .gitignore
+│   │   ├── install.txt
+│   │   ├── license.md
+│   │   └── .travis.yml
+│   └── uploads
+│       └── datasales.xlsx
+├── default.php
+├── delete_kegiatan_adm.php
+├── delete_kegiatan.php
+├── delete_kegiatan_sa.php
+├── delete.php
+├── dep-css.php
+├── dep-js.php
+├── detail_kegiatan_2.php
+├── detail_kegiatan_3.php
+├── detail-kegiatan-finish-kegiatan.php
+├── detail-kegiatan-finish.php
+├── detail_kegiatan.php
+├── detail-kegiatan-teknisi-dekstop.php
+├── detail-kegiatan-teknisi-mobile.php
+├── detail-kegiatan-teknisi.php
+├── edit_customer.php
+├── edit_kegiatan.php
+├── foot.php
+├── get_data_kegiatan.php
+├── get_data_teknisi.php
+├── get_image.php
+├── get-kegiatan.php
+├── get-kegiatan-teknisi.php
+├── get-next-page.php
+├── get-number-task.php
+├── get-number-waiting.php
+├── get_update_kegiatan.php
+├── get-user-data.php
+├── guest-mode.php
+├── guest.php
+├── hapus_sales.php
+├── hapus_teknisi.php
+├── header.php
+├── history.php
+├── .htaccess
+├── img
+│   ├── chart.png
+│   ├── inv_lunas.png
+│   ├── loewix.png
+│   ├── logo2.ico
+│   ├── logo2.png
+│   ├── logo3.png
+│   ├── logo.ico
+│   ├── logo.png
+│   ├── notify.png
+│   └── prof.png
+├── index.html
+├── index.php
+├── index-sales.php
+├── index-sa.php
+├── index-teknisi-dekstop.php
+├── index-teknisi-mobile.php
+├── index-teknisi.php
+├── input-customer.php
+├── js
+│   └── script.js
+├── kegiatan.php
+├── kegiatan-sales.php
+├── lg_bc.php
+├── log
+│   ├── agung-3358
+│   │   └── index.php
+│   ├── arif-8394
+│   │   └── index.php
+│   ├── diyat-3287
+│   │   └── index.php
+│   ├── febry-3848
+│   │   └── index.php
+│   ├── imam-6474
+│   │   └── index.php
+│   ├── parto-4932
+│   │   └── index.php
+│   ├── roby-4374
+│   │   └── index.php
+│   └── wasdi-7284
+│       └── index.php
+├── login.php
+├── logout.php
+├── nav-bar.php
+├── nomor_telepon.php
+├── process_location.php
+├── profile-tek.php
+├── proses_auto_login.php
+├── proses_finish_kegiatan.php
+├── proses_hapus_kegiatan.php
+├── proses_jadwalkan_2.php
+├── proses_jadwalkan.php
+├── proses_lanjut_besok.php
+├── proses_login_barcode.php
+├── proses_login.php
+├── proses_pause.php
+├── proses_signup.php
+├── qr_codes
+├── request.php
+├── sales.php
+├── script.js
+├── script-map.js
+├── script-masuk.js
+├── signup.php
+├── staff
+│   ├── accurate-sales
+│   │   ├── auth
+│   │   │   ├── callback.php
+│   │   │   ├── oauth.php
+│   │   │   └── token_auth.php
+│   │   ├── config.php
+│   │   ├── customer
+│   │   │   ├── delete.php
+│   │   │   ├── detail.php
+│   │   │   ├── list.php
+│   │   │   └── save.php
+│   │   ├── database
+│   │   │   ├── list.php
+│   │   │   └── open.php
+│   │   ├── helpers
+│   │   │   └── api_request.php
+│   │   └── index.php
+│   ├── ajax-progress.php
+│   ├── apk
+│   │   ├── admin.apk
+│   │   └── teknisi.apk
+│   ├── apv_data_kegiatan.php
+│   ├── apv_kegiatan.php
+│   ├── assets
+│   │   ├── background-image.jpg
+│   │   ├── ckeditor5
+│   │   │   ├── build
+│   │   │   │   ├── ckeditor.d.ts
+│   │   │   │   ├── ckeditor.js
+│   │   │   │   ├── ckeditor.js.map
+│   │   │   │   └── translations
+│   │   │   │       ├── af.js
+│   │   │   │       ├── ar.js
+│   │   │   │       ├── ast.js
+│   │   │   │       ├── az.js
+│   │   │   │       ├── bg.js
+│   │   │   │       ├── bn.js
+│   │   │   │       ├── bs.js
+│   │   │   │       ├── ca.js
+│   │   │   │       ├── cs.js
+│   │   │   │       ├── da.js
+│   │   │   │       ├── de-ch.js
+│   │   │   │       ├── de.js
+│   │   │   │       ├── el.js
+│   │   │   │       ├── en-au.js
+│   │   │   │       ├── en-gb.js
+│   │   │   │       ├── en.js
+│   │   │   │       ├── eo.js
+│   │   │   │       ├── es-co.js
+│   │   │   │       ├── es.js
+│   │   │   │       ├── et.js
+│   │   │   │       ├── eu.js
+│   │   │   │       ├── fa.js
+│   │   │   │       ├── fi.js
+│   │   │   │       ├── fr.js
+│   │   │   │       ├── gl.js
+│   │   │   │       ├── gu.js
+│   │   │   │       ├── he.js
+│   │   │   │       ├── hi.js
+│   │   │   │       ├── hr.js
+│   │   │   │       ├── hu.js
+│   │   │   │       ├── hy.js
+│   │   │   │       ├── it.js
+│   │   │   │       ├── ja.js
+│   │   │   │       ├── jv.js
+│   │   │   │       ├── kk.js
+│   │   │   │       ├── km.js
+│   │   │   │       ├── kn.js
+│   │   │   │       ├── ko.js
+│   │   │   │       ├── ku.js
+│   │   │   │       ├── lt.js
+│   │   │   │       ├── lv.js
+│   │   │   │       ├── ms.js
+│   │   │   │       ├── nb.js
+│   │   │   │       ├── ne.js
+│   │   │   │       ├── nl.js
+│   │   │   │       ├── no.js
+│   │   │   │       ├── oc.js
+│   │   │   │       ├── pl.js
+│   │   │   │       ├── pt-br.js
+│   │   │   │       ├── pt.js
+│   │   │   │       ├── ro.js
+│   │   │   │       ├── ru.js
+│   │   │   │       ├── si.js
+│   │   │   │       ├── sk.js
+│   │   │   │       ├── sl.js
+│   │   │   │       ├── sq.js
+│   │   │   │       ├── sr.js
+│   │   │   │       ├── sr-latn.js
+│   │   │   │       ├── sv.js
+│   │   │   │       ├── th.js
+│   │   │   │       ├── tk.js
+│   │   │   │       ├── tr.js
+│   │   │   │       ├── tt.js
+│   │   │   │       ├── ug.js
+│   │   │   │       ├── uk.js
+│   │   │   │       ├── ur.js
+│   │   │   │       ├── uz.js
+│   │   │   │       ├── vi.js
+│   │   │   │       ├── zh-cn.js
+│   │   │   │       └── zh.js
+│   │   │   ├── LICENSE.md
+│   │   │   ├── package.json
+│   │   │   ├── README.md
+│   │   │   ├── sample
+│   │   │   │   ├── index.html
+│   │   │   │   ├── script.js
+│   │   │   │   └── styles.css
+│   │   │   ├── src
+│   │   │   │   └── ckeditor.ts
+│   │   │   ├── tsconfig.json
+│   │   │   └── webpack.config.js
+│   │   ├── css
+│   │   │   ├── material-dashboard.css
+│   │   │   ├── material-dashboard.css.map
+│   │   │   ├── material-dashboard.min.css
+│   │   │   ├── nucleo-icons.css
+│   │   │   └── nucleo-svg.css
+│   │   ├── fonts
+│   │   │   ├── nucleo.eot
+│   │   │   ├── nucleo-icons.eot
+│   │   │   ├── nucleo-icons.svg
+│   │   │   ├── nucleo-icons.ttf
+│   │   │   ├── nucleo-icons.woff
+│   │   │   ├── nucleo-icons.woff2
+│   │   │   ├── nucleo.ttf
+│   │   │   ├── nucleo.woff
+│   │   │   └── nucleo.woff2
+│   │   ├── img
+│   │   │   ├── apple-icon.png
+│   │   │   ├── down-arrow-dark.svg
+│   │   │   ├── down-arrow.svg
+│   │   │   ├── down-arrow-white.svg
+│   │   │   ├── favicon.png
+│   │   │   ├── female.png
+│   │   │   ├── icons
+│   │   │   │   └── flags
+│   │   │   │       ├── AU.png
+│   │   │   │       ├── BR.png
+│   │   │   │       ├── DE.png
+│   │   │   │       ├── GB.png
+│   │   │   │       └── US.png
+│   │   │   ├── icons.zip
+│   │   │   ├── illustrations
+│   │   │   │   ├── chat.png
+│   │   │   │   ├── danger-chat-ill.png
+│   │   │   │   ├── dark-lock-ill.png
+│   │   │   │   ├── error-404.png
+│   │   │   │   ├── error-500.png
+│   │   │   │   ├── illustration-lock.jpg
+│   │   │   │   ├── illustration-reset.jpg
+│   │   │   │   ├── illustration-signin.jpg
+│   │   │   │   ├── illustration-signup.jpg
+│   │   │   │   ├── illustration-verification.jpg
+│   │   │   │   ├── lock.png
+│   │   │   │   ├── pattern-tree.svg
+│   │   │   │   └── rocket-white.png
+│   │   │   ├── illustrations.zip
+│   │   │   ├── logo
+│   │   │   │   ├── lwx-htm.png
+│   │   │   │   ├── lwx-logo.png
+│   │   │   │   ├── lwx.png
+│   │   │   │   ├── w-logo-ls.png
+│   │   │   │   └── w-logo-pt.png
+│   │   │   ├── logo-ct-dark.png
+│   │   │   ├── logo-ct.png
+│   │   │   ├── logos
+│   │   │   │   ├── gray-logos
+│   │   │   │   │   ├── logo-coinbase.svg
+│   │   │   │   │   ├── logo-nasa.svg
+│   │   │   │   │   ├── logo-netflix.svg
+│   │   │   │   │   ├── logo-pinterest.svg
+│   │   │   │   │   ├── logo-spotify.svg
+│   │   │   │   │   └── logo-vodafone.svg
+│   │   │   │   ├── mastercard.png
+│   │   │   │   └── visa.png
+│   │   │   ├── logo.zip
+│   │   │   ├── lunas.png
+│   │   │   ├── male.png
+│   │   │   ├── man.png
+│   │   │   ├── products
+│   │   │   ├── shapes
+│   │   │   │   ├── pattern-lines.svg
+│   │   │   │   └── waves-white.svg
+│   │   │   ├── small-logos
+│   │   │   │   ├── bootstrap.svg
+│   │   │   │   ├── creative-tim.svg
+│   │   │   │   ├── devto.svg
+│   │   │   │   ├── github.svg
+│   │   │   │   ├── google-webdev.svg
+│   │   │   │   ├── icon-bulb.svg
+│   │   │   │   ├── icon-sun-cloud.png
+│   │   │   │   ├── logo-asana.svg
+│   │   │   │   ├── logo-atlassian.svg
+│   │   │   │   ├── logo-invision.svg
+│   │   │   │   ├── logo-jira.svg
+│   │   │   │   ├── logo-slack.svg
+│   │   │   │   ├── logo-spotify.svg
+│   │   │   │   └── logo-xd.svg
+│   │   │   ├── uploads
+│   │   │   │   ├── 224_30717_MDM.jpg
+│   │   │   │   ├── 254_47026_AJN.jpg
+│   │   │   │   ├── 254_76926_RJN.jpg
+│   │   │   │   ├── 257_33568_YIS.jpg
+│   │   │   │   ├── 257_39849_PHB.jpg
+│   │   │   │   ├── 257_54556_AAP.jpg
+│   │   │   │   ├── 257_92589_ZNA.jpg
+│   │   │   │   ├── 257_99226_ABA.jpg
+│   │   │   │   ├── 258_80937_JTV.jpg
+│   │   │   │   ├── 262_96158_DAD.jpg
+│   │   │   │   ├── 280_67007_EFU.jpg
+│   │   │   │   ├── 281_22346_ZNH.mp4
+│   │   │   │   ├── 281_52022_YXP.jpg
+│   │   │   │   ├── 281_55489_YRR.jpg
+│   │   │   │   ├── 281_96772_WAD.jpg
+│   │   │   │   ├── 286_93883_HYC.jpg
+│   │   │   │   ├── 296_70240_ONX.jpg
+│   │   │   │   ├── 296_88785_HXJ.jpg
+│   │   │   │   ├── 297_23647_UUP.jpg
+│   │   │   │   ├── 297_30965_OIR.jpg
+│   │   │   │   ├── 297_45717_QXZ.jpg
+│   │   │   │   ├── 297_88174_AXY.jpg
+│   │   │   │   ├── 300_74363_AJB.jpg
+│   │   │   │   ├── 304_81541_KUW.jpg
+│   │   │   │   ├── 307_33902_RHI.jpg
+│   │   │   │   ├── 307_40486_RPX.jpg
+│   │   │   │   ├── 307_40656_KNY.jpg
+│   │   │   │   ├── 307_48624_LZE.jpg
+│   │   │   │   ├── 307_91997_MRB.jpg
+│   │   │   │   ├── 307_95712_UVN.jpg
+│   │   │   │   ├── 308_42788_XQM.jpg
+│   │   │   │   ├── 308_50223_LKU.jpg
+│   │   │   │   ├── 308_74164_CNT.jpg
+│   │   │   │   ├── 308_80113_LZQ.jpg
+│   │   │   │   ├── 309_89562_WPP.jpg
+│   │   │   │   ├── 322_32052_HXP.jpg
+│   │   │   │   ├── 322_98500_PMA.jpg
+│   │   │   │   ├── 335_79442_UNN.jpeg
+│   │   │   │   ├── 335_94646_QUO.jpeg
+│   │   │   │   ├── 348_59581_JKC.jpg
+│   │   │   │   ├── 349_34380_JWH.jpg
+│   │   │   │   ├── 349_60933_YLY.jpg
+│   │   │   │   ├── 369_85323_RUI.jpg
+│   │   │   │   ├── 369_95597_DPN.jpg
+│   │   │   │   ├── 371_86178_HBZ.jpg
+│   │   │   │   ├── 373_11744_PLH.jpg
+│   │   │   │   ├── 373_14988_THJ.jpg
+│   │   │   │   ├── 373_51542_JWR.jpg
+│   │   │   │   ├── 373_55977_VKT.jpg
+│   │   │   │   ├── 373_68977_BZR.jpg
+│   │   │   │   ├── 373_87595_IKD.jpg
+│   │   │   │   ├── 380_13071_VXG.jpg
+│   │   │   │   ├── 380_89208_RTA.jpg
+│   │   │   │   ├── 425_96480_ACW.mp4
+│   │   │   │   ├── 436_67982_BDY.jpg
+│   │   │   │   ├── 443_56176_QNG.jpg
+│   │   │   │   ├── 443_58537_DDY.jpg
+│   │   │   │   ├── 445_31659_LSK.jpg
+│   │   │   │   ├── 453_60218_OMT.jpg
+│   │   │   │   ├── 461_15550_PBW.jpg
+│   │   │   │   ├── 461_52357_IPE.jpg
+│   │   │   │   ├── 465_62190_OPO.jpg
+│   │   │   │   ├── 465_85542_UTA.jpg
+│   │   │   │   ├── 466_43926_MQW.jpg
+│   │   │   │   ├── 481_19820_SRQ.jpg
+│   │   │   │   ├── 481_33376_GES.jpg
+│   │   │   │   ├── 481_70334_ZHB.jpg
+│   │   │   │   ├── 481_88375_GUF.jpg
+│   │   │   │   ├── 6552ec16953bd_blob
+│   │   │   │   ├── 6552ec1919955_blob
+│   │   │   │   ├── 6552f03351f60_blob
+│   │   │   │   ├── 656fd51285bb5_blob
+│   │   │   │   ├── 656fde0526a03_blob
+│   │   │   │   ├── 65791444f132c_blob
+│   │   │   │   ├── 657933beee068_blob
+│   │   │   │   ├── 657a7ef214946_blob
+│   │   │   │   ├── 6581554c85ad9_blob
+│   │   │   │   ├── 658167a830e41_blob
+│   │   │   │   ├── 6582c6ebe1a3e_blob
+│   │   │   │   ├── 658e33f9c70a2_blob
+│   │   │   │   ├── 658e36af1b589_blob
+│   │   │   │   ├── 658e36c4df0c8_blob
+│   │   │   │   ├── 658e36f881fc3_blob
+│   │   │   │   ├── 658e3716c64db_blob
+│   │   │   │   ├── 658e372caf281_blob
+│   │   │   │   ├── 658e37b5165f1_blob
+│   │   │   │   ├── 658e3804aa026_blob
+│   │   │   │   ├── 658e38081b406_blob
+│   │   │   │   ├── 658e380b4e38f_blob
+│   │   │   │   ├── 658e380c1ff8b_blob
+│   │   │   │   ├── 658e381026866_blob
+│   │   │   │   ├── 658e3813ea479_blob
+│   │   │   │   ├── 658e3816ad3f4_blob
+│   │   │   │   ├── 658e381ba3f81_blob
+│   │   │   │   ├── 658e381da106e_blob
+│   │   │   │   ├── 658e381fdb621_blob
+│   │   │   │   ├── 658e3824ce610_blob
+│   │   │   │   ├── 658e3824cf8f9_blob
+│   │   │   │   ├── 658e3825d446d_blob
+│   │   │   │   ├── 658e3828876bb_blob
+│   │   │   │   ├── 658e38299696d_blob
+│   │   │   │   ├── 658e382b4c99e_blob
+│   │   │   │   ├── 658e382cb5084_blob
+│   │   │   │   ├── 658e382e3dfd4_blob
+│   │   │   │   ├── 658e383228679_blob
+│   │   │   │   ├── 658e38359c901_blob
+│   │   │   │   ├── 658e38373ae76_blob
+│   │   │   │   ├── 658e3839757d2_blob
+│   │   │   │   ├── 658e383c21218_blob
+│   │   │   │   ├── 658e383e11e57_blob
+│   │   │   │   ├── 658e384084f77_blob
+│   │   │   │   ├── 658e384b3801f_blob
+│   │   │   │   ├── 658e384b3e99c_blob
+│   │   │   │   ├── 658e384b3ebf3_blob
+│   │   │   │   ├── 658e384b432d0_blob
+│   │   │   │   ├── 658e384b432d2_blob
+│   │   │   │   ├── 658e384b49f3f_blob
+│   │   │   │   ├── 658e384b4db3e_blob
+│   │   │   │   ├── 658e384b538e2_blob
+│   │   │   │   ├── 658e384c7abac_blob
+│   │   │   │   ├── 658e384c7f376_blob
+│   │   │   │   ├── 658e38eb482bb_blob
+│   │   │   │   ├── 658e39071cde9_blob
+│   │   │   │   ├── 658e392784aa9_blob
+│   │   │   │   ├── 659661cfdf9b3_blob
+│   │   │   │   ├── 659661f0ab9c9_blob
+│   │   │   │   ├── 659666c4893f8_blob
+│   │   │   │   ├── 659667423b9c7_blob
+│   │   │   │   ├── 6597e5a1b1beb_blob
+│   │   │   │   ├── 6598beb1e24d2_blob
+│   │   │   │   ├── 6598c94728f48_blob
+│   │   │   │   ├── 659b69fd48937_blob
+│   │   │   │   ├── 659b69fd7f981_blob
+│   │   │   │   ├── 659b7c41ace12_blob
+│   │   │   │   ├── 659b84c5ce4d2_blob
+│   │   │   │   ├── 659ba4a688907_blob
+│   │   │   │   ├── 659c0eea01f4c_blob
+│   │   │   │   ├── 659ca82b016fc_blob
+│   │   │   │   ├── 659ca8a64a12d_blob
+│   │   │   │   ├── 659cd10093e06_blob
+│   │   │   │   ├── 659cff4c22237_blob
+│   │   │   │   ├── 659d0fe21fe26_blob
+│   │   │   │   ├── 659d22d0dddea_blob
+│   │   │   │   ├── 659d22d12ab66_blob
+│   │   │   │   ├── 659d2a51d3df7_blob
+│   │   │   │   ├── 659e102e3d978_blob
+│   │   │   │   ├── 659e379618212_blob
+│   │   │   │   ├── 659e37bb1ceb4_blob
+│   │   │   │   ├── 659e743510748_blob
+│   │   │   │   ├── 659e760124170_blob
+│   │   │   │   ├── 659e7608d540f_blob
+│   │   │   │   ├── 659e76367f13e_blob
+│   │   │   │   ├── 659e8f66c8112_blob
+│   │   │   │   ├── lhkh bkbkj.png
+│   │   │   │   ├── LWX04435_6656a10b28f57_2117.jpg
+│   │   │   │   ├── LWX04785_66504644df2f0_2076.jpg
+│   │   │   │   ├── LWX04785_66504644e01c7_2076.jpg
+│   │   │   │   ├── LWX04785_66504644e0f17_2076.jpg
+│   │   │   │   ├── LWX04785_66504644e1ad2_2076.jpg
+│   │   │   │   ├── LWX04785_66504644e264e_2076.jpg
+│   │   │   │   ├── LWX04973_661e32fc58652_1833.jpg
+│   │   │   │   ├── LWX06552_664c70c44ace7_2059.jpeg
+│   │   │   │   ├── LWX09530_65f29963a6489_1602.jpg
+│   │   │   │   ├── LWX09530_65f29963a66e6_1602.jpg
+│   │   │   │   ├── LWX09530_65f29963a686f_1602.jpg
+│   │   │   │   ├── LWX12156_66024b26ef357_1691.jpg
+│   │   │   │   ├── LWX12156_66024b26f06db_1691.jpg
+│   │   │   │   ├── LWX12156_66024b26f1a5c_1691.jpg
+│   │   │   │   ├── LWX12156_66024b26f2d15_1691.jpg
+│   │   │   │   ├── LWX12156_66024b26f3f16_1691.jpg
+│   │   │   │   ├── LWX12156_66024c5749815_1691.jpg
+│   │   │   │   ├── LWX12156_66024c574b58e_1691.jpg
+│   │   │   │   ├── LWX12156_66024c574c7b3_1691.jpg
+│   │   │   │   ├── LWX12156_66024c574dbc9_1691.jpg
+│   │   │   │   ├── LWX12156_66024c574ed89_1691.jpg
+│   │   │   │   ├── LWX13931_663305fb88cd5_1947.jpg
+│   │   │   │   ├── LWX13931_66330607c1967_1947.jpg
+│   │   │   │   ├── LWX16593_660549f17ee1c_1710.jpg
+│   │   │   │   ├── LWX18439_66960657b090e_2483.jpg
+│   │   │   │   ├── LWX18439_66960657b206c_2483.jpg
+│   │   │   │   ├── LWX18439_6696068e21bcf_2483.jpg
+│   │   │   │   ├── LWX18439_6696068e2333a_2483.jpg
+│   │   │   │   ├── LWX18439_669606d015797_2483.jpg
+│   │   │   │   ├── LWX18439_669606d016f0d_2483.jpg
+│   │   │   │   ├── LWX18439_6696071823730_2483.jpg
+│   │   │   │   ├── LWX18439_6696071824e9e_2483.jpg
+│   │   │   │   ├── LWX18439_6696094772267_2483.jpg
+│   │   │   │   ├── LWX18439_669609477386f_2483.jpg
+│   │   │   │   ├── LWX21864_660e5a86b5cb1_1810.jpg
+│   │   │   │   ├── LWX21965_65fe864fe87b8_1654.jpg
+│   │   │   │   ├── LWX21965_65fe896b7fecf_1654.jpg
+│   │   │   │   ├── LWX21965_65fe896fe6e03_1654.jpg
+│   │   │   │   ├── LWX22822_66a8693dc85fe_2620.jpg
+│   │   │   │   ├── LWX23208_662c94a044ca7_1917.jpg
+│   │   │   │   ├── LWX23208_662c9757307da_1919.jpg
+│   │   │   │   ├── LWX23208_662c975730b1b_1919.jpg
+│   │   │   │   ├── LWX23439_668e7af17e730_2463.jpg
+│   │   │   │   ├── LWX23439_668e7af17f857_2463.jpg
+│   │   │   │   ├── LWX23439_668e7b905b7cc_2463.jpg
+│   │   │   │   ├── LWX23439_668e7b905c947_2463.jpg
+│   │   │   │   ├── LWX23439_668e7c12c19eb_2463.jpg
+│   │   │   │   ├── LWX23439_668e7c12c2b61_2463.jpeg
+│   │   │   │   ├── LWX23891_6688f607c188d_2431.jpg
+│   │   │   │   ├── LWX25538_65e2bb9ef22a7_494.png
+│   │   │   │   ├── LWX25538_65e2bb9ef27c2_494.png
+│   │   │   │   ├── LWX25538_65e2bb9ef2a1e_494.png
+│   │   │   │   ├── LWX32526_6628a86756713_1880.jpg
+│   │   │   │   ├── LWX32526_6628a86758c17_1880.jpg
+│   │   │   │   ├── LWX32842_65f3f43f4e7de_1608.jpg
+│   │   │   │   ├── LWX40403_65f52625a8867_1620.jpg
+│   │   │   │   ├── LWX40950_66235b078ba5a_1857.jpg
+│   │   │   │   ├── LWX41227_66cc2d2b98d86_2842.jpg
+│   │   │   │   ├── LWX41475_661f38a850d88_1837.jpg
+│   │   │   │   ├── LWX41475_661f38bd8502e_1835.jpg
+│   │   │   │   ├── LWX41987_660be5579b50e_1765.jpg
+│   │   │   │   ├── LWX41987_660be5579be92_1765.jpg
+│   │   │   │   ├── LWX41987_660be55fc8f01_1771.jpg
+│   │   │   │   ├── LWX41987_660be55fcae25_1771.jpg
+│   │   │   │   ├── LWX41993_65faaa038144b_1642.jpeg
+│   │   │   │   ├── LWX43930_6667b4cd0d444_2210.jpg
+│   │   │   │   ├── LWX43990_665d778c6368b_2118.jpg
+│   │   │   │   ├── LWX46878_6630cb9e93ebb_1941.jpg
+│   │   │   │   ├── LWX47238_667250b4ec0a1_2268.jpg
+│   │   │   │   ├── LWX47841_660372c059347_1692.jpg
+│   │   │   │   ├── LWX48759_660d24255481d_1802.jpg
+│   │   │   │   ├── LWX49366_65fe9e6203402_1672.jpeg
+│   │   │   │   ├── LWX49366_65fe9e7ec374b_1672.jpeg
+│   │   │   │   ├── LWX50584_664739f07efd0_2041.jpg
+│   │   │   │   ├── LWX51866_660e4c88d3bb5_1809.jpg
+│   │   │   │   ├── LWX51866_660e517c63578_1808.jpg
+│   │   │   │   ├── LWX52088_6610c05538859_1828.jpg
+│   │   │   │   ├── LWX57967_662a23c47a311_1894.jpg
+│   │   │   │   ├── LWX57967_662a23fadd438_1894.jpg
+│   │   │   │   ├── LWX58230_6629a4ef35522_1897.webp
+│   │   │   │   ├── LWX58230_6629a4ef3572f_1897.jpg
+│   │   │   │   ├── LWX58230_6629a50768c8e_1897.webp
+│   │   │   │   ├── LWX58230_6629a50768dfb_1897.jpg
+│   │   │   │   ├── LWX58230_6629a513af910_1897.webp
+│   │   │   │   ├── LWX58230_6629a513afa71_1897.jpg
+│   │   │   │   ├── LWX58230_6629a535d3daa_1897.webp
+│   │   │   │   ├── LWX58230_6629a535d3f79_1897.jpg
+│   │   │   │   ├── LWX58230_6629a5b118004_1897.jpg
+│   │   │   │   ├── LWX58230_6629a8002f278_1897.jpeg
+│   │   │   │   ├── LWX58230_6629a81c09c55_1897.jpeg
+│   │   │   │   ├── LWX58230_6629a8354758d_1897.jpeg
+│   │   │   │   ├── LWX58230_6629a8a67fd30_1897.png
+│   │   │   │   ├── LWX58230_6629a9a608541_1897.png
+│   │   │   │   ├── LWX58230_6629aa09ce5ba_1897.png
+│   │   │   │   ├── LWX58478_665021e7b8453_2082.jpg
+│   │   │   │   ├── LWX58478_665022217dbd6_2082.jpg
+│   │   │   │   ├── LWX58879_6694aa69ab546_2494.jpg
+│   │   │   │   ├── LWX58879_6694aa69ac265_2494.jpg
+│   │   │   │   ├── LWX58879_6694aa69acd53_2494.jpg
+│   │   │   │   ├── LWX58879_6694aa69ad868_2494.jpg
+│   │   │   │   ├── LWX59506_661f243a63666_1840.jpg
+│   │   │   │   ├── LWX59506_661f243a63a96_1840.jpg
+│   │   │   │   ├── LWX60402_66544b6357068_2063.jpg
+│   │   │   │   ├── LWX60402_6655b0bfc9b0c_2108.jpg
+│   │   │   │   ├── LWX60851_6629d63be7e4a_1896.jpg
+│   │   │   │   ├── LWX60851_6629d63be9d19_1896.jpg
+│   │   │   │   ├── LWX61080_66443a3ec3997_2028.jpg
+│   │   │   │   ├── LWX61127_6662bef236c71_2182.jpg
+│   │   │   │   ├── LWX69134_662f762169172_1922.jpg
+│   │   │   │   ├── LWX69134_662f7800e364f_1921.jpg
+│   │   │   │   ├── LWX69724_6634c0d153648_1952.jpg
+│   │   │   │   ├── LWX69724_668e6d299c31b_2459.jpg
+│   │   │   │   ├── LWX70294_660391ac51971_1684.jpg
+│   │   │   │   ├── LWX70294_660391ac52e4a_1684.jpg
+│   │   │   │   ├── LWX70294_66039264521c8_1684.jpg
+│   │   │   │   ├── LWX70294_660392b6b1bee_1684.jpg
+│   │   │   │   ├── LWX70294_660392bdcab32_1684.jpg
+│   │   │   │   ├── LWX70294_660399bc00d55_1684.jpg
+│   │   │   │   ├── LWX70294_660399e9e84f6_1684.jpg
+│   │   │   │   ├── LWX70294_66039e0220a39_1684.jpg
+│   │   │   │   ├── LWX70294_6603a4ae8f464_1684.jpg
+│   │   │   │   ├── LWX70294_6603a4ae90607_1684.jpg
+│   │   │   │   ├── LWX70294_6603a6403d9c4_1684.jpg
+│   │   │   │   ├── LWX70294_6603a6403eae1_1684.jpg
+│   │   │   │   ├── LWX70357_667142053437a_2257.jpg
+│   │   │   │   ├── LWX72312_66555797769dd_2113.jpg
+│   │   │   │   ├── LWX74108_660ce9013a314_1801.jpg
+│   │   │   │   ├── LWX74108_660ce9013b2c2_1801.jpg
+│   │   │   │   ├── LWX74415_660fc9f9ecce7_1816.jpg
+│   │   │   │   ├── LWX74415_660fc9f9ed650_1816.jpg
+│   │   │   │   ├── LWX74415_660fc9f9edb77_1816.jpg
+│   │   │   │   ├── LWX74415_660fca380abc4_1817.jpg
+│   │   │   │   ├── LWX74415_662b49692ab3b_1825.jpeg
+│   │   │   │   ├── LWX74415_662b49692b038_1825.jpeg
+│   │   │   │   ├── LWX74415_662b49692b5a6_1825.jpg
+│   │   │   │   ├── LWX74415_662b49692d9ec_1825.jpg
+│   │   │   │   ├── LWX80333_6644717330441_2004.jpg
+│   │   │   │   ├── LWX81917_666d2908d87c4_2225.jpg
+│   │   │   │   ├── LWX81917_666d2908da138_2225.jpg
+│   │   │   │   ├── LWX82078_66473b0bb4df6_2045.jpg
+│   │   │   │   ├── LWX84670_661e063be1e81_1832.jpg
+│   │   │   │   ├── LWX85138_668fbafac7ae3_2448.jpg
+│   │   │   │   ├── LWX87279_65f80bc07cc5a_1612.jpg
+│   │   │   │   ├── LWX88262_6692162fc5ee9_2441.jpg
+│   │   │   │   ├── LWX90968_6641da9d271fc_1977.jpg
+│   │   │   │   ├── LWX92263_665985eb6bd89_2132.jpg
+│   │   │   │   ├── LWX93148_660f7fdc67683_1819.jpg
+│   │   │   │   ├── LWX93425_666d2e7aea316_2252.jpg
+│   │   │   │   ├── LWX94232_6628ba1476179_1873.jpg
+│   │   │   │   ├── LWX94232_6628ba147776f_1873.jpg
+│   │   │   │   ├── LWX94232_6628ba1478c49_1873.jpg
+│   │   │   │   ├── LWX95340_665d513dde725_2122.jpg
+│   │   │   │   ├── LWX95472_661f9bbe222ea_1842.jpg
+│   │   │   │   ├── LWX95472_661f9c0daa8af_1841.jpg
+│   │   │   │   ├── LWX95472_661f9c0dabdf6_1841.jpg
+│   │   │   │   ├── LWX95472_661f9c0dad0fa_1841.jpg
+│   │   │   │   ├── LWX95472_661f9c0dae40a_1841.jpg
+│   │   │   │   ├── LWX95642_660cd0942fe53_1800.jpg
+│   │   │   │   ├── LWX96551_665db13637a46_2137.jpg
+│   │   │   │   ├── LWX96799_66516f670e667_2064.jpg
+│   │   │   │   ├── LWX97237_6628c5c13d4f5_1884.png
+│   │   │   │   ├── LWX97237_6628c5df477dd_1884.png
+│   │   │   │   ├── LWX97237_6628c5e046374_1884.png
+│   │   │   │   ├── LWX97237_6628c5e0ee6db_1884.png
+│   │   │   │   ├── LWX97237_6628c5ee7043b_1884.png
+│   │   │   │   ├── LWX97237_6628c62bba129_1884.png
+│   │   │   │   ├── LWX97327_6656e2006f5e4_2120.jpg
+│   │   │   │   ├── LWX97327_6656e200729bb_2120.jpg
+│   │   │   │   ├── LWX99630_65ea0c4bcc04a_1557.png
+│   │   │   │   └── LWX99630_65ea0c4bcc534_1557.jpg
+│   │   │   ├── user.png
+│   │   │   ├── vr-bg.jpg
+│   │   │   ├── woman2.png
+│   │   │   └── woman.png
+│   │   ├── js
+│   │   │   ├── core
+│   │   │   │   ├── bootstrap.bundle.min.js
+│   │   │   │   ├── bootstrap.min.js
+│   │   │   │   └── popper.min.js
+│   │   │   ├── material-dashboard.js
+│   │   │   ├── material-dashboard.js.map
+│   │   │   ├── material-dashboard.min.js
+│   │   │   └── plugins
+│   │   │       ├── bootstrap-notify.js
+│   │   │       ├── Chart.extension.js
+│   │   │       ├── chartjs.min.js
+│   │   │       ├── countup.min.js
+│   │   │       ├── perfect-scrollbar.min.js
+│   │   │       ├── smooth-scrollbar.min.js
+│   │   │       └── world.js
+│   │   └── scss
+│   │       ├── material-dashboard
+│   │       │   ├── _alert.scss
+│   │       │   ├── _avatars.scss
+│   │       │   ├── _badge.scss
+│   │       │   ├── bootstrap
+│   │       │   │   ├── _accordion.scss
+│   │       │   │   ├── _alert.scss
+│   │       │   │   ├── _badge.scss
+│   │       │   │   ├── bootstrap-grid.scss
+│   │       │   │   ├── bootstrap-reboot.scss
+│   │       │   │   ├── bootstrap.scss
+│   │       │   │   ├── bootstrap-utilities.scss
+│   │       │   │   ├── _breadcrumb.scss
+│   │       │   │   ├── _button-group.scss
+│   │       │   │   ├── _buttons.scss
+│   │       │   │   ├── _card.scss
+│   │       │   │   ├── _carousel.scss
+│   │       │   │   ├── _close.scss
+│   │       │   │   ├── _containers.scss
+│   │       │   │   ├── _dropdown.scss
+│   │       │   │   ├── forms
+│   │       │   │   │   ├── _floating-labels.scss
+│   │       │   │   │   ├── _form-check.scss
+│   │       │   │   │   ├── _form-control.scss
+│   │       │   │   │   ├── _form-range.scss
+│   │       │   │   │   ├── _form-select.scss
+│   │       │   │   │   ├── _form-text.scss
+│   │       │   │   │   ├── _input-group.scss
+│   │       │   │   │   ├── _labels.scss
+│   │       │   │   │   └── _validation.scss
+│   │       │   │   ├── _forms.scss
+│   │       │   │   ├── _functions.scss
+│   │       │   │   ├── _grid.scss
+│   │       │   │   ├── helpers
+│   │       │   │   │   ├── _clearfix.scss
+│   │       │   │   │   ├── _color-bg.scss
+│   │       │   │   │   ├── _colored-links.scss
+│   │       │   │   │   ├── _position.scss
+│   │       │   │   │   ├── _ratio.scss
+│   │       │   │   │   ├── _stacks.scss
+│   │       │   │   │   ├── _stretched-link.scss
+│   │       │   │   │   ├── _text-truncation.scss
+│   │       │   │   │   ├── _visually-hidden.scss
+│   │       │   │   │   └── _vr.scss
+│   │       │   │   ├── _helpers.scss
+│   │       │   │   ├── _images.scss
+│   │       │   │   ├── _list-group.scss
+│   │       │   │   ├── _maps.scss
+│   │       │   │   ├── mixins
+│   │       │   │   │   ├── _alert.scss
+│   │       │   │   │   ├── _backdrop.scss
+│   │       │   │   │   ├── _banner.scss
+│   │       │   │   │   ├── _border-radius.scss
+│   │       │   │   │   ├── _box-shadow.scss
+│   │       │   │   │   ├── _breakpoints.scss
+│   │       │   │   │   ├── _buttons.scss
+│   │       │   │   │   ├── _caret.scss
+│   │       │   │   │   ├── _clearfix.scss
+│   │       │   │   │   ├── _color-scheme.scss
+│   │       │   │   │   ├── _container.scss
+│   │       │   │   │   ├── _deprecate.scss
+│   │       │   │   │   ├── _forms.scss
+│   │       │   │   │   ├── _gradients.scss
+│   │       │   │   │   ├── _grid.scss
+│   │       │   │   │   ├── _image.scss
+│   │       │   │   │   ├── _list-group.scss
+│   │       │   │   │   ├── _lists.scss
+│   │       │   │   │   ├── _pagination.scss
+│   │       │   │   │   ├── _reset-text.scss
+│   │       │   │   │   ├── _resize.scss
+│   │       │   │   │   ├── _table-variants.scss
+│   │       │   │   │   ├── _text-truncate.scss
+│   │       │   │   │   ├── _transition.scss
+│   │       │   │   │   ├── _utilities.scss
+│   │       │   │   │   └── _visually-hidden.scss
+│   │       │   │   ├── _mixins.scss
+│   │       │   │   ├── _modal.scss
+│   │       │   │   ├── _navbar.scss
+│   │       │   │   ├── _nav.scss
+│   │       │   │   ├── _offcanvas.scss
+│   │       │   │   ├── _pagination.scss
+│   │       │   │   ├── _placeholders.scss
+│   │       │   │   ├── _popover.scss
+│   │       │   │   ├── _progress.scss
+│   │       │   │   ├── _reboot.scss
+│   │       │   │   ├── _root.scss
+│   │       │   │   ├── _spinners.scss
+│   │       │   │   ├── _tables.scss
+│   │       │   │   ├── _toasts.scss
+│   │       │   │   ├── _tooltip.scss
+│   │       │   │   ├── _transitions.scss
+│   │       │   │   ├── _type.scss
+│   │       │   │   ├── utilities
+│   │       │   │   │   └── _api.scss
+│   │       │   │   ├── _utilities.scss
+│   │       │   │   ├── _variables.scss
+│   │       │   │   └── vendor
+│   │       │   │       └── _rfs.scss
+│   │       │   ├── _breadcrumbs.scss
+│   │       │   ├── _buttons.scss
+│   │       │   ├── cards
+│   │       │   │   ├── card-background.scss
+│   │       │   │   └── card-rotate.scss
+│   │       │   ├── _cards.scss
+│   │       │   ├── custom
+│   │       │   │   ├── _styles.scss
+│   │       │   │   └── _variables.scss
+│   │       │   ├── _dark-version.scss
+│   │       │   ├── _dropdown.scss
+│   │       │   ├── _dropup.scss
+│   │       │   ├── _fixed-plugin.scss
+│   │       │   ├── _footer.scss
+│   │       │   ├── forms
+│   │       │   │   ├── _form-check.scss
+│   │       │   │   ├── _form-select.scss
+│   │       │   │   ├── _forms.scss
+│   │       │   │   ├── _form-switch.scss
+│   │       │   │   ├── _input-group.scss
+│   │       │   │   ├── _inputs.scss
+│   │       │   │   └── _labels.scss
+│   │       │   ├── _forms.scss
+│   │       │   ├── _gradients.scss
+│   │       │   ├── _header.scss
+│   │       │   ├── _icons.scss
+│   │       │   ├── _info-areas.scss
+│   │       │   ├── _misc.scss
+│   │       │   ├── mixins
+│   │       │   │   ├── _badge.scss
+│   │       │   │   ├── _buttons.scss
+│   │       │   │   ├── _colored-shadows.scss
+│   │       │   │   ├── _hover.scss
+│   │       │   │   ├── mixins.scss
+│   │       │   │   ├── _social-buttons.scss
+│   │       │   │   └── _vendor.scss
+│   │       │   ├── _navbar.scss
+│   │       │   ├── _navbar-vertical.scss
+│   │       │   ├── _nav.scss
+│   │       │   ├── _pagination.scss
+│   │       │   ├── plugins
+│   │       │   │   └── free
+│   │       │   │       ├── _flatpickr.scss
+│   │       │   │       ├── _nouislider.scss
+│   │       │   │       ├── _perfect-scrollbar.scss
+│   │       │   │       ├── plugins.scss
+│   │       │   │       └── _prism.scss
+│   │       │   ├── _popovers.scss
+│   │       │   ├── _progress.scss
+│   │       │   ├── _ripple.scss
+│   │       │   ├── _rtl.scss
+│   │       │   ├── _social-buttons.scss
+│   │       │   ├── _tables.scss
+│   │       │   ├── theme.scss
+│   │       │   ├── _tilt.scss
+│   │       │   ├── _timeline.scss
+│   │       │   ├── _tooltips.scss
+│   │       │   ├── _typography.scss
+│   │       │   ├── _utilities-extend.scss
+│   │       │   ├── _utilities.scss
+│   │       │   ├── variables
+│   │       │   │   ├── _animations.scss
+│   │       │   │   ├── _avatars.scss
+│   │       │   │   ├── _badge.scss
+│   │       │   │   ├── _breadcrumb.scss
+│   │       │   │   ├── _cards-extend.scss
+│   │       │   │   ├── _cards.scss
+│   │       │   │   ├── _choices.scss
+│   │       │   │   ├── _dark-version.scss
+│   │       │   │   ├── _dropdowns.scss
+│   │       │   │   ├── _fixed-plugin.scss
+│   │       │   │   ├── _form-switch.scss
+│   │       │   │   ├── _full-calendar.scss
+│   │       │   │   ├── _header.scss
+│   │       │   │   ├── _info-areas.scss
+│   │       │   │   ├── _misc-extend.scss
+│   │       │   │   ├── _misc.scss
+│   │       │   │   ├── _navbar.scss
+│   │       │   │   ├── _navbar-vertical.scss
+│   │       │   │   ├── _pagination.scss
+│   │       │   │   ├── _ripple.scss
+│   │       │   │   ├── _rtl.scss
+│   │       │   │   ├── _social-buttons.scss
+│   │       │   │   ├── _table.scss
+│   │       │   │   ├── _timeline.scss
+│   │       │   │   ├── _utilities-extend.scss
+│   │       │   │   ├── _utilities.scss
+│   │       │   │   └── _virtual-reality.scss
+│   │       │   └── _variables.scss
+│   │       └── material-dashboard.scss
+│   ├── bc
+│   │   ├── customer.sql
+│   │   ├── delete-kegiatan.php
+│   │   ├── edit_data_kegiatan_3.php
+│   │   ├── edit_data_kegiatan.php
+│   │   ├── get-detail-pekerjaan.php
+│   │   ├── kegiatan-baru.php
+│   │   ├── kegiatan-ln.php
+│   │   ├── laporan-db-kegiatan.php
+│   │   └── menu-aside.php
+│   ├── bc-view-kegiatan.php
+│   ├── cek_jadwal_teknisi.php
+│   ├── cek-menu.php
+│   ├── cetak-laporan-bulanan.php
+│   ├── CHANGELOG.md
+│   ├── change_password.php
+│   ├── composer.json
+│   ├── conn.php
+│   ├── css
+│   │   ├── floating-menu2.css
+│   │   └── kegiatan-baru-styles.css
+│   ├── customer-db-detail.php
+│   ├── customer-db.php
+│   ├── customer-detail-1.php
+│   ├── customer-detail.php
+│   ├── customer.php
+│   ├── cust-sales-detail-db.php
+│   ├── cust-sales-detail.php
+│   ├── cust-sales.php
+│   ├── dashboard-sales.php
+│   ├── data-cust-sales-db.php
+│   ├── data-cust-sales.php
+│   ├── data-kegiatan-cust-0.php
+│   ├── data-kegiatan-cust-2.php
+│   ├── data-kegiatan-cust.php
+│   ├── data_kegiatan_cust.php
+│   ├── data-kegiatan-cust-sales.php
+│   ├── data-teknisi-2.php
+│   ├── data-teknisi.php
+│   ├── delete-cust-sales.php
+│   ├── delete-kegiatan.php
+│   ├── delete-kegiatan-sales.php
+│   ├── delete.php
+│   ├── delete_teknisi.php
+│   ├── delete-tutor.php
+│   ├── detail_kegiatan_2.php
+│   ├── detail-laporan-db.php
+│   ├── detail-laporan-tek-db.php
+│   ├── detail-lap.php
+│   ├── detail-lap-tek.php
+│   ├── detail.php
+│   ├── docs
+│   │   └── documentation.html
+│   ├── download.php
+│   ├── edit-customer-db.php
+│   ├── edit-customer.php
+│   ├── edit-cust-sales-db.php
+│   ├── edit-cust-sales.php
+│   ├── edit_data_kegiatan.php
+│   ├── edit-data-kegiatan-sales.php
+│   ├── edit_kegiatan.php
+│   ├── edit_kegiatan-sales.php
+│   ├── export-laporan-excel.php
+│   ├── export-laporan.php
+│   ├── export-laporan-x.php
+│   ├── floating-menu.php
+│   ├── footer.php
+│   ├── generate-bonus.php
+│   ├── get_chart_data.php
+│   ├── get_current_fee.php
+│   ├── get_cust_coords.php
+│   ├── get_data_kegiatan_apv.php
+│   ├── get_data_kegiatan.php
+│   ├── get_data_kegiatan-sales.php
+│   ├── get_data.php
+│   ├── get-data-rincian-pekerjaan.php
+│   ├── get_data_teknisi.php
+│   ├── get-detail-kegiatan-sales.php
+│   ├── get-detail-kegiatan-tek.php
+│   ├── get-detail-pekerjaan-new.php
+│   ├── get-detail-pekerjaan.php
+│   ├── get-kegiatan.php
+│   ├── get-kegiatan-sales.php
+│   ├── get-kegiatan-teknisi.php
+│   ├── get-lok-end.php
+│   ├── get-lok.php
+│   ├── get_peminjaman_data.php
+│   ├── get_reasons.php
+│   ├── get_teknisi_data.php
+│   ├── get_update_kegiatan.php
+│   ├── get_update_kegiatan-sales.php
+│   ├── get_user_by_role.php
+│   ├── get-user-data.php
+│   ├── .github
+│   │   └── workflows
+│   │       └── main.yml
+│   ├── gulpfile.js
+│   ├── hapus_barang.php
+│   ├── hapus_sales.php
+│   ├── hapus_teknisi.php
+│   ├── head.php
+│   ├── include
+│   │   └── status.php
+│   ├── index-all.php
+│   ├── index-dt.php
+│   ├── index-ln.php
+│   ├── index.php
+│   ├── index-sa2.php
+│   ├── index-saaa.php
+│   ├── index-sales.php
+│   ├── index-sa.php
+│   ├── index-x.php
+│   ├── inventory-db.php
+│   ├── inventory.php
+│   ├── ISSUE_TEMPLATE.md
+│   ├── js-include.php
+│   ├── kegiatan-baru-0.php
+│   ├── kegiatan-baru-2.php
+│   ├── kegiatan-baru.php
+│   ├── kegiatan_baru.php
+│   ├── kegiatan-db-0.php
+│   ├── kegiatan-db1.php
+│   ├── kegiatan-db-all.php
+│   ├── kegiatan-db-bc.php
+│   ├── kegiatan-db-dekstop.php
+│   ├── kegiatan-db-load-dekstop.php
+│   ├── kegiatan-db-load-mobile.php
+│   ├── kegiatan-db-load-more-dekstop.php
+│   ├── kegiatan-db-load-more-mobile.php
+│   ├── kegiatan-db-load-more.php
+│   ├── kegiatan-db-load-more-sales.php
+│   ├── kegiatan-db-mobile.php
+│   ├── kegiatan-db.php
+│   ├── kegiatan-db-sales-2.php
+│   ├── kegiatan-db-sales-dekstop.php
+│   ├── kegiatan-db-sales-mobile.php
+│   ├── kegiatan-db-sales.php
+│   ├── kegiatan-db-selesai.php
+│   ├── kegiatan-dt.php
+│   ├── kegiatan-ln-dekstop-2.php
+│   ├── kegiatan-ln-dekstop.php
+│   ├── kegiatan-ln-desktop-2.php
+│   ├── kegiatan-ln-mobile.php
+│   ├── kegiatan-ln.php
+│   ├── kegiatan-selesai.php
+│   ├── kegiatan-x.php
+│   ├── lap-kegiatan.php
+│   ├── lap-kegiatan-selesai.php
+│   ├── lap-loss.php
+│   ├── lap-noinv.php
+│   ├── laporan-bulanan.php
+│   ├── laporan-cust.php
+│   ├── laporan-db-cust.php
+│   ├── laporan-db-kegiatan.php
+│   ├── laporan-db-kegiatan-selesai.php
+│   ├── laporan-db-loss.php
+│   ├── laporan-db.php
+│   ├── laporan-kegiatan.php
+│   ├── laporan-kegiatan-selesai.php
+│   ├── laporan-loss.php
+│   ├── laporan.php
+│   ├── lap-progress-2.php
+│   ├── lap-progress.php
+│   ├── LICENSE.md
+│   ├── list-kegiatan-teknisi-db.php
+│   ├── list-kegiatan-teknisi.php
+│   ├── logger.php
+│   ├── maintenance.php
+│   ├── menu-aside.php
+│   ├── menu-bottom.php
+│   ├── mobile
+│   │   ├── apv_data_kegiatan.php
+│   │   ├── apv_kegiatan.php
+│   │   ├── bottom-navbar.php
+│   │   ├── cek_jadwal_teknisi.php
+│   │   ├── customer-detail.php
+│   │   ├── edit_kegiatan.php
+│   │   ├── get_data_kegiatan_apv.php
+│   │   ├── get_update_kegiatan.php
+│   │   ├── index.php
+│   │   ├── kegiatan-baru.php
+│   │   ├── lanjut-nanti.php
+│   │   ├── proses_hapus_kegiatan.php
+│   │   ├── proses_jadwalkan.php
+│   │   ├── task.php
+│   │   ├── view-kegiatan.php
+│   │   ├── waiting-list.php
+│   │   └── wa-msg.php
+│   ├── mobile-device-detect.php
+│   ├── mobile.php
+│   ├── nav-top.php
+│   ├── nomor_telepon.php
+│   ├── package.json
+│   ├── pages
+│   │   ├── admin
+│   │   │   ├── bu-dashboard.php
+│   │   │   ├── cek-menu.php
+│   │   │   ├── change_password.php
+│   │   │   ├── dashboard.php
+│   │   │   ├── data_pembayaran.php
+│   │   │   ├── delete_bank_account.php
+│   │   │   ├── detail_data_warga.php
+│   │   │   ├── detail_pembayaran.php
+│   │   │   ├── detail_pembayaran_sedekah.php
+│   │   │   ├── get_next_tagihan.php
+│   │   │   ├── head.php
+│   │   │   ├── js-include.php
+│   │   │   ├── menu-aside.php
+│   │   │   ├── menu-bottom.php
+│   │   │   ├── nav-top.php
+│   │   │   ├── pengeluaran.php
+│   │   │   ├── profile.php
+│   │   │   ├── proses_ganti_password.php
+│   │   │   ├── proses_tambah_tagihan.php
+│   │   │   ├── proses_tolak_verifikasi.php
+│   │   │   ├── proses_tolak_verifikasi_sedekah.php
+│   │   │   ├── proses_verifikasi.php
+│   │   │   ├── proses_verifikasi_sedekah.php
+│   │   │   ├── session.php
+│   │   │   ├── tables.php
+│   │   │   ├── tagihan.php
+│   │   │   ├── tambah_tagihan.php
+│   │   │   ├── update_rekening_2.php
+│   │   │   ├── update_rekening.php
+│   │   │   ├── update_status_tagihan.php
+│   │   │   └── verifikasi_pembayaran.php
+│   │   ├── billing.php
+│   │   ├── footer.php
+│   │   ├── icons.php
+│   │   ├── login.php
+│   │   ├── logout.php
+│   │   ├── map.php
+│   │   ├── notifications.php
+│   │   ├── profile.php
+│   │   ├── proses_login.php
+│   │   ├── proses_sign_up.php
+│   │   ├── rt
+│   │   │   ├── bc_select.php
+│   │   │   ├── cek-menu.php
+│   │   │   ├── dashboard.php
+│   │   │   ├── detail_data_warga.php
+│   │   │   ├── head.php
+│   │   │   ├── js-include.php
+│   │   │   ├── laporan_pembayaran.php
+│   │   │   ├── laporan.php
+│   │   │   ├── laporan_sedekah.php
+│   │   │   ├── menu-aside.php
+│   │   │   ├── menu-bottom.php
+│   │   │   ├── nav-top.php
+│   │   │   ├── profile.php
+│   │   │   ├── proses_sedekah.php
+│   │   │   ├── proses_tagihan.php
+│   │   │   ├── session.php
+│   │   │   └── tables.php
+│   │   ├── rtl.php
+│   │   ├── sekretaris
+│   │   │   ├── cek-menu.php
+│   │   │   ├── change_password.php
+│   │   │   ├── dashboard.php
+│   │   │   ├── edit_data_warga.php
+│   │   │   ├── head.php
+│   │   │   ├── in_member.php
+│   │   │   ├── js-include.php
+│   │   │   ├── menu-aside.php
+│   │   │   ├── menu-bottom.php
+│   │   │   ├── nav-top.php
+│   │   │   ├── past_member.php
+│   │   │   ├── profile.php
+│   │   │   ├── proses_edit_data_warga.php
+│   │   │   ├── proses_ganti_password.php
+│   │   │   ├── proses_tambah_data_keluarga.php
+│   │   │   ├── proses_tambah_data_warga.php
+│   │   │   ├── session.php
+│   │   │   ├── tables.php
+│   │   │   ├── tambah_data_keluarga.php
+│   │   │   └── tambah_data_warga.php
+│   │   ├── sign-in.php
+│   │   ├── sign-up.php
+│   │   ├── template.php
+│   │   ├── typography.php
+│   │   ├── virtual-reality.php
+│   │   └── warga
+│   │       ├── bayar.php
+│   │       ├── cek-menu.php
+│   │       ├── change_password.php
+│   │       ├── dashboard.php
+│   │       ├── detail_pembayaran.php
+│   │       ├── detail_pembayaran_sedekah.php
+│   │       ├── edit_data_warga.php
+│   │       ├── head.php
+│   │       ├── js-include.php
+│   │       ├── menu-aside.php
+│   │       ├── menu-bottom.php
+│   │       ├── nav-top.php
+│   │       ├── profile.php
+│   │       ├── proses_ganti_password.php
+│   │       ├── proses_pembayaran.php
+│   │       ├── proses_sedekah.php
+│   │       ├── proses_verifikasi_ulang.php
+│   │       ├── proses_verifikasi_ulang_sedekah.php
+│   │       ├── sedekah.php
+│   │       ├── session.php
+│   │       ├── status_pembayaran.php
+│   │       └── tagihan-warga.php
+│   ├── peminjaman-1.php
+│   ├── peminjaman.php
+│   ├── pilih-lokasi.php
+│   ├── pinjam-db.php
+│   ├── pinjam.php
+│   ├── print-laporan-kegiatan.php
+│   ├── print-laporan.php
+│   ├── proses_dapatkan_kode.php
+│   ├── proses_delete_peminjaman.php
+│   ├── proses-denda.php
+│   ├── proses_edit_barang.php
+│   ├── proses_ganti_password.php
+│   ├── proses_hapus_kegiatan.php
+│   ├── proses_jadwalkan.php
+│   ├── proses_login.php
+│   ├── proses-maintenance.php
+│   ├── proses_no_fee.php
+│   ├── proses_peminjaman.php
+│   ├── proses_pengembalian.php
+│   ├── proses_replay.php
+│   ├── proses_set_no_invoice.php
+│   ├── proses_set_tidak_valid.php
+│   ├── proses_signup.php
+│   ├── proses_simpan_kode.php
+│   ├── proses_tambah_barang.php
+│   ├── proses_tambah_produk.php
+│   ├── proses_tambah_stock.php
+│   ├── proses_update_bonus-new.php
+│   ├── proses_update_bonus.php
+│   ├── proses_update_fee.php
+│   ├── proses_update_invoice.php
+│   ├── proses_update_inv.php
+│   ├── proses_update_lunas.php
+│   ├── README.md
+│   ├── reset_invoice.php
+│   ├── sales
+│   │   ├── assets
+│   │   │   ├── css
+│   │   │   │   ├── material-dashboard.css
+│   │   │   │   ├── material-dashboard.css.map
+│   │   │   │   ├── material-dashboard.min.css
+│   │   │   │   ├── nucleo-icons.css
+│   │   │   │   └── nucleo-svg.css
+│   │   │   ├── fonts
+│   │   │   │   ├── nucleo.eot
+│   │   │   │   ├── nucleo-icons.eot
+│   │   │   │   ├── nucleo-icons.svg
+│   │   │   │   ├── nucleo-icons.ttf
+│   │   │   │   ├── nucleo-icons.woff
+│   │   │   │   ├── nucleo-icons.woff2
+│   │   │   │   ├── nucleo.ttf
+│   │   │   │   ├── nucleo.woff
+│   │   │   │   └── nucleo.woff2
+│   │   │   ├── img
+│   │   │   │   ├── apple-icon.png
+│   │   │   │   ├── bg-pricing.jpg
+│   │   │   │   ├── bg-smart-home-1.jpg
+│   │   │   │   ├── down-arrow-dark.svg
+│   │   │   │   ├── down-arrow.svg
+│   │   │   │   ├── down-arrow-white.svg
+│   │   │   │   ├── favicon.png
+│   │   │   │   ├── icons
+│   │   │   │   │   └── flags
+│   │   │   │   │       ├── AU.png
+│   │   │   │   │       ├── BR.png
+│   │   │   │   │       ├── DE.png
+│   │   │   │   │       ├── GB.png
+│   │   │   │   │       └── US.png
+│   │   │   │   ├── illustrations
+│   │   │   │   │   ├── chat.png
+│   │   │   │   │   ├── danger-chat-ill.png
+│   │   │   │   │   ├── dark-lock-ill.png
+│   │   │   │   │   ├── error-404.png
+│   │   │   │   │   ├── error-500.png
+│   │   │   │   │   ├── illustration-lock.jpg
+│   │   │   │   │   ├── illustration-reset.jpg
+│   │   │   │   │   ├── illustration-signin.jpg
+│   │   │   │   │   ├── illustration-signup.jpg
+│   │   │   │   │   ├── illustration-verification.jpg
+│   │   │   │   │   ├── lock.png
+│   │   │   │   │   ├── pattern-tree.svg
+│   │   │   │   │   └── rocket-white.png
+│   │   │   │   ├── logo
+│   │   │   │   │   ├── lwx-htm.png
+│   │   │   │   │   ├── lwx-logo.png
+│   │   │   │   │   ├── lwx.png
+│   │   │   │   │   ├── w-logo-ls.png
+│   │   │   │   │   └── w-logo-pt.png
+│   │   │   │   ├── logo-ct-dark.png
+│   │   │   │   ├── logo-ct.png
+│   │   │   │   ├── logos
+│   │   │   │   │   ├── gray-logos
+│   │   │   │   │   │   ├── logo-coinbase.svg
+│   │   │   │   │   │   ├── logo-nasa.svg
+│   │   │   │   │   │   ├── logo-netflix.svg
+│   │   │   │   │   │   ├── logo-pinterest.svg
+│   │   │   │   │   │   ├── logo-spotify.svg
+│   │   │   │   │   │   └── logo-vodafone.svg
+│   │   │   │   │   ├── mastercard.png
+│   │   │   │   │   └── visa.png
+│   │   │   │   ├── lunas.png
+│   │   │   │   ├── products
+│   │   │   │   ├── shapes
+│   │   │   │   │   ├── pattern-lines.svg
+│   │   │   │   │   └── waves-white.svg
+│   │   │   │   ├── small-logos
+│   │   │   │   │   ├── bootstrap.svg
+│   │   │   │   │   ├── creative-tim.svg
+│   │   │   │   │   ├── devto.svg
+│   │   │   │   │   ├── github.svg
+│   │   │   │   │   ├── google-webdev.svg
+│   │   │   │   │   ├── icon-bulb.svg
+│   │   │   │   │   ├── icon-sun-cloud.png
+│   │   │   │   │   ├── logo-asana.svg
+│   │   │   │   │   ├── logo-atlassian.svg
+│   │   │   │   │   ├── logo-invision.svg
+│   │   │   │   │   ├── logo-jira.svg
+│   │   │   │   │   ├── logo-slack.svg
+│   │   │   │   │   ├── logo-spotify.svg
+│   │   │   │   │   └── logo-xd.svg
+│   │   │   │   ├── tesla-model-s.png
+│   │   │   │   ├── uploads
+│   │   │   │   │   ├── LWX-2HW06-SLS_663d7d69294fd_.jpeg
+│   │   │   │   │   ├── LWX-2HW06-SLS_663d7d6929a18_.jpg
+│   │   │   │   │   ├── LWX-2HW06-SLS_663d7d837887c_9.jpeg
+│   │   │   │   │   ├── LWX-2HW06-SLS_663d7d8380a6d_9.jpg
+│   │   │   │   │   ├── LWX-2HW06-SLS_663d7d9808a47_9.jpeg
+│   │   │   │   │   ├── LWX-2HW06-SLS_663d7d9808ead_9.jpg
+│   │   │   │   │   ├── LWX-2HW06-SLS_663d7db5ba049_9.jpg
+│   │   │   │   │   ├── LWX-2HW06-SLS_663d7db5ba7db_9.jpg
+│   │   │   │   │   ├── LWX-2HW06-SLS_663d7dcfc615b_9.jpg
+│   │   │   │   │   ├── LWX-2HW06-SLS_663d7dcfc67e9_9.jpg
+│   │   │   │   │   ├── LWX-2HW06-SLS_663d7ef99331a_9.jpg
+│   │   │   │   │   ├── LWX-2HW06-SLS_663d7ef993856_9.jpg
+│   │   │   │   │   ├── LWX-2HW06-SLS_663d7ef993e00_9.jpg
+│   │   │   │   │   ├── LWX-2HW06-SLS_663d8a3a82a7f_9.jpeg
+│   │   │   │   │   ├── LWX-2HW06-SLS_663d8a3a83169_9.jpg
+│   │   │   │   │   ├── LWX-2HW06-SLS_663d8a3a83743_9.jpg
+│   │   │   │   │   ├── LWX-PS0TU-SLS_663dddb57d548_4.jpg
+│   │   │   │   │   └── LWX-PS0TU-SLS_663dddb57d845_4.jpg
+│   │   │   │   ├── user.png
+│   │   │   │   ├── vr-bg.jpg
+│   │   │   │   ├── woman2.png
+│   │   │   │   └── woman.png
+│   │   │   ├── js
+│   │   │   │   ├── core
+│   │   │   │   │   ├── bootstrap.bundle.min.js
+│   │   │   │   │   ├── bootstrap.min.js
+│   │   │   │   │   └── popper.min.js
+│   │   │   │   ├── material-dashboard.js
+│   │   │   │   ├── material-dashboard.js.map
+│   │   │   │   ├── material-dashboard.min.js
+│   │   │   │   └── plugins
+│   │   │   │       ├── bootstrap-notify.js
+│   │   │   │       ├── Chart.extension.js
+│   │   │   │       ├── chartjs.min.js
+│   │   │   │       ├── countup.min.js
+│   │   │   │       ├── perfect-scrollbar.min.js
+│   │   │   │       ├── smooth-scrollbar.min.js
+│   │   │   │       └── world.js
+│   │   │   └── scss
+│   │   │       ├── material-dashboard
+│   │   │       │   ├── _alert.scss
+│   │   │       │   ├── _avatars.scss
+│   │   │       │   ├── _badge.scss
+│   │   │       │   ├── bootstrap
+│   │   │       │   │   ├── _accordion.scss
+│   │   │       │   │   ├── _alert.scss
+│   │   │       │   │   ├── _badge.scss
+│   │   │       │   │   ├── bootstrap-grid.scss
+│   │   │       │   │   ├── bootstrap-reboot.scss
+│   │   │       │   │   ├── bootstrap.scss
+│   │   │       │   │   ├── bootstrap-utilities.scss
+│   │   │       │   │   ├── _breadcrumb.scss
+│   │   │       │   │   ├── _button-group.scss
+│   │   │       │   │   ├── _buttons.scss
+│   │   │       │   │   ├── _card.scss
+│   │   │       │   │   ├── _carousel.scss
+│   │   │       │   │   ├── _close.scss
+│   │   │       │   │   ├── _containers.scss
+│   │   │       │   │   ├── _dropdown.scss
+│   │   │       │   │   ├── forms
+│   │   │       │   │   │   ├── _floating-labels.scss
+│   │   │       │   │   │   ├── _form-check.scss
+│   │   │       │   │   │   ├── _form-control.scss
+│   │   │       │   │   │   ├── _form-range.scss
+│   │   │       │   │   │   ├── _form-select.scss
+│   │   │       │   │   │   ├── _form-text.scss
+│   │   │       │   │   │   ├── _input-group.scss
+│   │   │       │   │   │   ├── _labels.scss
+│   │   │       │   │   │   └── _validation.scss
+│   │   │       │   │   ├── _forms.scss
+│   │   │       │   │   ├── _functions.scss
+│   │   │       │   │   ├── _grid.scss
+│   │   │       │   │   ├── helpers
+│   │   │       │   │   │   ├── _clearfix.scss
+│   │   │       │   │   │   ├── _color-bg.scss
+│   │   │       │   │   │   ├── _colored-links.scss
+│   │   │       │   │   │   ├── _position.scss
+│   │   │       │   │   │   ├── _ratio.scss
+│   │   │       │   │   │   ├── _stacks.scss
+│   │   │       │   │   │   ├── _stretched-link.scss
+│   │   │       │   │   │   ├── _text-truncation.scss
+│   │   │       │   │   │   ├── _visually-hidden.scss
+│   │   │       │   │   │   └── _vr.scss
+│   │   │       │   │   ├── _helpers.scss
+│   │   │       │   │   ├── _images.scss
+│   │   │       │   │   ├── _list-group.scss
+│   │   │       │   │   ├── _maps.scss
+│   │   │       │   │   ├── mixins
+│   │   │       │   │   │   ├── _alert.scss
+│   │   │       │   │   │   ├── _backdrop.scss
+│   │   │       │   │   │   ├── _banner.scss
+│   │   │       │   │   │   ├── _border-radius.scss
+│   │   │       │   │   │   ├── _box-shadow.scss
+│   │   │       │   │   │   ├── _breakpoints.scss
+│   │   │       │   │   │   ├── _buttons.scss
+│   │   │       │   │   │   ├── _caret.scss
+│   │   │       │   │   │   ├── _clearfix.scss
+│   │   │       │   │   │   ├── _color-scheme.scss
+│   │   │       │   │   │   ├── _container.scss
+│   │   │       │   │   │   ├── _deprecate.scss
+│   │   │       │   │   │   ├── _forms.scss
+│   │   │       │   │   │   ├── _gradients.scss
+│   │   │       │   │   │   ├── _grid.scss
+│   │   │       │   │   │   ├── _image.scss
+│   │   │       │   │   │   ├── _list-group.scss
+│   │   │       │   │   │   ├── _lists.scss
+│   │   │       │   │   │   ├── _pagination.scss
+│   │   │       │   │   │   ├── _reset-text.scss
+│   │   │       │   │   │   ├── _resize.scss
+│   │   │       │   │   │   ├── _table-variants.scss
+│   │   │       │   │   │   ├── _text-truncate.scss
+│   │   │       │   │   │   ├── _transition.scss
+│   │   │       │   │   │   ├── _utilities.scss
+│   │   │       │   │   │   └── _visually-hidden.scss
+│   │   │       │   │   ├── _mixins.scss
+│   │   │       │   │   ├── _modal.scss
+│   │   │       │   │   ├── _navbar.scss
+│   │   │       │   │   ├── _nav.scss
+│   │   │       │   │   ├── _offcanvas.scss
+│   │   │       │   │   ├── _pagination.scss
+│   │   │       │   │   ├── _placeholders.scss
+│   │   │       │   │   ├── _popover.scss
+│   │   │       │   │   ├── _progress.scss
+│   │   │       │   │   ├── _reboot.scss
+│   │   │       │   │   ├── _root.scss
+│   │   │       │   │   ├── _spinners.scss
+│   │   │       │   │   ├── _tables.scss
+│   │   │       │   │   ├── _toasts.scss
+│   │   │       │   │   ├── _tooltip.scss
+│   │   │       │   │   ├── _transitions.scss
+│   │   │       │   │   ├── _type.scss
+│   │   │       │   │   ├── utilities
+│   │   │       │   │   │   └── _api.scss
+│   │   │       │   │   ├── _utilities.scss
+│   │   │       │   │   ├── _variables.scss
+│   │   │       │   │   └── vendor
+│   │   │       │   │       └── _rfs.scss
+│   │   │       │   ├── _breadcrumbs.scss
+│   │   │       │   ├── _buttons.scss
+│   │   │       │   ├── cards
+│   │   │       │   │   ├── card-background.scss
+│   │   │       │   │   └── card-rotate.scss
+│   │   │       │   ├── _cards.scss
+│   │   │       │   ├── custom
+│   │   │       │   │   ├── _styles.scss
+│   │   │       │   │   └── _variables.scss
+│   │   │       │   ├── _dark-version.scss
+│   │   │       │   ├── _dropdown.scss
+│   │   │       │   ├── _dropup.scss
+│   │   │       │   ├── _fixed-plugin.scss
+│   │   │       │   ├── _footer.scss
+│   │   │       │   ├── forms
+│   │   │       │   │   ├── _form-check.scss
+│   │   │       │   │   ├── _form-select.scss
+│   │   │       │   │   ├── _forms.scss
+│   │   │       │   │   ├── _form-switch.scss
+│   │   │       │   │   ├── _input-group.scss
+│   │   │       │   │   ├── _inputs.scss
+│   │   │       │   │   └── _labels.scss
+│   │   │       │   ├── _forms.scss
+│   │   │       │   ├── _gradients.scss
+│   │   │       │   ├── _header.scss
+│   │   │       │   ├── _icons.scss
+│   │   │       │   ├── _info-areas.scss
+│   │   │       │   ├── _misc.scss
+│   │   │       │   ├── mixins
+│   │   │       │   │   ├── _badge.scss
+│   │   │       │   │   ├── _buttons.scss
+│   │   │       │   │   ├── _colored-shadows.scss
+│   │   │       │   │   ├── _hover.scss
+│   │   │       │   │   ├── mixins.scss
+│   │   │       │   │   ├── _social-buttons.scss
+│   │   │       │   │   └── _vendor.scss
+│   │   │       │   ├── _navbar.scss
+│   │   │       │   ├── _navbar-vertical.scss
+│   │   │       │   ├── _nav.scss
+│   │   │       │   ├── _pagination.scss
+│   │   │       │   ├── plugins
+│   │   │       │   │   └── free
+│   │   │       │   │       ├── _flatpickr.scss
+│   │   │       │   │       ├── _nouislider.scss
+│   │   │       │   │       ├── _perfect-scrollbar.scss
+│   │   │       │   │       ├── plugins.scss
+│   │   │       │   │       └── _prism.scss
+│   │   │       │   ├── _popovers.scss
+│   │   │       │   ├── _progress.scss
+│   │   │       │   ├── _ripple.scss
+│   │   │       │   ├── _rtl.scss
+│   │   │       │   ├── _social-buttons.scss
+│   │   │       │   ├── _tables.scss
+│   │   │       │   ├── theme.scss
+│   │   │       │   ├── _tilt.scss
+│   │   │       │   ├── _timeline.scss
+│   │   │       │   ├── _tooltips.scss
+│   │   │       │   ├── _typography.scss
+│   │   │       │   ├── _utilities-extend.scss
+│   │   │       │   ├── _utilities.scss
+│   │   │       │   ├── variables
+│   │   │       │   │   ├── _animations.scss
+│   │   │       │   │   ├── _avatars.scss
+│   │   │       │   │   ├── _badge.scss
+│   │   │       │   │   ├── _breadcrumb.scss
+│   │   │       │   │   ├── _cards-extend.scss
+│   │   │       │   │   ├── _cards.scss
+│   │   │       │   │   ├── _choices.scss
+│   │   │       │   │   ├── _dark-version.scss
+│   │   │       │   │   ├── _dropdowns.scss
+│   │   │       │   │   ├── _fixed-plugin.scss
+│   │   │       │   │   ├── _form-switch.scss
+│   │   │       │   │   ├── _full-calendar.scss
+│   │   │       │   │   ├── _header.scss
+│   │   │       │   │   ├── _info-areas.scss
+│   │   │       │   │   ├── _misc-extend.scss
+│   │   │       │   │   ├── _misc.scss
+│   │   │       │   │   ├── _navbar.scss
+│   │   │       │   │   ├── _navbar-vertical.scss
+│   │   │       │   │   ├── _pagination.scss
+│   │   │       │   │   ├── _ripple.scss
+│   │   │       │   │   ├── _rtl.scss
+│   │   │       │   │   ├── _social-buttons.scss
+│   │   │       │   │   ├── _table.scss
+│   │   │       │   │   ├── _timeline.scss
+│   │   │       │   │   ├── _utilities-extend.scss
+│   │   │       │   │   ├── _utilities.scss
+│   │   │       │   │   └── _virtual-reality.scss
+│   │   │       │   └── _variables.scss
+│   │   │       └── material-dashboard.scss
+│   │   ├── cek-menu.php
+│   │   ├── CHANGELOG.md
+│   │   ├── change_password.php
+│   │   ├── composer.json
+│   │   ├── conn.php
+│   │   ├── customer-db-detail.php
+│   │   ├── customer-db.php
+│   │   ├── customer-detail.php
+│   │   ├── customer.php
+│   │   ├── data-kegiatan-cust.php
+│   │   ├── delete-kegiatan.php
+│   │   ├── delete.php
+│   │   ├── detail_kegiatan_2.php
+│   │   ├── detail_kegiatan.php
+│   │   ├── docs
+│   │   │   ├── 364h8FxlTm.aac
+│   │   │   └── documentation.html
+│   │   ├── edit-customer-db.php
+│   │   ├── edit-customer.php
+│   │   ├── edit_data_kegiatan.php
+│   │   ├── edit_kegiatan.php
+│   │   ├── footer.php
+│   │   ├── get_data_kegiatan.php
+│   │   ├── get-data-rincian-pekerjaan.php
+│   │   ├── get_data_teknisi.php
+│   │   ├── get-detail-kegiatan-tek.php
+│   │   ├── get-kegiatan.php
+│   │   ├── get-kegiatan-teknisi.php
+│   │   ├── get-lok-end.php
+│   │   ├── get-lok.php
+│   │   ├── get_update_kegiatan.php
+│   │   ├── get-user-data.php
+│   │   ├── .github
+│   │   │   └── workflows
+│   │   │       └── main.yml
+│   │   ├── gulpfile.js
+│   │   ├── hapus_sales.php
+│   │   ├── hapus_teknisi.php
+│   │   ├── head.php
+│   │   ├── index-all.php
+│   │   ├── index.php
+│   │   ├── index-sales.php
+│   │   ├── index-sa.php
+│   │   ├── index-x.php
+│   │   ├── ISSUE_TEMPLATE.md
+│   │   ├── js-include.php
+│   │   ├── kegiatan-baru.php
+│   │   ├── kegiatan-db-all.php
+│   │   ├── kegiatan-db-bc.php
+│   │   ├── kegiatan-db-dekstop.php
+│   │   ├── kegiatan-db-load-more-dekstop.php
+│   │   ├── kegiatan-db-load-more-mobile.php
+│   │   ├── kegiatan-db-load-more.php
+│   │   ├── kegiatan-db-mobile.php
+│   │   ├── kegiatan-db.php
+│   │   ├── kegiatan-db-sales.php
+│   │   ├── kegiatan-db-selesai.php
+│   │   ├── kegiatan-selesai.php
+│   │   ├── kegiatan-x.php
+│   │   ├── laporan-cust.php
+│   │   ├── laporan-db-cust.php
+│   │   ├── laporan-db-kegiatan.php
+│   │   ├── laporan-db.php
+│   │   ├── laporan-kegiatan.php
+│   │   ├── laporan.php
+│   │   ├── LICENSE.md
+│   │   ├── logout.php
+│   │   ├── maintenance.php
+│   │   ├── menu-aside.php
+│   │   ├── menu-bottom.php
+│   │   ├── nav-top.php
+│   │   ├── package.json
+│   │   ├── pages
+│   │   │   ├── admin
+│   │   │   │   ├── bu-dashboard.php
+│   │   │   │   ├── cek-menu.php
+│   │   │   │   ├── change_password.php
+│   │   │   │   ├── dashboard.php
+│   │   │   │   ├── data_pembayaran.php
+│   │   │   │   ├── delete_bank_account.php
+│   │   │   │   ├── detail_data_warga.php
+│   │   │   │   ├── detail_pembayaran.php
+│   │   │   │   ├── detail_pembayaran_sedekah.php
+│   │   │   │   ├── get_next_tagihan.php
+│   │   │   │   ├── head.php
+│   │   │   │   ├── js-include.php
+│   │   │   │   ├── menu-aside.php
+│   │   │   │   ├── menu-bottom.php
+│   │   │   │   ├── nav-top.php
+│   │   │   │   ├── pengeluaran.php
+│   │   │   │   ├── profile.php
+│   │   │   │   ├── proses_ganti_password.php
+│   │   │   │   ├── proses_tambah_tagihan.php
+│   │   │   │   ├── proses_tolak_verifikasi.php
+│   │   │   │   ├── proses_tolak_verifikasi_sedekah.php
+│   │   │   │   ├── proses_verifikasi.php
+│   │   │   │   ├── proses_verifikasi_sedekah.php
+│   │   │   │   ├── session.php
+│   │   │   │   ├── tables.php
+│   │   │   │   ├── tagihan.php
+│   │   │   │   ├── tambah_tagihan.php
+│   │   │   │   ├── update_rekening_2.php
+│   │   │   │   ├── update_rekening.php
+│   │   │   │   ├── update_status_tagihan.php
+│   │   │   │   └── verifikasi_pembayaran.php
+│   │   │   ├── billing.php
+│   │   │   ├── footer.php
+│   │   │   ├── icons.php
+│   │   │   ├── login.php
+│   │   │   ├── logout.php
+│   │   │   ├── map.php
+│   │   │   ├── notifications.php
+│   │   │   ├── profile.php
+│   │   │   ├── proses_login.php
+│   │   │   ├── proses_sign_up.php
+│   │   │   ├── rt
+│   │   │   │   ├── bc_select.php
+│   │   │   │   ├── cek-menu.php
+│   │   │   │   ├── dashboard.php
+│   │   │   │   ├── detail_data_warga.php
+│   │   │   │   ├── head.php
+│   │   │   │   ├── js-include.php
+│   │   │   │   ├── laporan_pembayaran.php
+│   │   │   │   ├── laporan.php
+│   │   │   │   ├── laporan_sedekah.php
+│   │   │   │   ├── menu-aside.php
+│   │   │   │   ├── menu-bottom.php
+│   │   │   │   ├── nav-top.php
+│   │   │   │   ├── profile.php
+│   │   │   │   ├── proses_sedekah.php
+│   │   │   │   ├── proses_tagihan.php
+│   │   │   │   ├── session.php
+│   │   │   │   └── tables.php
+│   │   │   ├── rtl.php
+│   │   │   ├── sekretaris
+│   │   │   │   ├── cek-menu.php
+│   │   │   │   ├── change_password.php
+│   │   │   │   ├── dashboard.php
+│   │   │   │   ├── edit_data_warga.php
+│   │   │   │   ├── head.php
+│   │   │   │   ├── in_member.php
+│   │   │   │   ├── js-include.php
+│   │   │   │   ├── menu-aside.php
+│   │   │   │   ├── menu-bottom.php
+│   │   │   │   ├── nav-top.php
+│   │   │   │   ├── past_member.php
+│   │   │   │   ├── profile.php
+│   │   │   │   ├── proses_edit_data_warga.php
+│   │   │   │   ├── proses_ganti_password.php
+│   │   │   │   ├── proses_tambah_data_keluarga.php
+│   │   │   │   ├── proses_tambah_data_warga.php
+│   │   │   │   ├── session.php
+│   │   │   │   ├── tables.php
+│   │   │   │   ├── tambah_data_keluarga.php
+│   │   │   │   └── tambah_data_warga.php
+│   │   │   ├── sign-in.php
+│   │   │   ├── sign-up.php
+│   │   │   ├── template.php
+│   │   │   ├── typography.php
+│   │   │   ├── virtual-reality.php
+│   │   │   └── warga
+│   │   │       ├── bayar.php
+│   │   │       ├── cek-menu.php
+│   │   │       ├── change_password.php
+│   │   │       ├── dashboard.php
+│   │   │       ├── detail_pembayaran.php
+│   │   │       ├── detail_pembayaran_sedekah.php
+│   │   │       ├── edit_data_warga.php
+│   │   │       ├── head.php
+│   │   │       ├── js-include.php
+│   │   │       ├── menu-aside.php
+│   │   │       ├── menu-bottom.php
+│   │   │       ├── nav-top.php
+│   │   │       ├── profile.php
+│   │   │       ├── proses_ganti_password.php
+│   │   │       ├── proses_pembayaran.php
+│   │   │       ├── proses_sedekah.php
+│   │   │       ├── proses_verifikasi_ulang.php
+│   │   │       ├── proses_verifikasi_ulang_sedekah.php
+│   │   │       ├── sedekah.php
+│   │   │       ├── session.php
+│   │   │       ├── status_pembayaran.php
+│   │   │       └── tagihan-warga.php
+│   │   ├── proses_dapatkan_kode.php
+│   │   ├── proses_ganti_password.php
+│   │   ├── proses_hapus_kegiatan.php
+│   │   ├── proses_jadwalkan.php
+│   │   ├── proses_login.php
+│   │   ├── proses-maintenance.php
+│   │   ├── proses_replay.php
+│   │   ├── proses_signup.php
+│   │   ├── proses_simpan_kode.php
+│   │   ├── proses_tambah_produk.php
+│   │   ├── proses_update_bonus.php
+│   │   ├── proses_update_inv.php
+│   │   ├── README.md
+│   │   ├── sales
+│   │   │   ├── all-kegiatan-db.php
+│   │   │   ├── all-kegiatan.php
+│   │   │   ├── cek-menu.php
+│   │   │   ├── change_password.php
+│   │   │   ├── ckeditor5
+│   │   │   │   ├── build
+│   │   │   │   │   ├── ckeditor.d.ts
+│   │   │   │   │   ├── ckeditor.js
+│   │   │   │   │   ├── ckeditor.js.map
+│   │   │   │   │   └── translations
+│   │   │   │   │       ├── af.js
+│   │   │   │   │       ├── ar.js
+│   │   │   │   │       ├── ast.js
+│   │   │   │   │       ├── az.js
+│   │   │   │   │       ├── bg.js
+│   │   │   │   │       ├── bn.js
+│   │   │   │   │       ├── bs.js
+│   │   │   │   │       ├── ca.js
+│   │   │   │   │       ├── cs.js
+│   │   │   │   │       ├── da.js
+│   │   │   │   │       ├── de-ch.js
+│   │   │   │   │       ├── de.js
+│   │   │   │   │       ├── el.js
+│   │   │   │   │       ├── en-au.js
+│   │   │   │   │       ├── en-gb.js
+│   │   │   │   │       ├── en.js
+│   │   │   │   │       ├── eo.js
+│   │   │   │   │       ├── es-co.js
+│   │   │   │   │       ├── es.js
+│   │   │   │   │       ├── et.js
+│   │   │   │   │       ├── eu.js
+│   │   │   │   │       ├── fa.js
+│   │   │   │   │       ├── fi.js
+│   │   │   │   │       ├── fr.js
+│   │   │   │   │       ├── gl.js
+│   │   │   │   │       ├── gu.js
+│   │   │   │   │       ├── he.js
+│   │   │   │   │       ├── hi.js
+│   │   │   │   │       ├── hr.js
+│   │   │   │   │       ├── hu.js
+│   │   │   │   │       ├── hy.js
+│   │   │   │   │       ├── it.js
+│   │   │   │   │       ├── ja.js
+│   │   │   │   │       ├── jv.js
+│   │   │   │   │       ├── kk.js
+│   │   │   │   │       ├── km.js
+│   │   │   │   │       ├── kn.js
+│   │   │   │   │       ├── ko.js
+│   │   │   │   │       ├── ku.js
+│   │   │   │   │       ├── lt.js
+│   │   │   │   │       ├── lv.js
+│   │   │   │   │       ├── ms.js
+│   │   │   │   │       ├── nb.js
+│   │   │   │   │       ├── ne.js
+│   │   │   │   │       ├── nl.js
+│   │   │   │   │       ├── no.js
+│   │   │   │   │       ├── oc.js
+│   │   │   │   │       ├── pl.js
+│   │   │   │   │       ├── pt-br.js
+│   │   │   │   │       ├── pt.js
+│   │   │   │   │       ├── ro.js
+│   │   │   │   │       ├── ru.js
+│   │   │   │   │       ├── si.js
+│   │   │   │   │       ├── sk.js
+│   │   │   │   │       ├── sl.js
+│   │   │   │   │       ├── sq.js
+│   │   │   │   │       ├── sr.js
+│   │   │   │   │       ├── sr-latn.js
+│   │   │   │   │       ├── sv.js
+│   │   │   │   │       ├── th.js
+│   │   │   │   │       ├── tk.js
+│   │   │   │   │       ├── tr.js
+│   │   │   │   │       ├── tt.js
+│   │   │   │   │       ├── ug.js
+│   │   │   │   │       ├── uk.js
+│   │   │   │   │       ├── ur.js
+│   │   │   │   │       ├── uz.js
+│   │   │   │   │       ├── vi.js
+│   │   │   │   │       ├── zh-cn.js
+│   │   │   │   │       └── zh.js
+│   │   │   │   ├── LICENSE.md
+│   │   │   │   ├── package.json
+│   │   │   │   ├── README.md
+│   │   │   │   ├── sample
+│   │   │   │   │   ├── index.html
+│   │   │   │   │   ├── script.js
+│   │   │   │   │   └── styles.css
+│   │   │   │   ├── src
+│   │   │   │   │   └── ckeditor.ts
+│   │   │   │   ├── tsconfig.json
+│   │   │   │   └── webpack.config.js
+│   │   │   ├── detail-kegiatan.php
+│   │   │   ├── get-mulai.php
+│   │   │   ├── get-pause.php
+│   │   │   ├── get-reschedule.php
+│   │   │   ├── get-selesai.php
+│   │   │   ├── head.php
+│   │   │   ├── index.php
+│   │   │   ├── js-include.php
+│   │   │   ├── kegiatan-db-all.php
+│   │   │   ├── kegiatan-db.php
+│   │   │   ├── kegiatan.php
+│   │   │   ├── menu-aside.php
+│   │   │   ├── menu-bottom.php
+│   │   │   ├── pencapaian-db.php
+│   │   │   ├── pencapaian.php
+│   │   │   ├── proses_ganti_password.php
+│   │   │   ├── save-mulai.php
+│   │   │   ├── save-pause.php
+│   │   │   ├── save-selesai.php
+│   │   │   ├── script-get.js
+│   │   │   ├── script.js
+│   │   │   └── session.php
+│   │   ├── sales-db-detail.php
+│   │   ├── sales-db.php
+│   │   ├── sales-detail.php
+│   │   ├── sales.php
+│   │   ├── session.php
+│   │   ├── sign-up.php
+│   │   ├── simpan_kode.php
+│   │   ├── tambah-customer-db.php
+│   │   ├── tambah-customer.php
+│   │   ├── teknisi-db-all.php
+│   │   ├── teknisi-db-detail.php
+│   │   ├── teknisi-db.php
+│   │   ├── teknisi-detail.php
+│   │   ├── teknisi_detail.php
+│   │   ├── template.html
+│   │   ├── top-point.php
+│   │   ├── vendor
+│   │   │   ├── autoload.php
+│   │   │   ├── composer
+│   │   │   │   ├── autoload_classmap.php
+│   │   │   │   ├── autoload_namespaces.php
+│   │   │   │   ├── autoload_psr4.php
+│   │   │   │   ├── autoload_real.php
+│   │   │   │   ├── autoload_static.php
+│   │   │   │   ├── ClassLoader.php
+│   │   │   │   ├── installed.json
+│   │   │   │   ├── installed.php
+│   │   │   │   ├── InstalledVersions.php
+│   │   │   │   ├── LICENSE
+│   │   │   │   └── platform_check.php
+│   │   │   └── phpmailer
+│   │   │       └── phpmailer
+│   │   │           ├── COMMITMENT
+│   │   │           ├── composer.json
+│   │   │           ├── get_oauth_token.php
+│   │   │           ├── language
+│   │   │           │   ├── phpmailer.lang-af.php
+│   │   │           │   ├── phpmailer.lang-ar.php
+│   │   │           │   ├── phpmailer.lang-az.php
+│   │   │           │   ├── phpmailer.lang-ba.php
+│   │   │           │   ├── phpmailer.lang-be.php
+│   │   │           │   ├── phpmailer.lang-bg.php
+│   │   │           │   ├── phpmailer.lang-ca.php
+│   │   │           │   ├── phpmailer.lang-cs.php
+│   │   │           │   ├── phpmailer.lang-da.php
+│   │   │           │   ├── phpmailer.lang-de.php
+│   │   │           │   ├── phpmailer.lang-el.php
+│   │   │           │   ├── phpmailer.lang-eo.php
+│   │   │           │   ├── phpmailer.lang-es.php
+│   │   │           │   ├── phpmailer.lang-et.php
+│   │   │           │   ├── phpmailer.lang-fa.php
+│   │   │           │   ├── phpmailer.lang-fi.php
+│   │   │           │   ├── phpmailer.lang-fo.php
+│   │   │           │   ├── phpmailer.lang-fr.php
+│   │   │           │   ├── phpmailer.lang-gl.php
+│   │   │           │   ├── phpmailer.lang-he.php
+│   │   │           │   ├── phpmailer.lang-hi.php
+│   │   │           │   ├── phpmailer.lang-hr.php
+│   │   │           │   ├── phpmailer.lang-hu.php
+│   │   │           │   ├── phpmailer.lang-hy.php
+│   │   │           │   ├── phpmailer.lang-id.php
+│   │   │           │   ├── phpmailer.lang-it.php
+│   │   │           │   ├── phpmailer.lang-ja.php
+│   │   │           │   ├── phpmailer.lang-ka.php
+│   │   │           │   ├── phpmailer.lang-ko.php
+│   │   │           │   ├── phpmailer.lang-lt.php
+│   │   │           │   ├── phpmailer.lang-lv.php
+│   │   │           │   ├── phpmailer.lang-mg.php
+│   │   │           │   ├── phpmailer.lang-mn.php
+│   │   │           │   ├── phpmailer.lang-ms.php
+│   │   │           │   ├── phpmailer.lang-nb.php
+│   │   │           │   ├── phpmailer.lang-nl.php
+│   │   │           │   ├── phpmailer.lang-pl.php
+│   │   │           │   ├── phpmailer.lang-pt_br.php
+│   │   │           │   ├── phpmailer.lang-pt.php
+│   │   │           │   ├── phpmailer.lang-ro.php
+│   │   │           │   ├── phpmailer.lang-ru.php
+│   │   │           │   ├── phpmailer.lang-sk.php
+│   │   │           │   ├── phpmailer.lang-sl.php
+│   │   │           │   ├── phpmailer.lang-sr_latn.php
+│   │   │           │   ├── phpmailer.lang-sr.php
+│   │   │           │   ├── phpmailer.lang-sv.php
+│   │   │           │   ├── phpmailer.lang-tl.php
+│   │   │           │   ├── phpmailer.lang-tr.php
+│   │   │           │   ├── phpmailer.lang-uk.php
+│   │   │           │   ├── phpmailer.lang-vi.php
+│   │   │           │   ├── phpmailer.lang-zh_cn.php
+│   │   │           │   └── phpmailer.lang-zh.php
+│   │   │           ├── LICENSE
+│   │   │           ├── README.md
+│   │   │           ├── SECURITY.md
+│   │   │           ├── src
+│   │   │           │   ├── DSNConfigurator.php
+│   │   │           │   ├── Exception.php
+│   │   │           │   ├── OAuth.php
+│   │   │           │   ├── OAuthTokenProvider.php
+│   │   │           │   ├── PHPMailer.php
+│   │   │           │   ├── POP3.php
+│   │   │           │   └── SMTP.php
+│   │   │           └── VERSION
+│   │   ├── vendor.zip
+│   │   ├── view-kegiatan.php
+│   │   ├── waiting-list-db.php
+│   │   └── waiting-list.php
+│   ├── sales-db
+│   │   ├── add_customer.php
+│   │   ├── aol-oauth-callback.php
+│   │   ├── api_debug.log
+│   │   ├── assets
+│   │   │   ├── css
+│   │   │   │   └── style.css
+│   │   │   └── js
+│   │   │       └── script.js
+│   │   ├── config.php
+│   │   ├── debug_add_customer.log
+│   │   ├── functions.php
+│   │   └── index.php
+│   ├── sales-db-detail.php
+│   ├── sales-db.php
+│   ├── sales-detail.php
+│   ├── sales.php
+│   ├── save_reason.php
+│   ├── search_customer.php
+│   ├── search.php
+│   ├── selesaikan-kegiatan.php
+│   ├── session.php
+│   ├── sign-up.php
+│   ├── simpan_kode.php
+│   ├── submit_invoice.php
+│   ├── tambah-customer-db.php
+│   ├── tambah-customer.php
+│   ├── tambah-cust-sales-db.php
+│   ├── tambah-cust-sales.php
+│   ├── tambah-inv.php
+│   ├── tampil_log.php
+│   ├── task-db.php
+│   ├── task-new.php
+│   ├── task.php
+│   ├── teknisi
+│   │   ├── all-kegiatan-db.php
+│   │   ├── all-kegiatan.php
+│   │   ├── cek-menu.php
+│   │   ├── change_password.php
+│   │   ├── ckeditor5
+│   │   │   ├── build
+│   │   │   │   ├── ckeditor.d.ts
+│   │   │   │   ├── ckeditor.js
+│   │   │   │   ├── ckeditor.js.map
+│   │   │   │   └── translations
+│   │   │   │       ├── af.js
+│   │   │   │       ├── ar.js
+│   │   │   │       ├── ast.js
+│   │   │   │       ├── az.js
+│   │   │   │       ├── bg.js
+│   │   │   │       ├── bn.js
+│   │   │   │       ├── bs.js
+│   │   │   │       ├── ca.js
+│   │   │   │       ├── cs.js
+│   │   │   │       ├── da.js
+│   │   │   │       ├── de-ch.js
+│   │   │   │       ├── de.js
+│   │   │   │       ├── el.js
+│   │   │   │       ├── en-au.js
+│   │   │   │       ├── en-gb.js
+│   │   │   │       ├── en.js
+│   │   │   │       ├── eo.js
+│   │   │   │       ├── es-co.js
+│   │   │   │       ├── es.js
+│   │   │   │       ├── et.js
+│   │   │   │       ├── eu.js
+│   │   │   │       ├── fa.js
+│   │   │   │       ├── fi.js
+│   │   │   │       ├── fr.js
+│   │   │   │       ├── gl.js
+│   │   │   │       ├── gu.js
+│   │   │   │       ├── he.js
+│   │   │   │       ├── hi.js
+│   │   │   │       ├── hr.js
+│   │   │   │       ├── hu.js
+│   │   │   │       ├── hy.js
+│   │   │   │       ├── it.js
+│   │   │   │       ├── ja.js
+│   │   │   │       ├── jv.js
+│   │   │   │       ├── kk.js
+│   │   │   │       ├── km.js
+│   │   │   │       ├── kn.js
+│   │   │   │       ├── ko.js
+│   │   │   │       ├── ku.js
+│   │   │   │       ├── lt.js
+│   │   │   │       ├── lv.js
+│   │   │   │       ├── ms.js
+│   │   │   │       ├── nb.js
+│   │   │   │       ├── ne.js
+│   │   │   │       ├── nl.js
+│   │   │   │       ├── no.js
+│   │   │   │       ├── oc.js
+│   │   │   │       ├── pl.js
+│   │   │   │       ├── pt-br.js
+│   │   │   │       ├── pt.js
+│   │   │   │       ├── ro.js
+│   │   │   │       ├── ru.js
+│   │   │   │       ├── si.js
+│   │   │   │       ├── sk.js
+│   │   │   │       ├── sl.js
+│   │   │   │       ├── sq.js
+│   │   │   │       ├── sr.js
+│   │   │   │       ├── sr-latn.js
+│   │   │   │       ├── sv.js
+│   │   │   │       ├── th.js
+│   │   │   │       ├── tk.js
+│   │   │   │       ├── tr.js
+│   │   │   │       ├── tt.js
+│   │   │   │       ├── ug.js
+│   │   │   │       ├── uk.js
+│   │   │   │       ├── ur.js
+│   │   │   │       ├── uz.js
+│   │   │   │       ├── vi.js
+│   │   │   │       ├── zh-cn.js
+│   │   │   │       └── zh.js
+│   │   │   ├── LICENSE.md
+│   │   │   ├── package.json
+│   │   │   ├── README.md
+│   │   │   ├── sample
+│   │   │   │   ├── index.html
+│   │   │   │   ├── script.js
+│   │   │   │   └── styles.css
+│   │   │   ├── src
+│   │   │   │   └── ckeditor.ts
+│   │   │   ├── tsconfig.json
+│   │   │   └── webpack.config.js
+│   │   ├── detail-kegiatan.php
+│   │   ├── get-mulai.php
+│   │   ├── get-pause.php
+│   │   ├── get-reschedule.php
+│   │   ├── get-selesai.php
+│   │   ├── head.php
+│   │   ├── index.php
+│   │   ├── js-include.php
+│   │   ├── kegiatan-db-all.php
+│   │   ├── kegiatan-db.php
+│   │   ├── kegiatan.php
+│   │   ├── menu-aside.php
+│   │   ├── menu-bottom.php
+│   │   ├── pencapaian-db.php
+│   │   ├── pencapaian.php
+│   │   ├── proses_ganti_password.php
+│   │   ├── save-mulai.php
+│   │   ├── save-pause.php
+│   │   ├── save-selesai.php
+│   │   ├── script-get.js
+│   │   ├── script.js
+│   │   └── session.php
+│   ├── teknisi-db-all.php
+│   ├── teknisi-db-detail.php
+│   ├── teknisi-db.php
+│   ├── teknisi-detail.php
+│   ├── teknisi_detail.php
+│   ├── template.html
+│   ├── top-point.php
+│   ├── track-data.php
+│   ├── tutorial-db-all.php
+│   ├── tutorial.php
+│   ├── under_construction.php
+│   ├── update_lokasi.php
+│   ├── update_reason.php
+│   ├── update_status.php
+│   ├── update_target.php
+│   ├── update_tutor.php
+│   ├── uploads
+│   │   ├── 16_obeng__-__e584.jpeg
+│   │   ├── 18_tang_potong_54e0.jpeg
+│   │   ├── 19_tang_panjang_6ac8.jpeg
+│   │   ├── 20_tespen_df7f.jpeg
+│   │   ├── 21_obeng_batre_deli_2437.jpeg
+│   │   ├── 22_tang_krimping_8791.jpeg
+│   │   ├── 23_lan_tester_7298.jpeg
+│   │   ├── 24_tool_bag_53a1.jpeg
+│   │   ├── 25_troli_23fc.jpeg
+│   │   ├── 26_obeng_____9b84.jpeg
+│   │   ├── 27_body_hernes_9663.jpeg
+│   │   ├── 28_tangga_6_meter_9797.jpeg
+│   │   ├── 29_tangga_4_5_meter_7556.jpeg
+│   │   ├── 30_tangga_lipat_bfc1.jpeg
+│   │   ├── 31_bor_batre_108a.jpeg
+│   │   ├── 32_palu_kecil_3481.jpeg
+│   │   ├── 33_palu_besar_3697.jpeg
+│   │   ├── 34_tas_kecil_banget_2e6e.png
+│   │   ├── 36_apar_6kg_78ff.jpeg
+│   │   ├── 37_apar_3_kg_0fdc.jpeg
+│   │   ├── 38_bor_merah_0005.jpeg
+│   │   ├── 39_bor_biru_25c4.jpeg
+│   │   ├── 41_test_input_barang_f1f4.jpg
+│   │   ├── 42_tangga_3_meter_c670.jpeg
+│   │   ├── 43_tangga_4_meter_8387.jpeg
+│   │   ├── 44_helm_8200.jpeg
+│   │   ├── 45_box_panel_12bf.jpeg
+│   │   ├── 46_gerinda_kuning_ce4d.jpeg
+│   │   ├── 47_tang_crimmping_besar_d3db.jpeg
+│   │   ├── 48_tang_crimmping_kecil_c58d.jpeg
+│   │   ├── 49_pisau_cutter_lan_6657.jpeg
+│   │   ├── 50_kunci_14__3f83.jpeg
+│   │   ├── 51_hole_saw_9d8b.jpeg
+│   │   └── reasons
+│   │       ├── reason_2570_1765875509.png
+│   │       ├── reason_2661_1765871185.png
+│   │       └── reason_2706_1765871138.png
+│   ├── vendor
+│   │   ├── autoload.php
+│   │   ├── composer
+│   │   │   ├── autoload_classmap.php
+│   │   │   ├── autoload_namespaces.php
+│   │   │   ├── autoload_psr4.php
+│   │   │   ├── autoload_real.php
+│   │   │   ├── autoload_static.php
+│   │   │   ├── ClassLoader.php
+│   │   │   ├── installed.json
+│   │   │   ├── installed.php
+│   │   │   ├── InstalledVersions.php
+│   │   │   ├── LICENSE
+│   │   │   └── platform_check.php
+│   │   └── phpmailer
+│   │       └── phpmailer
+│   │           ├── COMMITMENT
+│   │           ├── composer.json
+│   │           ├── get_oauth_token.php
+│   │           ├── language
+│   │           │   ├── phpmailer.lang-af.php
+│   │           │   ├── phpmailer.lang-ar.php
+│   │           │   ├── phpmailer.lang-az.php
+│   │           │   ├── phpmailer.lang-ba.php
+│   │           │   ├── phpmailer.lang-be.php
+│   │           │   ├── phpmailer.lang-bg.php
+│   │           │   ├── phpmailer.lang-ca.php
+│   │           │   ├── phpmailer.lang-cs.php
+│   │           │   ├── phpmailer.lang-da.php
+│   │           │   ├── phpmailer.lang-de.php
+│   │           │   ├── phpmailer.lang-el.php
+│   │           │   ├── phpmailer.lang-eo.php
+│   │           │   ├── phpmailer.lang-es.php
+│   │           │   ├── phpmailer.lang-et.php
+│   │           │   ├── phpmailer.lang-fa.php
+│   │           │   ├── phpmailer.lang-fi.php
+│   │           │   ├── phpmailer.lang-fo.php
+│   │           │   ├── phpmailer.lang-fr.php
+│   │           │   ├── phpmailer.lang-gl.php
+│   │           │   ├── phpmailer.lang-he.php
+│   │           │   ├── phpmailer.lang-hi.php
+│   │           │   ├── phpmailer.lang-hr.php
+│   │           │   ├── phpmailer.lang-hu.php
+│   │           │   ├── phpmailer.lang-hy.php
+│   │           │   ├── phpmailer.lang-id.php
+│   │           │   ├── phpmailer.lang-it.php
+│   │           │   ├── phpmailer.lang-ja.php
+│   │           │   ├── phpmailer.lang-ka.php
+│   │           │   ├── phpmailer.lang-ko.php
+│   │           │   ├── phpmailer.lang-lt.php
+│   │           │   ├── phpmailer.lang-lv.php
+│   │           │   ├── phpmailer.lang-mg.php
+│   │           │   ├── phpmailer.lang-mn.php
+│   │           │   ├── phpmailer.lang-ms.php
+│   │           │   ├── phpmailer.lang-nb.php
+│   │           │   ├── phpmailer.lang-nl.php
+│   │           │   ├── phpmailer.lang-pl.php
+│   │           │   ├── phpmailer.lang-pt_br.php
+│   │           │   ├── phpmailer.lang-pt.php
+│   │           │   ├── phpmailer.lang-ro.php
+│   │           │   ├── phpmailer.lang-ru.php
+│   │           │   ├── phpmailer.lang-sk.php
+│   │           │   ├── phpmailer.lang-sl.php
+│   │           │   ├── phpmailer.lang-sr_latn.php
+│   │           │   ├── phpmailer.lang-sr.php
+│   │           │   ├── phpmailer.lang-sv.php
+│   │           │   ├── phpmailer.lang-tl.php
+│   │           │   ├── phpmailer.lang-tr.php
+│   │           │   ├── phpmailer.lang-uk.php
+│   │           │   ├── phpmailer.lang-vi.php
+│   │           │   ├── phpmailer.lang-zh_cn.php
+│   │           │   └── phpmailer.lang-zh.php
+│   │           ├── LICENSE
+│   │           ├── README.md
+│   │           ├── SECURITY.md
+│   │           ├── src
+│   │           │   ├── DSNConfigurator.php
+│   │           │   ├── Exception.php
+│   │           │   ├── OAuth.php
+│   │           │   ├── OAuthTokenProvider.php
+│   │           │   ├── PHPMailer.php
+│   │           │   ├── POP3.php
+│   │           │   └── SMTP.php
+│   │           └── VERSION
+│   ├── vendor.zip
+│   ├── view-kegiatan.php
+│   ├── view_kegiatan.php
+│   ├── view-kegiatan-sales.php
+│   ├── view-media.php
+│   ├── waiting-dekstop.php
+│   ├── waiting-list-db.php
+│   ├── waiting-list.php
+│   ├── waiting-mobile.php
+│   ├── wa-msg.php
+│   ├── x-laporan-db-kegiatan.php
+│   └── x-laporan-kegiatan.php
+├── struktur_data_jadwal.txt
+├── tambah_data_kegiatan.php
+├── teknisi_detail.php
+├── teknisi.php
+├── tracking.php
+├── track_pemesanan.php
+├── try-index-sa.php
+├── untitled file
+├── update_status_pause.php
+├── update_status.php
+├── update-tgl-request-pause.php
+├── update-tgl-request.php
+├── upload_image2.php
+├── upload_image.php
+├── uploads
+│   ├── 224_30717_MDM.jpg
+│   ├── 254_47026_AJN.jpg
+│   ├── 254_76926_RJN.jpg
+│   ├── 257_33568_YIS.jpg
+│   ├── 257_39849_PHB.jpg
+│   ├── 257_54556_AAP.jpg
+│   ├── 257_92589_ZNA.jpg
+│   ├── 257_99226_ABA.jpg
+│   ├── 258_80937_JTV.jpg
+│   ├── 262_96158_DAD.jpg
+│   ├── 280_67007_EFU.jpg
+│   ├── 281_22346_ZNH.mp4
+│   ├── 281_52022_YXP.jpg
+│   ├── 281_55489_YRR.jpg
+│   ├── 281_96772_WAD.jpg
+│   ├── 286_93883_HYC.jpg
+│   ├── 296_70240_ONX.jpg
+│   ├── 296_88785_HXJ.jpg
+│   ├── 297_23647_UUP.jpg
+│   ├── 297_30965_OIR.jpg
+│   ├── 297_45717_QXZ.jpg
+│   ├── 297_88174_AXY.jpg
+│   ├── 300_74363_AJB.jpg
+│   ├── 304_81541_KUW.jpg
+│   ├── 307_33902_RHI.jpg
+│   ├── 307_40486_RPX.jpg
+│   ├── 307_40656_KNY.jpg
+│   ├── 307_48624_LZE.jpg
+│   ├── 307_91997_MRB.jpg
+│   ├── 307_95712_UVN.jpg
+│   ├── 308_42788_XQM.jpg
+│   ├── 308_50223_LKU.jpg
+│   ├── 308_74164_CNT.jpg
+│   ├── 308_80113_LZQ.jpg
+│   ├── 309_89562_WPP.jpg
+│   ├── 322_32052_HXP.jpg
+│   ├── 322_98500_PMA.jpg
+│   ├── 335_79442_UNN.jpeg
+│   ├── 335_94646_QUO.jpeg
+│   ├── 348_59581_JKC.jpg
+│   ├── 349_34380_JWH.jpg
+│   ├── 349_60933_YLY.jpg
+│   ├── 369_85323_RUI.jpg
+│   ├── 369_95597_DPN.jpg
+│   ├── 371_86178_HBZ.jpg
+│   ├── 373_11744_PLH.jpg
+│   ├── 373_14988_THJ.jpg
+│   ├── 373_51542_JWR.jpg
+│   ├── 373_55977_VKT.jpg
+│   ├── 373_68977_BZR.jpg
+│   ├── 373_87595_IKD.jpg
+│   ├── 380_13071_VXG.jpg
+│   ├── 380_89208_RTA.jpg
+│   ├── 6552ec16953bd_blob
+│   ├── 6552ec1919955_blob
+│   ├── 6552f03351f60_blob
+│   ├── 656fd51285bb5_blob
+│   ├── 656fde0526a03_blob
+│   ├── 65791444f132c_blob
+│   ├── 657933beee068_blob
+│   ├── 657a7ef214946_blob
+│   ├── 6581554c85ad9_blob
+│   ├── 658167a830e41_blob
+│   ├── 6582c6ebe1a3e_blob
+│   ├── 658e33f9c70a2_blob
+│   ├── 658e36af1b589_blob
+│   ├── 658e36c4df0c8_blob
+│   ├── 658e36f881fc3_blob
+│   ├── 658e3716c64db_blob
+│   ├── 658e372caf281_blob
+│   ├── 658e37b5165f1_blob
+│   ├── 658e3804aa026_blob
+│   ├── 658e38081b406_blob
+│   ├── 658e380b4e38f_blob
+│   ├── 658e380c1ff8b_blob
+│   ├── 658e381026866_blob
+│   ├── 658e3813ea479_blob
+│   ├── 658e3816ad3f4_blob
+│   ├── 658e381ba3f81_blob
+│   ├── 658e381da106e_blob
+│   ├── 658e381fdb621_blob
+│   ├── 658e3824ce610_blob
+│   ├── 658e3824cf8f9_blob
+│   ├── 658e3825d446d_blob
+│   ├── 658e3828876bb_blob
+│   ├── 658e38299696d_blob
+│   ├── 658e382b4c99e_blob
+│   ├── 658e382cb5084_blob
+│   ├── 658e382e3dfd4_blob
+│   ├── 658e383228679_blob
+│   ├── 658e38359c901_blob
+│   ├── 658e38373ae76_blob
+│   ├── 658e3839757d2_blob
+│   ├── 658e383c21218_blob
+│   ├── 658e383e11e57_blob
+│   ├── 658e384084f77_blob
+│   ├── 658e384b3801f_blob
+│   ├── 658e384b3e99c_blob
+│   ├── 658e384b3ebf3_blob
+│   ├── 658e384b432d0_blob
+│   ├── 658e384b432d2_blob
+│   ├── 658e384b49f3f_blob
+│   ├── 658e384b4db3e_blob
+│   ├── 658e384b538e2_blob
+│   ├── 658e384c7abac_blob
+│   ├── 658e384c7f376_blob
+│   ├── 658e38eb482bb_blob
+│   ├── 658e39071cde9_blob
+│   ├── 658e392784aa9_blob
+│   ├── 659661cfdf9b3_blob
+│   ├── 659661f0ab9c9_blob
+│   ├── 659666c4893f8_blob
+│   ├── 659667423b9c7_blob
+│   ├── 6597e5a1b1beb_blob
+│   ├── 6598beb1e24d2_blob
+│   ├── 6598c94728f48_blob
+│   ├── 659b69fd48937_blob
+│   ├── 659b69fd7f981_blob
+│   ├── 659b7c41ace12_blob
+│   ├── 659b84c5ce4d2_blob
+│   ├── 659ba4a688907_blob
+│   ├── 659c0eea01f4c_blob
+│   ├── 659ca82b016fc_blob
+│   ├── 659ca8a64a12d_blob
+│   ├── 659cd10093e06_blob
+│   ├── 659cff4c22237_blob
+│   ├── 659d0fe21fe26_blob
+│   ├── 659d22d0dddea_blob
+│   ├── 659d22d12ab66_blob
+│   ├── 659d2a51d3df7_blob
+│   ├── 659e102e3d978_blob
+│   ├── 659e379618212_blob
+│   ├── 659e37bb1ceb4_blob
+│   ├── 659e743510748_blob
+│   ├── 659e760124170_blob
+│   ├── 659e7608d540f_blob
+│   ├── 659e76367f13e_blob
+│   └── 659e8f66c8112_blob
+├── .user.ini
+├── vendor
+│   ├── autoload.php
+│   ├── bacon
+│   │   └── bacon-qr-code
+│   │       ├── composer.json
+│   │       ├── LICENSE
+│   │       ├── phpunit.xml.dist
+│   │       ├── README.md
+│   │       ├── src
+│   │       │   ├── Common
+│   │       │   │   ├── BitArray.php
+│   │       │   │   ├── BitMatrix.php
+│   │       │   │   ├── BitUtils.php
+│   │       │   │   ├── CharacterSetEci.php
+│   │       │   │   ├── EcBlock.php
+│   │       │   │   ├── EcBlocks.php
+│   │       │   │   ├── ErrorCorrectionLevel.php
+│   │       │   │   ├── FormatInformation.php
+│   │       │   │   ├── Mode.php
+│   │       │   │   ├── ReedSolomonCodec.php
+│   │       │   │   └── Version.php
+│   │       │   ├── Encoder
+│   │       │   │   ├── BlockPair.php
+│   │       │   │   ├── ByteMatrix.php
+│   │       │   │   ├── Encoder.php
+│   │       │   │   ├── MaskUtil.php
+│   │       │   │   ├── MatrixUtil.php
+│   │       │   │   └── QrCode.php
+│   │       │   ├── Exception
+│   │       │   │   ├── ExceptionInterface.php
+│   │       │   │   ├── InvalidArgumentException.php
+│   │       │   │   ├── OutOfBoundsException.php
+│   │       │   │   ├── RuntimeException.php
+│   │       │   │   ├── UnexpectedValueException.php
+│   │       │   │   └── WriterException.php
+│   │       │   ├── Renderer
+│   │       │   │   ├── Color
+│   │       │   │   │   ├── Alpha.php
+│   │       │   │   │   ├── Cmyk.php
+│   │       │   │   │   ├── ColorInterface.php
+│   │       │   │   │   ├── Gray.php
+│   │       │   │   │   └── Rgb.php
+│   │       │   │   ├── Eye
+│   │       │   │   │   ├── CompositeEye.php
+│   │       │   │   │   ├── EyeInterface.php
+│   │       │   │   │   ├── ModuleEye.php
+│   │       │   │   │   ├── SimpleCircleEye.php
+│   │       │   │   │   └── SquareEye.php
+│   │       │   │   ├── Image
+│   │       │   │   │   ├── EpsImageBackEnd.php
+│   │       │   │   │   ├── ImageBackEndInterface.php
+│   │       │   │   │   ├── ImagickImageBackEnd.php
+│   │       │   │   │   ├── SvgImageBackEnd.php
+│   │       │   │   │   └── TransformationMatrix.php
+│   │       │   │   ├── ImageRenderer.php
+│   │       │   │   ├── Module
+│   │       │   │   │   ├── DotsModule.php
+│   │       │   │   │   ├── EdgeIterator
+│   │       │   │   │   │   ├── EdgeIterator.php
+│   │       │   │   │   │   └── Edge.php
+│   │       │   │   │   ├── ModuleInterface.php
+│   │       │   │   │   ├── RoundnessModule.php
+│   │       │   │   │   └── SquareModule.php
+│   │       │   │   ├── Path
+│   │       │   │   │   ├── Close.php
+│   │       │   │   │   ├── Curve.php
+│   │       │   │   │   ├── EllipticArc.php
+│   │       │   │   │   ├── Line.php
+│   │       │   │   │   ├── Move.php
+│   │       │   │   │   ├── OperationInterface.php
+│   │       │   │   │   └── Path.php
+│   │       │   │   ├── PlainTextRenderer.php
+│   │       │   │   ├── RendererInterface.php
+│   │       │   │   └── RendererStyle
+│   │       │   │       ├── EyeFill.php
+│   │       │   │       ├── Fill.php
+│   │       │   │       ├── Gradient.php
+│   │       │   │       ├── GradientType.php
+│   │       │   │       └── RendererStyle.php
+│   │       │   └── Writer.php
+│   │       └── test
+│   │           ├── Common
+│   │           │   ├── BitArrayTest.php
+│   │           │   ├── BitMatrixTest.php
+│   │           │   ├── BitUtilsTest.php
+│   │           │   ├── ErrorCorrectionLevelTest.php
+│   │           │   ├── FormatInformationTest.php
+│   │           │   ├── ModeTest.php
+│   │           │   ├── ReedSolomonCodecTest.php
+│   │           │   └── VersionTest.php
+│   │           ├── Encoder
+│   │           │   ├── EncoderTest.php
+│   │           │   ├── MaskUtilTest.php
+│   │           │   └── MatrixUtilTest.php
+│   │           └── Integration
+│   │               ├── ImagickRenderingTest.php
+│   │               └── __snapshots__
+│   │                   └── files
+│   │                       ├── ImagickRenderingTest__testGenericQrCode__1.png
+│   │                       └── ImagickRenderingTest__testIssue79__1.png
+│   ├── composer
+│   │   ├── autoload_classmap.php
+│   │   ├── autoload_namespaces.php
+│   │   ├── autoload_psr4.php
+│   │   ├── autoload_real.php
+│   │   ├── autoload_static.php
+│   │   ├── ClassLoader.php
+│   │   ├── installed.json
+│   │   └── LICENSE
+│   ├── dasprid
+│   │   └── enum
+│   │       ├── composer.json
+│   │       ├── LICENSE
+│   │       ├── README.md
+│   │       └── src
+│   │           ├── AbstractEnum.php
+│   │           ├── EnumMap.php
+│   │           ├── Exception
+│   │           │   ├── CloneNotSupportedException.php
+│   │           │   ├── ExceptionInterface.php
+│   │           │   ├── ExpectationException.php
+│   │           │   ├── IllegalArgumentException.php
+│   │           │   ├── MismatchException.php
+│   │           │   ├── SerializeNotSupportedException.php
+│   │           │   └── UnserializeNotSupportedException.php
+│   │           └── NullValue.php
+│   ├── endroid
+│   │   └── qr-code
+│   │       ├── assets
+│   │       │   ├── blackfire.png
+│   │       │   ├── noto_sans.otf
+│   │       │   └── open_sans.ttf
+│   │       ├── composer.json
+│   │       ├── .gitattributes
+│   │       ├── .github
+│   │       │   └── FUNDING.yml
+│   │       ├── .gitignore
+│   │       ├── LICENSE
+│   │       ├── README.md
+│   │       └── src
+│   │           ├── Bacon
+│   │           │   ├── ErrorCorrectionLevelConverter.php
+│   │           │   └── MatrixFactory.php
+│   │           ├── Builder
+│   │           │   ├── BuilderInterface.php
+│   │           │   ├── Builder.php
+│   │           │   ├── BuilderRegistryInterface.php
+│   │           │   └── BuilderRegistry.php
+│   │           ├── Color
+│   │           │   ├── ColorInterface.php
+│   │           │   └── Color.php
+│   │           ├── Encoding
+│   │           │   ├── EncodingInterface.php
+│   │           │   └── Encoding.php
+│   │           ├── ErrorCorrectionLevel
+│   │           │   ├── ErrorCorrectionLevelHigh.php
+│   │           │   ├── ErrorCorrectionLevelInterface.php
+│   │           │   ├── ErrorCorrectionLevelLow.php
+│   │           │   ├── ErrorCorrectionLevelMedium.php
+│   │           │   └── ErrorCorrectionLevelQuartile.php
+│   │           ├── Exception
+│   │           │   └── ValidationException.php
+│   │           ├── ImageData
+│   │           │   ├── LabelImageData.php
+│   │           │   └── LogoImageData.php
+│   │           ├── Label
+│   │           │   ├── Alignment
+│   │           │   │   ├── LabelAlignmentCenter.php
+│   │           │   │   ├── LabelAlignmentInterface.php
+│   │           │   │   ├── LabelAlignmentLeft.php
+│   │           │   │   └── LabelAlignmentRight.php
+│   │           │   ├── Font
+│   │           │   │   ├── FontInterface.php
+│   │           │   │   ├── Font.php
+│   │           │   │   ├── NotoSans.php
+│   │           │   │   └── OpenSans.php
+│   │           │   ├── LabelInterface.php
+│   │           │   ├── Label.php
+│   │           │   └── Margin
+│   │           │       ├── MarginInterface.php
+│   │           │       └── Margin.php
+│   │           ├── Logo
+│   │           │   ├── LogoInterface.php
+│   │           │   └── Logo.php
+│   │           ├── Matrix
+│   │           │   ├── MatrixFactoryInterface.php
+│   │           │   ├── MatrixInterface.php
+│   │           │   └── Matrix.php
+│   │           ├── QrCodeInterface.php
+│   │           ├── QrCode.php
+│   │           ├── RoundBlockSizeMode
+│   │           │   ├── RoundBlockSizeModeEnlarge.php
+│   │           │   ├── RoundBlockSizeModeInterface.php
+│   │           │   ├── RoundBlockSizeModeMargin.php
+│   │           │   ├── RoundBlockSizeModeNone.php
+│   │           │   └── RoundBlockSizeModeShrink.php
+│   │           ├── WritableInterface.php
+│   │           └── Writer
+│   │               ├── BinaryWriter.php
+│   │               ├── ConsoleWriter.php
+│   │               ├── DebugWriter.php
+│   │               ├── EpsWriter.php
+│   │               ├── PdfWriter.php
+│   │               ├── PngWriter.php
+│   │               ├── Result
+│   │               │   ├── AbstractResult.php
+│   │               │   ├── BinaryResult.php
+│   │               │   ├── ConsoleResult.php
+│   │               │   ├── DebugResult.php
+│   │               │   ├── EpsResult.php
+│   │               │   ├── PdfResult.php
+│   │               │   ├── PngResult.php
+│   │               │   ├── ResultInterface.php
+│   │               │   └── SvgResult.php
+│   │               ├── SvgWriter.php
+│   │               ├── ValidatingWriterInterface.php
+│   │               └── WriterInterface.php
+│   └── picqer
+│       └── php-barcode-generator
+│           ├── composer.json
+│           ├── examples.md
+│           ├── generate-examples.php
+│           ├── generate-verified-files.php
+│           ├── .github
+│           │   ├── FUNDING.yml
+│           │   └── workflows
+│           │       ├── phpstan.yml
+│           │       └── phpunit.yml
+│           ├── .gitignore
+│           ├── LICENSE.md
+│           ├── phpstan.neon.dist
+│           ├── phpunit.xml
+│           ├── Readme.md
+│           ├── src
+│           │   ├── BarcodeBar.php
+│           │   ├── BarcodeGeneratorDynamicHTML.php
+│           │   ├── BarcodeGeneratorHTML.php
+│           │   ├── BarcodeGeneratorJPG.php
+│           │   ├── BarcodeGenerator.php
+│           │   ├── BarcodeGeneratorPNG.php
+│           │   ├── BarcodeGeneratorSVG.php
+│           │   ├── Barcode.php
+│           │   ├── Exceptions
+│           │   │   ├── BarcodeException.php
+│           │   │   ├── InvalidCharacterException.php
+│           │   │   ├── InvalidCheckDigitException.php
+│           │   │   ├── InvalidFormatException.php
+│           │   │   ├── InvalidLengthException.php
+│           │   │   └── UnknownTypeException.php
+│           │   ├── Helpers
+│           │   │   └── BinarySequenceConverter.php
+│           │   └── Types
+│           │       ├── TypeCodabar.php
+│           │       ├── TypeCode11.php
+│           │       ├── TypeCode128A.php
+│           │       ├── TypeCode128B.php
+│           │       ├── TypeCode128C.php
+│           │       ├── TypeCode128.php
+│           │       ├── TypeCode32.php
+│           │       ├── TypeCode39Checksum.php
+│           │       ├── TypeCode39ExtendedChecksum.php
+│           │       ├── TypeCode39Extended.php
+│           │       ├── TypeCode39.php
+│           │       ├── TypeCode93.php
+│           │       ├── TypeEan13.php
+│           │       ├── TypeEan8.php
+│           │       ├── TypeEanUpcBase.php
+│           │       ├── TypeIntelligentMailBarcode.php
+│           │       ├── TypeInterface.php
+│           │       ├── TypeInterleaved25Checksum.php
+│           │       ├── TypeInterleaved25.php
+│           │       ├── TypeITF14.php
+│           │       ├── TypeKix.php
+│           │       ├── TypeMsiChecksum.php
+│           │       ├── TypeMsi.php
+│           │       ├── TypePharmacode.php
+│           │       ├── TypePharmacodeTwoCode.php
+│           │       ├── TypePlanet.php
+│           │       ├── TypePostnet.php
+│           │       ├── TypeRms4cc.php
+│           │       ├── TypeStandard2of5Checksum.php
+│           │       ├── TypeStandard2of5.php
+│           │       ├── TypeTelepen.php
+│           │       ├── TypeUpcA.php
+│           │       ├── TypeUpcE.php
+│           │       ├── TypeUpcExtension2.php
+│           │       └── TypeUpcExtension5.php
+│           └── tests
+│               ├── BarcodeDynamicHtmlTest.php
+│               ├── BarcodeHtmlTest.php
+│               ├── BarcodeJpgTest.php
+│               ├── BarcodePngTest.php
+│               ├── BarcodeSvgTest.php
+│               ├── GeneratorTest.php
+│               ├── PharmacodeTest.php
+│               ├── TypesTest.php
+│               ├── VerifiedBarcodeTest.php
+│               └── verified-files
+│                   ├── 0049000004632-ean13.svg
+│                   ├── 081231723897-code128.html
+│                   ├── 081231723897-dynamic-code128.html
+│                   ├── 081231723897-ean13-fractional-width.svg
+│                   ├── 081231723897-ean13.svg
+│                   ├── 12345678903-dynamic-imb.html
+│                   ├── 12345678903-imb.html
+│                   ├── C128-081231723897.svg
+│                   ├── C128-1234567890abcABC-283-33.svg
+│                   ├── C128A-1234567890.svg
+│                   ├── C128B-081231723897.svg
+│                   ├── C128B-1234567890abcABC-283-33.svg
+│                   ├── C39+-1234567890ABC.svg
+│                   ├── C39-1234567890ABC.svg
+│                   ├── C39E+-1234567890abcABC.svg
+│                   ├── C39E-1234567890abcABC.svg
+│                   ├── C93-1234567890abcABC.svg
+│                   ├── CODABAR-123456789.svg
+│                   ├── CODE11-123456789.svg
+│                   ├── EAN13-0049000004632.svg
+│                   ├── EAN13-004900000463.svg
+│                   ├── EAN13-081231723897.svg
+│                   ├── EAN2-22.svg
+│                   ├── EAN5-1234567890abcABC-283-33.svg
+│                   ├── EAN8-1234568.svg
+│                   ├── I25+-1234567890.svg
+│                   ├── I25-1234567890.svg
+│                   ├── IMB-123456789.svg
+│                   ├── ITF14-00012345600012.svg
+│                   ├── ITF14-05400141288766.svg
+│                   ├── KIX-123456789.svg
+│                   ├── MSI+-123456789.svg
+│                   ├── MSI-123456789.svg
+│                   ├── PHARMA-123456789.svg
+│                   ├── PHARMA2T-123456789.svg
+│                   ├── PLANET-123456789.svg
+│                   ├── POSTNET-123456789.svg
+│                   ├── RMS4CC-123456789.svg
+│                   ├── S25+-1234567890.svg
+│                   ├── S25-1234567890.svg
+│                   ├── TELEPENALPHA-1234567890ASCD.svg
+│                   ├── TELEPENNUMERIC-1234567890.svg
+│                   ├── UPCA-123456789.svg
+│                   └── UPCE-123456789.svg
+├── waiting_list_2.php
+└── waiting_list.php
+
+290 directories, 3120 files
