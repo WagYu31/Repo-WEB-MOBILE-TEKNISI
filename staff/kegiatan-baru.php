@@ -332,11 +332,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_kegiatan'])) {
                 // Detect coordinate input: "lat, lng" or "lat lng"
                 const coordMatch = q.match(/^(-?\d+\.?\d*)[,\s]+\s*(-?\d+\.?\d*)$/);
                 if (coordMatch) {
-                    const lat = parseFloat(coordMatch[1]);
-                    const lng = parseFloat(coordMatch[2]);
+                    const latStr = coordMatch[1];
+                    const lngStr = coordMatch[2];
+                    const lat = parseFloat(latStr);
+                    const lng = parseFloat(lngStr);
                     if (!isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+                        const r = parseInt(document.getElementById('radius_input').value) || defaultRad;
+                        marker.setLatLng([lat, lng]);
+                        circle.setLatLng([lat, lng]).setRadius(r);
+                        map.setView([lat, lng], 16);
+                        // Use original string to preserve full precision
+                        document.getElementById('lat').value = latStr;
+                        document.getElementById('lon').value = lngStr;
+                        document.getElementById('lat_display').value = latStr;
+                        document.getElementById('lon_display').value = lngStr;
+                        document.getElementById('radius').value = r;
+                        document.getElementById('radius_input').value = r;
                         saveLocationContainer.style.display = 'block';
-                        updateAllData(L.latLng(lat, lng), document.getElementById('radius_input').value);
+                        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+                            .then(res => res.json())
+                            .then(data => { document.getElementById('location_address').value = data?.display_name || ''; })
+                            .catch(() => { document.getElementById('location_address').value = ''; });
                         return;
                     }
                 }
