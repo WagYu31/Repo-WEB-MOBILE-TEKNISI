@@ -19,6 +19,30 @@ function renderNavItem($pageNow, $targetPage, $url, $icon, $text) {
 
 <style>
     /* ====== SIDEBAR - forced !important to beat material-dashboard.css ====== */
+    
+    /* Override framework .navbar-vertical.navbar-expand-xs max-width */
+    .navbar-vertical.navbar-expand-xs.sidenav-gemini-dark {
+        max-width: 250px !important;
+        overflow-y: visible !important;
+        overflow-x: visible !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+    }
+    .navbar-vertical.navbar-expand-xs.sidenav-gemini-dark .navbar-collapse {
+        height: auto !important;
+        overflow: visible !important;
+    }
+    /* Override framework nav-link margin that steals text space */
+    .navbar-vertical.navbar-expand-xs.sidenav-gemini-dark .navbar-nav .nav-link {
+        margin: 0 !important;
+        margin-bottom: 0 !important;
+        white-space: normal !important;
+    }
+    /* Override framework nav-link color */
+    .navbar-vertical.sidenav-gemini-dark .navbar-nav .nav-link {
+        color: #9CA3AF !important;
+    }
+
     .sidenav-gemini-dark,
     .sidenav.sidenav-gemini-dark,
     aside.sidenav-gemini-dark {
@@ -26,18 +50,21 @@ function renderNavItem($pageNow, $targetPage, $url, $icon, $text) {
         background-image: none !important;
         border-right: none !important;
         width: 250px !important;
+        max-width: 250px !important;
         height: calc(100vh - 2rem) !important;
         top: 1rem !important;
         border-radius: 0.75rem !important;
         box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1) !important;
         display: flex !important;
         flex-direction: column !important;
+        overflow: hidden !important;
     }
 
     .sidenav-gemini-dark .navbar-collapse {
-        flex-grow: 1;
-        overflow-y: auto;
-        overflow-x: hidden;
+        flex-grow: 1 !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        height: auto !important;
     }
     .sidenav-gemini-dark .navbar-collapse::-webkit-scrollbar { width: 6px; }
     .sidenav-gemini-dark .navbar-collapse::-webkit-scrollbar-track { background: transparent; }
