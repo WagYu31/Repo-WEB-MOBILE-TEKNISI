@@ -18,90 +18,93 @@ function renderNavItem($pageNow, $targetPage, $url, $icon, $text) {
 <!-- Font Awesome sudah dimuat di head.php -->
 
 <style>
-    /* ====== SIDEBAR - forced !important to beat material-dashboard.css ====== */
-    
-    /* Override framework .navbar-vertical.navbar-expand-xs constraints */
-    .navbar-vertical.navbar-expand-xs.sidenav-gemini-dark {
-        max-width: 250px !important;
-        padding: 0 !important;
-    }
-    .navbar-vertical.navbar-expand-xs.sidenav-gemini-dark .navbar-collapse {
-        height: calc(100vh - 160px) !important;
-    }
-    /* Override framework nav-link margin that steals text space */
-    .navbar-vertical.navbar-expand-xs.sidenav-gemini-dark .navbar-nav .nav-link {
-        margin: 0 !important;
-        margin-bottom: 0 !important;
-        white-space: normal !important;
-    }
-    /* Override framework nav-link color */
-    .navbar-vertical.sidenav-gemini-dark .navbar-nav .nav-link {
-        color: #9CA3AF !important;
-    }
+    /* =========================================================
+       SIDEBAR CSS — overrides material-dashboard.css
+       Uses high-specificity selectors to beat framework rules.
+       ========================================================= */
 
-    .sidenav-gemini-dark,
-    .sidenav.sidenav-gemini-dark,
-    aside.sidenav-gemini-dark {
+    /* --- Container: the <aside> element --- */
+    aside#sidenav-main.sidenav-gemini-dark {
         background-color: #111827 !important;
         background-image: none !important;
-        border-right: none !important;
         width: 250px !important;
         max-width: 250px !important;
         height: calc(100vh - 2rem) !important;
         top: 1rem !important;
+        border-right: none !important;
         border-radius: 0.75rem !important;
         box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1) !important;
         display: flex !important;
         flex-direction: column !important;
         overflow: hidden !important;
+        padding: 0 !important;
     }
 
-    .sidenav-gemini-dark .navbar-collapse {
-        flex-grow: 1 !important;
-        overflow-y: auto !important;
-        overflow-x: hidden !important;
-    }
-    .sidenav-gemini-dark .navbar-collapse::-webkit-scrollbar { width: 6px; }
-    .sidenav-gemini-dark .navbar-collapse::-webkit-scrollbar-track { background: transparent; }
-    .sidenav-gemini-dark .navbar-collapse::-webkit-scrollbar-thumb { background: #4B5563; border-radius: 6px; }
-    .sidenav-gemini-dark .navbar-collapse::-webkit-scrollbar-thumb:hover { background: #6B7280; }
-
-    .sidenav-gemini-dark .sidenav-header {
+    /* --- Header (logo area) --- */
+    aside#sidenav-main .sidenav-header {
         padding: 1.25rem 1rem !important;
         display: flex !important;
         justify-content: center !important;
         align-items: center !important;
-        height: 60px !important;
+        min-height: 60px !important;
         border-bottom: 1px solid #374151 !important;
         background: transparent !important;
+        flex-shrink: 0 !important;
     }
-    .sidenav-gemini-dark .navbar-brand-img { max-height: 2.5rem !important; }
+    aside#sidenav-main .navbar-brand-img {
+        max-height: 2.5rem !important;
+    }
 
-    .sidenav-gemini-dark .navbar-nav { padding: 0.75rem !important; }
-    .sidenav-gemini-dark .nav-item { margin-bottom: 0.2rem !important; }
-    
-    .sidenav-gemini-dark .nav-link {
+    /* --- Scrollable nav area --- */
+    aside#sidenav-main .navbar-collapse {
+        display: block !important;
+        flex-grow: 1 !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        height: auto !important;
+        max-height: none !important;
+    }
+    aside#sidenav-main .navbar-collapse::-webkit-scrollbar { width: 6px; }
+    aside#sidenav-main .navbar-collapse::-webkit-scrollbar-track { background: transparent; }
+    aside#sidenav-main .navbar-collapse::-webkit-scrollbar-thumb { background: #4B5563; border-radius: 6px; }
+
+    /* --- Nav list --- */
+    aside#sidenav-main .navbar-nav {
+        padding: 0.5rem 0.75rem !important;
+    }
+
+    /* --- Nav items --- */
+    aside#sidenav-main .nav-item {
+        margin-bottom: 0.125rem !important;
+        margin-top: 0 !important;
+    }
+
+    /* --- Nav links (CRITICAL: override framework margin: 0 1rem) --- */
+    aside#sidenav-main .navbar-nav .nav-link {
         display: flex !important;
         align-items: center !important;
-        padding: 0.75rem 1rem !important;
+        padding: 0.625rem 0.75rem !important;
+        margin: 0 !important;
         border-radius: 0.375rem !important;
         color: #9CA3AF !important;
         background-color: transparent !important;
-        transition: background-color 0.2s ease, color 0.2s ease !important;
-        position: relative !important;
         box-shadow: none !important;
-        margin: 0 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        transition: background-color 0.15s ease, color 0.15s ease !important;
+        position: relative !important;
     }
-    .sidenav-gemini-dark .nav-link:hover {
+    aside#sidenav-main .navbar-nav .nav-link:hover {
         background-color: #1F2937 !important;
         color: #FFFFFF !important;
     }
-    .sidenav-gemini-dark .nav-link.active {
-        background-color: rgba(59, 130, 246, 0.1) !important;
+    aside#sidenav-main .navbar-nav .nav-link.active {
+        background-color: rgba(59, 130, 246, 0.12) !important;
         color: #FFFFFF !important;
         font-weight: 500 !important;
     }
-    .sidenav-gemini-dark .nav-link.active::before {
+    aside#sidenav-main .navbar-nav .nav-link.active::before {
         content: "" !important;
         position: absolute !important;
         left: 0 !important;
@@ -112,48 +115,57 @@ function renderNavItem($pageNow, $targetPage, $url, $icon, $text) {
         border-top-right-radius: 3px !important;
         border-bottom-right-radius: 3px !important;
     }
-    .sidenav-gemini-dark .nav-icon {
-        width: 1.5rem !important;
+
+    /* --- Icon inside nav-link --- */
+    aside#sidenav-main .nav-link .nav-icon {
+        width: 1.25rem !important;
+        min-width: 1.25rem !important;
         text-align: center !important;
-        margin-right: 0.75rem !important;
-        font-size: 0.9rem !important;
+        margin-right: 0.625rem !important;
+        font-size: 0.85rem !important;
         color: inherit !important;
     }
-    .sidenav-gemini-dark .nav-link p {
-        margin: 0 !important;
-        font-size: 0.875rem !important;
+    /* Also target framework's i element directly */
+    aside#sidenav-main .nav-link > i {
+        min-width: 1.25rem !important;
+        margin-right: 0.625rem !important;
+        font-size: 0.85rem !important;
         color: inherit !important;
     }
 
-    .sidenav-gemini-dark .nav-header {
-        padding: 1rem 1rem 0.5rem !important;
-        font-size: 0.7rem !important;
+    /* --- Text inside nav-link --- */
+    aside#sidenav-main .nav-link p {
+        margin: 0 !important;
+        font-size: 0.8125rem !important;
+        color: inherit !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+
+    /* --- Section headers (OPERASIONAL, LAPORAN, etc) --- */
+    aside#sidenav-main .nav-header {
+        padding: 0.875rem 0.75rem 0.375rem !important;
+        font-size: 0.65rem !important;
         font-weight: 600 !important;
         color: #6B7280 !important;
         text-transform: uppercase !important;
         letter-spacing: 0.5px !important;
         background: transparent !important;
+        list-style: none !important;
     }
 
-    .sidenav-gemini-dark .sidenav-footer {
-        padding: 1rem !important;
+    /* --- Footer (Data Admin, Ganti Password, Sign Out) --- */
+    aside#sidenav-main .sidenav-footer {
+        padding: 0.75rem !important;
         border-top: 1px solid #374151 !important;
         margin-top: auto !important;
         background: transparent !important;
+        flex-shrink: 0 !important;
     }
-    .sidenav-gemini-dark .sidenav-footer .nav-link {
-        padding: 0.5rem 1rem !important;
-    }
-    
-    .sidenav-gemini-dark .btn-group-switcher a {
-        background-color: #374151 !important;
-        color: #9CA3AF !important;
-        border: none !important;
-        padding: 0.6rem !important;
-    }
-    .sidenav-gemini-dark .btn-group-switcher a.active {
-        background-color: #3B82F6 !important;
-        color: #FFFFFF !important;
+    aside#sidenav-main .sidenav-footer .nav-link {
+        padding: 0.5rem 0.75rem !important;
+        margin: 0 !important;
     }
 </style>
 
