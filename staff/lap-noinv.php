@@ -26,24 +26,24 @@ if (isset($_GET['error'])) {
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
         .table th, .table td { vertical-align: middle !important; }
-        .table .customer-info h6 { font-size: 0.95rem; color: #1e293b; }
-        .card { border: none; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
-        .card-header { background: #fff; border-bottom: 1px solid #f1f5f9; border-radius: 12px 12px 0 0 !important; }
-        .card-header h5 { font-size: 0.95rem; color: #1e293b; letter-spacing: 0.03em; }
-        thead th { background: #f8fafc !important; color: #64748b !important; font-size: 10.5px !important; letter-spacing: 0.06em; padding: 10px 16px !important; border-bottom: 1px solid #e2e8f0 !important; }
+        .table .customer-info h6 { font-size: 0.9rem; color: #1e293b; }
+        .card { border: 1px solid #e2e8f0; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .card-header { background: #fff; border-bottom: 1px solid #f1f5f9; border-radius: 10px 10px 0 0 !important; }
+        .card-header h5 { font-size: 0.95rem; color: #1e293b; letter-spacing: 0.02em; }
+        thead th { background: #f8fafc !important; color: #64748b !important; font-size: 10.5px !important; letter-spacing: 0.06em; padding: 10px 16px !important; border-bottom: 2px solid #e2e8f0 !important; }
         tbody tr { transition: background 0.15s; border-bottom: 1px solid #f1f5f9 !important; }
         tbody tr:hover { background: #f8fafc !important; }
-        .technician-item { border-bottom: 1px solid #f1f5f9; }
+        .technician-item { border-bottom: 1px solid #f1f5f9; padding: 8px 0; }
         .technician-item:last-child { border-bottom: none; }
-        .search-box { border-radius: 8px; border: 1px solid #e2e8f0; padding: 10px 14px; font-size: 13px; transition: border-color 0.2s; }
-        .search-box:focus { border-color: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,0.1); outline: none; }
+        .search-box { border-radius: 8px; border: 1px solid #e2e8f0; padding: 10px 14px; font-size: 13px; transition: border-color 0.2s, box-shadow 0.2s; background: #fff; }
+        .search-box:focus { border-color: #94a3b8; box-shadow: 0 0 0 3px rgba(148,163,184,0.1); outline: none; }
         .btn-search { background: #1e293b; border: none; border-radius: 8px; padding: 10px 16px; }
         .btn-search:hover { background: #334155; }
-        .btn-aksi { font-size: 11px; padding: 5px 12px; border-radius: 6px; font-weight: 600; border: none; transition: all 0.2s; cursor: pointer; text-decoration: none; display: inline-block; }
-        .btn-fee-batal { background: #fef3c7; color: #92400e; }
-        .btn-fee-batal:hover { background: #fde68a; color: #78350f; }
-        .btn-tidak-valid { background: #fee2e2; color: #991b1b; }
-        .btn-tidak-valid:hover { background: #fecaca; color: #7f1d1d; }
+        .btn-aksi { font-size: 11px; padding: 5px 12px; border-radius: 6px; font-weight: 600; border: 1px solid transparent; transition: all 0.2s; cursor: pointer; text-decoration: none; display: inline-block; }
+        .btn-fee-batal { background: #fef3c7; color: #d97706; border-color: #fde68a; }
+        .btn-fee-batal:hover { background: #d97706; color: #fff; border-color: #d97706; }
+        .btn-tidak-valid { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
+        .btn-tidak-valid:hover { background: #dc2626; color: #fff; border-color: #dc2626; }
         .fee-badge { font-size: 12px; font-weight: 700; color: #1e293b; background: #f1f5f9; padding: 4px 10px; border-radius: 6px; }
         <?php include "css/floating-menu2.css"; ?>
     </style>

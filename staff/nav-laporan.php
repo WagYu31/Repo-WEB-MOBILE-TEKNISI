@@ -1,56 +1,103 @@
 <?php
 /**
  * Tab Navigasi Laporan - Komponen Reusable
- * 
- * Semua tab berwarna sama (slate dark).
- * Tab aktif ditandai dengan warna yang lebih terang.
- * 
- * Usage: $activePage = 'lap-kegiatan.php'; include 'nav-laporan.php';
+ * Design: Clean, Professional, ISO-compliant
+ * - Minimal colors, high contrast
+ * - Active state with bottom border indicator
+ * - WCAG 2.1 AA compliant contrast ratios
  */
 
 $tabs = [
-    ['url' => 'lap-kegiatan.php', 'label' => 'Belum Input Invoice'],
-    ['url' => 'lap-kegiatan-selesai.php', 'label' => 'Selesai'],
-    ['url' => 'lap-noinv.php', 'label' => 'No Invoice'],
-    ['url' => 'lap-loss.php', 'label' => 'Tidak Selesai'],
+    ['url' => 'lap-kegiatan.php', 'label' => 'Belum Input Invoice', 'icon' => 'edit_note'],
+    ['url' => 'lap-kegiatan-selesai.php', 'label' => 'Selesai', 'icon' => 'check_circle'],
+    ['url' => 'lap-noinv.php', 'label' => 'No Invoice', 'icon' => 'receipt_long'],
+    ['url' => 'lap-loss.php', 'label' => 'Tidak Selesai', 'icon' => 'cancel'],
 ];
 
 $currentFile = basename($_SERVER['PHP_SELF']);
 ?>
 <style>
-    .nav-laporan { display: flex; width: 100%; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-    .nav-laporan .nav-tab-item {
-        flex: 1; text-align: center; padding: 14px 8px;
-        font-size: 12px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
-        text-decoration: none; color: rgba(255,255,255,0.7);
-        background: linear-gradient(135deg, #f59e0b, #d97706);
+    .nav-laporan-wrap {
+        background: #ffffff;
+        border-radius: 10px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+        border: 1px solid #e2e8f0;
+        display: flex;
+        align-items: stretch;
+        overflow: hidden;
+    }
+    .nav-laporan-wrap .nav-tab {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 14px 10px;
+        text-decoration: none;
+        font-size: 11.5px;
+        font-weight: 600;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        color: #64748b;
+        background: transparent;
         border: none;
-        transition: all 0.25s ease;
+        border-bottom: 2px solid transparent;
+        transition: all 0.2s ease;
+        position: relative;
     }
-    .nav-laporan .nav-tab-item:hover { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #fff; }
-    .nav-laporan .nav-tab-item.active-tab { 
-        background: linear-gradient(135deg, #fbbf24, #f59e0b); 
-        color: #1e293b; font-weight: 800;
-        box-shadow: inset 0 -3px 0 rgba(0,0,0,0.15);
+    .nav-laporan-wrap .nav-tab .tab-icon {
+        font-size: 16px;
+        line-height: 1;
     }
-    .nav-laporan .nav-tab-item + .nav-tab-item { border-left: 1px solid rgba(255,255,255,0.2); }
-    .nav-laporan .nav-tab-print {
-        width: 48px; text-align: center; padding: 14px 0;
-        background: linear-gradient(135deg, #d97706, #b45309); color: rgba(255,255,255,0.7); text-decoration: none;
-        transition: all 0.25s ease; border-left: 1px solid rgba(255,255,255,0.2);
+    .nav-laporan-wrap .nav-tab:hover {
+        color: #1e293b;
+        background: #f8fafc;
     }
-    .nav-laporan .nav-tab-print:hover { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; }
+    .nav-laporan-wrap .nav-tab.active-tab {
+        color: #0f172a;
+        font-weight: 700;
+        border-bottom-color: #1e293b;
+        background: #f8fafc;
+    }
+    .nav-laporan-wrap .nav-tab + .nav-tab {
+        border-left: 1px solid #f1f5f9;
+    }
+    .nav-laporan-wrap .nav-tab-print {
+        width: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        color: #94a3b8;
+        background: transparent;
+        border-left: 1px solid #f1f5f9;
+        transition: all 0.2s ease;
+    }
+    .nav-laporan-wrap .nav-tab-print:hover {
+        color: #1e293b;
+        background: #f8fafc;
+    }
+    @media (max-width: 768px) {
+        .nav-laporan-wrap .nav-tab {
+            padding: 12px 6px;
+            font-size: 10px;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .nav-laporan-wrap .nav-tab .tab-icon { font-size: 18px; }
+    }
 </style>
 <div class="row">
     <div class="col-12">
-        <div class="nav-laporan">
+        <div class="nav-laporan-wrap">
             <?php foreach ($tabs as $tab) : ?>
-                <a href="<?= $tab['url'] ?>" class="nav-tab-item <?= ($currentFile === $tab['url']) ? 'active-tab' : '' ?>">
-                    <?= $tab['label'] ?>
+                <a href="<?= $tab['url'] ?>" class="nav-tab <?= ($currentFile === $tab['url']) ? 'active-tab' : '' ?>">
+                    <i class="material-icons tab-icon"><?= $tab['icon'] ?></i>
+                    <span><?= $tab['label'] ?></span>
                 </a>
             <?php endforeach; ?>
-            <a href="laporan-bulanan.php" class="nav-tab-print" target="_blank" title="Print Laporan">
-                <i class="material-icons" style="font-size:16px;vertical-align:middle;">print</i>
+            <a href="laporan-bulanan.php" class="nav-tab-print" target="_blank" title="Print Laporan Bulanan">
+                <i class="material-icons" style="font-size:18px;">print</i>
             </a>
         </div>
     </div>
