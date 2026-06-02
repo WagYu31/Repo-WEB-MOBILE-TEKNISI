@@ -15,7 +15,7 @@ function renderNavItem($pageNow, $targetPage, $url, $icon, $text) {
 }
 ?>
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<!-- Font Awesome sudah dimuat di head.php -->
 
 <style>
     :root {
