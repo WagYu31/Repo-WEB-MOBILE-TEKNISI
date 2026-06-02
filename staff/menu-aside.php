@@ -20,17 +20,13 @@ function renderNavItem($pageNow, $targetPage, $url, $icon, $text) {
 <style>
     /* ====== SIDEBAR - forced !important to beat material-dashboard.css ====== */
     
-    /* Override framework .navbar-vertical.navbar-expand-xs max-width */
+    /* Override framework .navbar-vertical.navbar-expand-xs constraints */
     .navbar-vertical.navbar-expand-xs.sidenav-gemini-dark {
         max-width: 250px !important;
-        overflow-y: visible !important;
-        overflow-x: visible !important;
-        box-shadow: none !important;
         padding: 0 !important;
     }
     .navbar-vertical.navbar-expand-xs.sidenav-gemini-dark .navbar-collapse {
-        height: auto !important;
-        overflow: visible !important;
+        height: calc(100vh - 160px) !important;
     }
     /* Override framework nav-link margin that steals text space */
     .navbar-vertical.navbar-expand-xs.sidenav-gemini-dark .navbar-nav .nav-link {
@@ -64,7 +60,6 @@ function renderNavItem($pageNow, $targetPage, $url, $icon, $text) {
         flex-grow: 1 !important;
         overflow-y: auto !important;
         overflow-x: hidden !important;
-        height: auto !important;
     }
     .sidenav-gemini-dark .navbar-collapse::-webkit-scrollbar { width: 6px; }
     .sidenav-gemini-dark .navbar-collapse::-webkit-scrollbar-track { background: transparent; }
