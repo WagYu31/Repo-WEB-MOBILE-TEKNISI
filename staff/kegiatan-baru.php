@@ -328,11 +328,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_kegiatan'])) {
             });
 
             document.getElementById('gmap_search_btn').addEventListener('click', () => {
-                const q = document.getElementById('gmap_search').value;
+                const q = document.getElementById('gmap_search').value.trim();
+                // Detect coordinate input: "lat, lng" or "lat lng"
+                const coordMatch = q.match(/^(-?\d+\.?\d*)[,\s]+\s*(-?\d+\.?\d*)$/);
+                if (coordMatch) {
+                    const lat = parseFloat(coordMatch[1]);
+                    const lng = parseFloat(coordMatch[2]);
+                    if (!isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+                        saveLocationContainer.style.display = 'block';
+                        updateAllData(L.latLng(lat, lng), document.getElementById('radius_input').value);
+                        return;
+                    }
+                }
+                // Fallback: search by address text
                 fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=1`)
                     .then(res => res.json())
                     .then(data => {
-                        if (data.length > 0) updateAllData(L.latLng(data[0].lat, data[0].lon), 100);
+                        if (data.length > 0) {
+                            saveLocationContainer.style.display = 'block';
+                            updateAllData(L.latLng(data[0].lat, data[0].lon), document.getElementById('radius_input').value);
+                        }
                     });
             });
         });
