@@ -23,15 +23,23 @@ if (isset($_GET['error'])) {
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <?php include "head.php"; ?>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
-        .table th,
-        .table td {
-            vertical-align: middle !important;
-        }
-        .table .customer-info h6 {
-            font-size: 1rem;
-            color: #344767;
-        }
+        .table th, .table td { vertical-align: middle !important; }
+        .table .customer-info h6 { font-size: 0.95rem; color: #1e293b; }
+        .card { border: none; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+        .card-header { background: #fff; border-bottom: 1px solid #f1f5f9; border-radius: 12px 12px 0 0 !important; }
+        .card-header h5 { font-size: 0.95rem; color: #1e293b; letter-spacing: 0.03em; }
+        thead th { background: #f8fafc !important; color: #64748b !important; font-size: 10.5px !important; letter-spacing: 0.06em; padding: 10px 16px !important; border-bottom: 1px solid #e2e8f0 !important; }
+        tbody tr { transition: background 0.15s; border-bottom: 1px solid #f1f5f9 !important; }
+        tbody tr:hover { background: #f8fafc !important; }
+        .search-box { border-radius: 8px; border: 1px solid #e2e8f0; padding: 10px 14px; font-size: 13px; transition: border-color 0.2s; }
+        .search-box:focus { border-color: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,0.1); outline: none; }
+        .btn-search { background: #1e293b; border: none; border-radius: 8px; padding: 10px 16px; }
+        .btn-search:hover { background: #334155; }
+        .btn-detail { font-size: 11px; padding: 6px 14px; border-radius: 6px; font-weight: 600; background: #f1f5f9; color: #1e293b; border: 1px solid #e2e8f0; transition: all 0.2s; text-decoration: none; display: inline-block; }
+        .btn-detail:hover { background: #e2e8f0; color: #0f172a; border-color: #cbd5e1; }
+        .status-warning { font-size: 11px; color: #b45309; background: #fef3c7; padding: 4px 10px; border-radius: 4px; display: inline-block; }
         <?php include "css/floating-menu2.css"; ?>
     </style>
 </head>
@@ -52,14 +60,12 @@ if (isset($_GET['error'])) {
             <div class="row mt-4">
                 <div class="col-12">
                     <div class="card">
-                        <div class="card-header p-3">
+                        <div class="card-header p-3 px-4">
                             <div class="d-flex flex-column flex-md-row justify-content-between align-items-center">
                                 <h5 class="mb-3 mb-md-0 text-uppercase font-weight-bold">Laporan Kegiatan Tidak Dikerjakan</h5>
-                                <form method="GET" action="" class="w-100 w-md-50">
-                                    <div class="input-group">
-                                        <input type="text" name="cari" class="form-control" placeholder="Cari nama customer..." value="<?= htmlspecialchars($_GET['cari'] ?? '') ?>">
-                                        <button class="btn btn-primary mb-0" type="submit"><i class="material-icons text-sm">search</i></button>
-                                    </div>
+                                <form method="GET" action="" class="d-flex gap-2" style="max-width:380px;width:100%;">
+                                    <input type="text" name="cari" class="search-box flex-grow-1" placeholder="Cari nama customer..." value="<?= htmlspecialchars($_GET['cari'] ?? '') ?>">
+                                    <button class="btn btn-search mb-0 text-white" type="submit"><i class="material-icons" style="font-size:16px;vertical-align:middle;">search</i></button>
                                 </form>
                             </div>
                         </div>
@@ -106,24 +112,26 @@ if (isset($_GET['error'])) {
                                             while ($row_main = $result_main->fetch_assoc()) {
                                                 $kodeTransaksi = $row_main['kode_transaksi'];
                                         ?>
-                                                <tr style="border-bottom:1px solid #dee2e6;">
+                                                <tr>
                                                     <td class="ps-4 customer-info text-wrap">
-                                                        <h6 class="font-weight-bold mb-1"><?= htmlspecialchars($row_main['nama_cust']); ?></h6>
-                                                        <p class="text-sm text-secondary mb-1">"<?= !empty($row_main['keterangan']) ? htmlspecialchars($row_main['keterangan']) : 'Tidak ada keterangan'; ?>"</p>
-                                                        <p class="text-xs text-dark mb-0">Request dibuat: <?= date("d M Y, H:i", strtotime($row_main['created_at'])); ?></p>
+                                                        <h6 class="font-weight-bold mb-1" style="font-size:0.9rem;color:#1e293b;"><?= htmlspecialchars($row_main['nama_cust']); ?></h6>
+                                                        <p class="mb-1" style="font-size:12px;color:#64748b;font-style:italic;">"<?= !empty($row_main['keterangan']) ? htmlspecialchars($row_main['keterangan']) : 'Tidak ada keterangan'; ?>"</p>
+                                                        <p class="mb-0" style="font-size:11px;color:#94a3b8;">Request dibuat: <?= date("d M Y, H:i", strtotime($row_main['created_at'])); ?></p>
                                                     </td>
 
                                                     <td>
-                                                        <p class="text-sm font-weight-bold mb-0">
-                                                            <?= !empty($row_main['teknisi_list']) ? htmlspecialchars($row_main['teknisi_list']) : '<span class="text-danger">Belum ada teknisi ditugaskan</span>'; ?>
+                                                        <p class="mb-1" style="font-size:13px;font-weight:600;color:#1e293b;">
+                                                            <?= !empty($row_main['teknisi_list']) ? htmlspecialchars($row_main['teknisi_list']) : '<span style="color:#94a3b8;">Belum ada teknisi</span>'; ?>
                                                         </p>
-                                                        <p class="text-xs text-danger font-weight-bold mb-0">
-                                                            Data pelaksanaan kegiatan tidak ditemukan / tidak lengkap.
-                                                        </p>
+                                                        <span class="status-warning">
+                                                            <i class="material-icons" style="font-size:12px;vertical-align:middle;margin-right:2px;">warning_amber</i>
+                                                            Data pelaksanaan tidak ditemukan / tidak lengkap
+                                                        </span>
                                                     </td>
                                                     
                                                     <td class="text-center pe-4">
-                                                        <a class="btn btn-outline-dark btn-sm mb-0" href="view-kegiatan.php?kode_transaksi=<?= $kodeTransaksi; ?>" target="_blank">
+                                                        <a class="btn-detail" href="view-kegiatan.php?kode_transaksi=<?= $kodeTransaksi; ?>" target="_blank">
+                                                            <i class="material-icons" style="font-size:13px;vertical-align:middle;margin-right:3px;">visibility</i>
                                                             Lihat Detail
                                                         </a>
                                                     </td>
@@ -147,6 +155,5 @@ if (isset($_GET['error'])) {
     </main>
     
     <?php include "js-include.php"; ?>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </body>
 </html>

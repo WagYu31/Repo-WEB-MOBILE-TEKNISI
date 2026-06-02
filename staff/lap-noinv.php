@@ -23,15 +23,28 @@ if (isset($_GET['error'])) {
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <?php include "head.php"; ?>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
-        .table th,
-        .table td {
-            vertical-align: middle !important;
-        }
-        .table .customer-info h6 {
-            font-size: 1rem;
-            color: #344767;
-        }
+        .table th, .table td { vertical-align: middle !important; }
+        .table .customer-info h6 { font-size: 0.95rem; color: #1e293b; }
+        .card { border: none; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+        .card-header { background: #fff; border-bottom: 1px solid #f1f5f9; border-radius: 12px 12px 0 0 !important; }
+        .card-header h5 { font-size: 0.95rem; color: #1e293b; letter-spacing: 0.03em; }
+        thead th { background: #f8fafc !important; color: #64748b !important; font-size: 10.5px !important; letter-spacing: 0.06em; padding: 10px 16px !important; border-bottom: 1px solid #e2e8f0 !important; }
+        tbody tr { transition: background 0.15s; border-bottom: 1px solid #f1f5f9 !important; }
+        tbody tr:hover { background: #f8fafc !important; }
+        .technician-item { border-bottom: 1px solid #f1f5f9; }
+        .technician-item:last-child { border-bottom: none; }
+        .search-box { border-radius: 8px; border: 1px solid #e2e8f0; padding: 10px 14px; font-size: 13px; transition: border-color 0.2s; }
+        .search-box:focus { border-color: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,0.1); outline: none; }
+        .btn-search { background: #1e293b; border: none; border-radius: 8px; padding: 10px 16px; }
+        .btn-search:hover { background: #334155; }
+        .btn-aksi { font-size: 11px; padding: 5px 12px; border-radius: 6px; font-weight: 600; border: none; transition: all 0.2s; cursor: pointer; text-decoration: none; display: inline-block; }
+        .btn-fee-batal { background: #fef3c7; color: #92400e; }
+        .btn-fee-batal:hover { background: #fde68a; color: #78350f; }
+        .btn-tidak-valid { background: #fee2e2; color: #991b1b; }
+        .btn-tidak-valid:hover { background: #fecaca; color: #7f1d1d; }
+        .fee-badge { font-size: 12px; font-weight: 700; color: #1e293b; background: #f1f5f9; padding: 4px 10px; border-radius: 6px; }
         <?php include "css/floating-menu2.css"; ?>
     </style>
 </head>
@@ -52,14 +65,12 @@ if (isset($_GET['error'])) {
             <div class="row mt-4">
                 <div class="col-12">
                     <div class="card">
-                        <div class="card-header p-3">
+                        <div class="card-header p-3 px-4">
                             <div class="d-flex flex-column flex-md-row justify-content-between align-items-center">
                                 <h5 class="mb-3 mb-md-0 text-uppercase font-weight-bold">Laporan Kegiatan Tanpa Invoice</h5>
-                                <form method="GET" action="" class="w-100 w-md-50">
-                                    <div class="input-group">
-                                        <input type="text" name="cari" class="form-control" placeholder="Cari nama customer..." value="<?= htmlspecialchars($_GET['cari'] ?? '') ?>">
-                                        <button class="btn btn-primary mb-0" type="submit"><i class="material-icons text-sm">search</i></button>
-                                    </div>
+                                <form method="GET" action="" class="d-flex gap-2" style="max-width:380px;width:100%;">
+                                    <input type="text" name="cari" class="search-box flex-grow-1" placeholder="Cari nama customer..." value="<?= htmlspecialchars($_GET['cari'] ?? '') ?>">
+                                    <button class="btn btn-search mb-0 text-white" type="submit"><i class="material-icons" style="font-size:16px;vertical-align:middle;">search</i></button>
                                 </form>
                             </div>
                         </div>
@@ -111,22 +122,21 @@ if (isset($_GET['error'])) {
                                                 $kodeTransaksi = $row_main['kode_transaksi'];
                                                 $idC = $row_main['id_cust'];
                                         ?>
-                                                <tr style="border-bottom:1px solid #dee2e6;">
+                                                <tr>
                                                     <td class="ps-4 customer-info text-wrap">
-                                                        <div class="d-flex align-items-start gap-2">
-                                                            <span class="badge <?= (strtolower($row_main['kegiatan']) == 'survey') ? 'badge-warning' : 'badge-secondary'; ?> text-uppercase mt-1" style="font-size:10px !important;">
-                                                                <?= htmlspecialchars($row_main['kegiatan']);?>
+                                                        <div class="d-flex align-items-center gap-2 mb-1">
+                                                            <span style="font-size:9px;padding:3px 8px;border-radius:4px;font-weight:700;letter-spacing:0.04em;<?= (strtolower($row_main['kegiatan']) == 'survey') ? 'background:#fef3c7;color:#92400e;' : 'background:#e0e7ff;color:#3730a3;'; ?>">
+                                                                <?= strtoupper(htmlspecialchars($row_main['kegiatan']));?>
                                                             </span>
-                                                            <a href="view-kegiatan.php?kode_transaksi=<?= $kodeTransaksi; ?>" target="_blank">
-                                                                <h6 class="font-weight-bold mb-1"><?= htmlspecialchars($row_main['nama_cust']); ?></h6>
-                                                            </a>
                                                         </div>
-                                                        <p class="text-sm text-secondary mb-1">"<?= !empty($row_main['keterangan']) ? htmlspecialchars($row_main['keterangan']) : 'Tidak ada keterangan'; ?>"</p>
-                                                        <p class="text-xs text-dark mb-0">Request dibuat: <?= date("d M Y, H:i", strtotime($row_main['created_at'])); ?></p>
+                                                        <a href="view-kegiatan.php?kode_transaksi=<?= $kodeTransaksi; ?>" target="_blank" style="text-decoration:none;color:#1e293b;">
+                                                            <h6 class="font-weight-bold mb-1" style="font-size:0.9rem;"><?= htmlspecialchars($row_main['nama_cust']); ?></h6>
+                                                        </a>
+                                                        <p class="mb-1" style="font-size:12px;color:#64748b;font-style:italic;">"<?= !empty($row_main['keterangan']) ? htmlspecialchars($row_main['keterangan']) : 'Tidak ada keterangan'; ?>"</p>
+                                                        <p class="mb-0" style="font-size:11px;color:#94a3b8;">Request dibuat: <?= date("d M Y, H:i", strtotime($row_main['created_at'])); ?></p>
                                                     </td>
 
-                                                    
-                                                    <td class="technician-list pe-5">
+                                                    <td class="technician-list">
                                                         <?php
                                                         $sql_teknisi = "SELECT p.status, t.nama_teknisi,
                                                                         (SELECT MIN(waktu_mulai) FROM pelaksanaan_kegiatan WHERE teknisi_id = p.teknisi_id AND kode = p.kode) AS waktu_mulai_pertama,
@@ -146,32 +156,31 @@ if (isset($_GET['error'])) {
                                                             while($row_teknisi = $result_teknisi->fetch_assoc()) {
                                                         ?>
                                                         <div class="d-flex justify-content-between align-items-center py-2 technician-item">
-                                                            <div class="me-3 w-45">
-                                                                <p class="text-sm font-weight-bold mb-0"><?= htmlspecialchars($row_teknisi['nama_teknisi']); ?></p>
+                                                            <div>
+                                                                <p class="mb-0" style="font-size:13px;font-weight:600;color:#1e293b;"><?= htmlspecialchars($row_teknisi['nama_teknisi']); ?></p>
                                                             </div>
-                                                            <div class="text-end me-4 w-40">
-                                                                <p class="text-xs text-dark mb-0">Mulai: <?= $row_teknisi['waktu_mulai_pertama'] ? date("d/m H:i", strtotime($row_teknisi['waktu_mulai_pertama'])) : '-'; ?></p>
-                                                                <p class="text-xs text-dark mb-0">Selesai: <?= $row_teknisi['waktu_selesai_terakhir'] ? date("d/m H:i", strtotime($row_teknisi['waktu_selesai_terakhir'])) : '-'; ?></p>
+                                                            <div class="text-end" style="font-size:11px;color:#64748b;">
+                                                                <p class="mb-0">Mulai: <?= $row_teknisi['waktu_mulai_pertama'] ? date("d/m H:i", strtotime($row_teknisi['waktu_mulai_pertama'])) : '-'; ?></p>
+                                                                <p class="mb-0">Selesai: <?= $row_teknisi['waktu_selesai_terakhir'] ? date("d/m H:i", strtotime($row_teknisi['waktu_selesai_terakhir'])) : '-'; ?></p>
                                                             </div>
-                                                            <div class="d-flex justify-content-between w-15">
-                                                                <div>Rp </div>
-                                                                <div><?= htmlspecialchars($row_main['paid']); ?></div>
+                                                            <div>
+                                                                <span class="fee-badge">Rp <?= number_format($row_main['paid'], 0, ',', '.'); ?></span>
                                                             </div>
                                                         </div>
                                                         <?php
                                                             }
                                                         } else {
-                                                            echo "<p class='text-xs text-danger mb-0'>Data teknisi tidak ditemukan.</p>";
+                                                            echo "<p style='font-size:11px;color:#94a3b8;margin:0;'>Data teknisi tidak ditemukan.</p>";
                                                         }
                                                         $stmt_teknisi->close();
                                                         ?>
                                                     </td>
                                                     
                                                     <td class="text-center pe-4">
-                                                        <a class="btn btn-outline-warning btn-sm mb-0 p-1 px-2 me-1 btn-sm mb-0" href="proses_no_fee.php?kode_transaksi=<?= $kodeTransaksi; ?>" style="font-size:11px !important;" onclick="return confirm('Anda yakin ingin menandai membatalkan fee ini?')">
+                                                        <a class="btn-aksi btn-fee-batal me-1 btn-fee-cancel" href="#" data-kode="<?= $kodeTransaksi; ?>" data-customer="<?= htmlspecialchars($row_main['nama_cust']); ?>">
                                                             Fee Batal
                                                         </a>
-                                                        <a href="proses_set_tidak_valid.php?kode=<?= $kodeTransaksi; ?>" class="btn btn-outline-danger btn-sm mb-0 p-1 px-2 me-1" style="font-size:11px !important;" onclick="return confirm('Anda yakin ingin menandai kegiatan ini sebagai Tidak Valid?')">
+                                                        <a class="btn-aksi btn-tidak-valid btn-invalid" href="#" data-kode="<?= $kodeTransaksi; ?>" data-customer="<?= htmlspecialchars($row_main['nama_cust']); ?>">
                                                             Tidak Valid
                                                         </a>
                                                     </td>
@@ -195,6 +204,38 @@ if (isset($_GET['error'])) {
     </main>
     
     <?php include "js-include.php"; ?>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+    document.querySelectorAll('.btn-fee-cancel').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const kode = this.dataset.kode;
+            const customer = this.dataset.customer;
+            Swal.fire({
+                title: 'Batalkan Fee?',
+                html: `<p style="margin:0;color:#64748b;">Customer: <strong>${customer}</strong></p><p style="margin-top:8px;color:#92400e;font-size:13px;">Fee akan dibatalkan untuk kegiatan ini.</p>`,
+                icon: 'warning', showCancelButton: true,
+                confirmButtonColor: '#f59e0b', cancelButtonColor: '#94a3b8',
+                confirmButtonText: 'Ya, Batalkan Fee', cancelButtonText: 'Batal',
+                reverseButtons: true, focusCancel: true,
+            }).then((result) => { if (result.isConfirmed) window.location.href = 'proses_no_fee.php?kode_transaksi=' + kode; });
+        });
+    });
+    document.querySelectorAll('.btn-invalid').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const kode = this.dataset.kode;
+            const customer = this.dataset.customer;
+            Swal.fire({
+                title: 'Tandai Tidak Valid?',
+                html: `<p style="margin:0;color:#64748b;">Customer: <strong>${customer}</strong></p><p style="margin-top:8px;color:#991b1b;font-size:13px;">Kegiatan akan ditandai sebagai tidak valid!</p>`,
+                icon: 'warning', showCancelButton: true,
+                confirmButtonColor: '#dc2626', cancelButtonColor: '#94a3b8',
+                confirmButtonText: 'Ya, Tidak Valid', cancelButtonText: 'Batal',
+                reverseButtons: true, focusCancel: true,
+            }).then((result) => { if (result.isConfirmed) window.location.href = 'proses_set_tidak_valid.php?kode=' + kode; });
+        });
+    });
+    </script>
 </body>
 </html>
