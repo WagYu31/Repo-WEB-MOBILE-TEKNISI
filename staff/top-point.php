@@ -1,6 +1,6 @@
-<div style="position:sticky;top:0;z-index:100;background:#f0f2f5;padding:4px 0 0;margin:0 -24px;padding-left:24px;padding-right:24px;">
+<div style="position:sticky;top:0;z-index:100;background:#f0f2f5;padding:0 0 4px;margin:0 -24px;padding-left:24px;padding-right:24px;">
 <div class="row" style="gap:0;margin-bottom:0 !important;">
-  <div class="col-12 col-sm-6 col-md-4 col-lg mb-4">
+  <div class="col-12 col-sm-6 col-md-4 col-lg mb-2">
     <div class="card h-100" style="border:none;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06);background:linear-gradient(135deg,#1e293b 0%,#334155 100%);transition:all 0.2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(30,41,59,0.25)'" onmouseout="this.style.transform='none';this.style.boxShadow='0 2px 8px rgba(0,0,0,0.06)'">
       <div class="card-body p-3">
         <div class="d-flex justify-content-between align-items-start">
@@ -32,7 +32,7 @@
   </div>
 
   <?php if ($role == 'Super Admin' || $role == 'Admin') : ?>
-    <div class="col-12 col-sm-6 col-md-4 col-lg mb-4">
+    <div class="col-12 col-sm-6 col-md-4 col-lg mb-2">
       <div class="card h-100" style="border:none;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06);background:linear-gradient(135deg,#1e40af 0%,#3b82f6 100%);transition:all 0.2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(59,130,246,0.3)'" onmouseout="this.style.transform='none';this.style.boxShadow='0 2px 8px rgba(0,0,0,0.06)'">
         <div class="card-body p-3">
           <div class="d-flex justify-content-between align-items-start">
@@ -62,7 +62,7 @@
       </div>
     </div>
 
-    <div class="col-12 col-sm-6 col-md-4 col-lg mb-4">
+    <div class="col-12 col-sm-6 col-md-4 col-lg mb-2">
       <div class="card h-100" style="border:none;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06);background:linear-gradient(135deg,#dc2626 0%,#ef4444 100%);transition:all 0.2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(239,68,68,0.3)'" onmouseout="this.style.transform='none';this.style.boxShadow='0 2px 8px rgba(0,0,0,0.06)'">
         <div class="card-body p-3">
           <div class="d-flex justify-content-between align-items-start">
@@ -104,7 +104,7 @@
       </div>
     </div>
 
-    <div class="col-12 col-sm-6 col-md-4 col-lg mb-4">
+    <div class="col-12 col-sm-6 col-md-4 col-lg mb-2">
       <div class="card h-100" style="border:none;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06);background:linear-gradient(135deg,#059669 0%,#10b981 100%);transition:all 0.2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(16,185,129,0.3)'" onmouseout="this.style.transform='none';this.style.boxShadow='0 2px 8px rgba(0,0,0,0.06)'">
         <div class="card-body p-3">
           <div class="d-flex justify-content-between align-items-start">
