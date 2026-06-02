@@ -524,68 +524,97 @@ if (isset($_GET['export'])) {
           </div>
         </div>
         <div class="col-lg-12 mt-0 mb-4">
-          <div class="card section-card h-100 py-3">
-            <div class="card-body p-0">
-              <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                  <thead>
-                    <tr>
-                      <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-4">Status & Jadwal</th>
-                      <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Customer</th>
-                      <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Alamat & Keterangan</th>
-                      <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Request</th>
-                      <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">History Alasan</th>
-                      <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 pe-4">Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <?php
-                    $sql_waiting = "SELECT k.*, c.nama AS nama_customer, c.telp AS cust_nomor, c.alamat, c.id as customer_id, (SELECT COUNT(*) FROM kegiatan_reasons kr WHERE kr.kegiatan_id = k.id) as reason_count, (SELECT MAX(created_at) FROM kegiatan_reasons kr WHERE kr.kegiatan_id = k.id) as latest_reason_date FROM kegiatan k LEFT JOIN customer c ON k.customer_id = c.id WHERE k.status = 'waiting' AND k.deleted_at IS NULL ORDER BY k.created_at ASC";
-                    $result_waiting = mysqli_query($conn, $sql_waiting);
-                    if (mysqli_num_rows($result_waiting) > 0) {
-                      while ($row = mysqli_fetch_assoc($result_waiting)) {
-                        $status_display = ($row["jadwal"] != '0000-00-00 00:00:00') ? "Dijadwalkan" : "Dilaporkan";
-                        $jadwal_display = ($row["jadwal"] != '0000-00-00 00:00:00') ? date('d-m-y H:i', strtotime($row["jadwal"])) : date('d-m-y', strtotime($row["created_at"]));
-                        $date_color = ($row["jadwal"] != '0000-00-00 00:00:00' && date('Y-m-d', strtotime($row["jadwal"])) < date('Y-m-d')) ? "text-danger" : "text-dark";
-                    ?>
-                        <tr>
-                          <td class="ps-4">
-                            <p class="text-xs font-weight-bold mb-0"><?= $status_display ?></p>
-                            <p class="text-xs text-secondary mb-0"><?= htmlspecialchars($row["kegiatan"]) ?></p>
-                            <p class="text-xs <?= $date_color ?> font-weight-bold mb-0"><?= $jadwal_display ?></p>
-                          </td>
-                          <td>
-                            <h6 class="mb-0 text-sm"><a href="customer-detail.php?id_cust=<?= $row['customer_id'] ?>"><?= htmlspecialchars($row["nama_customer"]) ?></a></h6>
-                            <p class="text-xs text-secondary mb-0"><?= htmlspecialchars($row['cust_nomor']) ?></p>
-                          </td>
-                          <td class="text-wrap">
-                            <p class="text-xs font-weight-bold mb-0"><?= htmlspecialchars(getAddressFromCoordinates($row['lat'], $row['lon']) ?: $row['alamat']) ?> <button class="btn btn-secondary p-0 px-1 m-0" onclick='openLocationModal(<?= json_encode($row) ?>)'><i class="material-icons" style="font-size:12px;">edit</i></button></p>
-                            <p class="text-xs text-secondary mb-0 fst-italic">"<?= !empty($row["keterangan"]) ? htmlspecialchars($row["keterangan"]) : '-' ?>"</p>
-                          </td>
-                          <td class="text-center"><p class="text-xs font-weight-bold mb-0"><?= htmlspecialchars($row["request"]) ?></p></td>
-                          <td class="text-center">
-                            <?php
-                            $hasReason = $row['reason_count'] > 0;
-                            $btnClass = "btn-outline-danger";
-                            if ($hasReason && !empty($row['latest_reason_date'])) {
-                              $daysDiff = (new DateTime())->diff(new DateTime($row['latest_reason_date']))->days;
-                              if ($daysDiff <= 7) $btnClass = "btn-outline-success";
-                            }
-                            ?>
-                            <button class="btn btn-sm <?= $btnClass ?> reason-btn mb-0" data-id="<?= $row['id'] ?>"><i class="material-icons" style="font-size:14px;">history</i> <?= $hasReason ? "($row[reason_count])" : "" ?></button>
-                          </td>
-                          <td class="text-center pe-4">
-                            <div class="btn-group btn-group-sm">
-                              <button class="btn btn-primary jadwalkan-btn" data-id="<?= $row["id"] ?>" data-tgl-request="<?= $row["jadwal"] ?>"><i class="material-icons" style="font-size:14px;">arrow_upward</i></button>
-                              <button class="btn btn-danger hapus-btn" data-id="<?= $row["id"] ?>" data-kode="<?= $row["kode"] ?>" data-nama="<?= htmlspecialchars($nmUser) ?>"><i class="material-icons" style="font-size:14px;">delete</i></button>
-                            </div>
-                          </td>
-                        </tr>
-                    <?php } } else { echo "<tr><td colspan='6' class='text-center py-5'>Tidak ada data.</td></tr>"; } ?>
-                  </tbody>
-                </table>
+          <div class="card section-card h-100" style="border-radius:0 0 10px 10px;border-top:none;padding:12px;">
+            <?php
+            $sql_waiting = "SELECT k.*, c.nama AS nama_customer, c.telp AS cust_nomor, c.alamat, c.id as customer_id, (SELECT COUNT(*) FROM kegiatan_reasons kr WHERE kr.kegiatan_id = k.id) as reason_count, (SELECT MAX(created_at) FROM kegiatan_reasons kr WHERE kr.kegiatan_id = k.id) as latest_reason_date FROM kegiatan k LEFT JOIN customer c ON k.customer_id = c.id WHERE k.status = 'waiting' AND k.deleted_at IS NULL ORDER BY k.created_at ASC";
+            $result_waiting = mysqli_query($conn, $sql_waiting);
+            $totalW = mysqli_num_rows($result_waiting);
+            if ($totalW > 0) {
+              while ($row = mysqli_fetch_assoc($result_waiting)) {
+                $status_display = "Dilaporkan";
+                $status_css = "background:#fef3c7;color:#92400e;";
+                $card_border = "border-left:4px solid #f59e0b;";
+                $date_css = "";
+                $jadwal_raw = $row["jadwal"];
+                $jadwal_display = date('d/m/y', strtotime($row["created_at"]));
+                if ($jadwal_raw != '0000-00-00 00:00:00' && !empty($jadwal_raw)) {
+                    $status_display = "Dijadwalkan";
+                    $status_css = "background:#dbeafe;color:#1e40af;";
+                    $card_border = "border-left:4px solid #3b82f6;";
+                    $tgl_req = strtotime($jadwal_raw);
+                    $jadwal_display = date('d/m/y H:i', $tgl_req);
+                    if (date('Y-m-d', $tgl_req) < date('Y-m-d')) {
+                        $status_display = "Terlambat";
+                        $status_css = "background:#fee2e2;color:#991b1b;";
+                        $card_border = "border-left:4px solid #ef4444;";
+                        $date_css = "color:#dc2626 !important;";
+                    }
+                }
+                $hasReason = $row['reason_count'] > 0;
+                $kegL = strtolower($row['kegiatan']);
+                $tCSS = "background:#f1f5f9;color:#475569;";
+                if (strpos($kegL, 'survey') !== false) $tCSS = "background:#fef3c7;color:#92400e;";
+                elseif (strpos($kegL, 'service') !== false) $tCSS = "background:#e0e7ff;color:#3730a3;";
+                elseif (strpos($kegL, 'pasang') !== false) $tCSS = "background:#dcfce7;color:#166534;";
+                $fullAddr = getAddressFromCoordinates($row['lat'], $row['lon']) ?: $row['alamat'];
+            ?>
+            <div style="background:#fff;border:1px solid #e9ecef;border-radius:10px;margin-bottom:10px;overflow:hidden;transition:all 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.03);<?= $card_border ?>" onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.08)';this.style.transform='translateY(-1px)'" onmouseout="this.style.boxShadow='0 1px 3px rgba(0,0,0,0.03)';this.style.transform='none'">
+              <div style="padding:14px 18px;">
+                <!-- Top: Badges + Customer + Actions -->
+                <div class="d-flex align-items-center justify-content-between" style="margin-bottom:10px;">
+                  <div class="d-flex align-items-center gap-2" style="flex:1;min-width:0;">
+                    <span style="font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px;white-space:nowrap;<?= $status_css ?>"><?= $status_display ?></span>
+                    <span style="font-size:9px;font-weight:700;padding:3px 8px;border-radius:20px;letter-spacing:0.04em;text-transform:uppercase;white-space:nowrap;<?= $tCSS ?>"><?= htmlspecialchars($row['kegiatan']) ?></span>
+                    <a href="customer-detail.php?id_cust=<?= $row['customer_id'] ?>" style="font-size:14px;font-weight:700;color:#1e293b;text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><?= htmlspecialchars($row['nama_customer']) ?></a>
+                  </div>
+                  <div class="d-flex align-items-center gap-1" style="flex-shrink:0;margin-left:12px;">
+                    <button type="button" class="btn-act <?= $hasReason ? 'btn-act-view' : '' ?> reason-btn" data-id="<?= $row['id'] ?>" style="<?= !$hasReason ? 'background:#fff7ed;color:#ea580c;' : '' ?>" title="<?= $hasReason ? $row['reason_count'].' catatan' : 'Tambah' ?>">
+                      <i class="material-icons" style="font-size:14px;"><?= $hasReason ? 'history' : 'add_comment' ?></i>
+                    </button>
+                    <button type="button" class="btn-act btn-act-edit jadwalkan-btn" data-id="<?= $row["id"] ?>" data-tgl-request="<?= $row["jadwal"] ?>" title="Jadwalkan">
+                      <i class="material-icons" style="font-size:14px;">calendar_today</i>
+                    </button>
+                    <button type="button" class="btn-act btn-act-delete hapus-btn" data-id="<?= $row["id"] ?>" data-kode="<?= $row["kode"] ?>" data-nama="<?= htmlspecialchars($nmUser) ?>" title="Hapus" style="background:#f8fafc;color:#94a3b8;">
+                      <i class="material-icons" style="font-size:14px;">delete</i>
+                    </button>
+                  </div>
+                </div>
+                <!-- Bottom: Details Grid -->
+                <div class="row align-items-start">
+                  <div class="col-md-2">
+                    <a href="https://api.whatsapp.com/send?phone=62<?= substr(preg_replace('/[^0-9]/', '', $row['cust_nomor']), 1) ?>" target="_blank" class="text-phone" style="display:inline-flex;align-items:center;gap:3px;">
+                      <i class="material-icons" style="font-size:13px;">phone</i> <?= htmlspecialchars($row['cust_nomor']) ?>
+                    </a>
+                    <div style="margin-top:5px;">
+                      <span style="font-size:12px;font-weight:600;color:#1e293b;<?= $date_css ?>"><?= $jadwal_display ?></span>
+                      <span class="text-code" style="margin-left:4px;"><?= $row['kode'] ?></span>
+                    </div>
+                  </div>
+                  <div class="col-md-7">
+                    <p style="font-size:11.5px;color:#475569;line-height:1.5;margin:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;" title="<?= htmlspecialchars($fullAddr) ?>">
+                      <i class="material-icons" style="font-size:12px;vertical-align:middle;color:#94a3b8;margin-right:2px;">location_on</i>
+                      <?= htmlspecialchars($fullAddr) ?>
+                      <button class="btn-act" style="width:20px;height:20px;background:transparent;display:inline-flex;vertical-align:middle;margin-left:3px;" onclick='openLocationModal(<?= json_encode($row) ?>)'><i class="material-icons" style="font-size:11px;color:#3b82f6;">edit</i></button>
+                    </p>
+                    <?php if (!empty($row['keterangan'])): ?>
+                    <p style="font-size:10.5px;color:#94a3b8;font-style:italic;margin:4px 0 0;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;">"<?= htmlspecialchars($row['keterangan']) ?>"</p>
+                    <?php endif; ?>
+                  </div>
+                  <div class="col-md-3 text-end">
+                    <span style="font-size:11px;font-weight:600;color:#1e293b;background:#f1f5f9;padding:4px 10px;border-radius:6px;"><?= htmlspecialchars($row['request']) ?></span>
+                    <?php if ($hasReason): ?>
+                    <span style="font-size:10px;color:#16a34a;font-weight:600;display:block;margin-top:4px;"><?= $row['reason_count'] ?> catatan</span>
+                    <?php endif; ?>
+                  </div>
+                </div>
               </div>
             </div>
+            <?php } } else { ?>
+            <div style="padding:48px 20px;text-align:center;">
+              <i class="material-icons" style="font-size:56px;color:#e2e8f0;">check_circle_outline</i>
+              <p style="font-size:14px;color:#94a3b8;margin:12px 0 0;">Semua kegiatan sudah terjadwalkan 🎉</p>
+            </div>
+            <?php } ?>
           </div>
         </div>
 
