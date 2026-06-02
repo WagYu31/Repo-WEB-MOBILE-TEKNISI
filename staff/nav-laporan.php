@@ -18,23 +18,28 @@ $tabs = [
 $currentFile = basename($_SERVER['PHP_SELF']);
 ?>
 <style>
-    .nav-laporan { display: flex; width: 100%; border-radius: 8px; overflow: hidden; }
+    .nav-laporan { display: flex; width: 100%; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
     .nav-laporan .nav-tab-item {
-        flex: 1; text-align: center; padding: 12px 8px;
+        flex: 1; text-align: center; padding: 14px 8px;
         font-size: 12px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
-        text-decoration: none; color: #94a3b8;
-        background: #1e293b; border: none;
-        transition: all 0.2s ease;
+        text-decoration: none; color: rgba(255,255,255,0.7);
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        border: none;
+        transition: all 0.25s ease;
     }
-    .nav-laporan .nav-tab-item:hover { background: #334155; color: #e2e8f0; }
-    .nav-laporan .nav-tab-item.active-tab { background: #475569; color: #ffffff; }
-    .nav-laporan .nav-tab-item + .nav-tab-item { border-left: 1px solid #334155; }
+    .nav-laporan .nav-tab-item:hover { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #fff; }
+    .nav-laporan .nav-tab-item.active-tab { 
+        background: linear-gradient(135deg, #fbbf24, #f59e0b); 
+        color: #1e293b; font-weight: 800;
+        box-shadow: inset 0 -3px 0 rgba(0,0,0,0.15);
+    }
+    .nav-laporan .nav-tab-item + .nav-tab-item { border-left: 1px solid rgba(255,255,255,0.2); }
     .nav-laporan .nav-tab-print {
-        width: 48px; text-align: center; padding: 12px 0;
-        background: #1e293b; color: #94a3b8; text-decoration: none;
-        transition: all 0.2s ease; border-left: 1px solid #334155;
+        width: 48px; text-align: center; padding: 14px 0;
+        background: linear-gradient(135deg, #d97706, #b45309); color: rgba(255,255,255,0.7); text-decoration: none;
+        transition: all 0.25s ease; border-left: 1px solid rgba(255,255,255,0.2);
     }
-    .nav-laporan .nav-tab-print:hover { background: #334155; color: #e2e8f0; }
+    .nav-laporan .nav-tab-print:hover { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; }
 </style>
 <div class="row">
     <div class="col-12">
