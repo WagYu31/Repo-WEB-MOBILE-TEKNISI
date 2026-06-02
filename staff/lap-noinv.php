@@ -76,12 +76,12 @@ if (isset($_GET['error'])) {
                         </div>
                         <div class="card-body p-0">
                             <div class="table-responsive">
-                                <table class="table table-hover align-middle mb-0">
+                                <table class="table table-hover align-middle mb-0" style="table-layout:fixed;">
                                     <thead class="table-light">
                                         <tr>
-                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-4" style="width: 40%;">Customer</th>
-                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="width: 45%;">Teknisi Ditugaskan</th>
-                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 pe-4" style="width: 15%;">Aksi</th>
+                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-4" style="width: 35%;">Customer</th>
+                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="width: 40%;">Teknisi & Absensi</th>
+                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 pe-4" style="width: 25%;">Aksi</th>
                                         </tr>
                                     </thead>
                                     <tbody>
