@@ -204,16 +204,21 @@ if (isset($_GET['export'])) {
 
 <body class="g-sidenav-show bg-gray-200">
   <?php include "cek-menu.php"; ?>
-  <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg ">
+  <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg" style="display:flex;flex-direction:column;overflow:hidden;">
     <?php
     include "nav-top.php";
     $daftar_bulan = [1 => 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
     $todayDate = date('d') . ' ' . $daftar_bulan[(int)date('m')] . ' ' . date('Y');
     ?>
 
-    <div class="container-fluid py-4">
+    <!-- Fixed Section: Stat Cards -->
+    <div style="flex-shrink:0;padding:0 24px;">
       <?php include 'top-point.php'; ?>
-      <div class="row mb-4 mt-4">
+    </div>
+
+    <!-- Scrollable Section: Tables -->
+    <div style="flex:1;overflow-y:auto;padding:0 24px 24px;">
+      <div class="row mb-4">
         <?php
         function shortenTechnicianName($fullName) {
           if (empty($fullName)) return '-';
