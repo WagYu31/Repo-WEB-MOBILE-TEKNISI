@@ -177,8 +177,8 @@ if (isset($_GET['export'])) {
           return null;
         }
         function getStatusInfo($status) {
-          $statusMap = ['selesai' => ['text' => 'Selesai', 'class' => 'bg-success'], 'berjalan' => ['text' => 'Dikerjakan', 'class' => 'bg-info'], 'menunggu laporan' => ['text' => 'Menunggu Laporan', 'class' => 'bg-warning'], 'Lanjut Nanti' => ['text' => 'Lanjut Nanti', 'class' => 'bg-dark'], 'Lanjutan' => ['text' => 'Dilanjutkan', 'class' => 'bg-primary'], 'dijadwalkan' => ['text' => 'Dijadwalkan', 'class' => 'bg-secondary']];
-          return $statusMap[$status] ?? ['text' => 'Dijadwalkan', 'class' => 'bg-secondary'];
+          $statusMap = ['selesai' => ['text' => 'Selesai', 'class' => 'badge-status badge-selesai'], 'berjalan' => ['text' => 'Dikerjakan', 'class' => 'badge-status badge-dikerjakan'], 'menunggu laporan' => ['text' => 'Menunggu Laporan', 'class' => 'badge-status badge-menunggu'], 'Lanjut Nanti' => ['text' => 'Lanjut Nanti', 'class' => 'badge-status badge-lanjut'], 'Lanjutan' => ['text' => 'Dilanjutkan', 'class' => 'badge-status badge-dilanjutkan'], 'dijadwalkan' => ['text' => 'Dijadwalkan', 'class' => 'badge-status badge-dijadwalkan']];
+          return $statusMap[$status] ?? ['text' => 'Dijadwalkan', 'class' => 'badge-status badge-dijadwalkan'];
         }
         ?>
         <div class="col-lg-12 mt-4 mb-0">
@@ -228,14 +228,14 @@ if (isset($_GET['export'])) {
             $result_today = $stmt_today->get_result();
             ?>
             <div class="card-body pb-0 p-0">
-              <ul class="list-group m-0 mt-2 col-12 p-2 py-0" id="data-tek-today">
-                <li class="list-group-item border text-center d-flex flex-column justify-content-between ps-0 mb-2 border-radius-lg d-md-block d-none">
+              <ul class="list-group m-0 mt-0 col-12 p-0 py-0" id="data-tek-today">
+                <li class="list-group-item d-flex flex-column justify-content-between ps-0 d-md-block d-none" style="background:#f8fafc;border:none;border-bottom:2px solid #e2e8f0;border-radius:0;padding:10px 16px !important;">
                   <div class="row px-4">
-                    <div class="col-md-1"><h6 class="mb-1 text-dark font-weight-bold text-sm">Kegiatan</h6></div>
-                    <div class="col-md-3"><h6 class="mb-1 text-dark font-weight-bold text-sm">Customer</h6></div>
-                    <div class="col-md-2"><h6 class="mb-1 text-dark font-weight-bold text-sm">Teknisi & Status</h6></div>
-                    <div class="col-md-3"><h6 class="mb-1 text-dark font-weight-bold text-sm">Alamat</h6></div>
-                    <div class="col-md-3 text-center"><h6 class="mb-1 text-dark font-weight-bold text-sm">Info</h6></div>
+                    <div class="col-md-1"><span style="font-size:10.5px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.06em;">Kegiatan</span></div>
+                    <div class="col-md-3"><span style="font-size:10.5px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.06em;">Customer</span></div>
+                    <div class="col-md-2"><span style="font-size:10.5px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.06em;">Teknisi & Status</span></div>
+                    <div class="col-md-4"><span style="font-size:10.5px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.06em;">Alamat</span></div>
+                    <div class="col-md-2 text-center"><span style="font-size:10.5px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.06em;">Info</span></div>
                   </div>
                 </li>
                 <?php
@@ -249,17 +249,26 @@ if (isset($_GET['export'])) {
                   usort($data_group, fn($a, $b) => $b['id'] - $a['id']);
                   $data = $data_group[0];
                 ?>
-                  <li class="list-group-item border d-flex flex-column justify-content-between align-items-center ps-0 mb-2 border-radius-lg">
+                  <li class="list-group-item d-flex flex-column justify-content-between align-items-center ps-0" style="border:none;border-bottom:1px solid #f1f5f9;border-radius:0;padding:12px 16px !important;transition:background 0.15s;">
                     <div class="row px-3 w-100 align-items-start">
                       <div class="col-md-1">
-                        <span class="badge badge-sm bg-gradient-secondary text-capitalize mb-1"><?= htmlspecialchars($data['kegiatan']) ?></span>
-                        <p class="text-sm font-weight-bold mb-0"><?= date("H:i", strtotime($data['jadwal'])) ?> WIB</p>
-                        <span class="text-xs text-dark d-block"><?= $kodeTransaksi; ?></span>
+                        <?php
+                          $kegLower = strtolower($data['kegiatan']);
+                          $badgeClass = 'badge-default';
+                          if (strpos($kegLower, 'survey') !== false) $badgeClass = 'badge-survey';
+                          elseif (strpos($kegLower, 'service') !== false) $badgeClass = 'badge-service';
+                          elseif (strpos($kegLower, 'pasang') !== false) $badgeClass = 'badge-pasang';
+                        ?>
+                        <span class="badge-type <?= $badgeClass ?>"><?= htmlspecialchars($data['kegiatan']) ?></span>
+                        <p style="font-size:13px;font-weight:600;color:#1e293b;margin:4px 0 0;"><?= date("H:i", strtotime($data['jadwal'])) ?> WIB</p>
+                        <span style="font-size:10px;color:#94a3b8;display:block;"><?= $kodeTransaksi; ?></span>
                       </div>
                       <div class="col-md-3">
-                        <h6 class="text-dark font-weight-bold mb-0 text-sm"><a href="customer-detail.php?id_cust=<?= $data['customer_id']; ?>"><?= htmlspecialchars($data['nama_customer']); ?></a></h6>
-                        <span class="text-xs"><a href="https://api.whatsapp.com/send?phone=62<?= substr(preg_replace('/[^0-9]/', '', $data['cust_nomor']), 1); ?>" target="_blank"><?= htmlspecialchars($data['cust_nomor']); ?></a></span>
-                        <p class="text-xs text-secondary mb-0 fst-italic text-wrap">"<?= !empty($data["keterangan"]) ? htmlspecialchars($data["keterangan"]) : '-'; ?>"</p>
+                        <a href="customer-detail.php?id_cust=<?= $data['customer_id']; ?>" style="text-decoration:none;color:#1e293b;">
+                          <h6 style="font-size:13px;font-weight:700;margin:0 0 2px;"><?= htmlspecialchars($data['nama_customer']); ?></h6>
+                        </a>
+                        <a href="https://api.whatsapp.com/send?phone=62<?= substr(preg_replace('/[^0-9]/', '', $data['cust_nomor']), 1); ?>" target="_blank" style="font-size:11px;color:#3b82f6;text-decoration:none;"><?= htmlspecialchars($data['cust_nomor']); ?></a>
+                        <p style="font-size:11px;color:#94a3b8;margin:2px 0 0;font-style:italic;">"<?= !empty($data["keterangan"]) ? htmlspecialchars($data["keterangan"]) : '-'; ?>"</p>
                       </div>
                       <div class="col-md-2">
                         <?php
@@ -277,33 +286,34 @@ if (isset($_GET['export'])) {
                           if ($rowStatus = $resultStatus->fetch_assoc()) { $status_pelaksanaan = $rowStatus['status']; }
                           $statusInfo = getStatusInfo($status_pelaksanaan);
                         ?>
-                          <div class="d-flex justify-content-between align-items-center mb-1"><a href="list-kegiatan-teknisi.php?idTek=<?= $rowTeknisi['teknisi_id']; ?>" class="text-xs font-weight-bold text-dark"><?= shortenTechnicianName($rowTeknisi['nama_teknisi']); ?></a><span class="<?= $statusInfo['class']; ?> text-white rounded-pill px-2" style="font-size:10px;"><?= $statusInfo['text']; ?></span></div>
+                          <div class="d-flex justify-content-between align-items-center mb-1">
+                            <a href="list-kegiatan-teknisi.php?idTek=<?= $rowTeknisi['teknisi_id']; ?>" style="font-size:12px;font-weight:600;color:#1e293b;text-decoration:none;"><?= shortenTechnicianName($rowTeknisi['nama_teknisi']); ?></a>
+                            <span class="<?= $statusInfo['class']; ?>"><?= $statusInfo['text']; ?></span>
+                          </div>
                         <?php } $stmtTeknisi->close(); ?>
                       </div>
                       <div class="col-md-4">
-                        <div class="d-flex align-items-center">
-                          <p class="text-xs text-dark mb-0 me-2"><?= htmlspecialchars(getAddressFromCoordinates($data['lat'], $data['lon']) ?: $data['alamat']); ?>
-                            <button class="btn btn-secondary text-light p-0 px-1 m-0 ms-2" onclick='openLocationModal(<?= json_encode($data) ?>)'><i class="material-icons" style="font-size:12px;">edit</i></button>
-                          </p>
-                        </div>
+                        <p style="font-size:11px;color:#475569;margin:0;line-height:1.5;">
+                          <?= htmlspecialchars(getAddressFromCoordinates($data['lat'], $data['lon']) ?: $data['alamat']); ?>
+                          <button class="btn-act" style="width:22px;height:22px;display:inline-flex;vertical-align:middle;margin-left:4px;" onclick='openLocationModal(<?= json_encode($data) ?>)'><i class="material-icons" style="font-size:11px;color:#64748b;">edit</i></button>
+                        </p>
                       </div>
-                      <div class="col-md-1 text-center">
-                        <div class="d-flex align-items-center justify-content-between">
-                          <p class="mb-1 me-1 text-primary p-1 rounded-pill btn btn-outline-primary font-weight-bold" style="font-size:12px;"><?= getInitials($data['request']); ?></p>
-                          <div class="text-right">
-                            <h6 class="mb-0 font-weight-bold" style="font-size:12px;"><?= date("d/m", strtotime($data['created_at'])); ?></h6>
-                            <span class="text-xs text-uppercase"><?= date("H:i", strtotime($data['created_at'])); ?></span>
+                      <div class="col-md-2 text-center">
+                        <div class="d-flex align-items-center justify-content-center gap-2">
+                          <div style="width:32px;height:32px;border-radius:6px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                            <span style="font-size:10px;font-weight:700;color:#475569;"><?= getInitials($data['request']); ?></span>
                           </div>
-                        </div>
-                      </div>
-                      <div class="col-md-1 text-center">
-                        <div class="btn-group btn-group-sm">
-                          <a class="btn btn-info" href="view-kegiatan.php?kode_transaksi=<?= $kodeTransaksi; ?>"><i class="material-icons" style="font-size:12px;">visibility</i></a>
-                          <?php if ($pageNow != 'Task') : ?>
-                            <!--<button class="btn btn-warning edit-btn" data-id="<?= $kodeTransaksi; ?>"><i class="material-icons" style="font-size:12px;">edit</i></button>-->
-                            <a class="btn btn-warning edit-btn" href="edit_kegiatan.php?kode_transaksi=<?= $kodeTransaksi; ?>"><i class="material-icons" style="font-size:12px;">edit</i></a>
-                            <button class="btn btn-danger btn-delete" data-kode="<?= $kodeTransaksi; ?>" data-customer="<?= htmlspecialchars($data['nama_customer']); ?>"><i class="material-icons" style="font-size:12px;">delete</i></button>
-                          <?php endif; ?>
+                          <div style="text-align:left;">
+                            <span style="font-size:12px;font-weight:600;color:#1e293b;display:block;"><?= date("d/m", strtotime($data['created_at'])); ?></span>
+                            <span style="font-size:10px;color:#94a3b8;"><?= date("H:i", strtotime($data['created_at'])); ?></span>
+                          </div>
+                          <div class="d-flex gap-1 ms-2">
+                            <a class="btn-act btn-act-view" href="view-kegiatan.php?kode_transaksi=<?= $kodeTransaksi; ?>"><i class="material-icons" style="font-size:14px;">visibility</i></a>
+                            <?php if ($pageNow != 'Task') : ?>
+                              <a class="btn-act btn-act-edit" href="edit_kegiatan.php?kode_transaksi=<?= $kodeTransaksi; ?>"><i class="material-icons" style="font-size:14px;">edit</i></a>
+                              <button class="btn-act btn-act-delete btn-delete" data-kode="<?= $kodeTransaksi; ?>" data-customer="<?= htmlspecialchars($data['nama_customer']); ?>"><i class="material-icons" style="font-size:14px;">delete</i></button>
+                            <?php endif; ?>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -352,14 +362,14 @@ if (isset($_GET['export'])) {
             $result_upcoming = $stmt_upcoming->get_result();
             ?>
             <div class="card-body pb-0 p-0">
-              <ul class="list-group m-0 mt-2 col-12 p-2 py-0" id="data-tek-upcoming">
-                <li class="list-group-item border d-flex flex-column justify-content-between ps-0 mb-2 border-radius-lg d-md-block d-none">
+              <ul class="list-group m-0 mt-0 col-12 p-0 py-0" id="data-tek-upcoming">
+                <li class="list-group-item d-flex flex-column justify-content-between ps-0 d-md-block d-none" style="background:#f8fafc;border:none;border-bottom:2px solid #e2e8f0;border-radius:0;padding:10px 16px !important;">
                   <div class="row px-4">
-                    <div class="col-md-1"><h6 class="mb-1 text-dark font-weight-bold text-sm">Kegiatan</h6></div>
-                    <div class="col-md-3"><h6 class="mb-1 text-dark font-weight-bold text-sm">Customer</h6></div>
-                    <div class="col-md-3"><h6 class="mb-1 text-dark font-weight-bold text-sm">Teknisi</h6></div>
-                    <div class="col-md-3"><h6 class="mb-1 text-dark font-weight-bold text-sm">Alamat</h6></div>
-                    <div class="col-md-2 text-center"><h6 class="mb-1 text-dark font-weight-bold text-sm">Info</h6></div>
+                    <div class="col-md-1"><span style="font-size:10.5px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.06em;">Kegiatan</span></div>
+                    <div class="col-md-3"><span style="font-size:10.5px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.06em;">Customer</span></div>
+                    <div class="col-md-2"><span style="font-size:10.5px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.06em;">Teknisi</span></div>
+                    <div class="col-md-4"><span style="font-size:10.5px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.06em;">Alamat</span></div>
+                    <div class="col-md-2 text-center"><span style="font-size:10.5px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.06em;">Info</span></div>
                   </div>
                 </li>
                 <?php
@@ -367,20 +377,29 @@ if (isset($_GET['export'])) {
                 if ($result_upcoming->num_rows > 0) {
                   while ($row = $result_upcoming->fetch_assoc()) { $groupedDataUpcoming[$row['kode']][] = $row; }
                 } else {
-                  echo "<div class='ms-4 text-sm'>Tidak ada kegiatan yang akan datang.</div>";
+                  echo "<div style='padding:16px;font-size:13px;color:#94a3b8;'>Tidak ada kegiatan yang akan datang.</div>";
                 }
                 foreach ($groupedDataUpcoming as $kodeTransaksi => $data_group) {
                   $data = $data_group[0];
                 ?>
-                  <li class="list-group-item border d-flex flex-column justify-content-between align-items-center ps-0 mb-2 border-radius-lg">
+                  <li class="list-group-item d-flex flex-column justify-content-between align-items-center ps-0" style="border:none;border-bottom:1px solid #f1f5f9;border-radius:0;padding:12px 16px !important;transition:background 0.15s;">
                     <div class="row px-2 w-100 align-items-start">
                       <div class="col-md-1">
-                        <span class="badge badge-sm bg-gradient-secondary text-capitalize mb-1"><?= htmlspecialchars($data['kegiatan']) ?></span>
-                        <p class="text-sm font-weight-bold mb-0"><?= date("d/m/y H:i", strtotime($data['jadwal'])) ?></p>
+                        <?php
+                          $kegLower2 = strtolower($data['kegiatan']);
+                          $badgeClass2 = 'badge-default';
+                          if (strpos($kegLower2, 'survey') !== false) $badgeClass2 = 'badge-survey';
+                          elseif (strpos($kegLower2, 'service') !== false) $badgeClass2 = 'badge-service';
+                          elseif (strpos($kegLower2, 'pasang') !== false) $badgeClass2 = 'badge-pasang';
+                        ?>
+                        <span class="badge-type <?= $badgeClass2 ?>"><?= htmlspecialchars($data['kegiatan']) ?></span>
+                        <p style="font-size:13px;font-weight:600;color:#1e293b;margin:4px 0 0;"><?= date("d/m/y H:i", strtotime($data['jadwal'])) ?></p>
                       </div>
                       <div class="col-md-3">
-                        <h6 class="text-dark font-weight-bold mb-0 text-sm"><a href="customer-detail.php?id_cust=<?= $data['customer_id']; ?>"><?= htmlspecialchars($data['nama_customer']); ?></a></h6>
-                        <span class="text-xs"><a href="https://api.whatsapp.com/send?phone=62<?= substr(preg_replace('/[^0-9]/', '', $data['cust_nomor']), 1); ?>" target="_blank"><?= htmlspecialchars($data['cust_nomor']); ?></a></span>
+                        <a href="customer-detail.php?id_cust=<?= $data['customer_id']; ?>" style="text-decoration:none;color:#1e293b;">
+                          <h6 style="font-size:13px;font-weight:700;margin:0 0 2px;"><?= htmlspecialchars($data['nama_customer']); ?></h6>
+                        </a>
+                        <a href="https://api.whatsapp.com/send?phone=62<?= substr(preg_replace('/[^0-9]/', '', $data['cust_nomor']), 1); ?>" target="_blank" style="font-size:11px;color:#3b82f6;text-decoration:none;"><?= htmlspecialchars($data['cust_nomor']); ?></a>
                       </div>
                       <div class="col-md-2">
                         <?php
@@ -390,26 +409,28 @@ if (isset($_GET['export'])) {
                         $stmtTeknisi2->execute();
                         $resultTeknisi2 = $stmtTeknisi2->get_result();
                         while ($rowTeknisi = $resultTeknisi2->fetch_assoc()) {
-                          echo "<div class='d-flex justify-content-between mb-1'><a href='list-kegiatan-teknisi.php?idTek=".$rowTeknisi['teknisi_id']."' class='text-xs font-weight-bold text-dark'>".shortenTechnicianName($rowTeknisi['nama_teknisi'])."</a></div>";
+                          echo "<div class='mb-1'><a href='list-kegiatan-teknisi.php?idTek=".$rowTeknisi['teknisi_id']."' style='font-size:12px;font-weight:600;color:#1e293b;text-decoration:none;'>".shortenTechnicianName($rowTeknisi['nama_teknisi'])."</a></div>";
                         }
                         $stmtTeknisi2->close(); ?>
                       </div>
                       <div class="col-md-4">
-                        <p class="text-xs text-dark mb-0"><?= htmlspecialchars(getAddressFromCoordinates($data['lat'], $data['lon']) ?: $data['alamat']); ?><button class="btn btn-secondary text-light p-0 px-1 m-0 ms-2" onclick='openLocationModal(<?= json_encode($data) ?>)'><i class="material-icons" style="font-size:12px;">edit</i></button></p>
+                        <p style="font-size:11px;color:#475569;margin:0;line-height:1.5;">
+                          <?= htmlspecialchars(getAddressFromCoordinates($data['lat'], $data['lon']) ?: $data['alamat']); ?>
+                          <button class="btn-act" style="width:22px;height:22px;display:inline-flex;vertical-align:middle;margin-left:4px;" onclick='openLocationModal(<?= json_encode($data) ?>)'><i class="material-icons" style="font-size:11px;color:#64748b;">edit</i></button>
+                        </p>
                       </div>
-                      <div class="col-md-1 text-center">
-                        <div class="d-flex align-items-center justify-content-between">
-                          <p class="mb-1 text-primary p-1 rounded-pill btn btn-outline-primary font-weight-bold" style="font-size:12px;"><?= getInitials($data['request']); ?></p>
-                        </div>
-                      </div>
-                      <div class="col-md-1 text-center">
-                        <div class="btn-group btn-group-sm">
-                          <a class="btn btn-info" href="view-kegiatan.php?kode_transaksi=<?= $kodeTransaksi; ?>"><i class="material-icons" style="font-size:12px;">visibility</i></a>
-                          <?php if ($pageNow != 'Task') : ?>
-                            <!--<button class="btn btn-warning edit-btn" data-id="<?= $kodeTransaksi; ?>"><i class="material-icons" style="font-size:12px;">edit</i></button>-->
-                            <a class="btn btn-warning edit-btn" href="edit_kegiatan.php?kode_transaksi=<?= $kodeTransaksi; ?>"><i class="material-icons" style="font-size:12px;">edit</i></a>
-                            <button class="btn btn-danger btn-delete" data-kode="<?= $kodeTransaksi; ?>" data-customer="<?= htmlspecialchars($data['nama_customer']); ?>"><i class="material-icons" style="font-size:12px;">delete</i></button>
-                          <?php endif; ?>
+                      <div class="col-md-2 text-center">
+                        <div class="d-flex align-items-center justify-content-center gap-2">
+                          <div style="width:32px;height:32px;border-radius:6px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                            <span style="font-size:10px;font-weight:700;color:#475569;"><?= getInitials($data['request']); ?></span>
+                          </div>
+                          <div class="d-flex gap-1 ms-1">
+                            <a class="btn-act btn-act-view" href="view-kegiatan.php?kode_transaksi=<?= $kodeTransaksi; ?>"><i class="material-icons" style="font-size:14px;">visibility</i></a>
+                            <?php if ($pageNow != 'Task') : ?>
+                              <a class="btn-act btn-act-edit" href="edit_kegiatan.php?kode_transaksi=<?= $kodeTransaksi; ?>"><i class="material-icons" style="font-size:14px;">edit</i></a>
+                              <button class="btn-act btn-act-delete btn-delete" data-kode="<?= $kodeTransaksi; ?>" data-customer="<?= htmlspecialchars($data['nama_customer']); ?>"><i class="material-icons" style="font-size:14px;">delete</i></button>
+                            <?php endif; ?>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -421,15 +442,16 @@ if (isset($_GET['export'])) {
         </div>
 
         <div class="col-lg-12 mt-4 mb-0">
-          <div class="row">
-            <div class="col-12 d-flex flex-wrap gap-2">
-  <button id="toggleLoadMoreWaiting" type="button" class="btn bg-gradient-warning font-weight-bold w-sm-100 w-md-70 w-lg-30" style="font-size:16px;">Waiting List</button>
-  <a href="?export=waiting" class="btn btn-success w-auto d-flex align-items-center"><i class="material-icons me-2">download</i>TXT</a>
-</div>
+          <div class="d-flex justify-content-between align-items-center section-header" id="toggleLoadMoreWaiting">
+            <div class="d-flex align-items-center gap-2">
+              <i class="material-icons">hourglass_empty</i>
+              <h6>Waiting List</h6>
+            </div>
+            <a href="?export=waiting" class="btn-export" onclick="event.stopPropagation();"><i class="material-icons" style="font-size:14px;">download</i> Export TXT</a>
           </div>
         </div>
-        <div class="col-lg-12 mt-n3 mb-4">
-          <div class="card h-100 py-3" style="border-top-left-radius:0;">
+        <div class="col-lg-12 mt-0 mb-4">
+          <div class="card section-card h-100 py-3">
             <div class="card-body p-0">
               <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
