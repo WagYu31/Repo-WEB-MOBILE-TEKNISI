@@ -66,112 +66,153 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_kegiatan'])) {
         <?php include "nav-top.php"; ?>
         <div class="container-fluid py-4">
             <div class="row d-flex flex-row align-items-start">
-                <div class="col-12 col-md-5 mt-4 mb-4">
-                    <div class="card z-index-2">
-                        <div class="card-header col-9 col-md-7 p-0 position-relative mt-n4 mx-3 z-index-2 bg-transparent">
-                            <div class="bg-gradient-info shadow-info border-radius-lg py-3 pe-1">
-                                <div class="chart px-3">
-                                    <h5 class="text-light text-bold">Tambah Kegiatan Baru</h5>
+                <div class="col-12 col-lg-7 mt-4 mb-4">
+                    <div class="card" style="border:none;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+                        <!-- Premium Header -->
+                        <div style="background:linear-gradient(135deg,#1e3a5f 0%,#2563eb 50%,#3b82f6 100%);padding:20px 28px;position:relative;overflow:hidden;">
+                            <div style="position:absolute;top:-20px;right:-20px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,0.08);"></div>
+                            <div style="position:absolute;bottom:-30px;right:60px;width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,0.05);"></div>
+                            <div style="display:flex;align-items:center;gap:12px;position:relative;z-index:1;">
+                                <div style="width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,0.15);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;">
+                                    <i class="material-icons" style="color:#fff;font-size:20px;">add_task</i>
+                                </div>
+                                <div>
+                                    <h5 style="color:#fff;margin:0;font-size:16px;font-weight:700;letter-spacing:-0.3px;">Tambah Kegiatan Baru</h5>
+                                    <p style="color:rgba(255,255,255,0.7);margin:0;font-size:11px;">Buat jadwal kegiatan teknisi</p>
                                 </div>
                             </div>
                         </div>
-                        <div class="card-body">
+                        <!-- Form Body - 2 Column Landscape -->
+                        <div class="card-body" style="padding:24px 28px;">
                             <form method="POST" action="kegiatan-baru.php" id="kegiatanForm">
-                                <div class="form-group">
-                                    <label>Nama Customer</label>
-                                    <div class="dropdown">
-                                        <button type="button" class="dropdown-button btn btn-outline-info w-100 border text-info">Pilih Customer ▼</button>
-                                        <div id="dropdownItems">
-                                            <input type="text" id="dropdownSearch" placeholder="Cari customer...">
-                                            <?php 
-                                            $sql_cust = "SELECT id, nama, telp FROM customer WHERE deleted_at IS NULL ORDER BY nama ASC";
-                                            $result_cust = mysqli_query($conn, $sql_cust);
-                                            while ($row = mysqli_fetch_assoc($result_cust)) {
-                                                echo "<div class='dropdown-item' data-id='{$row['id']}'>{$row['nama']} - {$row['telp']}</div>";
-                                            }
-                                            ?>
+                                <div class="row">
+                                    <!-- LEFT COLUMN: Form Fields -->
+                                    <div class="col-12 col-md-6" style="border-right:1px solid #f0f0f0;padding-right:24px;">
+                                        <div style="margin-bottom:16px;">
+                                            <label style="font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;display:block;text-transform:uppercase;letter-spacing:0.5px;">
+                                                <i class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:4px;color:#2563eb;">person</i>Nama Customer
+                                            </label>
+                                            <div class="dropdown">
+                                                <button type="button" class="dropdown-button" style="width:100%;padding:10px 14px;border:1.5px solid #e5e7eb;border-radius:10px;background:#fff;text-align:left;font-size:13px;color:#6b7280;cursor:pointer;transition:all 0.2s;" onfocus="this.style.borderColor='#2563eb';this.style.boxShadow='0 0 0 3px rgba(37,99,235,0.1)'" onblur="this.style.borderColor='#e5e7eb';this.style.boxShadow='none'">Pilih Customer ▼</button>
+                                                <div id="dropdownItems">
+                                                    <input type="text" id="dropdownSearch" placeholder="Cari customer...">
+                                                    <?php 
+                                                    $sql_cust = "SELECT id, nama, telp FROM customer WHERE deleted_at IS NULL ORDER BY nama ASC";
+                                                    $result_cust = mysqli_query($conn, $sql_cust);
+                                                    while ($row = mysqli_fetch_assoc($result_cust)) {
+                                                        echo "<div class='dropdown-item' data-id='{$row['id']}'>{$row['nama']} - {$row['telp']}</div>";
+                                                    }
+                                                    ?>
+                                                </div>
+                                            </div>
+                                            <input type="hidden" id="nama_cust" name="nama_cust" required>
+                                        </div>
+                                        <div class="row" style="margin-bottom:16px;">
+                                            <div class="col-6">
+                                                <label style="font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;display:block;text-transform:uppercase;letter-spacing:0.5px;">
+                                                    <i class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:4px;color:#2563eb;">category</i>Jenis Kegiatan
+                                                </label>
+                                                <select class="form-control" id="kegiatan" name="kegiatan" style="padding:10px 14px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;transition:all 0.2s;" onfocus="this.style.borderColor='#2563eb';this.style.boxShadow='0 0 0 3px rgba(37,99,235,0.1)'" onblur="this.style.borderColor='#e5e7eb';this.style.boxShadow='none'">
+                                                    <option value="survey">Survey</option>
+                                                    <option value="pasang baru">Pasang Baru</option>
+                                                    <option value="service">Service</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-6">
+                                                <label style="font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;display:block;text-transform:uppercase;letter-spacing:0.5px;">
+                                                    <i class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:4px;color:#2563eb;">link</i>Terkait Kegiatan
+                                                </label>
+                                                <select class="form-control" id="kegiatan_relasi" name="kegiatan_relasi" disabled style="padding:10px 14px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;background:#f9fafb;transition:all 0.2s;">
+                                                    <option value="">Pilih Customer Dahulu</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div style="margin-bottom:16px;">
+                                            <label style="font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;display:block;text-transform:uppercase;letter-spacing:0.5px;">
+                                                <i class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:4px;color:#2563eb;">event</i>Jadwal
+                                            </label>
+                                            <div class="row g-2">
+                                                <div class="col-6">
+                                                    <input type="date" class="form-control" id="tanggal_survey_date" name="tanggal_survey_date" style="padding:10px 14px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;transition:all 0.2s;" onfocus="this.style.borderColor='#2563eb';this.style.boxShadow='0 0 0 3px rgba(37,99,235,0.1)'" onblur="this.style.borderColor='#e5e7eb';this.style.boxShadow='none'">
+                                                </div>
+                                                <div class="col-3">
+                                                    <select class="form-control" id="tanggal_survey_time_hour" style="padding:10px 14px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;text-align:center;transition:all 0.2s;" onfocus="this.style.borderColor='#2563eb';this.style.boxShadow='0 0 0 3px rgba(37,99,235,0.1)'" onblur="this.style.borderColor='#e5e7eb';this.style.boxShadow='none'"></select>
+                                                </div>
+                                                <div class="col-3">
+                                                    <select class="form-control" id="tanggal_survey_time_minute" style="padding:10px 14px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;text-align:center;transition:all 0.2s;" onfocus="this.style.borderColor='#2563eb';this.style.boxShadow='0 0 0 3px rgba(37,99,235,0.1)'" onblur="this.style.borderColor='#e5e7eb';this.style.boxShadow='none'">
+                                                        <option value="00">00</option>
+                                                        <option value="15">15</option>
+                                                        <option value="30">30</option>
+                                                        <option value="45">45</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <input type="hidden" id="tanggal_survey_datetime_combined" name="tanggal">
+                                        <div style="margin-bottom:0;">
+                                            <label style="font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;display:block;text-transform:uppercase;letter-spacing:0.5px;">
+                                                <i class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:4px;color:#2563eb;">notes</i>Keterangan
+                                            </label>
+                                            <textarea class="form-control" id="keterangan" rows="4" name="keterangan" placeholder="Keterangan tambahan..." style="padding:10px 14px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;resize:vertical;transition:all 0.2s;" onfocus="this.style.borderColor='#2563eb';this.style.boxShadow='0 0 0 3px rgba(37,99,235,0.1)'" onblur="this.style.borderColor='#e5e7eb';this.style.boxShadow='none'"></textarea>
                                         </div>
                                     </div>
-                                    <input type="hidden" id="nama_cust" name="nama_cust" required>
-                                </div>
-                                <div class="form-group mt-2">
-                                    <label for="kegiatan">Jenis Kegiatan</label>
-                                    <select class="form-control border p-2" id="kegiatan" name="kegiatan">
-                                        <option value="survey">Survey</option>
-                                        <option value="pasang baru">Pasang Baru</option>
-                                        <option value="service">Service</option>
-                                    </select>
-                                </div>
-                                <div class="form-group mt-2">
-                                    <label for="kegiatan_relasi">Terkait dengan Kegiatan (Opsional)</label>
-                                    <select class="form-control border p-2" id="kegiatan_relasi" name="kegiatan_relasi" disabled>
-                                        <option value="">Pilih Customer Dahulu</option>
-                                    </select>
-                                </div>
-                                <div class="row mt-2">
-                                    <div class="col-6">
-                                        <label>Tanggal</label>
-                                        <input type="date" class="form-control border p-2" id="tanggal_survey_date" name="tanggal_survey_date">
-                                    </div>
-                                    <div class="col-3">
-                                        <label>Jam</label>
-                                        <select class="form-control border p-2" id="tanggal_survey_time_hour"></select>
-                                    </div>
-                                    <div class="col-3">
-                                        <label>Menit</label>
-                                        <select class="form-control border p-2" id="tanggal_survey_time_minute">
-                                            <option value="00">00</option>
-                                            <option value="15">15</option>
-                                            <option value="30">30</option>
-                                            <option value="45">45</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <input type="hidden" id="tanggal_survey_datetime_combined" name="tanggal">
-                                <div class="form-group my-4">
-                                    <label>Keterangan</label>
-                                    <textarea class="form-control border p-2" id="keterangan" rows="3" name="keterangan" placeholder="Keterangan tambahan"></textarea>
-                                </div>
-                                <div class="form-group my-4">
-                                    <label>Lokasi Absen & Radius (Opsional)</label>
-                                    <div class="input-group mb-2">
-                                        <input type="text" id="gmap_search" class="form-control border p-2" placeholder="Ketik alamat untuk dicari...">
-                                        <button class="btn btn-outline-primary mb-0" type="button" id="gmap_search_btn">Cari</button>
-                                    </div>
-                                    <div id="map"></div>
-                                    <div class="row mt-2">
-                                        <div class="col-6"><input type="text" id="lat_display" class="form-control border p-2" placeholder="Latitude"></div>
-                                        <div class="col-6"><input type="text" id="lon_display" class="form-control border p-2" placeholder="Longitude"></div>
-                                    </div>
-                                    <div class="mt-2 d-flex align-items-center">
-                                        <label class="me-2 mb-0">Radius</label>
-                                        <input type="number" class="form-control border p-2" id="radius_input" value="100" style="width: 80px;">
-                                        <span class="ms-2">meter</span>
+                                    <!-- RIGHT COLUMN: Map & Location -->
+                                    <div class="col-12 col-md-6" style="padding-left:24px;">
+                                        <label style="font-size:12px;font-weight:600;color:#374151;margin-bottom:6px;display:block;text-transform:uppercase;letter-spacing:0.5px;">
+                                            <i class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:4px;color:#2563eb;">location_on</i>Lokasi Absen & Radius
+                                            <span style="font-weight:400;color:#9ca3af;text-transform:none;letter-spacing:0;">(Opsional)</span>
+                                        </label>
+                                        <div style="display:flex;gap:8px;margin-bottom:10px;">
+                                            <input type="text" id="gmap_search" class="form-control" placeholder="Koordinat atau alamat..." style="flex:1;padding:10px 14px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:13px;transition:all 0.2s;" onfocus="this.style.borderColor='#2563eb';this.style.boxShadow='0 0 0 3px rgba(37,99,235,0.1)'" onblur="this.style.borderColor='#e5e7eb';this.style.boxShadow='none'">
+                                            <button type="button" id="gmap_search_btn" style="padding:10px 18px;border:none;border-radius:10px;background:linear-gradient(135deg,#2563eb,#3b82f6);color:#fff;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all 0.2s;letter-spacing:0.5px;" onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 4px 12px rgba(37,99,235,0.35)'" onmouseout="this.style.transform='none';this.style.boxShadow='none'">
+                                                <i class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:2px;">search</i>CARI
+                                            </button>
+                                        </div>
+                                        <div id="map" style="border-radius:12px;overflow:hidden;border:1.5px solid #e5e7eb;"></div>
+                                        <div class="row g-2 mt-2">
+                                            <div class="col-5">
+                                                <input type="text" id="lat_display" class="form-control" placeholder="Latitude" style="padding:8px 12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:12px;background:#f9fafb;">
+                                            </div>
+                                            <div class="col-5">
+                                                <input type="text" id="lon_display" class="form-control" placeholder="Longitude" style="padding:8px 12px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:12px;background:#f9fafb;">
+                                            </div>
+                                            <div class="col-2">
+                                                <div style="display:flex;align-items:center;gap:4px;">
+                                                    <input type="number" class="form-control" id="radius_input" value="100" style="padding:8px 6px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:12px;text-align:center;background:#f9fafb;">
+                                                    <span style="font-size:10px;color:#9ca3af;white-space:nowrap;">m</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div id="saveLocationContainer" class="mt-3" style="display:none;padding:12px 16px;background:linear-gradient(135deg,#f0fdf4,#ecfdf5);border:1px solid #bbf7d0;border-radius:10px;">
+                                            <div class="form-check" style="margin-bottom:8px;">
+                                                <input class="form-check-input" type="checkbox" id="save_location_checkbox" name="save_location" checked>
+                                                <label class="form-check-label" for="save_location_checkbox" style="font-size:12px;font-weight:500;color:#166534;">Simpan lokasi baru ini</label>
+                                            </div>
+                                            <div id="location_alias_input_container">
+                                                <input type="text" id="location_alias" name="location_alias" class="form-control" placeholder="Alias Lokasi (Contoh: Rumah)" style="padding:8px 12px;border:1.5px solid #bbf7d0;border-radius:8px;font-size:12px;">
+                                            </div>
+                                        </div>
+                                        <div id="locationRecommendations" class="mt-2" style="display:none;">
+                                            <label style="font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;">Lokasi Tersimpan</label>
+                                            <div id="recommendationsList" class="list-group" style="max-height:120px;overflow-y:auto;border-radius:10px;"></div>
+                                        </div>
                                     </div>
                                 </div>
-                                <div id="saveLocationContainer" class="mt-3 p-3 border rounded" style="display: none;">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="save_location_checkbox" name="save_location" checked>
-                                        <label class="form-check-label" for="save_location_checkbox">Simpan lokasi baru ini</label>
-                                    </div>
-                                    <div id="location_alias_input_container" class="mt-2">
-                                        <input type="text" id="location_alias" name="location_alias" class="form-control border p-2" placeholder="Alias Lokasi (Contoh: Rumah)">
-                                    </div>
-                                </div>
-                                <div id="locationRecommendations" class="mt-2 mb-4" style="display: none;">
-                                    <label>Lokasi Tersimpan:</label>
-                                    <div id="recommendationsList" class="list-group"></div>
-                                </div>
+                                <!-- Hidden fields & Submit -->
                                 <input type="hidden" id="lat" name="lat">
                                 <input type="hidden" id="lon" name="lon">
                                 <input type="hidden" id="radius" name="radius">
                                 <input type="hidden" id="location_address" name="location_address">
-                                <button type="submit" name="submit_kegiatan" class="btn bg-gradient-info w-100 mt-4">Submit Kegiatan</button>
+                                <div style="margin-top:20px;padding-top:16px;border-top:1px solid #f0f0f0;">
+                                    <button type="submit" name="submit_kegiatan" style="width:100%;padding:12px;border:none;border-radius:12px;background:linear-gradient(135deg,#1e3a5f,#2563eb);color:#fff;font-size:14px;font-weight:700;letter-spacing:0.5px;cursor:pointer;transition:all 0.3s;box-shadow:0 4px 16px rgba(37,99,235,0.25);" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 24px rgba(37,99,235,0.35)'" onmouseout="this.style.transform='none';this.style.boxShadow='0 4px 16px rgba(37,99,235,0.25)'">
+                                        <i class="material-icons" style="font-size:18px;vertical-align:middle;margin-right:6px;">send</i>SUBMIT KEGIATAN
+                                    </button>
+                                </div>
                             </form>
                         </div>
                     </div>
                 </div>
-                <div class="col-12 col-md-7 mt-4 mb-4" id="outputData"></div>
+                <div class="col-12 col-lg-5 mt-4 mb-4" id="outputData"></div>
             </div>
         </div>
     </main>
