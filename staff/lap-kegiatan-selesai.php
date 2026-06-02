@@ -220,6 +220,11 @@ $active_tab = $_GET['tab'] ?? 'belum_lunas'; // Default ke 'belum_lunas'
                                                             <a class="btn bg-gradient-danger btn-sm text-white mb-0" href="reset_invoice.php?kode=<?= $kodeTransaksi; ?>">
                                                                 ⭮
                                                             </a>
+                                                            <button class="btn bg-gradient-danger btn-sm text-white mb-0 btn-hapus-laporan" 
+                                                                data-kode="<?= $kodeTransaksi; ?>" 
+                                                                data-customer="<?= htmlspecialchars($row_main['nama_cust']); ?>">
+                                                                <i class="material-icons" style="font-size:14px;vertical-align:middle;">delete</i>
+                                                            </button>
                                                         <?php 
                                                         // else: 
                                                         ?>
@@ -233,6 +238,7 @@ $active_tab = $_GET['tab'] ?? 'belum_lunas'; // Default ke 'belum_lunas'
                                                         // endif; 
                                                         ?>
                                                     </td>
+
                                                 </tr>
                                         <?php }
                                         } else {
@@ -306,6 +312,33 @@ $active_tab = $_GET['tab'] ?? 'belum_lunas'; // Default ke 'belum_lunas'
                 },
                 error: function() {
                     alert('Terjadi kesalahan koneksi. Silakan coba lagi.');
+                }
+            });
+        });
+    });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+    document.querySelectorAll('.btn-hapus-laporan').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const kode = this.dataset.kode;
+            const customer = this.dataset.customer;
+            Swal.fire({
+                title: 'Hapus Kegiatan?',
+                html: `<p style="margin:0;color:#666;">Kode: <strong>${kode}</strong></p>
+                       <p style="margin:0;color:#666;">Customer: <strong>${customer}</strong></p>
+                       <p style="margin-top:10px;color:#e74c3c;font-size:13px;">Data yang dihapus tidak dapat dikembalikan!</p>`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e74c3c',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '<i class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:4px;">delete</i> Ya, Hapus',
+                cancelButtonText: 'Batal',
+                reverseButtons: true,
+                focusCancel: true,
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = 'delete-kegiatan.php?kode=' + kode;
                 }
             });
         });
