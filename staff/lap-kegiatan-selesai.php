@@ -38,19 +38,118 @@ $active_tab = $_GET['tab'] ?? 'belum_lunas'; // Default ke 'belum_lunas'
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <?php include "head.php"; ?>
     <style>
+        /* === Base & Typography === */
         .table th, .table td { vertical-align: middle !important; }
-        .table .customer-info h6 { font-size: 1rem; color: #344767; }
-        .technician-list .technician-item { border-bottom: 1px solid #f0f2f5; }
-        .technician-list .technician-item:last-child { border-bottom: none; }
-        .invoice-summary { background: rgba(255,255,255,0.85); border-radius: .5rem; height: 100%; }
-        .lunas-background { background-image: url('assets/img/lunas.png'); background-size: 35%; background-position: center; background-repeat: no-repeat; }
-        .modal-xl { max-width: 80%; }
-        .nav-tabs .nav-link.active {
-            background-color: #596CFF !important;
-            color: #fff !important;
-            border-bottom: 2px solid #596CFF;
+        .table .customer-info h6 { font-size: .925rem; color: #1a2332; letter-spacing: -0.01em; }
+        .table .customer-info a { text-decoration: none; }
+        .table .customer-info a:hover h6 { color: #3b5998; }
+
+        /* === Table Refinement === */
+        .table thead th { 
+            font-size: 10.5px; letter-spacing: 0.08em; color: #64748b; 
+            border-bottom: 2px solid #e2e8f0; padding: 12px 8px;
         }
+        .table tbody tr { transition: background-color 0.15s ease; border-bottom: 1px solid #f1f5f9 !important; }
+        .table tbody tr:hover { background-color: #f8fafc !important; }
+        .table tbody tr:last-child { border-bottom: none !important; }
+
+        /* === Technician List === */
+        .technician-list .technician-item { border-bottom: 1px solid #f1f5f9; padding: 8px 0; }
+        .technician-list .technician-item:last-child { border-bottom: none; }
+
+        /* === Invoice Card === */
+        .invoice-summary { 
+            background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; 
+            padding: 12px !important; height: 100%; 
+        }
+        .lunas-background { 
+            background-image: url('assets/img/lunas.png'); 
+            background-size: 30%; background-position: center; background-repeat: no-repeat; 
+        }
+
+        /* === Nav Tabs (Belum Lunas / Lunas) === */
+        .nav-tabs { border-bottom: 2px solid #e2e8f0; gap: 4px; }
+        .nav-tabs .nav-link { 
+            font-size: 13px; font-weight: 600; color: #64748b; 
+            padding: 10px 20px; border: none; border-radius: 6px 6px 0 0;
+            transition: all 0.2s ease; 
+        }
+        .nav-tabs .nav-link:hover { color: #334155; background: #f1f5f9; }
+        .nav-tabs .nav-link.active { 
+            background-color: #1e293b !important; color: #fff !important; 
+            border-bottom: none;
+        }
+
+        /* === Action Buttons === */
+        .btn-action { 
+            width: 32px; height: 32px; padding: 0; display: inline-flex; 
+            align-items: center; justify-content: center; border-radius: 6px; 
+            border: none; transition: all 0.2s ease; font-size: 14px;
+        }
+        .btn-action-pay { 
+            background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0;
+            font-size: 12px; width: auto; padding: 0 12px; font-weight: 600;
+        }
+        .btn-action-pay:hover { background: #16a34a; color: #fff; border-color: #16a34a; }
+        .btn-action-reset { background: #fef3c7; color: #d97706; border: 1px solid #fde68a; }
+        .btn-action-reset:hover { background: #d97706; color: #fff; border-color: #d97706; }
+        .btn-action-delete { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+        .btn-action-delete:hover { background: #dc2626; color: #fff; border-color: #dc2626; }
+
+        /* === Checkbox Styling === */
+        .form-check-input-custom {
+            width: 16px; height: 16px; cursor: pointer;
+            accent-color: #1e293b; border-radius: 3px;
+        }
+
+        /* === Status Badge === */
+        .badge-lunas { 
+            display: inline-block; font-size: 10px; font-weight: 700; 
+            padding: 3px 8px; border-radius: 4px; letter-spacing: 0.03em;
+        }
+        .badge-lunas-paid { background: #dcfce7; color: #15803d; }
+        .badge-lunas-unpaid { background: #fef2f2; color: #dc2626; }
+
+        /* === Search Input === */
+        .search-input { 
+            border: 1px solid #e2e8f0 !important; border-radius: 8px !important;
+            font-size: 13px; padding: 10px 16px !important; 
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            background: #fff;
+        }
+        .search-input:focus { 
+            border-color: #94a3b8 !important; 
+            box-shadow: 0 0 0 3px rgba(148,163,184,0.1) !important;
+        }
+        .search-btn { 
+            border-radius: 0 8px 8px 0 !important; 
+            background: #1e293b !important; border: 1px solid #1e293b !important;
+        }
+        .search-btn:hover { background: #334155 !important; }
+
+        /* === Card === */
+        .card { border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .card-header { background: #fff; border-bottom: 1px solid #f1f5f9; }
+        .page-title { font-size: 15px; color: #1e293b; letter-spacing: 0.02em; }
+
+        /* === Modal === */
+        .modal-xl { max-width: 80%; }
         @media (max-width: 767px) { .modal-xl { max-width: 95%; } }
+
+        /* === Selected Row === */
+        tr:has(.form-check-input-custom:checked) { background-color: #f0f9ff !important; }
+
+        /* === Bulk Delete Bar === */
+        .bulk-bar {
+            position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 9999;
+            background: #1e293b; color: #fff; padding: 10px 24px; border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15); cursor: pointer;
+            transition: all 0.2s ease; display: none; font-size: 13px; font-weight: 600;
+            animation: barSlideUp 0.25s ease;
+        }
+        .bulk-bar:hover { background: #dc2626; box-shadow: 0 6px 25px rgba(220,38,38,0.25); }
+        @keyframes barSlideUp { from { opacity:0; transform:translateX(-50%) translateY(16px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }
+
         <?php include "css/floating-menu2.css"; ?>
     </style>
 </head>
@@ -81,12 +180,12 @@ $active_tab = $_GET['tab'] ?? 'belum_lunas'; // Default ke 'belum_lunas'
                     <div class="card">
                         <div class="card-header p-3">
                             <div class="d-flex flex-column flex-md-row justify-content-between align-items-center">
-                                <h5 class="mb-3 mb-md-0 text-uppercase font-weight-bold">Laporan Kegiatan Selesai</h5>
+                                <h5 class="mb-3 mb-md-0 page-title text-uppercase font-weight-bold">Laporan Kegiatan Selesai</h5>
                                 <form method="GET" action="" class="w-100 w-md-50">
                                     <div class="input-group">
                                         <input type="hidden" name="tab" value="<?= htmlspecialchars($active_tab); ?>">
-                                        <input type="text" name="cari" class="form-control p-4" style="border-bottom:1px solid #adb5bd" placeholder="Cari nama customer atau no. invoice..." value="<?= htmlspecialchars($_GET['cari'] ?? '') ?>">
-                                        <button class="btn btn-primary mb-0" type="submit"><i class="material-icons text-sm">search</i></button>
+                                        <input type="text" name="cari" class="form-control search-input" placeholder="Cari nama customer atau no. invoice..." value="<?= htmlspecialchars($_GET['cari'] ?? '') ?>">
+                                        <button class="btn search-btn mb-0" type="submit"><i class="material-icons text-sm text-white">search</i></button>
                                     </div>
                                 </form>
                             </div>
@@ -105,11 +204,11 @@ $active_tab = $_GET['tab'] ?? 'belum_lunas'; // Default ke 'belum_lunas'
                                 <table class="table table-hover align-middle mb-0">
                                     <thead class="table-light">
                                         <tr>
-                                            <th class="text-center ps-3" style="width:40px;"><input type="checkbox" id="selectAll" style="width:16px;height:16px;cursor:pointer;"></th>
-                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2 w-30">Customer</th>
-                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 w-20">Invoice</th>
-                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 w-25">Teknisi & Absensi</th>
-                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 pe-4">Aksi</th>
+                                            <th class="text-center ps-3" style="width:40px;"><input type="checkbox" id="selectAll" class="form-check-input-custom"></th>
+                                            <th class="ps-2">CUSTOMER</th>
+                                            <th>INVOICE</th>
+                                            <th>TEKNISI & ABSENSI</th>
+                                            <th class="text-center pe-3">AKSI</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -148,8 +247,8 @@ $active_tab = $_GET['tab'] ?? 'belum_lunas'; // Default ke 'belum_lunas'
                                                 $idC = $row_main['id_cust'];
                                                 $lunas_class = (!empty($row_main['lunas']) && $row_main['lunas'] != '0000-00-00') ? 'lunas-background' : '';
                                         ?>
-                                                <tr style="border-bottom:1px solid #adb5bd">
-                                                    <td class="text-center ps-3" style="width:40px;"><input type="checkbox" class="row-checkbox" value="<?= $kodeTransaksi; ?>" data-customer="<?= htmlspecialchars($row_main['nama_cust']); ?>" style="width:16px;height:16px;cursor:pointer;"></td>
+                                                <tr>
+                                                    <td class="text-center ps-3" style="width:40px;"><input type="checkbox" class="form-check-input-custom row-checkbox" value="<?= $kodeTransaksi; ?>" data-customer="<?= htmlspecialchars($row_main['nama_cust']); ?>"></td>
                                                     <td class="ps-2 customer-info text-wrap">
                                                         <a href="view-kegiatan.php?kode_transaksi=<?= $kodeTransaksi; ?>" target="_blank">
                                                             <h6 class="font-weight-bold mb-1"><?= htmlspecialchars($row_main['nama_cust']); ?></h6>
@@ -178,8 +277,10 @@ $active_tab = $_GET['tab'] ?? 'belum_lunas'; // Default ke 'belum_lunas'
                                                                     <div class="text-end">
                                                                         <span class="text-xs text-uppercase font-weight-bold">Nominal:</span>
                                                                         <p class="text-sm font-weight-bolder text-success mb-0">Rp <?= number_format($invoice_data['nominal_invoice'], 0, ',', '.'); ?></p>
-                                                                        <p class="text-xxs mb-0 <?= $lunas_class ? 'text-primary' : 'text-danger font-weight-bold'; ?>">
-                                                                            <?= $lunas_class ? date("d M Y", strtotime($row_main['lunas'])) : 'Belum Lunas'; ?>
+                                                                        <p class="mb-0">
+                                                                            <span class="badge-lunas <?= $lunas_class ? 'badge-lunas-paid' : 'badge-lunas-unpaid'; ?>">
+                                                                                <?= $lunas_class ? date("d M Y", strtotime($row_main['lunas'])) : 'Belum Lunas'; ?>
+                                                                            </span>
                                                                         </p>
                                                                     </div>
                                                                 </div>
@@ -216,30 +317,28 @@ $active_tab = $_GET['tab'] ?? 'belum_lunas'; // Default ke 'belum_lunas'
                                                         ?>
                                                     </td>
 
-                                                    <td class="text-center pe-4">
+                                                    <td class="text-center pe-3">
                                                         <?php 
                                                         // if ($active_tab == 'belum_lunas') :
                                                         ?>
-                                                            <button class="btn btn-outline-success btn-sm mb-0 lunasBtn" data-bs-toggle="modal" data-bs-target="#lunasModal" data-kode="<?= $kodeTransaksi; ?>">
-                                                                💸 Bayar
-                                                            </button>
-                                                            <a class="btn bg-gradient-danger btn-sm text-white mb-0" href="reset_invoice.php?kode=<?= $kodeTransaksi; ?>">
-                                                                ⭮
-                                                            </a>
-                                                            <button class="btn bg-gradient-danger btn-sm text-white mb-0 btn-hapus-laporan" 
-                                                                data-kode="<?= $kodeTransaksi; ?>" 
-                                                                data-customer="<?= htmlspecialchars($row_main['nama_cust']); ?>">
-                                                                <i class="material-icons" style="font-size:14px;vertical-align:middle;">delete</i>
-                                                            </button>
+                                                            <div class="d-flex align-items-center justify-content-center gap-1">
+                                                                <button class="btn-action btn-action-pay lunasBtn" data-bs-toggle="modal" data-bs-target="#lunasModal" data-kode="<?= $kodeTransaksi; ?>" title="Bayar">
+                                                                    💸 Bayar
+                                                                </button>
+                                                                <a class="btn-action btn-action-reset" href="reset_invoice.php?kode=<?= $kodeTransaksi; ?>" title="Reset Invoice">
+                                                                    <i class="material-icons" style="font-size:15px;">refresh</i>
+                                                                </a>
+                                                                <button class="btn-action btn-action-delete btn-hapus-laporan" 
+                                                                    data-kode="<?= $kodeTransaksi; ?>" 
+                                                                    data-customer="<?= htmlspecialchars($row_main['nama_cust']); ?>" title="Hapus">
+                                                                    <i class="material-icons" style="font-size:15px;">delete_outline</i>
+                                                                </button>
+                                                            </div>
                                                         <?php 
                                                         // else: 
                                                         ?>
-                                                            <!--<button class="btn btn-outline-success btn-sm mb-0 lunasBtn" data-bs-toggle="modal" data-bs-target="#lunasModal" data-kode="<?= $kodeTransaksi; ?>">-->
-                                                            <!--    💸 Bayar-->
-                                                            <!--</button>-->
-                                                            <!-- <a class="btn bg-gradient-danger btn-sm text-white mb-0" href="reset_invoice.php?kode=<?= $kodeTransaksi; ?>">-->
-                                                            <!--    ⭮ -->
-                                                            <!--</a>-->
+                                                            <!--<button class="btn-action btn-action-pay lunasBtn" data-bs-toggle="modal" data-bs-target="#lunasModal" data-kode="<?= $kodeTransaksi; ?>">💸 Bayar</button>-->
+                                                            <!--<a class="btn-action btn-action-reset" href="reset_invoice.php?kode=<?= $kodeTransaksi; ?>"><i class="material-icons" style="font-size:15px;">refresh</i></a>-->
                                                         <?php 
                                                         // endif; 
                                                         ?>
@@ -351,23 +450,16 @@ $active_tab = $_GET['tab'] ?? 'belum_lunas'; // Default ke 'belum_lunas'
     });
     </script>
 
-    <!-- Floating Bulk Delete Button -->
-    <div id="bulkDeleteBar" style="display:none; position:fixed; bottom:20px; left:50%; transform:translateX(-50%); z-index:9999; background:linear-gradient(135deg,#e74c3c,#c0392b); color:#fff; padding:12px 24px; border-radius:50px; box-shadow:0 8px 25px rgba(231,76,60,0.4); cursor:pointer; transition:all 0.3s ease; animation:slideUp 0.3s ease;" onclick="confirmBulkDelete()">
-        <i class="material-icons" style="font-size:18px;vertical-align:middle;margin-right:6px;">delete_sweep</i>
-        <span style="font-weight:700;font-size:14px;">Hapus Terpilih (<span id="selectedCount">0</span>)</span>
+    <!-- Floating Bulk Delete Bar -->
+    <div id="bulkDeleteBar" class="bulk-bar" onclick="confirmBulkDelete()">
+        <i class="material-icons" style="font-size:16px;vertical-align:middle;margin-right:6px;">delete_sweep</i>
+        Hapus Terpilih (<span id="selectedCount">0</span>)
     </div>
 
     <!-- Hidden form for bulk delete -->
     <form id="bulkDeleteForm" method="POST" action="bulk-delete-kegiatan.php" style="display:none;">
         <input type="hidden" name="redirect" value="lap-kegiatan-selesai.php?tab=<?= htmlspecialchars($active_tab); ?>">
     </form>
-
-    <style>
-    @keyframes slideUp { from { opacity:0; transform:translateX(-50%) translateY(30px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }
-    #bulkDeleteBar:hover { transform:translateX(-50%) scale(1.05); box-shadow:0 12px 35px rgba(231,76,60,0.5); }
-    .row-checkbox:checked { accent-color: #e74c3c; }
-    tr:has(.row-checkbox:checked) { background-color: rgba(231,76,60,0.05) !important; }
-    </style>
 
     <script>
     // Select All checkbox
