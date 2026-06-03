@@ -291,12 +291,10 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget _buildHeaderWithStats(int taskCount) {
     return Consumer<PencapaianProvider>(
       builder: (context, provider, child) {
-        final bool isLoading = provider.pencapaianState == PencapaianState.loading ||
-            provider.pendapatanState == PencapaianState.loading;
-        final bool isLoaded = provider.pencapaianState == PencapaianState.loaded ||
-            provider.pendapatanState == PencapaianState.loaded;
+        final bool isLoading = provider.pendapatanState == PencapaianState.loading;
+        final bool isLoaded = provider.pendapatanState == PencapaianState.loaded;
 
-        final totalKegiatan = provider.pencapaianData?.totalSelesai ?? 0;
+        final totalKegiatan = provider.pendapatanData?.jumlahKegiatan ?? 0;
         final totalPendapatan = provider.pendapatanData?.totalKeseluruhan ?? 0;
         final bonus = provider.pendapatanData?.bonus ?? 0;
         final target = provider.pendapatanData?.target ?? 0;
