@@ -795,81 +795,78 @@ class _DashboardPageState extends State<DashboardPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Section header — clean, professional
+              // Section header — Gojek style
               Row(
                 children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Ringkasan Bulan Ini',
-                          style: TextStyle(
-                            fontFamily: 'Poppins',
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: _textPrimary.withValues(alpha: 0.85),
-                            letterSpacing: -0.2,
-                          ),
-                        ),
-                      ],
+                  const Text(
+                    'Ringkasan Bulan Ini',
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: _textPrimary,
                     ),
                   ),
+                  const Spacer(),
                   GestureDetector(
                     onTap: () => _navigateToMenu(3),
-                    child: Text(
-                      'Lihat Detail',
+                    child: const Text(
+                      'Lihat Semua',
                       style: TextStyle(
                         fontFamily: 'Poppins',
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        color: _textSecondary.withValues(alpha: 0.6),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF0EA5E9),
                       ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 14),
-              // Stat cards — 2x2 dark navy
+              const SizedBox(height: 16),
+              // Stat cards — Gojek style: white + colored icon
               Row(
                 children: [
                   Expanded(
-                    child: _buildPremiumStatCard(
+                    child: _buildStatCard(
                       icon: Iconsax.task_square,
                       label: 'Kegiatan',
                       value: totalKegiatan.toString(),
-                      accentColor: const Color(0xFF0EA5E9),
+                      iconBgColor: const Color(0xFFE0F2FE),
+                      iconColor: const Color(0xFF0284C7),
                     ),
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 12),
                   Expanded(
-                    child: _buildPremiumStatCard(
+                    child: _buildStatCard(
                       icon: Iconsax.wallet_3,
                       label: 'Pendapatan',
                       value: _formatRupiah(totalPendapatan),
-                      accentColor: const Color(0xFF14B8A6),
+                      iconBgColor: const Color(0xFFD1FAE5),
+                      iconColor: const Color(0xFF059669),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
               Row(
                 children: [
                   Expanded(
-                    child: _buildPremiumStatCard(
+                    child: _buildStatCard(
                       icon: Iconsax.medal_star,
                       label: 'Bonus',
                       value: bonus > 0 ? _formatRupiah(bonus) : '-',
-                      accentColor: const Color(0xFFF97316),
+                      iconBgColor: const Color(0xFFFFF7ED),
+                      iconColor: const Color(0xFFEA580C),
                     ),
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 12),
                   Expanded(
-                    child: _buildPremiumStatCard(
+                    child: _buildStatCard(
                       icon: Iconsax.diagram,
                       label: 'Target',
                       value: '$progress%',
-                      accentColor: const Color(0xFF6366F1),
+                      iconBgColor: const Color(0xFFEEF2FF),
+                      iconColor: const Color(0xFF4F46E5),
                     ),
                   ),
                 ],
@@ -881,26 +878,23 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  Widget _buildPremiumStatCard({
+  Widget _buildStatCard({
     required IconData icon,
     required String label,
     required String value,
-    required Color accentColor,
+    required Color iconBgColor,
+    required Color iconColor,
   }) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
-        ),
-        borderRadius: BorderRadius.circular(16),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.12),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -909,16 +903,23 @@ class _DashboardPageState extends State<DashboardPage> {
         children: [
           Row(
             children: [
-              Icon(icon, size: 16, color: accentColor.withValues(alpha: 0.8)),
+              // Colored icon circle
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: iconBgColor,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, size: 16, color: iconColor),
+              ),
               const Spacer(),
               Text(
                 label,
-                style: TextStyle(
+                style: const TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 11,
                   fontWeight: FontWeight.w500,
-                  color: Colors.white.withValues(alpha: 0.5),
-                  letterSpacing: 0.3,
+                  color: _textSecondary,
                 ),
               ),
             ],
@@ -928,24 +929,13 @@ class _DashboardPageState extends State<DashboardPage> {
             value,
             style: const TextStyle(
               fontFamily: 'Poppins',
-              fontSize: 20,
+              fontSize: 18,
               fontWeight: FontWeight.w700,
-              color: Colors.white,
-              letterSpacing: -0.5,
-              height: 1.1,
+              color: _textPrimary,
+              letterSpacing: -0.3,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 8),
-          // Subtle accent line
-          Container(
-            height: 2,
-            width: 28,
-            decoration: BoxDecoration(
-              color: accentColor.withValues(alpha: 0.6),
-              borderRadius: BorderRadius.circular(1),
-            ),
           ),
         ],
       ),
