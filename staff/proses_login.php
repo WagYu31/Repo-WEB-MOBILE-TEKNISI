@@ -29,24 +29,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                         // Redirect berdasarkan peran (role)
                         if ($jabatan === "Super Admin") {
-                            if (isMobileDevice()) {
-                                // Jika mobile, alihkan ke halaman mobile
-                                header("location: mobile/index.php");
-                            } else {
-                                // Jika bukan mobile (desktop), tetap ke halaman lama
-                                header("location: index-sa.php");
-                            }
+                            // index-sa.php sudah responsive (desktop + mobile)
+                            header("location: index-sa.php");
                         } elseif ($jabatan === "Teknisi") {
                             header("location: teknisi/index.php");
                         } elseif ($jabatan === "Admin") {
-                            // ✅ PERUBAHAN DI SINI: Cek perangkat jika jabatan adalah Admin
-                            if (isMobileDevice()) {
-                                // Jika mobile, alihkan ke halaman mobile
-                                header("location: mobile/index.php");
-                            } else {
-                                // Jika bukan mobile (desktop), tetap ke halaman lama
-                                header("location: index-sa.php");
-                            }
+                            // index-sa.php sudah responsive (desktop + mobile)
+                            header("location: index-sa.php");
                         } elseif ($jabatan === "Sales") {
                             header("location: sales/sales/index.php");
                         } elseif ($jabatan === "Sales Manager") {

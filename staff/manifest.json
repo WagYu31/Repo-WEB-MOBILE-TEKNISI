@@ -2,7 +2,7 @@
   "name": "Loewix Dashboard",
   "short_name": "Loewix",
   "description": "Loewix - Sistem Manajemen Teknisi & Penjadwalan",
-  "start_url": "/staff/index.php",
+  "start_url": "/staff/index-sa.php",
   "scope": "/staff/",
   "display": "standalone",
   "orientation": "any",
