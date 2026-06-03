@@ -382,7 +382,7 @@ if (isset($_GET['export'])) {
             <div class="d-flex align-items-center gap-2">
               <div style="position:relative;" onclick="event.stopPropagation();">
                 <i class="material-icons" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:16px;color:#94a3b8;pointer-events:none;">search</i>
-                <input type="text" placeholder="Cari nama, kode, teknisi..." style="background:#fff;border:2px solid #e2e8f0;border-radius:8px;padding:7px 12px 7px 32px;font-size:12px;color:#1e293b;outline:none;width:240px;transition:border-color 0.2s;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#e2e8f0'" oninput="event.stopPropagation();filterRows(this.value,'data-tek-today')">
+                <input type="text" placeholder="Cari nama, kode, teknisi..." style="background:#fff;border:2px solid #e2e8f0;border-radius:8px;padding:7px 12px 7px 32px;font-size:12px;color:#1e293b;outline:none;width:240px;transition:border-color 0.2s;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#e2e8f0'" oninput="event.stopPropagation();filterRows(this.value,'data-tek-today','today')">
               </div>
               <a href="?export=hari_ini" class="btn-export" onclick="event.stopPropagation();"><i class="material-icons" style="font-size:14px;">download</i> Export TXT</a>
             </div>
@@ -544,7 +544,7 @@ if (isset($_GET['export'])) {
             <div class="d-flex align-items-center gap-2">
               <div style="position:relative;" onclick="event.stopPropagation();">
                 <i class="material-icons" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:16px;color:#94a3b8;pointer-events:none;">search</i>
-                <input type="text" placeholder="Cari nama, kode, teknisi..." style="background:#fff;border:2px solid #e2e8f0;border-radius:8px;padding:7px 12px 7px 32px;font-size:12px;color:#1e293b;outline:none;width:240px;transition:border-color 0.2s;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#e2e8f0'" oninput="event.stopPropagation();filterRows(this.value,'data-tek-upcoming')">
+                <input type="text" placeholder="Cari nama, kode, teknisi..." style="background:#fff;border:2px solid #e2e8f0;border-radius:8px;padding:7px 12px 7px 32px;font-size:12px;color:#1e293b;outline:none;width:240px;transition:border-color 0.2s;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#e2e8f0'" oninput="event.stopPropagation();filterRows(this.value,'data-tek-upcoming','upcoming')">
               </div>
               <a href="?export=akan_datang" class="btn-export" onclick="event.stopPropagation();"><i class="material-icons" style="font-size:14px;">download</i> Export TXT</a>
             </div>
@@ -552,6 +552,21 @@ if (isset($_GET['export'])) {
         </div>
         <div class="col-lg-12 mt-0 mb-4" id="loadMoreX2" style="display: block;">
           <div class="card section-card h-100 py-3">
+            <!-- Filter Pills Upcoming -->
+            <div class="filter-bar" id="filterBarUpcoming">
+              <span class="filter-pill active" data-filter="all" onclick="applyTypeFilter('all',this,'data-tek-upcoming','upcoming')">
+                <i class="material-icons" style="font-size:13px;">apps</i> Semua
+              </span>
+              <span class="filter-pill pill-service" data-filter="service" onclick="applyTypeFilter('service',this,'data-tek-upcoming','upcoming')">
+                <i class="material-icons" style="font-size:13px;">build</i> Service <span class="pill-count" id="count-service-upcoming">0</span>
+              </span>
+              <span class="filter-pill pill-survey" data-filter="survey" onclick="applyTypeFilter('survey',this,'data-tek-upcoming','upcoming')">
+                <i class="material-icons" style="font-size:13px;">search</i> Survey <span class="pill-count" id="count-survey-upcoming">0</span>
+              </span>
+              <span class="filter-pill pill-pasang" data-filter="pasang" onclick="applyTypeFilter('pasang',this,'data-tek-upcoming','upcoming')">
+                <i class="material-icons" style="font-size:13px;">router</i> Pasang Baru <span class="pill-count" id="count-pasang-upcoming">0</span>
+              </span>
+            </div>
             <?php
             // $sql_upcoming = "SELECT k.*, c.nama AS nama_customer, c.telp AS cust_nomor, c.alamat, c.id AS customer_id FROM kegiatan k LEFT JOIN customer c ON k.customer_id = c.id WHERE k.status != 'waiting' AND DATE(k.jadwal) > ? AND k.deleted_at IS NULL ORDER BY k.jadwal ASC";
             // $stmt_upcoming = $conn->prepare($sql_upcoming);
@@ -599,7 +614,7 @@ if (isset($_GET['export'])) {
                 foreach ($groupedDataUpcoming as $kodeTransaksi => $data_group) {
                   $data = $data_group[0];
                 ?>
-                  <li class="list-group-item tbl-row">
+                  <li class="list-group-item tbl-row" data-type="<?= strtolower($data['kegiatan']) ?>">
                     <div class="row px-3 w-100 align-items-start">
                       <div class="col-md-2">
                         <?php
@@ -662,11 +677,33 @@ if (isset($_GET['export'])) {
               <i class="material-icons">hourglass_empty</i>
               <h6>Waiting List</h6>
             </div>
-            <a href="?export=waiting" class="btn-export" onclick="event.stopPropagation();"><i class="material-icons" style="font-size:14px;">download</i> Export TXT</a>
+            <div class="d-flex align-items-center gap-2">
+              <div style="position:relative;" onclick="event.stopPropagation();">
+                <i class="material-icons" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:16px;color:#94a3b8;pointer-events:none;">search</i>
+                <input type="text" placeholder="Cari..." style="background:#fff;border:2px solid #e2e8f0;border-radius:8px;padding:7px 12px 7px 32px;font-size:12px;color:#1e293b;outline:none;width:200px;transition:border-color 0.2s;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#e2e8f0'" oninput="event.stopPropagation();filterRows(this.value,'data-waiting','waiting')">
+              </div>
+              <a href="?export=waiting" class="btn-export" onclick="event.stopPropagation();"><i class="material-icons" style="font-size:14px;">download</i> Export TXT</a>
+            </div>
           </div>
         </div>
         <div class="col-lg-12 mt-0 mb-4">
-          <div class="card section-card h-100" style="border-radius:0 0 10px 10px;border-top:none;padding:12px;">
+          <div class="card section-card h-100" style="border-radius:0 0 10px 10px;border-top:none;padding:0;">
+            <!-- Filter Pills Waiting -->
+            <div class="filter-bar" id="filterBarWaiting">
+              <span class="filter-pill active" data-filter="all" onclick="applyTypeFilter('all',this,'data-waiting','waiting')">
+                <i class="material-icons" style="font-size:13px;">apps</i> Semua
+              </span>
+              <span class="filter-pill pill-service" data-filter="service" onclick="applyTypeFilter('service',this,'data-waiting','waiting')">
+                <i class="material-icons" style="font-size:13px;">build</i> Service <span class="pill-count" id="count-service-waiting">0</span>
+              </span>
+              <span class="filter-pill pill-survey" data-filter="survey" onclick="applyTypeFilter('survey',this,'data-waiting','waiting')">
+                <i class="material-icons" style="font-size:13px;">search</i> Survey <span class="pill-count" id="count-survey-waiting">0</span>
+              </span>
+              <span class="filter-pill pill-pasang" data-filter="pasang" onclick="applyTypeFilter('pasang',this,'data-waiting','waiting')">
+                <i class="material-icons" style="font-size:13px;">router</i> Pasang Baru <span class="pill-count" id="count-pasang-waiting">0</span>
+              </span>
+            </div>
+            <div id="data-waiting" style="padding:12px;">
             <?php
             $sql_waiting = "SELECT k.*, c.nama AS nama_customer, c.telp AS cust_nomor, c.alamat, c.id as customer_id, (SELECT COUNT(*) FROM kegiatan_reasons kr WHERE kr.kegiatan_id = k.id) as reason_count, (SELECT MAX(created_at) FROM kegiatan_reasons kr WHERE kr.kegiatan_id = k.id) as latest_reason_date FROM kegiatan k LEFT JOIN customer c ON k.customer_id = c.id WHERE k.status = 'waiting' AND k.deleted_at IS NULL ORDER BY k.created_at ASC";
             $result_waiting = mysqli_query($conn, $sql_waiting);
@@ -700,7 +737,7 @@ if (isset($_GET['export'])) {
                 elseif (strpos($kegL, 'pasang') !== false) $tCSS = "background:#dcfce7;color:#166534;";
                 $fullAddr = getAddressFromCoordinates($row['lat'], $row['lon']) ?: $row['alamat'];
             ?>
-            <div style="background:#fff;border:1px solid #e9ecef;border-radius:10px;margin-bottom:10px;overflow:hidden;transition:all 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.03);<?= $card_border ?>" onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.08)';this.style.transform='translateY(-1px)'" onmouseout="this.style.boxShadow='0 1px 3px rgba(0,0,0,0.03)';this.style.transform='none'">
+            <div class="waiting-card" data-type="<?= strtolower($row['kegiatan']) ?>" style="background:#fff;border:1px solid #e9ecef;border-radius:10px;margin-bottom:10px;overflow:hidden;transition:all 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.03);<?= $card_border ?>" onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.08)';this.style.transform='translateY(-1px)'" onmouseout="this.style.boxShadow='0 1px 3px rgba(0,0,0,0.03)';this.style.transform='none'">
               <div style="padding:14px 18px;">
                 <!-- Top: Badges + Customer + Actions -->
                 <div class="d-flex align-items-center justify-content-between" style="margin-bottom:10px;">
@@ -757,6 +794,7 @@ if (isset($_GET['export'])) {
               <p style="font-size:14px;color:#94a3b8;margin:12px 0 0;">Semua kegiatan sudah terjadwalkan 🎉</p>
             </div>
             <?php } ?>
+            </div><!-- close data-waiting -->
           </div>
         </div>
 
@@ -1010,55 +1048,69 @@ if (isset($_GET['export'])) {
     });
   </script>
   <script>
-    // Active filter state
-    var activeTypeFilter = 'all';
+    // Active filter state per section
+    var activeFilters = { today: 'all', upcoming: 'all', waiting: 'all' };
 
-    function filterRows(query, listId) {
+    function filterRows(query, listId, section) {
+      section = section || 'today';
       var list = document.getElementById(listId);
       if (!list) return;
-      var rows = list.querySelectorAll('.tbl-row');
+      var filter = activeFilters[section] || 'all';
+      // Support both tbl-row and waiting-card
+      var rows = list.querySelectorAll('.tbl-row, .waiting-card');
       var q = query.toLowerCase().trim();
       var count = 0;
       rows.forEach(function(row) {
         var text = row.textContent.toLowerCase();
         var type = (row.getAttribute('data-type') || '').toLowerCase();
         var matchText = (q === '' || text.indexOf(q) > -1);
-        var matchType = (activeTypeFilter === 'all' || type.indexOf(activeTypeFilter) > -1);
+        var matchType = (filter === 'all' || type.indexOf(filter) > -1);
         if (matchText && matchType) { row.style.display = ''; count++; }
         else { row.style.display = 'none'; }
       });
       var noResult = list.querySelector('.search-no-result');
       if (count === 0) {
-        if (!noResult) { noResult = document.createElement('li'); noResult.className = 'search-no-result list-group-item'; noResult.style.cssText = 'padding:24px 16px;text-align:center;color:#94a3b8;font-size:13px;border:none;'; list.appendChild(noResult); }
+        if (!noResult) { noResult = document.createElement('div'); noResult.className = 'search-no-result'; noResult.style.cssText = 'padding:24px 16px;text-align:center;color:#94a3b8;font-size:13px;'; list.appendChild(noResult); }
         noResult.innerHTML = '<i class="material-icons" style="font-size:32px;color:#cbd5e1;display:block;margin-bottom:8px;">search_off</i>Tidak ditemukan';
         noResult.style.display = '';
       } else if (noResult) { noResult.style.display = 'none'; }
     }
 
-    function applyTypeFilter(type, el, listId) {
-      activeTypeFilter = type;
+    function applyTypeFilter(type, el, listId, section) {
+      section = section || 'today';
+      activeFilters[section] = type;
       // Toggle active pill
       var bar = el.parentElement;
       bar.querySelectorAll('.filter-pill').forEach(function(p) { p.classList.remove('active'); });
       el.classList.add('active');
-      // Re-run search filter
-      var searchInput = document.querySelector('#toggleLoadMore1 input[type="text"]');
-      filterRows(searchInput ? searchInput.value : '', listId);
+      // Find the search input for this section
+      var searchMap = { today: '#toggleLoadMore1', upcoming: '#toggleLoadMore2', waiting: '#toggleLoadMoreWaiting' };
+      var searchInput = document.querySelector((searchMap[section] || '#toggleLoadMore1') + ' input[type="text"]');
+      filterRows(searchInput ? searchInput.value : '', listId, section);
     }
 
-    // Count types on load
+    // Count types on load for all sections
     document.addEventListener('DOMContentLoaded', function() {
-      var rows = document.querySelectorAll('#data-tek-today .tbl-row');
-      var counts = { service: 0, survey: 0, pasang: 0 };
-      rows.forEach(function(row) {
-        var type = (row.getAttribute('data-type') || '').toLowerCase();
-        if (type.indexOf('service') > -1) counts.service++;
-        else if (type.indexOf('survey') > -1) counts.survey++;
-        else if (type.indexOf('pasang') > -1) counts.pasang++;
+      var sections = [
+        { listId: 'data-tek-today', suffix: '', selector: '.tbl-row' },
+        { listId: 'data-tek-upcoming', suffix: '-upcoming', selector: '.tbl-row' },
+        { listId: 'data-waiting', suffix: '-waiting', selector: '.waiting-card' }
+      ];
+      sections.forEach(function(sec) {
+        var list = document.getElementById(sec.listId);
+        if (!list) return;
+        var rows = list.querySelectorAll(sec.selector);
+        var counts = { service: 0, survey: 0, pasang: 0 };
+        rows.forEach(function(row) {
+          var type = (row.getAttribute('data-type') || '').toLowerCase();
+          if (type.indexOf('service') > -1) counts.service++;
+          else if (type.indexOf('survey') > -1) counts.survey++;
+          else if (type.indexOf('pasang') > -1) counts.pasang++;
+        });
+        var cs = document.getElementById('count-service' + sec.suffix); if(cs) cs.textContent = counts.service;
+        var cv = document.getElementById('count-survey' + sec.suffix); if(cv) cv.textContent = counts.survey;
+        var cp = document.getElementById('count-pasang' + sec.suffix); if(cp) cp.textContent = counts.pasang;
       });
-      var cs = document.getElementById('count-service'); if(cs) cs.textContent = counts.service;
-      var cv = document.getElementById('count-survey'); if(cv) cv.textContent = counts.survey;
-      var cp = document.getElementById('count-pasang'); if(cp) cp.textContent = counts.pasang;
     });
   </script>
 </body>
