@@ -299,8 +299,25 @@ class _CardTaskState extends State<CardTask> with SingleTickerProviderStateMixin
               ),
             ],
           ),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: IntrinsicHeight(
+              child: Row(
+                children: [
+                  // Thin gradient accent — blue to cyan
+                  Container(
+                    width: 3,
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [Color(0xFF1E40AF), Color(0xFF0891B2)],
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Padding(
+              padding: const EdgeInsets.fromLTRB(14, 14, 16, 14),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -430,6 +447,11 @@ class _CardTaskState extends State<CardTask> with SingleTickerProviderStateMixin
                 ],
               ),
             ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );

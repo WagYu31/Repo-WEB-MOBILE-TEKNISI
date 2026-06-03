@@ -20,15 +20,15 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> {
-  // ─── Premium Color Palette ─────────────────────
-  static const Color _navy = Color(0xFF0F172A);
-  static const Color _navyLight = Color(0xFF1E293B);
+  // ─── Energetic Color Palette ─────────────────────
+  static const Color _brandBlue = Color(0xFF1E40AF);
+  static const Color _brandCyan = Color(0xFF0891B2);
   static const Color _skyBlue = Color(0xFF0EA5E9);
   static const Color _teal = Color(0xFF14B8A6);
   static const Color _warmOrange = Color(0xFFF97316);
   static const Color _indigo = Color(0xFF6366F1);
-  static const Color _bgColor = Color(0xFFF8F9FB);
-  static const Color _textPrimary = Color(0xFF0F172A);
+  static const Color _bgColor = Color(0xFFF4F6F8);
+  static const Color _textPrimary = Color(0xFF1E293B);
   static const Color _textSecondary = Color(0xFF64748B);
 
   static const List<String> _motivationMessages = [
@@ -205,7 +205,7 @@ class _DashboardPageState extends State<DashboardPage> {
     return RefreshIndicator(
       onRefresh: _onRefresh,
       color: Colors.white,
-      backgroundColor: _navy,
+      backgroundColor: _brandBlue,
       displacement: 60,
       child: CustomScrollView(
         physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
@@ -221,32 +221,34 @@ class _DashboardPageState extends State<DashboardPage> {
           // Task count indicator
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
               child: Row(
                 children: [
-                  Text(
-                    '${filteredData.length} Tugas',
-                    style: const TextStyle(
+                  const Text(
+                    'Tugas Aktif',
+                    style: TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 15,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w700,
                       color: _textPrimary,
                     ),
                   ),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF0EA5E9).withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(6),
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF1E40AF), Color(0xFF0891B2)],
+                      ),
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Text(
-                      'Aktif',
-                      style: TextStyle(
+                    child: Text(
+                      '${filteredData.length}',
+                      style: const TextStyle(
                         fontFamily: 'Poppins',
                         fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF0EA5E9),
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
                       ),
                     ),
                   ),
@@ -297,9 +299,9 @@ class _DashboardPageState extends State<DashboardPage> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Color(0xFF0F172A),
-            Color(0xFF1E293B),
-            Color(0xFF0F172A),
+            Color(0xFF1E40AF),
+            Color(0xFF0369A1),
+            Color(0xFF0891B2),
           ],
           stops: [0.0, 0.5, 1.0],
         ),
@@ -311,15 +313,14 @@ class _DashboardPageState extends State<DashboardPage> {
       child: SafeArea(
         bottom: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
           child: Column(
             children: [
-              // Top row: title only (no motivation card)
               Row(
                 children: [
                   // Menu button
                   Material(
-                    color: Colors.white.withValues(alpha: 0.1),
+                    color: Colors.white.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(12),
                     child: InkWell(
                       onTap: () => Scaffold.of(context).openDrawer(),
@@ -339,48 +340,29 @@ class _DashboardPageState extends State<DashboardPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          _getGreeting(),
-                          style: TextStyle(
-                            fontFamily: 'Poppins',
-                            fontSize: 12,
-                            color: Colors.white.withValues(alpha: 0.5),
-                          ),
+                        Row(
+                          children: [
+                            Text(
+                              '${_getGreeting()} 🔥',
+                              style: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontSize: 12,
+                                color: Colors.white.withValues(alpha: 0.65),
+                              ),
+                            ),
+                          ],
                         ),
                         const Text(
                           'Daftar Kegiatan',
                           style: TextStyle(
                             fontFamily: 'Poppins',
-                            fontSize: 20,
+                            fontSize: 22,
                             fontWeight: FontWeight.w700,
                             color: Colors.white,
                             height: 1.2,
                           ),
                         ),
                       ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              // Motivation — simple inline text
-              Row(
-                children: [
-                  Text(
-                    '💡',
-                    style: const TextStyle(fontSize: 14),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      _getMotivation(),
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 12,
-                        fontWeight: FontWeight.w400,
-                        color: Colors.white.withValues(alpha: 0.55),
-                        height: 1.4,
-                      ),
                     ),
                   ),
                 ],
@@ -756,170 +738,177 @@ class _DashboardPageState extends State<DashboardPage> {
             ? ((totalPendapatan / target) * 100).clamp(0, 999).toInt()
             : 0;
 
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Section header
-              Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: Row(
-                  children: [
-                    const Text(
-                      'Ringkasan',
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: _textPrimary,
+        return Transform.translate(
+          offset: const Offset(0, -20),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+            child: Column(
+              children: [
+                // Floating stats card
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(18),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF1E40AF).withValues(alpha: 0.08),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
                       ),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      'Bulan Ini',
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 15,
-                        fontWeight: FontWeight.w400,
-                        color: _textSecondary.withValues(alpha: 0.7),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      _buildStatItem(
+                        emoji: '\uD83D\uDCCB',
+                        value: totalKegiatan.toString(),
+                        label: 'Kegiatan',
                       ),
-                    ),
-                    const Spacer(),
-                    GestureDetector(
-                      onTap: () => _navigateToMenu(3),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            'Detail',
-                            style: TextStyle(
-                              fontFamily: 'Poppins',
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                              color: _textSecondary.withValues(alpha: 0.5),
-                            ),
-                          ),
-                          const SizedBox(width: 2),
-                          Icon(
-                            Icons.chevron_right_rounded,
-                            size: 16,
-                            color: _textSecondary.withValues(alpha: 0.4),
-                          ),
-                        ],
+                      _buildStatDivider(),
+                      _buildStatItem(
+                        emoji: '\uD83D\uDCB0',
+                        value: _formatRupiah(totalPendapatan),
+                        label: 'Pendapatan',
                       ),
-                    ),
-                  ],
+                      _buildStatDivider(),
+                      _buildStatItem(
+                        emoji: '\u2B50',
+                        value: bonus > 0 ? _formatRupiah(bonus) : '-',
+                        label: 'Bonus',
+                      ),
+                      _buildStatDivider(),
+                      _buildStatItem(
+                        emoji: '\uD83C\uDFAF',
+                        value: '$progress%',
+                        label: 'Target',
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              // Stat cards — tinted + colored values
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildStatCard(
-                      icon: Iconsax.task_square,
-                      label: 'Kegiatan',
-                      value: totalKegiatan.toString(),
-                      cardBg: const Color(0xFFEFF6FF),
-                      valueColor: const Color(0xFF2563EB),
-                      iconColor: const Color(0xFF93C5FD),
+                const SizedBox(height: 16),
+                // Progress bar
+                GestureDetector(
+                  onTap: () => _navigateToMenu(3),
+                  child: Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.03),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              'Target Bulan Ini',
+                              style: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                                color: _textSecondary.withValues(alpha: 0.7),
+                              ),
+                            ),
+                            const Spacer(),
+                            Text(
+                              '$progress%',
+                              style: const TextStyle(
+                                fontFamily: 'Poppins',
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: _textPrimary,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(6),
+                          child: Stack(
+                            children: [
+                              Container(
+                                height: 8,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFE2E8F0),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                              ),
+                              FractionallySizedBox(
+                                widthFactor: (progress / 100).clamp(0.0, 1.0),
+                                child: Container(
+                                  height: 8,
+                                  decoration: BoxDecoration(
+                                    gradient: const LinearGradient(
+                                      colors: [Color(0xFF1E40AF), Color(0xFF0891B2)],
+                                    ),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _buildStatCard(
-                      icon: Iconsax.wallet_3,
-                      label: 'Pendapatan',
-                      value: _formatRupiah(totalPendapatan),
-                      cardBg: const Color(0xFFF0FDF4),
-                      valueColor: const Color(0xFF16A34A),
-                      iconColor: const Color(0xFF86EFAC),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildStatCard(
-                      icon: Iconsax.medal_star,
-                      label: 'Bonus',
-                      value: bonus > 0 ? _formatRupiah(bonus) : '-',
-                      cardBg: const Color(0xFFFFF8F1),
-                      valueColor: const Color(0xFFEA580C),
-                      iconColor: const Color(0xFFFDBA74),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _buildStatCard(
-                      icon: Iconsax.diagram,
-                      label: 'Target',
-                      value: '$progress%',
-                      cardBg: const Color(0xFFF5F3FF),
-                      valueColor: const Color(0xFF7C3AED),
-                      iconColor: const Color(0xFFC4B5FD),
-                    ),
-                  ),
-                ],
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
         );
       },
     );
   }
 
-  Widget _buildStatCard({
-    required IconData icon,
-    required String label,
+  Widget _buildStatItem({
+    required String emoji,
     required String value,
-    required Color cardBg,
-    required Color valueColor,
-    required Color iconColor,
+    required String label,
   }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
-      decoration: BoxDecoration(
-        color: cardBg,
-        borderRadius: BorderRadius.circular(16),
-      ),
+    return Expanded(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Label + icon row
-          Row(
-            children: [
-              Text(
-                label,
-                style: TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: _textSecondary.withValues(alpha: 0.7),
-                ),
-              ),
-              const Spacer(),
-              Icon(icon, size: 18, color: iconColor),
-            ],
-          ),
-          const SizedBox(height: 10),
-          // Colored value — the focal point
+          Text(emoji, style: const TextStyle(fontSize: 20)),
+          const SizedBox(height: 6),
           Text(
             value,
-            style: TextStyle(
+            style: const TextStyle(
               fontFamily: 'Poppins',
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-              color: valueColor,
-              letterSpacing: -0.5,
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+              color: _textPrimary,
+              letterSpacing: -0.3,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 10,
+              fontWeight: FontWeight.w500,
+              color: _textSecondary.withValues(alpha: 0.6),
+            ),
+          ),
         ],
       ),
+    );
+  }
+
+  Widget _buildStatDivider() {
+    return Container(
+      width: 1,
+      height: 40,
+      color: const Color(0xFFE2E8F0),
     );
   }
 
