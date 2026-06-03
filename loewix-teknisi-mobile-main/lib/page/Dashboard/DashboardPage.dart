@@ -27,7 +27,7 @@ class _DashboardPageState extends State<DashboardPage> {
   static const Color _teal = Color(0xFF14B8A6);
   static const Color _warmOrange = Color(0xFFF97316);
   static const Color _indigo = Color(0xFF6366F1);
-  static const Color _bgColor = Color(0xFFF1F5F9);
+  static const Color _bgColor = Color(0xFFF8F9FB);
   static const Color _textPrimary = Color(0xFF0F172A);
   static const Color _textSecondary = Color(0xFF64748B);
 
@@ -795,35 +795,58 @@ class _DashboardPageState extends State<DashboardPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Section header — Gojek style
-              Row(
-                children: [
-                  const Text(
-                    'Ringkasan Bulan Ini',
-                    style: TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: _textPrimary,
-                    ),
-                  ),
-                  const Spacer(),
-                  GestureDetector(
-                    onTap: () => _navigateToMenu(3),
-                    child: const Text(
-                      'Lihat Semua',
+              // Section header
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Row(
+                  children: [
+                    const Text(
+                      'Ringkasan',
                       style: TextStyle(
                         fontFamily: 'Poppins',
-                        fontSize: 13,
+                        fontSize: 15,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF0EA5E9),
+                        color: _textPrimary,
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 6),
+                    Text(
+                      'Bulan Ini',
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 15,
+                        fontWeight: FontWeight.w400,
+                        color: _textSecondary.withValues(alpha: 0.7),
+                      ),
+                    ),
+                    const Spacer(),
+                    GestureDetector(
+                      onTap: () => _navigateToMenu(3),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Detail',
+                            style: TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: _textSecondary.withValues(alpha: 0.5),
+                            ),
+                          ),
+                          const SizedBox(width: 2),
+                          Icon(
+                            Icons.chevron_right_rounded,
+                            size: 16,
+                            color: _textSecondary.withValues(alpha: 0.4),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 16),
-              // Stat cards — Gojek style: white + colored icon
+              // Stat cards — tinted + colored values
               Row(
                 children: [
                   Expanded(
@@ -831,23 +854,25 @@ class _DashboardPageState extends State<DashboardPage> {
                       icon: Iconsax.task_square,
                       label: 'Kegiatan',
                       value: totalKegiatan.toString(),
-                      iconBgColor: const Color(0xFFE0F2FE),
-                      iconColor: const Color(0xFF0284C7),
+                      cardBg: const Color(0xFFEFF6FF),
+                      valueColor: const Color(0xFF2563EB),
+                      iconColor: const Color(0xFF93C5FD),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: _buildStatCard(
                       icon: Iconsax.wallet_3,
                       label: 'Pendapatan',
                       value: _formatRupiah(totalPendapatan),
-                      iconBgColor: const Color(0xFFD1FAE5),
-                      iconColor: const Color(0xFF059669),
+                      cardBg: const Color(0xFFF0FDF4),
+                      valueColor: const Color(0xFF16A34A),
+                      iconColor: const Color(0xFF86EFAC),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
               Row(
                 children: [
                   Expanded(
@@ -855,18 +880,20 @@ class _DashboardPageState extends State<DashboardPage> {
                       icon: Iconsax.medal_star,
                       label: 'Bonus',
                       value: bonus > 0 ? _formatRupiah(bonus) : '-',
-                      iconBgColor: const Color(0xFFFFF7ED),
-                      iconColor: const Color(0xFFEA580C),
+                      cardBg: const Color(0xFFFFF8F1),
+                      valueColor: const Color(0xFFEA580C),
+                      iconColor: const Color(0xFFFDBA74),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: _buildStatCard(
                       icon: Iconsax.diagram,
                       label: 'Target',
                       value: '$progress%',
-                      iconBgColor: const Color(0xFFEEF2FF),
-                      iconColor: const Color(0xFF4F46E5),
+                      cardBg: const Color(0xFFF5F3FF),
+                      valueColor: const Color(0xFF7C3AED),
+                      iconColor: const Color(0xFFC4B5FD),
                     ),
                   ),
                 ],
@@ -882,57 +909,45 @@ class _DashboardPageState extends State<DashboardPage> {
     required IconData icon,
     required String label,
     required String value,
-    required Color iconBgColor,
+    required Color cardBg,
+    required Color valueColor,
     required Color iconColor,
   }) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        color: cardBg,
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Label + icon row
           Row(
             children: [
-              // Colored icon circle
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: iconBgColor,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(icon, size: 16, color: iconColor),
-              ),
-              const Spacer(),
               Text(
                 label,
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Poppins',
-                  fontSize: 11,
+                  fontSize: 12,
                   fontWeight: FontWeight.w500,
-                  color: _textSecondary,
+                  color: _textSecondary.withValues(alpha: 0.7),
                 ),
               ),
+              const Spacer(),
+              Icon(icon, size: 18, color: iconColor),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
+          // Colored value — the focal point
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Poppins',
-              fontSize: 18,
+              fontSize: 20,
               fontWeight: FontWeight.w700,
-              color: _textPrimary,
-              letterSpacing: -0.3,
+              color: valueColor,
+              letterSpacing: -0.5,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
