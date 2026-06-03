@@ -76,9 +76,8 @@ class PencapaianProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // Use standalone PHP API on teknisi-github.id-giti.com
-      // This domain has its own copy with inline DB connection
-      final url = 'https://teknisi-github.id-giti.com/api_teknisi_stats.php?teknisi_id=$teknisiId&bulan=$bulan&tahun=$tahun';
+      // PHP file uploaded to Laravel's public/ folder on api-teknisi.id-giti.com
+      final url = 'https://api-teknisi.id-giti.com/api_teknisi_stats.php?teknisi_id=$teknisiId&bulan=$bulan&tahun=$tahun';
 
       final response = await http.get(
         Uri.parse(url),

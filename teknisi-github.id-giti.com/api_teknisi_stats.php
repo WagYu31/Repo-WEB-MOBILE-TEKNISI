@@ -10,11 +10,23 @@ header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET');
 
-// Database connection (standalone - cannot include from other dirs due to open_basedir)
-$servername = "localhost";
-$username = "teknisi_api_root";
-$password = "OffOff@18";
-$database = "teknisi_api_root";
+// Read DB credentials from Laravel's .env (this file goes into public/ folder)
+$envPath = __DIR__ . '/../.env';
+$envVars = [];
+if (file_exists($envPath)) {
+    $lines = file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        if (strpos(trim($line), '#') === 0) continue;
+        if (strpos($line, '=') === false) continue;
+        list($key, $value) = explode('=', $line, 2);
+        $envVars[trim($key)] = trim($value);
+    }
+}
+
+$servername = $envVars['DB_HOST'] ?? 'localhost';
+$username = $envVars['DB_USERNAME'] ?? 'teknisi_api_root';
+$password = $envVars['DB_PASSWORD'] ?? 'OffOff@18';
+$database = $envVars['DB_DATABASE'] ?? 'teknisi_api_root';
 
 $conn = mysqli_connect($servername, $username, $password, $database);
 if (!$conn) {
