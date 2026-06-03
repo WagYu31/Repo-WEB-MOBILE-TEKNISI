@@ -504,7 +504,7 @@ class _DashboardPageState extends State<DashboardPage> {
       child: SafeArea(
         bottom: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 60),
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
           child: Column(
             children: [
               Row(
