@@ -195,6 +195,33 @@ if (isset($_GET['export'])) {
     .text-date { font-size: 12px; font-weight: 600; color: #1e293b; display: block; }
     .text-hour { font-size: 10px; color: #94a3b8; }
 
+    /* ── Filter Bar ── */
+    .filter-bar {
+      display: flex; align-items: center; gap: 8px; padding: 10px 16px;
+      background: #fff; border-bottom: 1px solid #f1f5f9;
+      overflow-x: auto; -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .filter-bar::-webkit-scrollbar { display: none; }
+    .filter-pill {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 5px 14px; border-radius: 20px; font-size: 11px; font-weight: 600;
+      border: 1.5px solid #e2e8f0; background: #fff; color: #64748b;
+      cursor: pointer; white-space: nowrap; transition: all 0.2s;
+      user-select: none;
+    }
+    .filter-pill:hover { border-color: #94a3b8; color: #475569; }
+    .filter-pill.active { background: #1e293b; color: #fff; border-color: #1e293b; }
+    .filter-pill.active.pill-service { background: #3730a3; border-color: #3730a3; }
+    .filter-pill.active.pill-survey { background: #92400e; border-color: #92400e; }
+    .filter-pill.active.pill-pasang { background: #166534; border-color: #166534; }
+    .filter-pill .pill-count {
+      font-size: 9px; font-weight: 700; min-width: 18px; height: 18px;
+      display: inline-flex; align-items: center; justify-content: center;
+      border-radius: 10px; background: #f1f5f9; color: #64748b;
+    }
+    .filter-pill.active .pill-count { background: rgba(255,255,255,0.2); color: #fff; }
+
     <?php include "css/floating-menu2.css"; ?>
     @media (min-width: 992px) { .w-lg-30 { width: 30% !important; } }
     @media (min-width: 768px) and (max-width: 991px) { .w-md-70 { width: 50% !important; } }
@@ -363,6 +390,21 @@ if (isset($_GET['export'])) {
         </div>
         <div class="col-lg-12 mt-0 mb-4" id="loadMoreX1" style="display: block;">
           <div class="card section-card h-100 py-3">
+            <!-- Filter Pills -->
+            <div class="filter-bar" id="filterBar">
+              <span class="filter-pill active" data-filter="all" onclick="applyTypeFilter('all',this,'data-tek-today')">
+                <i class="material-icons" style="font-size:13px;">apps</i> Semua
+              </span>
+              <span class="filter-pill pill-service" data-filter="service" onclick="applyTypeFilter('service',this,'data-tek-today')">
+                <i class="material-icons" style="font-size:13px;">build</i> Service <span class="pill-count" id="count-service">0</span>
+              </span>
+              <span class="filter-pill pill-survey" data-filter="survey" onclick="applyTypeFilter('survey',this,'data-tek-today')">
+                <i class="material-icons" style="font-size:13px;">search</i> Survey <span class="pill-count" id="count-survey">0</span>
+              </span>
+              <span class="filter-pill pill-pasang" data-filter="pasang" onclick="applyTypeFilter('pasang',this,'data-tek-today')">
+                <i class="material-icons" style="font-size:13px;">router</i> Pasang Baru <span class="pill-count" id="count-pasang">0</span>
+              </span>
+            </div>
             <?php
             $current_date = date("Y-m-d");
             
@@ -420,7 +462,7 @@ if (isset($_GET['export'])) {
                   usort($data_group, fn($a, $b) => $b['id'] - $a['id']);
                   $data = $data_group[0];
                 ?>
-                  <li class="list-group-item tbl-row">
+                  <li class="list-group-item tbl-row" data-type="<?= strtolower($data['kegiatan']) ?>">
                     <div class="row px-3 w-100 align-items-start">
                       <div class="col-md-2">
                         <?php
@@ -968,6 +1010,9 @@ if (isset($_GET['export'])) {
     });
   </script>
   <script>
+    // Active filter state
+    var activeTypeFilter = 'all';
+
     function filterRows(query, listId) {
       var list = document.getElementById(listId);
       if (!list) return;
@@ -976,16 +1021,45 @@ if (isset($_GET['export'])) {
       var count = 0;
       rows.forEach(function(row) {
         var text = row.textContent.toLowerCase();
-        if (q === '' || text.indexOf(q) > -1) { row.style.display = ''; count++; }
+        var type = (row.getAttribute('data-type') || '').toLowerCase();
+        var matchText = (q === '' || text.indexOf(q) > -1);
+        var matchType = (activeTypeFilter === 'all' || type.indexOf(activeTypeFilter) > -1);
+        if (matchText && matchType) { row.style.display = ''; count++; }
         else { row.style.display = 'none'; }
       });
       var noResult = list.querySelector('.search-no-result');
-      if (count === 0 && q !== '') {
+      if (count === 0) {
         if (!noResult) { noResult = document.createElement('li'); noResult.className = 'search-no-result list-group-item'; noResult.style.cssText = 'padding:24px 16px;text-align:center;color:#94a3b8;font-size:13px;border:none;'; list.appendChild(noResult); }
-        noResult.innerHTML = '<i class="material-icons" style="font-size:32px;color:#cbd5e1;display:block;margin-bottom:8px;">search_off</i>Tidak ditemukan "' + query + '"';
+        noResult.innerHTML = '<i class="material-icons" style="font-size:32px;color:#cbd5e1;display:block;margin-bottom:8px;">search_off</i>Tidak ditemukan';
         noResult.style.display = '';
       } else if (noResult) { noResult.style.display = 'none'; }
     }
+
+    function applyTypeFilter(type, el, listId) {
+      activeTypeFilter = type;
+      // Toggle active pill
+      var bar = el.parentElement;
+      bar.querySelectorAll('.filter-pill').forEach(function(p) { p.classList.remove('active'); });
+      el.classList.add('active');
+      // Re-run search filter
+      var searchInput = document.querySelector('#toggleLoadMore1 input[type="text"]');
+      filterRows(searchInput ? searchInput.value : '', listId);
+    }
+
+    // Count types on load
+    document.addEventListener('DOMContentLoaded', function() {
+      var rows = document.querySelectorAll('#data-tek-today .tbl-row');
+      var counts = { service: 0, survey: 0, pasang: 0 };
+      rows.forEach(function(row) {
+        var type = (row.getAttribute('data-type') || '').toLowerCase();
+        if (type.indexOf('service') > -1) counts.service++;
+        else if (type.indexOf('survey') > -1) counts.survey++;
+        else if (type.indexOf('pasang') > -1) counts.pasang++;
+      });
+      var cs = document.getElementById('count-service'); if(cs) cs.textContent = counts.service;
+      var cv = document.getElementById('count-survey'); if(cv) cv.textContent = counts.survey;
+      var cp = document.getElementById('count-pasang'); if(cp) cp.textContent = counts.pasang;
+    });
   </script>
 </body>
 </html>
