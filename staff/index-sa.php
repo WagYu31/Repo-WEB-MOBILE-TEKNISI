@@ -199,6 +199,52 @@ if (isset($_GET['export'])) {
     @media (min-width: 992px) { .w-lg-30 { width: 30% !important; } }
     @media (min-width: 768px) and (max-width: 991px) { .w-md-70 { width: 50% !important; } }
     @media (max-width: 767px) { .w-sm-100 { width: 60% !important; } }
+
+    /* ═══════ MOBILE COMPACT KEGIATAN ═══════ */
+    @media (max-width: 768px) {
+      /* Compact list items */
+      .tbl-row { padding: 10px 12px !important; }
+      .tbl-row .row { margin: 0 !important; }
+      .tbl-row .row > [class*="col-"] { padding: 0 !important; margin-bottom: 4px !important; }
+
+      /* Smaller fonts */
+      .text-time { font-size: 12px !important; margin: 2px 0 !important; }
+      .text-code { font-size: 9px !important; }
+      .text-name { font-size: 12px !important; margin: 0 !important; }
+      .text-phone { font-size: 10px !important; }
+      .text-note { font-size: 9px !important; margin: 1px 0 0 !important; max-width: 100%; }
+      .text-addr {
+        font-size: 10px !important; line-height: 1.4 !important;
+        display: -webkit-box !important; -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical; overflow: hidden;
+      }
+      .text-date { font-size: 11px !important; }
+      .text-hour { font-size: 9px !important; }
+
+      /* Compact badges */
+      .badge-type { font-size: 8px !important; padding: 2px 8px !important; }
+      .badge-status { font-size: 9px !important; padding: 2px 8px !important; }
+
+      /* Compact action buttons */
+      .btn-act { width: 26px !important; height: 26px !important; }
+      .btn-act .material-icons { font-size: 13px !important; }
+      .avatar-initials { width: 26px !important; height: 26px !important; border-radius: 6px !important; }
+      .avatar-initials span { font-size: 8px !important; }
+
+      /* Section header compact */
+      .section-header { padding: 10px 14px !important; }
+      .section-header h6 { font-size: 11px !important; }
+      .btn-export { font-size: 9px !important; padding: 4px 8px !important; }
+      .section-header input[type="text"] { width: 140px !important; font-size: 10px !important; padding: 5px 8px 5px 28px !important; }
+
+      /* Scrollable content */
+      .section-card { border-radius: 0 0 8px 8px !important; }
+      .section-card .card-body { padding: 0 !important; }
+
+      /* Main content padding */
+      div[style*="padding:0 24px"] { padding: 0 8px !important; }
+      div[style*="padding:0 24px 24px"] { padding: 0 8px 12px !important; }
+    }
   </style>
 </head>
 
