@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:timezone/data/latest.dart' as tz;
 
 import '../../service/provider/Task/DetailTaskGetProvider.dart';
+import '../../service/provider/Pencapaian/PencapaianProvider.dart';
 import '../../service/provider/preferences/PreferencesIDProvider.dart';
 import '../../service/model/task/TaskAllResponse.dart';
 import '../../utils/state.dart';
@@ -61,6 +62,16 @@ class _DashboardPageState extends State<DashboardPage> {
     _teknisiId = idProvider.isUserRole;
     if (_teknisiId != null && _teknisiId!.isNotEmpty) {
       Provider.of<DetailTaskGetProvider>(context, listen: false).getTask(_teknisiId!);
+      // Load statistik data
+      final teknisiIdInt = int.tryParse(_teknisiId!);
+      if (teknisiIdInt != null) {
+        final now = DateTime.now();
+        Provider.of<PencapaianProvider>(context, listen: false).loadAll(
+          teknisiId: teknisiIdInt,
+          bulan: now.month,
+          tahun: now.year,
+        );
+      }
     }
   }
 
@@ -206,10 +217,14 @@ class _DashboardPageState extends State<DashboardPage> {
           SliverToBoxAdapter(
             child: _buildMotivationCard(),
           ),
+          // Statistik summary cards
+          SliverToBoxAdapter(
+            child: _buildStatistikSection(),
+          ),
           // Task count indicator
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
               child: Row(
                 children: [
                   Container(
@@ -720,9 +735,225 @@ class _DashboardPageState extends State<DashboardPage> {
     if (widget.onNavigate != null) {
       widget.onNavigate!(index);
     } else {
-      // Fallback: open drawer for user to navigate manually
       Scaffold.of(context).openDrawer();
     }
+  }
+
+  String _formatRupiah(int value) {
+    if (value >= 1000000) {
+      return 'Rp ${(value / 1000000).toStringAsFixed(1)}jt';
+    }
+    if (value >= 1000) {
+      return 'Rp ${(value / 1000).toStringAsFixed(0)}rb';
+    }
+    return 'Rp $value';
+  }
+
+  // ─── STATISTIK SECTION ─────────────────────────────
+  Widget _buildStatistikSection() {
+    return Consumer<PencapaianProvider>(
+      builder: (context, provider, child) {
+        if (provider.pencapaianState == PencapaianState.loading ||
+            provider.pendapatanState == PencapaianState.loading) {
+          return Padding(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(18),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.04),
+                    blurRadius: 12,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: const Center(
+                child: SizedBox(
+                  width: 24, height: 24,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.5,
+                    color: _primaryBlue,
+                  ),
+                ),
+              ),
+            ),
+          );
+        }
+
+        if (provider.pencapaianState != PencapaianState.loaded &&
+            provider.pendapatanState != PencapaianState.loaded) {
+          return const SizedBox.shrink();
+        }
+
+        final totalKegiatan = provider.pencapaianData?.totalSelesai ?? 0;
+        final totalPendapatan = provider.pendapatanData?.totalKeseluruhan ?? 0;
+        final bonus = provider.pendapatanData?.bonus ?? 0;
+        final target = provider.pendapatanData?.target ?? 0;
+        final progress = target > 0
+            ? ((totalPendapatan / target) * 100).clamp(0, 999).toInt()
+            : 0;
+
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: _warningAmber.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Iconsax.chart_15, size: 16, color: _warningAmber),
+                  ),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'Ringkasan Bulan Ini',
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: _textPrimary,
+                    ),
+                  ),
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: () => _navigateToMenu(3),
+                    child: Row(
+                      children: [
+                        Text(
+                          'Detail',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: _primaryBlue.withValues(alpha: 0.8),
+                          ),
+                        ),
+                        const SizedBox(width: 2),
+                        Icon(Iconsax.arrow_right_3, size: 14, color: _primaryBlue.withValues(alpha: 0.8)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildMiniStatCard(
+                      icon: Iconsax.task_square,
+                      label: 'Kegiatan',
+                      value: totalKegiatan.toString(),
+                      color: _primaryBlue,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _buildMiniStatCard(
+                      icon: Iconsax.wallet_3,
+                      label: 'Pendapatan',
+                      value: _formatRupiah(totalPendapatan),
+                      color: const Color(0xFF10B981),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildMiniStatCard(
+                      icon: Iconsax.medal_star,
+                      label: 'Bonus',
+                      value: bonus > 0 ? _formatRupiah(bonus) : '-',
+                      color: _warningAmber,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _buildMiniStatCard(
+                      icon: Iconsax.diagram,
+                      label: 'Target',
+                      value: '$progress%',
+                      color: _purpleAccent,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildMiniStatCard({
+    required IconData icon,
+    required String label,
+    required String value,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [color, color.withValues(alpha: 0.7)],
+              ),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, size: 16, color: Colors.white),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 10,
+                    color: _textSecondary,
+                  ),
+                ),
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: color,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildErrorState(String message) {
