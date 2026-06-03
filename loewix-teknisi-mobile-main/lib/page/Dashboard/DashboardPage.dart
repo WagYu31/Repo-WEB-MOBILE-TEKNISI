@@ -111,8 +111,7 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _bgColor,
-      body: SafeArea(
-        child: Consumer<PreferencesIDProvider>(
+      body: Consumer<PreferencesIDProvider>(
           builder: (context, preferencesIDProvider, child) {
             if (preferencesIDProvider.state == ResultState.loading) {
               return _buildLoadingState();
@@ -163,7 +162,6 @@ class _DashboardPageState extends State<DashboardPage> {
             }
           },
         ),
-      ),
     );
   }
 
@@ -206,71 +204,89 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget _buildTaskList(List<dynamic> filteredData) {
     return RefreshIndicator(
       onRefresh: _onRefresh,
-      color: _skyBlue,
-      backgroundColor: Colors.white,
+      color: Colors.white,
+      backgroundColor: _navy,
+      displacement: 60,
       child: CustomScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
+        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
         slivers: [
-          // Header section
+          // Premium gradient header
           SliverToBoxAdapter(
-            child: _buildHeader(filteredData.length),
-          ),
-          // Motivation card
-          SliverToBoxAdapter(
-            child: _buildMotivationCard(),
+            child: _buildPremiumHeader(filteredData.length),
           ),
           // Statistik summary cards
           SliverToBoxAdapter(
-            child: _buildStatistikSection(),
+            child: RepaintBoundary(child: _buildStatistikSection()),
           ),
           // Task count indicator
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
               child: Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
                     decoration: BoxDecoration(
-                      color: _skyBlue.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(20),
+                      gradient: LinearGradient(
+                        colors: [_navy, _navy.withValues(alpha: 0.85)],
+                      ),
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: _navy.withValues(alpha: 0.2),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.assignment, size: 16, color: _skyBlue),
+                        const Icon(Iconsax.task_square, size: 14, color: Colors.white),
                         const SizedBox(width: 6),
                         Text(
                           '${filteredData.length} Tugas Aktif',
                           style: const TextStyle(
                             fontFamily: 'Poppins',
-                            fontSize: 13,
+                            fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: _skyBlue,
+                            color: Colors.white,
                           ),
                         ),
                       ],
+                    ),
+                  ),
+                  const Spacer(),
+                  Text(
+                    '${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}',
+                    style: const TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 11,
+                      color: _textSecondary,
                     ),
                   ),
                 ],
               ),
             ),
           ),
-          // Task list
+          // Task list with RepaintBoundary
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+            padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
             sliver: SliverList(
               delegate: SliverChildBuilderDelegate(
                 (context, index) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: CardTask(
-                      data: filteredData[index],
-                      history: false,
+                  return RepaintBoundary(
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: CardTask(
+                        data: filteredData[index],
+                        history: false,
+                      ),
                     ),
                   );
                 },
                 childCount: filteredData.length,
+                addAutomaticKeepAlives: true,
               ),
             ),
           ),
@@ -279,153 +295,157 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  Widget _buildHeader(int taskCount) {
+  // ─── PREMIUM GRADIENT HEADER ─────────────────────
+  Widget _buildPremiumHeader(int taskCount) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-      child: Row(
-        children: [
-          // Menu button
-          Material(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            child: InkWell(
-              onTap: () => Scaffold.of(context).openDrawer(),
-              borderRadius: BorderRadius.circular(12),
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.04),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Iconsax.menu_1,
-                  color: _skyBlue,
-                  size: 22,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  _getGreeting(),
-                  style: const TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 14,
-                    color: _textSecondary,
-                  ),
-                ),
-                const Text(
-                  'Daftar Kegiatan',
-                  style: TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 24,
-                    fontWeight: FontWeight.w700,
-                    color: _textPrimary,
-                    height: 1.2,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // Refresh button
-          Material(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            child: InkWell(
-              onTap: _isRefreshing ? null : _onRefresh,
-              borderRadius: BorderRadius.circular(12),
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.04),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: _isRefreshing
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: _skyBlue,
-                        ),
-                      )
-                    : const Icon(
-                        Icons.refresh_rounded,
-                        color: _skyBlue,
-                        size: 22,
-                      ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMotivationCard() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: _skyBlue.withValues(alpha: 0.3),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF0F172A),
+            Color(0xFF1E293B),
+            Color(0xFF0F172A),
           ],
+          stops: [0.0, 0.5, 1.0],
         ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(28),
+          bottomRight: Radius.circular(28),
+        ),
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+          child: Column(
+            children: [
+              // Top row: menu + title + refresh
+              Row(
+                children: [
+                  // Menu button — glassmorphism
+                  Material(
+                    color: Colors.white.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(14),
+                    child: InkWell(
+                      onTap: () => Scaffold.of(context).openDrawer(),
+                      borderRadius: BorderRadius.circular(14),
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        child: const Icon(
+                          Iconsax.menu_1,
+                          color: Colors.white,
+                          size: 22,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _getGreeting(),
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 13,
+                            color: Colors.white.withValues(alpha: 0.6),
+                          ),
+                        ),
+                        const Text(
+                          'Daftar Kegiatan',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 22,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                            height: 1.2,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Refresh button — glassmorphism
+                  Material(
+                    color: Colors.white.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(14),
+                    child: InkWell(
+                      onTap: _isRefreshing ? null : _onRefresh,
+                      borderRadius: BorderRadius.circular(14),
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        child: _isRefreshing
+                            ? const SizedBox(
+                                width: 20, height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Icon(
+                                Icons.refresh_rounded,
+                                color: Colors.white,
+                                size: 22,
+                              ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              child: const Icon(
-                Icons.lightbulb_outline_rounded,
-                color: Colors.white,
-                size: 24,
-              ),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Text(
-                _getMotivation(),
-                style: const TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.white,
-                  height: 1.4,
+              const SizedBox(height: 20),
+              // Motivation card — glassmorphism inside header
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.1),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [_skyBlue, _skyBlue.withValues(alpha: 0.6)],
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: _skyBlue.withValues(alpha: 0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Iconsax.lamp_charge,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Text(
+                        _getMotivation(),
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white.withValues(alpha: 0.85),
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -438,7 +458,7 @@ class _DashboardPageState extends State<DashboardPage> {
       child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
-          SliverToBoxAdapter(child: _buildHeader(0)),
+          SliverToBoxAdapter(child: _buildPremiumHeader(0)),
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
@@ -760,25 +780,22 @@ class _DashboardPageState extends State<DashboardPage> {
           return Padding(
             padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
             child: Container(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(18),
+                borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.04),
-                    blurRadius: 12,
-                    offset: const Offset(0, 3),
+                    blurRadius: 16,
+                    offset: const Offset(0, 4),
                   ),
                 ],
               ),
               child: const Center(
                 child: SizedBox(
-                  width: 24, height: 24,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.5,
-                    color: _skyBlue,
-                  ),
+                  width: 22, height: 22,
+                  child: CircularProgressIndicator(strokeWidth: 2.5, color: _skyBlue),
                 ),
               ),
             ),
@@ -803,65 +820,66 @@ class _DashboardPageState extends State<DashboardPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Section header
               Row(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: _warmOrange.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(Iconsax.chart_15, size: 16, color: _warmOrange),
-                  ),
-                  const SizedBox(width: 8),
                   const Text(
                     'Ringkasan Bulan Ini',
                     style: TextStyle(
                       fontFamily: 'Poppins',
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
                       color: _textPrimary,
                     ),
                   ),
                   const Spacer(),
                   GestureDetector(
                     onTap: () => _navigateToMenu(3),
-                    child: Row(
-                      children: [
-                        Text(
-                          'Detail',
-                          style: TextStyle(
-                            fontFamily: 'Poppins',
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            color: _skyBlue.withValues(alpha: 0.8),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: _skyBlue.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Detail',
+                            style: TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: _skyBlue,
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 2),
-                        Icon(Iconsax.arrow_right_3, size: 14, color: _skyBlue.withValues(alpha: 0.8)),
-                      ],
+                          SizedBox(width: 4),
+                          Icon(Iconsax.arrow_right_3, size: 12, color: _skyBlue),
+                        ],
+                      ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 14),
+              // Premium stat cards — dark gradient
               Row(
                 children: [
                   Expanded(
-                    child: _buildMiniStatCard(
+                    child: _buildPremiumStatCard(
                       icon: Iconsax.task_square,
                       label: 'Kegiatan',
                       value: totalKegiatan.toString(),
-                      color: _skyBlue,
+                      gradientColors: [const Color(0xFF0EA5E9), const Color(0xFF0284C7)],
                     ),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: _buildMiniStatCard(
+                    child: _buildPremiumStatCard(
                       icon: Iconsax.wallet_3,
                       label: 'Pendapatan',
                       value: _formatRupiah(totalPendapatan),
-                      color: const Color(0xFF10B981),
+                      gradientColors: [const Color(0xFF14B8A6), const Color(0xFF0D9488)],
                     ),
                   ),
                 ],
@@ -870,20 +888,20 @@ class _DashboardPageState extends State<DashboardPage> {
               Row(
                 children: [
                   Expanded(
-                    child: _buildMiniStatCard(
+                    child: _buildPremiumStatCard(
                       icon: Iconsax.medal_star,
                       label: 'Bonus',
                       value: bonus > 0 ? _formatRupiah(bonus) : '-',
-                      color: _warmOrange,
+                      gradientColors: [const Color(0xFFF97316), const Color(0xFFEA580C)],
                     ),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: _buildMiniStatCard(
+                    child: _buildPremiumStatCard(
                       icon: Iconsax.diagram,
                       label: 'Target',
                       value: '$progress%',
-                      color: _indigo,
+                      gradientColors: [const Color(0xFF6366F1), const Color(0xFF4F46E5)],
                     ),
                   ),
                 ],
@@ -895,63 +913,66 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  Widget _buildMiniStatCard({
+  Widget _buildPremiumStatCard({
     required IconData icon,
     required String label,
     required String value,
-    required Color color,
+    required List<Color> gradientColors,
   }) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: gradientColors,
+        ),
+        borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: color.withValues(alpha: 0.08),
+            color: gradientColors[0].withValues(alpha: 0.3),
             blurRadius: 12,
-            offset: const Offset(0, 3),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [color, color.withValues(alpha: 0.7)],
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, size: 16, color: Colors.white),
               ),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, size: 16, color: Colors.white),
+              const Spacer(),
+              Text(
+                label,
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white.withValues(alpha: 0.7),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: const TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 10,
-                    color: _textSecondary,
-                  ),
-                ),
-                Text(
-                  value,
-                  style: TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: color,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+          const SizedBox(height: 12),
+          Text(
+            value,
+            style: const TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
+              letterSpacing: -0.5,
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
@@ -965,7 +986,7 @@ class _DashboardPageState extends State<DashboardPage> {
       child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
-          SliverToBoxAdapter(child: _buildHeader(0)),
+          SliverToBoxAdapter(child: _buildPremiumHeader(0)),
           SliverFillRemaining(
             hasScrollBody: false,
             child: Column(
