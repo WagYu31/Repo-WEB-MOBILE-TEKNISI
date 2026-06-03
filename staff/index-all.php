@@ -11,67 +11,61 @@ $currentPage = "Clear";
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <?php
-  include "head.php";
-  ?>
+  <?php include "head.php"; ?>
   <style>
-    ul#data-tek li:nth-child(odd) {
-      background-color: white;
-    }
-
-    ul#data-tek li:nth-child(even) {
-      background-color: #efefef;
-      border-radius: 0;
-    }
-        <?php include "css/floating-menu2.css";?>
+    <?php include "css/floating-menu2.css"; ?>
+    .section-header { display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:#1e293b;border-radius:10px 10px 0 0;cursor:pointer;transition:background 0.2s; }
+    .section-header:hover { background:#334155; }
+    .section-header h6 { margin:0;font-size:13px;font-weight:700;color:#fff;letter-spacing:0.04em;text-transform:uppercase; }
+    .section-header .material-icons { font-size:18px;color:#94a3b8; }
+    .section-card { border:1px solid #e2e8f0;border-radius:0 0 10px 10px;border-top:none;box-shadow:0 1px 4px rgba(0,0,0,0.05),0 4px 16px rgba(0,0,0,0.02);background:#fff; }
+    .tbl-header { background:#f8fafc !important;border:none !important;border-bottom:2px solid #e2e8f0 !important;border-radius:0 !important;padding:12px 16px !important; }
+    .tbl-th { font-size:10.5px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.06em; }
+    .tbl-row { border:none !important;border-bottom:1px solid #f1f5f9 !important;border-radius:0 !important;padding:16px !important;transition:background 0.15s; }
+    .tbl-row:hover { background:#f0f4f8 !important; }
+    .tbl-row:last-child { border-bottom:none !important; }
+    .badge-type { font-size:9px;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:0.04em;text-transform:uppercase;display:inline-block; }
+    .badge-survey { background:#fef3c7;color:#92400e; } .badge-service { background:#e0e7ff;color:#3730a3; }
+    .badge-pasang { background:#dcfce7;color:#166534; } .badge-default { background:#f1f5f9;color:#475569; }
+    .badge-status { font-size:10px;font-weight:600;padding:4px 10px;border-radius:20px;letter-spacing:0.02em;display:inline-block; }
+    .badge-selesai { background:#dcfce7;color:#166534; }
+    .btn-act { width:30px;height:30px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:6px;border:none;transition:all 0.15s;cursor:pointer;text-decoration:none; }
+    .btn-act-view { background:#eff6ff;color:#3b82f6; } .btn-act-view:hover { background:#3b82f6;color:#fff; }
+    .btn-act-edit { background:#fffbeb;color:#d97706; } .btn-act-edit:hover { background:#d97706;color:#fff; }
+    .btn-act-delete { background:#fef2f2;color:#dc2626; } .btn-act-delete:hover { background:#dc2626;color:#fff; }
+    .text-name { font-size:13px;font-weight:700;color:#1e293b;text-decoration:none;margin:0 0 2px; }
+    .text-name:hover { color:#3b82f6; }
+    .text-phone { font-size:11px;color:#3b82f6;text-decoration:none; } .text-phone:hover { text-decoration:underline; }
+    .text-note { font-size:10.5px;color:#94a3b8;margin:3px 0 0;font-style:italic; }
+    .text-time { font-size:13px;font-weight:600;color:#1e293b;margin:5px 0 2px; }
+    .text-code { font-size:10px;color:#94a3b8;display:block; }
   </style>
 </head>
 
-<body class="g-sidenav-show  bg-gray-200">
-  <?php
-  include "cek-menu.php";
-  ?>
+<body class="g-sidenav-show bg-gray-200">
+  <?php include "cek-menu.php"; ?>
 
-  <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg ">
-    <!-- Navbar -->
+  <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg" style="display:flex;flex-direction:column;overflow:hidden;">
     <?php
     include "nav-top.php";
     $daftar_bulan = [1 => 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
     $todayDate = date('d') . ' ' . $daftar_bulan[(int)date('m')] . ' ' . date('Y');
     ?>
 
-<?php
-    // $isMobile = preg_match('/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino/i', $_SERVER['HTTP_USER_AGENT']);
+    <!-- Fixed Section: Stat Cards -->
+    <div style="flex-shrink:0;padding:0 24px;">
+      <?php include 'top-point.php'; ?>
+    </div>
 
-    // Include the appropriate menu file based on device size
-    // if ($isMobile) {
-    ?>
-      <!--<div class="container-fluid py-4 d-block d-md-none">-->
-      <!--  <div class="row mb-4 mt-4">-->
-          <?php
-        //   include "mobile.php"; 
-          ?>
-        <!--</div>-->
-        <?php
-        // include "footer.php";
-        ?>
-      <!--</div>-->
-
-    <?php
-    // } else {
-    ?>
-
-      <div class="container-fluid py-4">
-        <?php include 'top-point.php'; ?>
-        <div class="row mb-4 mt-4">
-          <?php
-          include "kegiatan-db-all.php";
-          ?>
-        </div>
-        <?php
-        include "footer.php";
-        ?>
+    <!-- Scrollable Section -->
+    <div style="flex:1;overflow-y:auto;padding:0 24px 24px;">
+      <div class="row mb-4">
+        <?php include "kegiatan-db-all.php"; ?>
       </div>
+      <?php include "footer.php"; ?>
+    </div>
+
+<!-- Edit Invoice Modal -->
 <div class="modal fade" id="editInvoiceModal" tabindex="-1" aria-labelledby="editInvoiceModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
@@ -81,14 +75,11 @@ $currentPage = "Clear";
       </div>
       <form action="proses_update_invoice.php" method="POST">
         <div class="modal-body">
-          
           <input type="hidden" name="kode_transaksi" id="modal_kode_transaksi">
-          
           <div class="mb-3">
             <label for="modal_invoice" class="form-label">Kode Invoice</label>
             <input type="text" class="form-control border p-2" id="modal_invoice" name="invoice" required>
           </div>
-          
           <div class="mb-3">
             <label class="form-label">Ada Garansi?</label>
             <div class="form-check">
@@ -100,12 +91,10 @@ $currentPage = "Clear";
               <label class="form-check-label" for="garansi_tidak">Tidak</label>
             </div>
           </div>
-          
           <div class="mb-3">
             <label for="modal_keterangan_garansi" class="form-label">Keterangan Garansi</label>
             <textarea class="form-control border p-2" id="modal_keterangan_garansi" name="keterangan_garansi" rows="3" placeholder="Jelaskan cakupan garansi jika ada..."></textarea>
           </div>
-
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
@@ -115,13 +104,7 @@ $currentPage = "Clear";
     </div>
   </div>
 </div>
-    <?php
-    // }
-    ?>
 
-                <?php
-                    // include "floating-menu.php";
-                ?>
   </main>
   <?php
   include "js-include.php";
