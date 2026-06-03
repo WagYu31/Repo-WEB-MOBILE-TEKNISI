@@ -290,33 +290,37 @@ class _CardTaskState extends State<CardTask> with SingleTickerProviderStateMixin
         child: Container(
           decoration: BoxDecoration(
             color: _cardBg,
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: _statusColor.withValues(alpha: 0.12),
+              width: 1,
+            ),
             boxShadow: [
               BoxShadow(
-                color: _statusColor.withValues(alpha: 0.08),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
+                color: _statusColor.withValues(alpha: 0.12),
+                blurRadius: 16,
+                offset: const Offset(0, 6),
               ),
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.03),
-                blurRadius: 20,
-                offset: const Offset(0, 6),
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 24,
+                offset: const Offset(0, 8),
               ),
             ],
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(20),
             child: IntrinsicHeight(
               child: Row(
                 children: [
-                  // Left accent bar
+                  // Left accent bar — bolder
                   Container(
-                    width: 5,
+                    width: 6,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
-                        colors: [_statusColor, _statusColor.withValues(alpha: 0.4)],
+                        colors: [_statusColor, _statusColor.withValues(alpha: 0.3)],
                       ),
                     ),
                   ),
