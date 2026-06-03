@@ -200,8 +200,8 @@ if (isset($_GET['export'])) {
     @media (min-width: 768px) and (max-width: 991px) { .w-md-70 { width: 50% !important; } }
     @media (max-width: 767px) { .w-sm-100 { width: 60% !important; } }
 
-    /* ═══════ MOBILE COMPACT KEGIATAN ═══════ */
-    @media (max-width: 767px) {
+    /* ═══════ MOBILE COMPACT KEGIATAN (Portrait Only) ═══════ */
+    @media (max-width: 767px) and (orientation: portrait) {
       /* Force compact card layout */
       .tbl-row {
         padding: 10px 12px !important;
