@@ -131,10 +131,10 @@ class _AppDrawerState extends State<AppDrawer> {
                     const SizedBox(height: 8),
                     _buildMenuItem(
                       index: 3,
-                      icon: Iconsax.chart,
+                      icon: Iconsax.chart_1,
                       activeIcon: Iconsax.chart_15,
-                      title: 'Pencapaian',
-                      subtitle: 'Statistik pencapaian',
+                      title: 'Statistik',
+                      subtitle: 'Statistik & pencapaian',
                       color: _warningAmber,
                     ),
                     _buildMenuItem(

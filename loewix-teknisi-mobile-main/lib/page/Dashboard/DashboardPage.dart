@@ -548,8 +548,8 @@ class _DashboardPageState extends State<DashboardPage> {
           children: [
             Expanded(
               child: _buildQuickActionItem(
-                icon: Iconsax.chart,
-                label: 'Pencapaian',
+                icon: Iconsax.chart_1,
+                label: 'Statistik',
                 color: _warningAmber,
                 onTap: () => _navigateToMenu(3),
               ),

@@ -281,7 +281,7 @@ class _PencapaianPageState extends State<PencapaianPage>
                   ),
                 ),
                 Text(
-                  'Pencapaian',
+                  'Statistik',
                   style: TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 24,
