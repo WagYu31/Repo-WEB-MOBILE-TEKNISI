@@ -43,7 +43,26 @@ class GoogleMapSampleState extends State<GoogleMapSample>
 
   Future<void> _initializeMap() async {
     _addTaskLocationMarker();
+    // Try to show last known position instantly while waiting for GPS
+    await _loadLastKnownPosition();
     await _getUserLocation();
+  }
+
+  /// Load cached/last known position for instant map display
+  Future<void> _loadLastKnownPosition() async {
+    try {
+      final lastPosition = await Geolocator.getLastKnownPosition();
+      if (lastPosition != null && mounted) {
+        GoogleMapSample.currentPosition = lastPosition;
+        _userLocation = LatLng(lastPosition.latitude, lastPosition.longitude);
+        _updateUserMarker();
+        if (_mapReady) {
+          _animatedMove(_userLocation!, 16.0);
+        }
+      }
+    } catch (_) {
+      // Silently ignore — we'll get fresh position next
+    }
   }
 
   void _addTaskLocationMarker() {
@@ -87,6 +106,49 @@ class GoogleMapSampleState extends State<GoogleMapSample>
         });
       }
     }
+  }
+
+  /// Update user marker on the map (reusable for both cached and fresh positions)
+  void _updateUserMarker() {
+    if (_userLocation == null || !mounted) return;
+    setState(() {
+      // Remove existing user marker
+      _markers.removeWhere((marker) => marker.point != _taskLocation);
+      // Re-add task marker if exists
+      if (_taskLocation != null) {
+        _markers.add(
+          Marker(
+            point: _taskLocation!,
+            width: 40,
+            height: 40,
+            child: const Icon(Icons.location_on, color: Colors.red, size: 40),
+          ),
+        );
+      }
+      // Add user location marker
+      _markers.add(
+        Marker(
+          point: _userLocation!,
+          width: 40,
+          height: 40,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.blue,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.blue.withValues(alpha: 0.3),
+                  blurRadius: 8,
+                  spreadRadius: 2,
+                ),
+              ],
+            ),
+            child: const Icon(Icons.person, color: Colors.white, size: 18),
+          ),
+        ),
+      );
+    });
   }
 
   /// Animasi perpindahan map dari posisi saat ini ke target
@@ -147,11 +209,12 @@ class GoogleMapSampleState extends State<GoogleMapSample>
         FlutterMap(
           mapController: _mapController,
           options: MapOptions(
-            initialCenter: LatLng(
+            // Center on task location if available, otherwise default
+            initialCenter: _taskLocation ?? LatLng(
               AppConstants.defaultLatitude,
               AppConstants.defaultLongitude,
             ),
-            initialZoom: AppConstants.defaultZoom,
+            initialZoom: _taskLocation != null ? 16.0 : AppConstants.defaultZoom,
             onMapReady: () {
               if (!mounted) return;
               setState(() {
@@ -172,8 +235,40 @@ class GoogleMapSampleState extends State<GoogleMapSample>
           ],
         ),
         if (_isLoading)
-          const Center(
-            child: CircularProgressIndicator(),
+          Center(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.9),
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    width: 18, height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.blue),
+                  ),
+                  SizedBox(width: 12),
+                  Text(
+                    'Mencari lokasi...',
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xFF374151),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         Positioned(
           top: 16,
@@ -319,7 +414,12 @@ class GoogleMapSampleState extends State<GoogleMapSample>
       }
 
       Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
+        desiredAccuracy: LocationAccuracy.best,
+      ).timeout(
+        const Duration(seconds: 12),
+        onTimeout: () => Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.medium,
+        ),
       );
 
       if (!mounted) return;
@@ -327,58 +427,8 @@ class GoogleMapSampleState extends State<GoogleMapSample>
       GoogleMapSample.currentPosition = position;
       _userLocation = LatLng(position.latitude, position.longitude);
 
-      setState(() {
-        // Remove existing user marker (by checking if it's blue marker)
-        _markers.removeWhere((marker) {
-          // Keep task marker (red), remove old user marker
-          return marker.point != _taskLocation;
-        });
-
-        // Re-add task marker if exists
-        if (_taskLocation != null) {
-          _markers.add(
-            Marker(
-              point: _taskLocation!,
-              width: 40,
-              height: 40,
-              child: const Icon(
-                Icons.location_on,
-                color: Colors.red,
-                size: 40,
-              ),
-            ),
-          );
-        }
-
-        // Add user location marker
-        _markers.add(
-          Marker(
-            point: _userLocation!,
-            width: 40,
-            height: 40,
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.blue,
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 2),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.blue.withValues(alpha: 0.3),
-                    blurRadius: 8,
-                    spreadRadius: 2,
-                  ),
-                ],
-              ),
-              child: const Icon(
-                Icons.person,
-                color: Colors.white,
-                size: 18,
-              ),
-            ),
-          ),
-        );
-        _isLoading = false;
-      });
+      _updateUserMarker();
+      setState(() { _isLoading = false; });
 
       if (_mapReady && mounted) {
         _animatedMove(_userLocation!, 16.0);
