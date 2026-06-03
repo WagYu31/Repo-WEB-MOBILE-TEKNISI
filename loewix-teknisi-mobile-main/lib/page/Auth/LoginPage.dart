@@ -19,6 +19,17 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMixin {
+  // ─── Premium Color Palette ─────────────────────
+  static const Color _navy = Color(0xFF0F172A);
+  static const Color _navyLight = Color(0xFF1E293B);
+  static const Color _skyBlue = Color(0xFF0EA5E9);
+  static const Color _skyDark = Color(0xFF0284C7);
+  static const Color _rose = Color(0xFFF43F5E);
+  static const Color _textPrimary = Color(0xFF0F172A);
+  static const Color _textSecondary = Color(0xFF64748B);
+  static const Color _inputBg = Color(0xFFF8FAFC);
+  static const Color _inputBorder = Color(0xFFE2E8F0);
+
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -36,15 +47,15 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
     super.initState();
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 900),
     );
 
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
     );
 
     _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.3),
+      begin: const Offset(0, 0.2),
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic));
 
@@ -83,10 +94,10 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
 
       if (!mounted) return;
 
-      if (result is LoginResponse) {
+      if (result != null) {
         await _handleSuccessLogin(result);
       } else {
-        _showError(result?.toString() ?? 'Login gagal. Silakan coba lagi.');
+        _showError('Username atau password salah.');
       }
     } catch (e) {
       if (!mounted) return;
@@ -158,12 +169,12 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
           children: [
             const Icon(Icons.check_circle, color: Colors.white),
             const SizedBox(width: 12),
-            Expanded(child: Text(message)),
+            Expanded(child: Text(message, style: const TextStyle(fontFamily: 'Poppins'))),
           ],
         ),
-        backgroundColor: Colors.green.shade600,
+        backgroundColor: const Color(0xFF14B8A6),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: const EdgeInsets.all(16),
       ),
     );
@@ -171,27 +182,36 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
 
   @override
   Widget build(BuildContext context) {
-    final screenHeight = MediaQuery.of(context).size.height;
-
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0),
-            child: FadeTransition(
-              opacity: _fadeAnimation,
-              child: SlideTransition(
-                position: _slideAnimation,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SizedBox(height: screenHeight * 0.02),
-                    _buildLogo(),
-                    const SizedBox(height: 32),
-                    _buildLoginCard(),
-                    SizedBox(height: screenHeight * 0.02),
-                  ],
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [_navy, _navyLight, Color(0xFF334155)],
+            stops: [0.0, 0.6, 1.0],
+          ),
+        ),
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 28.0),
+              child: FadeTransition(
+                opacity: _fadeAnimation,
+                child: SlideTransition(
+                  position: _slideAnimation,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const SizedBox(height: 20),
+                      _buildLogo(),
+                      const SizedBox(height: 40),
+                      _buildLoginCard(),
+                      const SizedBox(height: 24),
+                      _buildFooter(),
+                      const SizedBox(height: 20),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -204,48 +224,55 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
   Widget _buildLogo() {
     return Column(
       children: [
+        // Glassmorphism logo container
         Container(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(22),
           decoration: BoxDecoration(
-            color: Colors.black,
-            borderRadius: BorderRadius.circular(20),
+            color: Colors.white.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.15),
+              width: 1.5,
+            ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.2),
-                blurRadius: 20,
+                color: _skyBlue.withValues(alpha: 0.15),
+                blurRadius: 30,
                 offset: const Offset(0, 10),
               ),
             ],
           ),
           child: Image.asset(
             'assets/imgLogo.png',
-            height: 60,
+            height: 56,
             errorBuilder: (context, error, stackTrace) {
               return const Icon(
                 Icons.engineering,
-                size: 60,
+                size: 56,
                 color: Colors.white,
               );
             },
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 28),
         const Text(
           'Selamat Datang',
           style: TextStyle(
             fontFamily: 'Poppins',
             fontSize: 28,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF1E293B),
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
+            letterSpacing: -0.5,
           ),
         ),
         const SizedBox(height: 8),
-        const Text(
+        Text(
           'Masuk ke akun teknisi Anda',
           style: TextStyle(
             fontFamily: 'Poppins',
             fontSize: 14,
-            color: Color(0xFF64748B),
+            color: Colors.white.withValues(alpha: 0.6),
+            letterSpacing: 0.2,
           ),
         ),
       ],
@@ -254,15 +281,20 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
 
   Widget _buildLoginCard() {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(28),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 30,
-            offset: const Offset(0, 10),
+            color: Colors.black.withValues(alpha: 0.15),
+            blurRadius: 40,
+            offset: const Offset(0, 16),
+          ),
+          BoxShadow(
+            color: _skyBlue.withValues(alpha: 0.08),
+            blurRadius: 60,
+            offset: const Offset(0, 20),
           ),
         ],
       ),
@@ -271,11 +303,48 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // Card header
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: _skyBlue.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.login_rounded, size: 20, color: _skyBlue),
+                ),
+                const SizedBox(width: 12),
+                const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Login Teknisi',
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: _textPrimary,
+                      ),
+                    ),
+                    Text(
+                      'Silakan masukkan kredensial Anda',
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 11,
+                        color: _textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
             if (_errorMessage != null) _buildErrorBanner(),
             _buildUsernameField(),
-            const SizedBox(height: 16),
+            const SizedBox(height: 18),
             _buildPasswordField(),
-            const SizedBox(height: 24),
+            const SizedBox(height: 28),
             _buildLoginButton(),
           ],
         ),
@@ -285,30 +354,42 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
 
   Widget _buildErrorBanner() {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.only(bottom: 18),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.red.shade50,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.red.shade200),
+        color: _rose.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: _rose.withValues(alpha: 0.2)),
       ),
       child: Row(
         children: [
-          Icon(Icons.error_outline, color: Colors.red.shade600, size: 20),
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: _rose.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Icon(Icons.error_outline, color: _rose, size: 18),
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               _errorMessage!,
-              style: TextStyle(
+              style: const TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 13,
-                color: Colors.red.shade700,
+                color: _rose,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ),
           InkWell(
             onTap: _clearError,
-            child: Icon(Icons.close, color: Colors.red.shade400, size: 18),
+            borderRadius: BorderRadius.circular(8),
+            child: Padding(
+              padding: const EdgeInsets.all(4),
+              child: Icon(Icons.close, color: _rose.withValues(alpha: 0.6), size: 18),
+            ),
           ),
         ],
       ),
@@ -323,9 +404,9 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
           'Username',
           style: TextStyle(
             fontFamily: 'Poppins',
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: Color(0xFF374151),
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: _textPrimary,
           ),
         ),
         const SizedBox(height: 8),
@@ -335,42 +416,11 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
           textInputAction: TextInputAction.next,
           enabled: !_isLoading,
           onChanged: (_) => _clearError(),
-          decoration: InputDecoration(
-            hintText: 'Masukkan username',
-            hintStyle: const TextStyle(
-              fontFamily: 'Poppins',
-              color: Color(0xFF9CA3AF),
-              fontSize: 14,
-            ),
-            prefixIcon: const Icon(
-              Icons.person_outline,
-              color: Color(0xFF6B7280),
-            ),
-            filled: true,
-            fillColor: const Color(0xFFF9FAFB),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFF3B82F6), width: 2),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Colors.red),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Colors.red, width: 2),
-            ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          decoration: _inputDecoration(
+            hint: 'Masukkan username',
+            prefixIcon: Icons.person_outline_rounded,
           ),
-          style: const TextStyle(fontFamily: 'Poppins', fontSize: 14),
+          style: const TextStyle(fontFamily: 'Poppins', fontSize: 14, color: _textPrimary),
           validator: (value) {
             if (value == null || value.trim().isEmpty) {
               return 'Username tidak boleh kosong';
@@ -393,9 +443,9 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
           'Password',
           style: TextStyle(
             fontFamily: 'Poppins',
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: Color(0xFF374151),
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: _textPrimary,
           ),
         ),
         const SizedBox(height: 8),
@@ -406,51 +456,21 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
           enabled: !_isLoading,
           onChanged: (_) => _clearError(),
           onFieldSubmitted: (_) => _login(),
-          decoration: InputDecoration(
-            hintText: 'Masukkan password',
-            hintStyle: const TextStyle(
-              fontFamily: 'Poppins',
-              color: Color(0xFF9CA3AF),
-              fontSize: 14,
-            ),
-            prefixIcon: const Icon(
-              Icons.lock_outline,
-              color: Color(0xFF6B7280),
-            ),
+          decoration: _inputDecoration(
+            hint: 'Masukkan password',
+            prefixIcon: Icons.lock_outline_rounded,
             suffixIcon: IconButton(
               icon: Icon(
-                _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                color: const Color(0xFF6B7280),
+                _obscurePassword ? Icons.visibility_off_rounded : Icons.visibility_rounded,
+                color: _textSecondary,
+                size: 20,
               ),
               onPressed: _isLoading ? null : () {
                 setState(() => _obscurePassword = !_obscurePassword);
               },
             ),
-            filled: true,
-            fillColor: const Color(0xFFF9FAFB),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFF3B82F6), width: 2),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Colors.red),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Colors.red, width: 2),
-            ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           ),
-          style: const TextStyle(fontFamily: 'Poppins', fontSize: 14),
+          style: const TextStyle(fontFamily: 'Poppins', fontSize: 14, color: _textPrimary),
           validator: (value) {
             if (value == null || value.isEmpty) {
               return 'Password tidak boleh kosong';
@@ -465,18 +485,76 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
     );
   }
 
+  InputDecoration _inputDecoration({
+    required String hint,
+    required IconData prefixIcon,
+    Widget? suffixIcon,
+  }) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: const TextStyle(
+        fontFamily: 'Poppins',
+        color: Color(0xFF94A3B8),
+        fontSize: 14,
+      ),
+      prefixIcon: Padding(
+        padding: const EdgeInsets.only(left: 14, right: 10),
+        child: Icon(prefixIcon, color: _textSecondary, size: 20),
+      ),
+      prefixIconConstraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+      suffixIcon: suffixIcon,
+      filled: true,
+      fillColor: _inputBg,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: _inputBorder),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: _inputBorder),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: _skyBlue, width: 2),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: _rose),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: _rose, width: 2),
+      ),
+      errorStyle: const TextStyle(fontFamily: 'Poppins', fontSize: 12, color: _rose),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+    );
+  }
+
   Widget _buildLoginButton() {
-    return SizedBox(
-      height: 52,
+    return Container(
+      height: 54,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(14),
+        gradient: const LinearGradient(
+          colors: [_skyBlue, _skyDark],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: _skyBlue.withValues(alpha: 0.35),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
       child: ElevatedButton(
         onPressed: _isLoading ? null : _login,
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF3B82F6),
+          backgroundColor: Colors.transparent,
+          shadowColor: Colors.transparent,
           foregroundColor: Colors.white,
-          disabledBackgroundColor: const Color(0xFF93C5FD),
-          elevation: 0,
+          disabledBackgroundColor: Colors.transparent,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(14),
           ),
         ),
         child: _isLoading
@@ -488,15 +566,49 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
                   strokeWidth: 2.5,
                 ),
               )
-            : const Text(
-                'Masuk',
-                style: TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
+            : const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.login_rounded, size: 20),
+                  SizedBox(width: 10),
+                  Text(
+                    'Masuk',
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ],
               ),
       ),
+    );
+  }
+
+  Widget _buildFooter() {
+    return Column(
+      children: [
+        Text(
+          'LOEWIX',
+          style: TextStyle(
+            fontFamily: 'Poppins',
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: Colors.white.withValues(alpha: 0.3),
+            letterSpacing: 3,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'v2.0.1 • Teknisi App',
+          style: TextStyle(
+            fontFamily: 'Poppins',
+            fontSize: 11,
+            color: Colors.white.withValues(alpha: 0.2),
+          ),
+        ),
+      ],
     );
   }
 }

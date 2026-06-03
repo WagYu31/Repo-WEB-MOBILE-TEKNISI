@@ -19,18 +19,18 @@ class PencapaianPage extends StatefulWidget {
 
 class _PencapaianPageState extends State<PencapaianPage>
     with SingleTickerProviderStateMixin {
-  // Modern color scheme
-  static const Color _primaryBlue = Color(0xFF2563EB);
-  static const Color _lightBlue = Color(0xFF3B82F6);
-  static const Color _successGreen = Color(0xFF10B981);
-  static const Color _warningAmber = Color(0xFFF59E0B);
-  static const Color _errorRed = Color(0xFFEF4444);
-  static const Color _purpleAccent = Color(0xFF8B5CF6);
+  // ─── Premium Color Palette ─────────────────────
+  static const Color _primaryBlue = Color(0xFF0EA5E9);
+  static const Color _lightBlue = Color(0xFF38BDF8);
+  static const Color _successGreen = Color(0xFF14B8A6);
+  static const Color _warningAmber = Color(0xFFF97316);
+  static const Color _errorRed = Color(0xFFF43F5E);
+  static const Color _purpleAccent = Color(0xFF6366F1);
   static const Color _cyanAccent = Color(0xFF06B6D4);
   static const Color _pinkAccent = Color(0xFFEC4899);
-  static const Color _textPrimary = Color(0xFF1F2937);
-  static const Color _textSecondary = Color(0xFF6B7280);
-  static const Color _bgColor = Color(0xFFF8FAFC);
+  static const Color _textPrimary = Color(0xFF0F172A);
+  static const Color _textSecondary = Color(0xFF64748B);
+  static const Color _bgColor = Color(0xFFF1F5F9);
 
   int _selectedMonth = DateTime.now().month;
   int _selectedYear = DateTime.now().year;
@@ -334,7 +334,7 @@ class _PencapaianPageState extends State<PencapaianPage>
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           gradient: const LinearGradient(
-            colors: [Color(0xFF2563EB), Color(0xFF1D4ED8)],
+            colors: [Color(0xFF0F172A), Color(0xFF1D4ED8)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),

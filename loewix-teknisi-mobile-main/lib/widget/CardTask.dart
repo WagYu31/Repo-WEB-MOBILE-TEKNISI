@@ -42,13 +42,13 @@ class _CardTaskState extends State<CardTask> with SingleTickerProviderStateMixin
     "Selesai!", "Completed", "Done!",
   ];
 
-  // Modern color scheme
-  static const Color _primaryBlue = Color(0xFF2563EB);
-  static const Color _successGreen = Color(0xFF10B981);
-  static const Color _warningAmber = Color(0xFFF59E0B);
-  static const Color _errorRed = Color(0xFFEF4444);
-  static const Color _textPrimary = Color(0xFF1F2937);
-  static const Color _textSecondary = Color(0xFF6B7280);
+  // ─── Premium Color Palette ─────────────────────
+  static const Color _primaryBlue = Color(0xFF0EA5E9);
+  static const Color _successGreen = Color(0xFF14B8A6);
+  static const Color _warningAmber = Color(0xFFF97316);
+  static const Color _errorRed = Color(0xFFF43F5E);
+  static const Color _textPrimary = Color(0xFF0F172A);
+  static const Color _textSecondary = Color(0xFF64748B);
   static const Color _cardBg = Colors.white;
 
   String _statusLabel = '';

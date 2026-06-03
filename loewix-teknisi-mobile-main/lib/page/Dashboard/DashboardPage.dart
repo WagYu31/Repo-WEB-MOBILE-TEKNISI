@@ -20,14 +20,16 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> {
-  // Modern color scheme
-  static const Color _primaryBlue = Color(0xFF2563EB);
-  static const Color _successGreen = Color(0xFF10B981);
-  static const Color _warningAmber = Color(0xFFF59E0B);
-  static const Color _purpleAccent = Color(0xFF8B5CF6);
-  static const Color _bgColor = Color(0xFFF8FAFC);
-  static const Color _textPrimary = Color(0xFF1F2937);
-  static const Color _textSecondary = Color(0xFF6B7280);
+  // ─── Premium Color Palette ─────────────────────
+  static const Color _navy = Color(0xFF0F172A);
+  static const Color _navyLight = Color(0xFF1E293B);
+  static const Color _skyBlue = Color(0xFF0EA5E9);
+  static const Color _teal = Color(0xFF14B8A6);
+  static const Color _warmOrange = Color(0xFFF97316);
+  static const Color _indigo = Color(0xFF6366F1);
+  static const Color _bgColor = Color(0xFFF1F5F9);
+  static const Color _textPrimary = Color(0xFF0F172A);
+  static const Color _textSecondary = Color(0xFF64748B);
 
   static const List<String> _motivationMessages = [
     "Selesaikan tugas, bonus datang dengan cepat!",
@@ -183,7 +185,7 @@ class _DashboardPageState extends State<DashboardPage> {
               ],
             ),
             child: const CircularProgressIndicator(
-              color: _primaryBlue,
+              color: _skyBlue,
               strokeWidth: 3,
             ),
           ),
@@ -204,7 +206,7 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget _buildTaskList(List<dynamic> filteredData) {
     return RefreshIndicator(
       onRefresh: _onRefresh,
-      color: _primaryBlue,
+      color: _skyBlue,
       backgroundColor: Colors.white,
       child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
@@ -230,13 +232,13 @@ class _DashboardPageState extends State<DashboardPage> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: _primaryBlue.withValues(alpha: 0.1),
+                      color: _skyBlue.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.assignment, size: 16, color: _primaryBlue),
+                        const Icon(Icons.assignment, size: 16, color: _skyBlue),
                         const SizedBox(width: 6),
                         Text(
                           '${filteredData.length} Tugas Aktif',
@@ -244,7 +246,7 @@ class _DashboardPageState extends State<DashboardPage> {
                             fontFamily: 'Poppins',
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
-                            color: _primaryBlue,
+                            color: _skyBlue,
                           ),
                         ),
                       ],
@@ -303,7 +305,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 ),
                 child: const Icon(
                   Iconsax.menu_1,
-                  color: _primaryBlue,
+                  color: _skyBlue,
                   size: 22,
                 ),
               ),
@@ -360,12 +362,12 @@ class _DashboardPageState extends State<DashboardPage> {
                         height: 20,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          color: _primaryBlue,
+                          color: _skyBlue,
                         ),
                       )
                     : const Icon(
                         Icons.refresh_rounded,
-                        color: _primaryBlue,
+                        color: _skyBlue,
                         size: 22,
                       ),
               ),
@@ -383,14 +385,14 @@ class _DashboardPageState extends State<DashboardPage> {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           gradient: const LinearGradient(
-            colors: [Color(0xFF2563EB), Color(0xFF3B82F6)],
+            colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: _primaryBlue.withValues(alpha: 0.3),
+              color: _skyBlue.withValues(alpha: 0.3),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -432,7 +434,7 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget _buildEmptyState(String message) {
     return RefreshIndicator(
       onRefresh: _onRefresh,
-      color: _primaryBlue,
+      color: _skyBlue,
       child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
@@ -464,14 +466,14 @@ class _DashboardPageState extends State<DashboardPage> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [_successGreen, _successGreen.withValues(alpha: 0.8)],
+          colors: [_teal, _teal.withValues(alpha: 0.8)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: _successGreen.withValues(alpha: 0.3),
+            color: _teal.withValues(alpha: 0.3),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
@@ -543,7 +545,7 @@ class _DashboardPageState extends State<DashboardPage> {
               child: _buildQuickActionItem(
                 icon: Iconsax.clock,
                 label: 'Riwayat',
-                color: _primaryBlue,
+                color: _skyBlue,
                 onTap: () => _navigateToMenu(1),
               ),
             ),
@@ -552,7 +554,7 @@ class _DashboardPageState extends State<DashboardPage> {
               child: _buildQuickActionItem(
                 icon: Iconsax.box,
                 label: 'Peminjaman',
-                color: _purpleAccent,
+                color: _indigo,
                 onTap: () => _navigateToMenu(2),
               ),
             ),
@@ -565,7 +567,7 @@ class _DashboardPageState extends State<DashboardPage> {
               child: _buildQuickActionItem(
                 icon: Iconsax.chart_1,
                 label: 'Statistik',
-                color: _warningAmber,
+                color: _warmOrange,
                 onTap: () => _navigateToMenu(3),
               ),
             ),
@@ -670,7 +672,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 width: 100,
                 height: 100,
                 decoration: BoxDecoration(
-                  color: _primaryBlue.withValues(alpha: 0.1),
+                  color: _skyBlue.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
               ),
@@ -678,14 +680,14 @@ class _DashboardPageState extends State<DashboardPage> {
                 width: 70,
                 height: 70,
                 decoration: BoxDecoration(
-                  color: _primaryBlue.withValues(alpha: 0.15),
+                  color: _skyBlue.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
               ),
               const Icon(
                 Iconsax.task_square,
                 size: 36,
-                color: _primaryBlue,
+                color: _skyBlue,
               ),
               Positioned(
                 right: 20,
@@ -693,7 +695,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 child: Container(
                   padding: const EdgeInsets.all(6),
                   decoration: const BoxDecoration(
-                    color: _successGreen,
+                    color: _teal,
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
@@ -775,7 +777,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   width: 24, height: 24,
                   child: CircularProgressIndicator(
                     strokeWidth: 2.5,
-                    color: _primaryBlue,
+                    color: _skyBlue,
                   ),
                 ),
               ),
@@ -806,10 +808,10 @@ class _DashboardPageState extends State<DashboardPage> {
                   Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
-                      color: _warningAmber.withValues(alpha: 0.1),
+                      color: _warmOrange.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(Iconsax.chart_15, size: 16, color: _warningAmber),
+                    child: const Icon(Iconsax.chart_15, size: 16, color: _warmOrange),
                   ),
                   const SizedBox(width: 8),
                   const Text(
@@ -832,11 +834,11 @@ class _DashboardPageState extends State<DashboardPage> {
                             fontFamily: 'Poppins',
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
-                            color: _primaryBlue.withValues(alpha: 0.8),
+                            color: _skyBlue.withValues(alpha: 0.8),
                           ),
                         ),
                         const SizedBox(width: 2),
-                        Icon(Iconsax.arrow_right_3, size: 14, color: _primaryBlue.withValues(alpha: 0.8)),
+                        Icon(Iconsax.arrow_right_3, size: 14, color: _skyBlue.withValues(alpha: 0.8)),
                       ],
                     ),
                   ),
@@ -850,7 +852,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       icon: Iconsax.task_square,
                       label: 'Kegiatan',
                       value: totalKegiatan.toString(),
-                      color: _primaryBlue,
+                      color: _skyBlue,
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -872,7 +874,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       icon: Iconsax.medal_star,
                       label: 'Bonus',
                       value: bonus > 0 ? _formatRupiah(bonus) : '-',
-                      color: _warningAmber,
+                      color: _warmOrange,
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -881,7 +883,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       icon: Iconsax.diagram,
                       label: 'Target',
                       value: '$progress%',
-                      color: _purpleAccent,
+                      color: _indigo,
                     ),
                   ),
                 ],
@@ -959,7 +961,7 @@ class _DashboardPageState extends State<DashboardPage> {
   Widget _buildErrorState(String message) {
     return RefreshIndicator(
       onRefresh: _onRefresh,
-      color: _primaryBlue,
+      color: _skyBlue,
       child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
@@ -1010,7 +1012,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   icon: const Icon(Icons.refresh_rounded, size: 18),
                   label: const Text('Coba Lagi'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _primaryBlue,
+                    backgroundColor: _skyBlue,
                     foregroundColor: Colors.white,
                     elevation: 0,
                     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),

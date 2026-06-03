@@ -24,14 +24,15 @@ class AppDrawer extends StatefulWidget {
 }
 
 class _AppDrawerState extends State<AppDrawer> {
-  // Modern color scheme
-  static const Color _primaryBlue = Color(0xFF2563EB);
-  static const Color _successGreen = Color(0xFF10B981);
-  static const Color _warningAmber = Color(0xFFF59E0B);
-  static const Color _errorRed = Color(0xFFEF4444);
-  static const Color _purpleAccent = Color(0xFF8B5CF6);
-  static const Color _textPrimary = Color(0xFF1F2937);
-  static const Color _textSecondary = Color(0xFF6B7280);
+  // ─── Premium Color Palette ─────────────────────
+  static const Color _navy = Color(0xFF0F172A);
+  static const Color _skyBlue = Color(0xFF0EA5E9);
+  static const Color _teal = Color(0xFF14B8A6);
+  static const Color _warmOrange = Color(0xFFF97316);
+  static const Color _rose = Color(0xFFF43F5E);
+  static const Color _indigo = Color(0xFF6366F1);
+  static const Color _textPrimary = Color(0xFF0F172A);
+  static const Color _textSecondary = Color(0xFF64748B);
 
   Future<ProfileTeknisiResponse>? _profileFuture;
 
@@ -56,7 +57,7 @@ class _AppDrawerState extends State<AppDrawer> {
       text: 'Apakah Anda yakin ingin keluar?',
       confirmBtnText: 'Ya, Keluar',
       cancelBtnText: 'Batal',
-      confirmBtnColor: _errorRed,
+      confirmBtnColor: _rose,
       onConfirmBtnTap: () async {
         Navigator.pop(context); // Close dialog
         await _performLogout();
@@ -108,7 +109,7 @@ class _AppDrawerState extends State<AppDrawer> {
                       activeIcon: Iconsax.task_square5,
                       title: 'Tugas',
                       subtitle: 'Kelola tugas harian',
-                      color: _primaryBlue,
+                      color: _skyBlue,
                     ),
                     _buildMenuItem(
                       index: 1,
@@ -116,7 +117,7 @@ class _AppDrawerState extends State<AppDrawer> {
                       activeIcon: Iconsax.clock5,
                       title: 'Riwayat',
                       subtitle: 'Lihat riwayat tugas',
-                      color: _successGreen,
+                      color: _teal,
                     ),
                     _buildMenuItem(
                       index: 2,
@@ -124,7 +125,7 @@ class _AppDrawerState extends State<AppDrawer> {
                       activeIcon: Iconsax.box5,
                       title: 'Peminjaman',
                       subtitle: 'Kelola peminjaman barang',
-                      color: _purpleAccent,
+                      color: _indigo,
                     ),
                     const SizedBox(height: 16),
                     _buildSectionTitle('Lainnya'),
@@ -135,7 +136,7 @@ class _AppDrawerState extends State<AppDrawer> {
                       activeIcon: Iconsax.chart_15,
                       title: 'Statistik',
                       subtitle: 'Statistik & pencapaian',
-                      color: _warningAmber,
+                      color: _warmOrange,
                     ),
                     _buildMenuItem(
                       index: 4,
@@ -143,7 +144,7 @@ class _AppDrawerState extends State<AppDrawer> {
                       activeIcon: Iconsax.video5,
                       title: 'Tutorial',
                       subtitle: 'Panduan penggunaan',
-                      color: _errorRed,
+                      color: _rose,
                       badge: 'Baru',
                     ),
                     _buildMenuItem(
@@ -152,7 +153,7 @@ class _AppDrawerState extends State<AppDrawer> {
                       activeIcon: Iconsax.profile_circle,
                       title: 'Profil',
                       subtitle: 'Informasi akun',
-                      color: _primaryBlue,
+                      color: _skyBlue,
                     ),
                   ],
                 ),
@@ -172,8 +173,8 @@ class _AppDrawerState extends State<AppDrawer> {
       width: double.infinity,
       padding: EdgeInsets.fromLTRB(20, topPadding + 20, 20, 20),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [_primaryBlue, _primaryBlue.withValues(alpha: 0.8)],
+        gradient: const LinearGradient(
+          colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -375,7 +376,7 @@ class _AppDrawerState extends State<AppDrawer> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: _warningAmber.withValues(alpha: 0.1),
+                      color: _warmOrange.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -384,7 +385,7 @@ class _AppDrawerState extends State<AppDrawer> {
                         fontFamily: 'Poppins',
                         fontSize: 10,
                         fontWeight: FontWeight.w600,
-                        color: _warningAmber,
+                        color: _warmOrange,
                       ),
                     ),
                   ),
@@ -411,8 +412,8 @@ class _AppDrawerState extends State<AppDrawer> {
         child: ElevatedButton(
           onPressed: _showLogoutConfirmation,
           style: ElevatedButton.styleFrom(
-            backgroundColor: _errorRed.withValues(alpha: 0.1),
-            foregroundColor: _errorRed,
+            backgroundColor: _rose.withValues(alpha: 0.1),
+            foregroundColor: _rose,
             elevation: 0,
             padding: const EdgeInsets.symmetric(vertical: 14),
             shape: RoundedRectangleBorder(
