@@ -299,178 +299,137 @@ class _CardTaskState extends State<CardTask> with SingleTickerProviderStateMixin
               ),
             ],
           ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: IntrinsicHeight(
-              child: Row(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Clean left accent — 4px solid
-                  Container(
-                    width: 4,
-                    color: _statusColor,
-                  ),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Top row: status + kegiatan
-                          Row(
-                            children: [
-                              // Status — small dot + text
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: _statusColor.withValues(alpha: 0.08),
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Container(
-                                      width: 6,
-                                      height: 6,
-                                      decoration: BoxDecoration(
-                                        color: _statusColor,
-                                        shape: BoxShape.circle,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 5),
-                                    Text(
-                                      _statusLabel,
-                                      style: TextStyle(
-                                        fontFamily: 'Poppins',
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w600,
-                                        color: _statusColor,
-                                        letterSpacing: 0.1,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const Spacer(),
-                              // Activity type — subtle
-                              Text(
-                                data.kegiatan,
-                                style: TextStyle(
-                                  fontFamily: 'Poppins',
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w500,
-                                  color: _textSecondary.withValues(alpha: 0.7),
-                                  letterSpacing: 0.2,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 10),
-                          // Customer name — clear hierarchy
-                          Text(
-                            data.dataCustomer.nama,
-                            style: const TextStyle(
-                              fontFamily: 'Poppins',
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
-                              color: _textPrimary,
-                              height: 1.3,
-                              letterSpacing: -0.2,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 10),
-                          // Divider
-                          Container(
-                            height: 1,
-                            color: const Color(0xFFE2E8F0),
-                          ),
-                          const SizedBox(height: 10),
-                          // Bottom row: date + arrow
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.calendar_today_rounded,
-                                size: 14,
-                                color: _textSecondary.withValues(alpha: 0.6),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                _formatDate(data.jadwal),
-                                style: const TextStyle(
-                                  fontFamily: 'Poppins',
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                  color: _textSecondary,
-                                ),
-                              ),
-                              const SizedBox(width: 6),
-                              Container(
-                                width: 3,
-                                height: 3,
-                                decoration: BoxDecoration(
-                                  color: _textSecondary.withValues(alpha: 0.3),
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                _formatTime(data.jadwal),
-                                style: TextStyle(
-                                  fontFamily: 'Poppins',
-                                  fontSize: 12,
-                                  color: _textSecondary.withValues(alpha: 0.7),
-                                ),
-                              ),
-                              const Spacer(),
-                              // Inline badges
-                              if (data.paid != null)
-                                Padding(
-                                  padding: const EdgeInsets.only(right: 8),
-                                  child: Icon(
-                                    Icons.receipt_long_rounded,
-                                    size: 14,
-                                    color: _successGreen.withValues(alpha: 0.7),
-                                  ),
-                                ),
-                              Icon(
-                                Icons.chevron_right_rounded,
-                                size: 20,
-                                color: _textSecondary.withValues(alpha: 0.4),
-                              ),
-                            ],
-                          ),
-                          // Execution status — only if not default
-                          if (_pelaksanaanStatus != 'Dijadwalkan') ...[
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                Icon(
-                                  _getStatusIconForPelaksanaan(_pelaksanaanStatus),
-                                  size: 12,
-                                  color: _textSecondary.withValues(alpha: 0.5),
-                                ),
-                                const SizedBox(width: 5),
-                                Text(
-                                  _pelaksanaanStatus,
-                                  style: TextStyle(
-                                    fontFamily: 'Poppins',
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w400,
-                                    color: _textSecondary.withValues(alpha: 0.6),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ],
+                  // Top row: status + kegiatan
+                  Row(
+                    children: [
+                      // Status — clean text only
+                      Text(
+                        _statusLabel,
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: _statusColor,
+                        ),
                       ),
-                    ),
+                      const Spacer(),
+                      // Activity type
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF1F5F9),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          data.kegiatan,
+                          style: const TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 10,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFF64748B),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
+                  const SizedBox(height: 8),
+                  // Customer name
+                  Text(
+                    data.dataCustomer.nama,
+                    style: const TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: _textPrimary,
+                      height: 1.3,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 10),
+                  // Bottom row: date + arrow
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.event_rounded,
+                        size: 14,
+                        color: _textSecondary.withValues(alpha: 0.5),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        _formatDate(data.jadwal),
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 12,
+                          color: _textSecondary.withValues(alpha: 0.7),
+                        ),
+                      ),
+                      const SizedBox(width: 5),
+                      Container(
+                        width: 3,
+                        height: 3,
+                        decoration: BoxDecoration(
+                          color: _textSecondary.withValues(alpha: 0.3),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 5),
+                      Text(
+                        _formatTime(data.jadwal),
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 12,
+                          color: _textSecondary.withValues(alpha: 0.5),
+                        ),
+                      ),
+                      const Spacer(),
+                      if (data.paid != null)
+                        Padding(
+                          padding: const EdgeInsets.only(right: 6),
+                          child: Icon(
+                            Icons.receipt_long_rounded,
+                            size: 14,
+                            color: _successGreen.withValues(alpha: 0.6),
+                          ),
+                        ),
+                      Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        size: 14,
+                        color: _textSecondary.withValues(alpha: 0.3),
+                      ),
+                    ],
+                  ),
+                  // Execution status
+                  if (_pelaksanaanStatus != 'Dijadwalkan') ...[
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Icon(
+                          _getStatusIconForPelaksanaan(_pelaksanaanStatus),
+                          size: 12,
+                          color: _textSecondary.withValues(alpha: 0.5),
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          _pelaksanaanStatus,
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 11,
+                            fontWeight: FontWeight.w400,
+                            color: _textSecondary.withValues(alpha: 0.6),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ),
-          ),
         ),
       ),
     );

@@ -221,48 +221,42 @@ class _DashboardPageState extends State<DashboardPage> {
           // Task count indicator
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
               child: Row(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [_navy, _navy.withValues(alpha: 0.85)],
-                      ),
-                      borderRadius: BorderRadius.circular(24),
-                      boxShadow: [
-                        BoxShadow(
-                          color: _navy.withValues(alpha: 0.2),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
+                  Text(
+                    '${filteredData.length} Tugas',
+                    style: const TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: _textPrimary,
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Iconsax.task_square, size: 14, color: Colors.white),
-                        const SizedBox(width: 6),
-                        Text(
-                          '${filteredData.length} Tugas Aktif',
-                          style: const TextStyle(
-                            fontFamily: 'Poppins',
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
+                  ),
+                  const SizedBox(width: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0EA5E9).withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: const Text(
+                      'Aktif',
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF0EA5E9),
+                      ),
                     ),
                   ),
                   const Spacer(),
                   Text(
                     '${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Poppins',
-                      fontSize: 11,
-                      color: _textSecondary,
+                      fontSize: 12,
+                      color: _textSecondary.withValues(alpha: 0.5),
                     ),
                   ),
                 ],
@@ -320,22 +314,22 @@ class _DashboardPageState extends State<DashboardPage> {
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
           child: Column(
             children: [
-              // Top row: menu + title + refresh
+              // Top row: title only (no motivation card)
               Row(
                 children: [
-                  // Menu button — glassmorphism
+                  // Menu button
                   Material(
                     color: Colors.white.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(12),
                     child: InkWell(
                       onTap: () => Scaffold.of(context).openDrawer(),
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(12),
                       child: Container(
-                        padding: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.all(10),
                         child: const Icon(
                           Iconsax.menu_1,
                           color: Colors.white,
-                          size: 22,
+                          size: 20,
                         ),
                       ),
                     ),
@@ -349,15 +343,15 @@ class _DashboardPageState extends State<DashboardPage> {
                           _getGreeting(),
                           style: TextStyle(
                             fontFamily: 'Poppins',
-                            fontSize: 13,
-                            color: Colors.white.withValues(alpha: 0.6),
+                            fontSize: 12,
+                            color: Colors.white.withValues(alpha: 0.5),
                           ),
                         ),
                         const Text(
                           'Daftar Kegiatan',
                           style: TextStyle(
                             fontFamily: 'Poppins',
-                            fontSize: 22,
+                            fontSize: 20,
                             fontWeight: FontWeight.w700,
                             color: Colors.white,
                             height: 1.2,
@@ -368,56 +362,28 @@ class _DashboardPageState extends State<DashboardPage> {
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
-              // Motivation card — glassmorphism inside header
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.1),
+              const SizedBox(height: 16),
+              // Motivation — simple inline text
+              Row(
+                children: [
+                  Text(
+                    '💡',
+                    style: const TextStyle(fontSize: 14),
                   ),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [_skyBlue, _skyBlue.withValues(alpha: 0.6)],
-                        ),
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: _skyBlue.withValues(alpha: 0.3),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: const Icon(
-                        Iconsax.lamp_charge,
-                        color: Colors.white,
-                        size: 20,
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      _getMotivation(),
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                        color: Colors.white.withValues(alpha: 0.55),
+                        height: 1.4,
                       ),
                     ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Text(
-                        _getMotivation(),
-                        style: TextStyle(
-                          fontFamily: 'Poppins',
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.white.withValues(alpha: 0.85),
-                          height: 1.4,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ],
           ),
