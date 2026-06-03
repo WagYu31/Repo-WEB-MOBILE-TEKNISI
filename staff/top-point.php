@@ -9,7 +9,7 @@
             <?php
             $current_date = date("Y-m-d");
             $sqlToday = "SELECT kode FROM kegiatan
-                         WHERE status != 'waiting'
+                         WHERE status NOT IN ('waiting', 'selesai by admin')
                          AND DATE(jadwal) = '$current_date'
                          AND deleted_at IS NULL
                          GROUP BY kode";
