@@ -10,7 +10,7 @@ header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET');
 
-include '../conn.php';
+include 'conn.php';
 
 // Validate params
 $teknisiId = intval($_GET['teknisi_id'] ?? 0);
