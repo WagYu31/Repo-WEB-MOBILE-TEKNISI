@@ -5,6 +5,7 @@ import 'package:timezone/data/latest.dart' as tz;
 
 import '../../service/provider/Task/DetailTaskGetProvider.dart';
 import '../../service/provider/preferences/PreferencesIDProvider.dart';
+import '../../service/model/task/TaskAllResponse.dart';
 import '../../utils/state.dart';
 import '../../widget/CardTask.dart';
 
@@ -116,16 +117,22 @@ class _DashboardPageState extends State<DashboardPage> {
                     final filteredData = state.response.data.expand((task) {
                       if (teknisiIdParsed == null) return [task];
 
-                      if (task.pelaksanaan.isEmpty ||
-                          task.pelaksanaan.every((data) => data.teknisiId != teknisiIdParsed)) {
-                        return [task];
-                      } else {
-                        return task.pelaksanaan
-                            .where((data) => (data.teknisiId == teknisiIdParsed &&
-                                             data.status != 'selesai' &&
-                                             data.status != 'Lanjut Nanti'))
-                            .map((_) => task);
+                      // Cek apakah teknisi ini ditugaskan ke task ini (via dataTeknisi / team_kegiatan)
+                      final isAssigned = task.dataTeknisi.any((t) => t.teknisiId == teknisiIdParsed);
+                      if (!isAssigned) return <DataTask>[]; // Bukan tugasnya, sembunyikan
+
+                      // Teknisi ditugaskan. Cek pelaksanaan:
+                      if (task.pelaksanaan.isEmpty) {
+                        return [task]; // Belum ada pelaksanaan tapi ditugaskan, tampilkan
                       }
+
+                      // Ada pelaksanaan, filter hanya yang milik teknisi ini dan belum selesai
+                      final myActivePelaksanaan = task.pelaksanaan
+                          .where((data) => data.teknisiId == teknisiIdParsed &&
+                                           data.status != 'selesai' &&
+                                           data.status != 'Lanjut Nanti');
+
+                      return myActivePelaksanaan.isNotEmpty ? [task] : <DataTask>[];
                     }).toList();
 
                     if (filteredData.isEmpty) {
