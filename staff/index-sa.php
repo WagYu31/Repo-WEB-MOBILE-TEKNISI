@@ -201,7 +201,7 @@ if (isset($_GET['export'])) {
     @media (max-width: 767px) { .w-sm-100 { width: 60% !important; } }
 
     /* ═══════ MOBILE COMPACT KEGIATAN ═══════ */
-    @media (max-width: 991px) {
+    @media (max-width: 767px) {
       /* Force compact card layout */
       .tbl-row {
         padding: 10px 12px !important;
