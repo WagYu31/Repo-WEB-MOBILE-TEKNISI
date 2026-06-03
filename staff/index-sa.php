@@ -269,7 +269,10 @@ if (isset($_GET['export'])) {
               <i class="material-icons">today</i>
               <h6>Kegiatan Hari Ini</h6>
             </div>
-            <a href="?export=hari_ini" class="btn-export" onclick="event.stopPropagation();"><i class="material-icons" style="font-size:14px;">download</i> Export TXT</a>
+            <div class="d-flex align-items-center gap-2">
+              <input type="text" placeholder="Cari nama, kode, teknisi..." style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:6px 12px;font-size:12px;color:#fff;outline:none;width:220px;" onfocus="this.style.borderColor='rgba(255,255,255,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.2)'" oninput="event.stopPropagation();filterRows(this.value,'data-tek-today')" onclick="event.stopPropagation();">
+              <a href="?export=hari_ini" class="btn-export" onclick="event.stopPropagation();"><i class="material-icons" style="font-size:14px;">download</i> Export TXT</a>
+            </div>
           </div>
         </div>
         <div class="col-lg-12 mt-0 mb-4" id="loadMoreX1" style="display: block;">
@@ -410,7 +413,10 @@ if (isset($_GET['export'])) {
               <i class="material-icons">event_upcoming</i>
               <h6>Kegiatan Akan Datang</h6>
             </div>
-            <a href="?export=akan_datang" class="btn-export" onclick="event.stopPropagation();"><i class="material-icons" style="font-size:14px;">download</i> Export TXT</a>
+            <div class="d-flex align-items-center gap-2">
+              <input type="text" placeholder="Cari nama, kode, teknisi..." style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:6px 12px;font-size:12px;color:#fff;outline:none;width:220px;" onfocus="this.style.borderColor='rgba(255,255,255,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.2)'" oninput="event.stopPropagation();filterRows(this.value,'data-tek-upcoming')" onclick="event.stopPropagation();">
+              <a href="?export=akan_datang" class="btn-export" onclick="event.stopPropagation();"><i class="material-icons" style="font-size:14px;">download</i> Export TXT</a>
+            </div>
           </div>
         </div>
         <div class="col-lg-12 mt-0 mb-4" id="loadMoreX2" style="display: block;">
@@ -871,6 +877,26 @@ if (isset($_GET['export'])) {
         });
       });
     });
+  </script>
+  <script>
+    function filterRows(query, listId) {
+      var list = document.getElementById(listId);
+      if (!list) return;
+      var rows = list.querySelectorAll('.tbl-row');
+      var q = query.toLowerCase().trim();
+      var count = 0;
+      rows.forEach(function(row) {
+        var text = row.textContent.toLowerCase();
+        if (q === '' || text.indexOf(q) > -1) { row.style.display = ''; count++; }
+        else { row.style.display = 'none'; }
+      });
+      var noResult = list.querySelector('.search-no-result');
+      if (count === 0 && q !== '') {
+        if (!noResult) { noResult = document.createElement('li'); noResult.className = 'search-no-result list-group-item'; noResult.style.cssText = 'padding:24px 16px;text-align:center;color:#94a3b8;font-size:13px;border:none;'; list.appendChild(noResult); }
+        noResult.innerHTML = '<i class="material-icons" style="font-size:32px;color:#cbd5e1;display:block;margin-bottom:8px;">search_off</i>Tidak ditemukan "' + query + '"';
+        noResult.style.display = '';
+      } else if (noResult) { noResult.style.display = 'none'; }
+    }
   </script>
 </body>
 </html>
