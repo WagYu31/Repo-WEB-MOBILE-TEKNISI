@@ -1,122 +1,139 @@
-<div class="col-lg-12">
-    <div class="card h-100 py-3">
-        <div class="card-header pb-0 p-3">
-            <div class="row">
-                <div class="col-12 d-flex align-items-center">
-                    <h6 class="mb-0 mx-1 ms-2 lead font-weight-bold text-uppercase">Tidak Terselesaikan</h6>
-                </div>
-            </div>
-        </div>
-        <?php
-        $current_date = date("Y-m-d");
-        $tomorrow_date = date("Y-m-d", strtotime("+1 day"));
-        $current_time = date("H:i:s");
+<?php
+if (!function_exists('translateActivityStatus_x')) {
+  function translateActivityStatus_x($status) {
+    $statusMap = ['waiting' => 'Dalam Antrian', 'dijadwalkan' => 'Dijadwalkan', 'berjalan' => 'Dalam Proses', 'selesai' => 'Selesai', 'selesai by admin' => 'Diselesaikan Admin', 'Lanjut Nanti' => 'Berlanjut', 'Lanjutan' => 'Dilanjutkan'];
+    return $statusMap[$status] ?? ucfirst($status);
+  }
+}
+if (!function_exists('formatWhatsappNumber_x')) {
+  function formatWhatsappNumber_x($number) {
+    $number = preg_replace('/[^0-9]/', '', $number);
+    if (substr($number, 0, 1) === '0') return '62' . substr($number, 1);
+    return $number;
+  }
+}
+if (!function_exists('shortenTechnicianName_x')) {
+  function shortenTechnicianName_x($fullName) {
+    if (empty($fullName)) return '-';
+    $muhammadVariants = ['Muhammad', 'Mohammed', 'Mohammad', 'Muhammed', 'Mohamed', 'Mohamad', 'Muhamad'];
+    $words = explode(" ", $fullName);
+    if (in_array($words[0], $muhammadVariants)) $words[0] = "M.";
+    $shortenedName = implode(" ", $words);
+    if (strlen($shortenedName) > 15 && count($words) > 2) {
+      $lastWordIndex = count($words) - 1;
+      if (isset($words[$lastWordIndex][0])) $words[$lastWordIndex] = strtoupper($words[$lastWordIndex][0]) . '.';
+      $shortenedName = implode(" ", $words);
+    }
+    return $shortenedName;
+  }
+}
+if (!function_exists('getStatusBadgeClass_x')) {
+  function getStatusBadgeClass_x($status) {
+    $map = ['dijadwalkan' => 'badge-dijadwalkan', 'berjalan' => 'badge-dikerjakan', 'Lanjut Nanti' => 'badge-lanjut', 'Lanjutan' => 'badge-dilanjutkan'];
+    return $map[$status] ?? 'badge-dijadwalkan';
+  }
+}
+?>
 
-        $sql = "WITH RankedKegiatan AS (
-            SELECT
-                k.*,
-                t.nama_teknisi,
-                c.nama AS nama_customer_cte,
-                c.telp AS cust_nomor_cte,
-                ROW_NUMBER() OVER(PARTITION BY k.kode ORDER BY k.jadwal DESC, k.id DESC) as rn
-            FROM
-                kegiatan k
-            LEFT JOIN
-                team_kegiatan t ON k.id = t.kegiatan_id
-            LEFT JOIN
-                customer c ON k.customer_id = c.id
-            WHERE
-                k.deleted_at IS NULL
-        )
-        SELECT
-            rk.id,
-            rk.kode,
-            rk.request,
-            rk.customer_id,
-            rk.jadwal,
-            rk.status,
-            rk.created_at,
-            rk.updated_at,
-            rk.deleted_at,
-            rk.id AS id_kegiatan,
-            rk.nama_teknisi,
-            rk.nama_customer_cte AS nama_customer,
-            rk.cust_nomor_cte AS cust_nomor
-        FROM
-            RankedKegiatan rk
-        WHERE
-            rk.rn = 1
-            AND rk.status IN ('berjalan', 'dijadwalkan', 'Lanjutan', 'Lanjut Nanti')
-            AND DATE(rk.jadwal) < '$current_date'
-        ORDER BY
-            COALESCE(rk.jadwal, '9999-12-31') DESC";
-
-
-        $result = mysqli_query($conn, $sql);
-        ?>
-        <div class="card-body pb-0 p-0">
-            <ul class="list-group m-0 mt-4 col-12" id="data-tek">
-
-                <li class="list-group-item border-0 d-flex flex-column justify-content-between ps-0 mb-2 border-radius-lg d-md-block d-none">
-                    <div class="row px-4">
-                        <div class="col-6 col-md-2 mb-2 mb-md-0">
-                            <h6 class="mb-1 text-dark font-weight-bold text-sm">Status</h6>
-                            <span class="text-xs">/ Kegiatan</span>
-                        </div>
-
-                        <div class="col-6 col-md-2 mb-2 mb-md-0">
-                            <h6 class="mb-1 text-dark font-weight-bold text-sm">Tanggal</h6>
-                            <span class="text-xs">/ Jam</span>
-                        </div>
-
-                        <div class="col-6 col-md-2 mb-2 mb-md-0 text-left text-md-center">
-                            <h6 class="mb-1 text-dark font-weight-bold text-sm">Customer</h6>
-                        </div>
-
-                        <div class="col-6 col-md-2 mb-2 mb-md-0 text-left text-md-center">
-                            <h6 class="mb-1 text-dark font-weight-bold text-sm">Teknisi</h6>
-                        </div>
-
-                        <div class="col-6 col-md-2 mb-2 mb-md-0 text-left text-md-center">
-                            <h6 class="mb-1 text-dark font-weight-bold text-sm">Permintaan Dari</h6>
-                        </div>
-
-                        <div class="col-6 col-md-2 mb-2 mb-md-0  text-start text-md-center">
-                            <h6 class="mb-1 text-dark font-weight-bold text-sm">Aksi</h6>
-                        </div>
-                    </div>
-                </li>
-                <?php
-                setlocale(LC_TIME, 'id_ID.utf8');
-                $groupedData = [];
-
-                if (mysqli_num_rows($result) > 0) {
-                    $no = 1;
-                    while ($row = mysqli_fetch_assoc($result)) {
-                        $kodeTransaksi = $row['kode'];
-                        $id_kegiatan = $row['id_kegiatan'];
-
-
-                        $isMobile = preg_match('/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino/i', $_SERVER['HTTP_USER_AGENT']);
-
-                        // Include the appropriate menu file based on device size
-                        if ($isMobile) {
-                            include "kegiatan-ln-mobile.php";
-                        } else {
-                            include "kegiatan-ln-desktop-2.php";
-                        }
-                        $no++;
-                    }
-                } else {
-                    echo "<div class='ms-4 text-sm'>Tidak ada kegiatan untuk Hari Ini</div>";
-                }
-
-
-
-
-                ?>
-
-            </ul>
-        </div>
+<div class="col-lg-12 mt-4 mb-0">
+  <div class="d-flex justify-content-between align-items-center section-header">
+    <div class="d-flex align-items-center gap-2">
+      <i class="material-icons">warning_amber</i>
+      <h6>Tidak Terselesaikan</h6>
     </div>
+    <span style="font-size:10px;color:rgba(255,255,255,0.4);">Kegiatan yang jadwalnya sudah lewat</span>
+  </div>
+</div>
+<div class="col-lg-12 mt-0 mb-4">
+  <div class="card section-card h-100 py-3">
+    <?php
+    $current_date = date("Y-m-d");
+    $sql = "WITH RankedKegiatan AS (
+        SELECT k.*, c.nama AS nama_customer, c.telp AS cust_nomor,
+            ROW_NUMBER() OVER(PARTITION BY k.kode ORDER BY k.jadwal DESC, k.id DESC) as rn
+        FROM kegiatan k
+        LEFT JOIN customer c ON k.customer_id = c.id
+        WHERE k.deleted_at IS NULL
+    )
+    SELECT * FROM RankedKegiatan
+    WHERE rn = 1
+      AND status IN ('berjalan', 'dijadwalkan', 'Lanjutan', 'Lanjut Nanti')
+      AND DATE(jadwal) < '$current_date'
+    ORDER BY COALESCE(jadwal, '9999-12-31') DESC";
+    $result = mysqli_query($conn, $sql);
+    ?>
+    <div class="card-body pb-0 p-0">
+      <ul class="list-group m-0 mt-0 col-12 p-0 py-0">
+        <li class="list-group-item tbl-header d-md-block d-none">
+          <div class="row px-3">
+            <div class="col-md-2"><span class="tbl-th">Kegiatan</span></div>
+            <div class="col-md-2"><span class="tbl-th">Customer</span></div>
+            <div class="col-md-2"><span class="tbl-th">Teknisi & Status</span></div>
+            <div class="col-md-2"><span class="tbl-th">Permintaan Dari</span></div>
+            <div class="col-md-2"><span class="tbl-th">Jadwal</span></div>
+            <div class="col-md-2 text-center"><span class="tbl-th">Aksi</span></div>
+          </div>
+        </li>
+        <?php if (mysqli_num_rows($result) > 0): ?>
+          <?php while ($row = mysqli_fetch_assoc($result)):
+            $kodeTransaksi = $row['kode'];
+            $kegLower = strtolower($row['kegiatan'] ?? '');
+            $badgeClass = 'badge-default';
+            if (strpos($kegLower, 'survey') !== false) $badgeClass = 'badge-survey';
+            elseif (strpos($kegLower, 'service') !== false) $badgeClass = 'badge-service';
+            elseif (strpos($kegLower, 'pasang') !== false) $badgeClass = 'badge-pasang';
+            $statusBadge = getStatusBadgeClass_x($row['status']);
+            $daysOverdue = (int)((strtotime($current_date) - strtotime(date("Y-m-d", strtotime($row['jadwal'])))) / 86400);
+          ?>
+            <li class="list-group-item tbl-row">
+              <div class="row px-3 w-100 align-items-start">
+                <div class="col-md-2">
+                  <?php if (!empty($row['kegiatan'])): ?>
+                    <span class="badge-type <?= $badgeClass ?>"><?= htmlspecialchars($row['kegiatan']) ?></span>
+                  <?php endif; ?>
+                  <span class="badge-status <?= $statusBadge ?>" style="margin-top:4px;"><?= translateActivityStatus_x($row['status']) ?></span>
+                  <span class="text-code"><?= $kodeTransaksi ?></span>
+                </div>
+                <div class="col-md-2">
+                  <a href="customer-detail.php?id_cust=<?= $row['customer_id'] ?>" class="text-name d-block"><?= htmlspecialchars($row['nama_customer']) ?></a>
+                  <a href="https://api.whatsapp.com/send?phone=<?= formatWhatsappNumber_x($row['cust_nomor']) ?>" target="_blank" class="text-phone"><?= htmlspecialchars($row['cust_nomor']) ?></a>
+                </div>
+                <div class="col-md-2">
+                  <?php
+                  $selTek = "SELECT tk.teknisi_id, tk.nama_teknisi FROM team_kegiatan tk JOIN kegiatan k ON tk.kegiatan_id = k.id WHERE k.kode = ? AND k.id = (SELECT MAX(id) FROM kegiatan WHERE kode = ?) GROUP BY tk.teknisi_id";
+                  $stmtTek = $conn->prepare($selTek);
+                  $stmtTek->bind_param("ss", $kodeTransaksi, $kodeTransaksi);
+                  $stmtTek->execute();
+                  $resTek = $stmtTek->get_result();
+                  while ($rowTek = $resTek->fetch_assoc()):
+                  ?>
+                    <div style="margin-bottom:4px;">
+                      <a href="list-kegiatan-teknisi.php?idTek=<?= $rowTek['teknisi_id'] ?>" style="font-size:12px;font-weight:600;color:#1e293b;text-decoration:none;display:block;line-height:1.3;"><?= shortenTechnicianName_x($rowTek['nama_teknisi']) ?></a>
+                    </div>
+                  <?php endwhile; $stmtTek->close(); ?>
+                </div>
+                <div class="col-md-2">
+                  <p style="font-size:12px;font-weight:600;color:#1e293b;margin:0;"><?= htmlspecialchars($row['request'] ?? '-') ?></p>
+                </div>
+                <div class="col-md-2">
+                  <p class="text-time"><?= date("d/m/Y", strtotime($row['jadwal'])) ?></p>
+                  <p style="font-size:10px;color:#94a3b8;margin:0;"><?= date("H:i", strtotime($row['jadwal'])) ?> WIB</p>
+                  <span style="font-size:9px;font-weight:700;padding:2px 8px;border-radius:20px;background:#fef2f2;color:#dc2626;display:inline-block;margin-top:4px;"><?= $daysOverdue ?> hari lalu</span>
+                </div>
+                <div class="col-md-2 text-center">
+                  <div class="d-flex gap-1 justify-content-center align-items-center flex-wrap">
+                    <a class="btn-act btn-act-view" href="view-kegiatan.php?kode_transaksi=<?= urlencode($kodeTransaksi) ?>" title="Lihat"><i class="material-icons" style="font-size:14px;">visibility</i></a>
+                    <button class="btn-act btn-act-edit edit-btn" data-id="<?= htmlspecialchars($kodeTransaksi) ?>" title="Reschedule"><i class="material-icons" style="font-size:14px;">autorenew</i></button>
+                    <a class="btn-act btn-act-approve" href="selesaikan-kegiatan.php?kode=<?= urlencode($kodeTransaksi) ?>&id=<?= $row['id'] ?>" title="Selesaikan"><i class="material-icons" style="font-size:14px;">check</i></a>
+                  </div>
+                </div>
+              </div>
+            </li>
+          <?php endwhile; ?>
+        <?php else: ?>
+          <div class="ms-4 text-sm py-4">Tidak ada kegiatan yang digantung</div>
+        <?php endif; ?>
+      </ul>
+    </div>
+  </div>
 </div>
