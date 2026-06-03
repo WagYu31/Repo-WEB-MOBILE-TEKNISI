@@ -366,31 +366,6 @@ class _DashboardPageState extends State<DashboardPage> {
                       ],
                     ),
                   ),
-                  // Refresh button — glassmorphism
-                  Material(
-                    color: Colors.white.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(14),
-                    child: InkWell(
-                      onTap: _isRefreshing ? null : _onRefresh,
-                      borderRadius: BorderRadius.circular(14),
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
-                        child: _isRefreshing
-                            ? const SizedBox(
-                                width: 20, height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.white,
-                                ),
-                              )
-                            : const Icon(
-                                Icons.refresh_rounded,
-                                color: Colors.white,
-                                size: 22,
-                              ),
-                      ),
-                    ),
-                  ),
                 ],
               ),
               const SizedBox(height: 20),
