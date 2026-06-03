@@ -313,7 +313,7 @@ class _DashboardPageState extends State<DashboardPage> {
       child: SafeArea(
         bottom: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 60),
           child: Column(
             children: [
               Row(
@@ -739,25 +739,35 @@ class _DashboardPageState extends State<DashboardPage> {
             : 0;
 
         return Transform.translate(
-          offset: const Offset(0, -20),
+          offset: const Offset(0, -36),
           child: Padding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
             child: Column(
               children: [
-                // Floating stats card
+                // Floating stats card with gradient border
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 16),
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(18),
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [Color(0xFF1E40AF), Color(0xFF0891B2)],
+                    ),
+                    borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF1E40AF).withValues(alpha: 0.08),
-                        blurRadius: 20,
-                        offset: const Offset(0, 8),
+                        color: const Color(0xFF1E40AF).withValues(alpha: 0.15),
+                        blurRadius: 24,
+                        offset: const Offset(0, 10),
                       ),
                     ],
                   ),
+                  child: Container(
+                    margin: const EdgeInsets.all(2),
+                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(18),
+                    ),
                   child: Row(
                     children: [
                       _buildStatItem(
@@ -784,6 +794,7 @@ class _DashboardPageState extends State<DashboardPage> {
                         label: 'Target',
                       ),
                     ],
+                  ),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -875,7 +886,7 @@ class _DashboardPageState extends State<DashboardPage> {
     return Expanded(
       child: Column(
         children: [
-          Text(emoji, style: const TextStyle(fontSize: 20)),
+          Text(emoji, style: const TextStyle(fontSize: 28)),
           const SizedBox(height: 6),
           Text(
             value,
