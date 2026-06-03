@@ -12,3 +12,13 @@
         });
     </script>
   <script src="assets/js/material-dashboard.min.js?v=3.1.0"></script>
+  <!-- PWA Service Worker Registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/staff/sw.js', { scope: '/staff/' })
+          .then(function(reg) { console.log('[PWA] SW registered, scope:', reg.scope); })
+          .catch(function(err) { console.log('[PWA] SW registration failed:', err); });
+      });
+    }
+  </script>

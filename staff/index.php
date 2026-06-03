@@ -12,6 +12,13 @@ if (isset($_GET['login']) && $_GET['login'] === 'failed') {
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <link rel="apple-touch-icon" sizes="76x76" href="assets/img/logo/lwx.png">
   <link rel="icon" type="image/png" href="assets/img/logo/lwx.png">
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1a1a2e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Loewix">
+  <meta name="mobile-web-app-capable" content="yes">
   <title>
     LOG IN
   </title>
@@ -111,6 +118,16 @@ if (isset($_GET['login']) && $_GET['login'] === 'failed') {
   </script>
   <script async defer src="https://buttons.github.io/buttons.js"></script>
   <script src="assets/js/material-dashboard.min.js?v=3.1.0"></script>
+  <!-- PWA Service Worker Registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/staff/sw.js', { scope: '/staff/' })
+          .then(function(reg) { console.log('[PWA] SW registered:', reg.scope); })
+          .catch(function(err) { console.log('[PWA] SW failed:', err); });
+      });
+    }
+  </script>
 </body>
 
 </html>

@@ -10,14 +10,14 @@ import '../../service/provider/preferences/PreferencesIDProvider.dart';
 import '../../service/model/pencapaian/PencapaianResponse.dart';
 import '../../service/model/pencapaian/PendapatanResponse.dart';
 
-class PencapaianPage extends StatefulWidget {
-  const PencapaianPage({super.key});
+class StatistikPage extends StatefulWidget {
+  const StatistikPage({super.key});
 
   @override
-  State<PencapaianPage> createState() => _PencapaianPageState();
+  State<StatistikPage> createState() => _StatistikPageState();
 }
 
-class _PencapaianPageState extends State<PencapaianPage>
+class _StatistikPageState extends State<StatistikPage>
     with SingleTickerProviderStateMixin {
   // Modern color scheme
   static const Color _primaryBlue = Color(0xFF2563EB);
@@ -36,9 +36,10 @@ class _PencapaianPageState extends State<PencapaianPage>
   int _selectedYear = DateTime.now().year;
   int? _teknisiId;
 
-  // Yearly trend data
+  // Chart data for yearly trend
   List<DataPencapaian> _yearlyData = [];
   bool _isLoadingYearly = false;
+  String _yearlyError = '';
 
   late AnimationController _animController;
   late Animation<double> _fadeAnim;
@@ -53,6 +54,7 @@ class _PencapaianPageState extends State<PencapaianPage>
     'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'
   ];
 
+  // Colors for bar chart categories
   static const List<Color> _barColors = [
     _primaryBlue, _successGreen, _purpleAccent, _warningAmber,
     _cyanAccent, _pinkAccent, _errorRed, Color(0xFF6366F1),
@@ -96,7 +98,10 @@ class _PencapaianPageState extends State<PencapaianPage>
 
   Future<void> _loadYearlyData() async {
     if (_teknisiId == null) return;
-    setState(() => _isLoadingYearly = true);
+    setState(() {
+      _isLoadingYearly = true;
+      _yearlyError = '';
+    });
     try {
       final api = ApiTeknisi();
       final response = await api.getPencapaian(_teknisiId.toString());
@@ -107,7 +112,12 @@ class _PencapaianPageState extends State<PencapaianPage>
         });
       }
     } catch (e) {
-      if (mounted) setState(() => _isLoadingYearly = false);
+      if (mounted) {
+        setState(() {
+          _yearlyError = e.toString();
+          _isLoadingYearly = false;
+        });
+      }
     }
   }
 
@@ -121,24 +131,28 @@ class _PencapaianPageState extends State<PencapaianPage>
   }
 
   String _formatRupiah(int value) {
+    if (value >= 1000000) {
+      return 'Rp ${(value / 1000000).toStringAsFixed(1)}jt';
+    }
+    if (value >= 1000) {
+      return 'Rp ${(value / 1000).toStringAsFixed(0)}rb';
+    }
     return 'Rp ${value.toString().replaceAllMapped(
       RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
       (Match m) => '${m[1]}.',
     )}';
   }
 
-  String _formatRupiahShort(int value) {
-    if (value >= 1000000) return 'Rp ${(value / 1000000).toStringAsFixed(1)}jt';
-    if (value >= 1000) return 'Rp ${(value / 1000).toStringAsFixed(0)}rb';
-    return _formatRupiah(value);
+  String _formatRupiahFull(int value) {
+    return 'Rp ${value.toString().replaceAllMapped(
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (Match m) => '${m[1]}.',
+    )}';
   }
 
-  String _capitalizeFirst(String text) {
-    if (text.isEmpty) return text;
-    return text.split(' ').map((word) {
-      if (word.isEmpty) return word;
-      return word[0].toUpperCase() + word.substring(1).toLowerCase();
-    }).join(' ');
+  String _capitalizeFirst(String s) {
+    if (s.isEmpty) return s;
+    return s[0].toUpperCase() + s.substring(1).toLowerCase();
   }
 
   @override
@@ -163,9 +177,9 @@ class _PencapaianPageState extends State<PencapaianPage>
                 child: CustomScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
                   slivers: [
-                    // ─── HEADER ──────────────────────────
+                    // Header
                     SliverToBoxAdapter(child: _buildHeader()),
-                    // ─── MONTH SELECTOR ──────────────────
+                    // Month selector
                     SliverToBoxAdapter(
                       child: Padding(
                         padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
@@ -178,8 +192,8 @@ class _PencapaianPageState extends State<PencapaianPage>
                         child: _buildLoadingState(),
                       )
                     else ...[
-                      // ─── SUMMARY CARDS ─────────────────
-                      if (provider.pencapaianState == PencapaianState.loaded ||
+                      // Summary cards
+                      if (provider.pencapaianState == PencapaianState.loaded &&
                           provider.pendapatanState == PencapaianState.loaded)
                         SliverToBoxAdapter(
                           child: Padding(
@@ -190,40 +204,27 @@ class _PencapaianPageState extends State<PencapaianPage>
                             ),
                           ),
                         ),
-
-                      // ─── BAR CHART — Rincian Kegiatan ──
+                      // Bar chart — Kegiatan
                       SliverToBoxAdapter(
                         child: Padding(
                           padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
                           child: _buildBarChartSection(provider),
                         ),
                       ),
-
-                      // ─── LINE CHART — Tren Pendapatan ──
+                      // Line chart — Pendapatan trend
                       SliverToBoxAdapter(
                         child: Padding(
                           padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
                           child: _buildLineChartSection(),
                         ),
                       ),
-
-                      // ─── PENDAPATAN TARGET PROGRESS ────
-                      if (provider.pendapatanState == PencapaianState.loaded &&
-                          provider.pendapatanData != null)
-                        SliverToBoxAdapter(
-                          child: Padding(
-                            padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
-                            child: _buildTargetProgress(provider.pendapatanData!),
-                          ),
-                        ),
-
-                      // ─── DETAIL PENDAPATAN ─────────────
+                      // Pendapatan breakdown
                       if (provider.pendapatanState == PencapaianState.loaded &&
                           provider.pendapatanData != null)
                         SliverToBoxAdapter(
                           child: Padding(
                             padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
-                            child: _buildPendapatanDetail(provider.pendapatanData!),
+                            child: _buildPendapatanBreakdown(provider.pendapatanData!),
                           ),
                         ),
                     ],
@@ -237,9 +238,7 @@ class _PencapaianPageState extends State<PencapaianPage>
     );
   }
 
-  // ════════════════════════════════════════════════════
-  // HEADER
-  // ════════════════════════════════════════════════════
+  // ─── HEADER ──────────────────────────────────────────
   Widget _buildHeader() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
@@ -281,7 +280,7 @@ class _PencapaianPageState extends State<PencapaianPage>
                   ),
                 ),
                 Text(
-                  'Pencapaian',
+                  'Statistik',
                   style: TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 24,
@@ -323,9 +322,7 @@ class _PencapaianPageState extends State<PencapaianPage>
     );
   }
 
-  // ════════════════════════════════════════════════════
-  // MONTH SELECTOR
-  // ════════════════════════════════════════════════════
+  // ─── MONTH SELECTOR ──────────────────────────────────
   Widget _buildMonthSelector() {
     return InkWell(
       onTap: _showMonthYearPicker,
@@ -367,7 +364,7 @@ class _PencapaianPageState extends State<PencapaianPage>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Periode',
+                    'Periode Statistik',
                     style: TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 11,
@@ -405,9 +402,7 @@ class _PencapaianPageState extends State<PencapaianPage>
     );
   }
 
-  // ════════════════════════════════════════════════════
-  // SUMMARY CARDS (4 cards in 2x2 grid)
-  // ════════════════════════════════════════════════════
+  // ─── SUMMARY CARDS ───────────────────────────────────
   Widget _buildSummaryCards(
     PencapaianResponse? pencapaian,
     PendapatanResponse? pendapatan,
@@ -430,6 +425,7 @@ class _PencapaianPageState extends State<PencapaianPage>
                 title: 'Kegiatan',
                 value: totalKegiatan.toString(),
                 subtitle: 'Selesai bulan ini',
+                color: _primaryBlue,
                 gradient: [_primaryBlue, _lightBlue],
               ),
             ),
@@ -438,8 +434,9 @@ class _PencapaianPageState extends State<PencapaianPage>
               child: _buildStatCard(
                 icon: Iconsax.wallet_3,
                 title: 'Pendapatan',
-                value: _formatRupiahShort(totalPendapatan),
+                value: _formatRupiah(totalPendapatan),
                 subtitle: 'Total bulan ini',
+                color: _successGreen,
                 gradient: [_successGreen, const Color(0xFF34D399)],
               ),
             ),
@@ -452,8 +449,9 @@ class _PencapaianPageState extends State<PencapaianPage>
               child: _buildStatCard(
                 icon: Iconsax.medal_star,
                 title: 'Bonus',
-                value: bonus > 0 ? _formatRupiahShort(bonus) : '-',
+                value: bonus > 0 ? _formatRupiah(bonus) : '-',
                 subtitle: bonus > 0 ? 'Tercapai!' : 'Belum tercapai',
+                color: _warningAmber,
                 gradient: [_warningAmber, const Color(0xFFFBBF24)],
               ),
             ),
@@ -464,6 +462,7 @@ class _PencapaianPageState extends State<PencapaianPage>
                 title: 'Target',
                 value: '$progress%',
                 subtitle: 'Progress tercapai',
+                color: _purpleAccent,
                 gradient: [_purpleAccent, const Color(0xFFA78BFA)],
               ),
             ),
@@ -478,6 +477,7 @@ class _PencapaianPageState extends State<PencapaianPage>
     required String title,
     required String value,
     required String subtitle,
+    required Color color,
     required List<Color> gradient,
   }) {
     return Container(
@@ -487,7 +487,7 @@ class _PencapaianPageState extends State<PencapaianPage>
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: gradient[0].withValues(alpha: 0.08),
+            color: color.withValues(alpha: 0.08),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -527,7 +527,7 @@ class _PencapaianPageState extends State<PencapaianPage>
               fontFamily: 'Poppins',
               fontSize: 22,
               fontWeight: FontWeight.w700,
-              color: gradient[0],
+              color: color,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -546,34 +546,85 @@ class _PencapaianPageState extends State<PencapaianPage>
     );
   }
 
-  // ════════════════════════════════════════════════════
-  // BAR CHART — Rincian Kegiatan
-  // ════════════════════════════════════════════════════
+  // ─── BAR CHART ─────────────────────────────────────
   Widget _buildBarChartSection(PencapaianProvider provider) {
-    return _buildChartCard(
-      icon: Iconsax.chart_215,
-      iconColor: _primaryBlue,
-      title: 'Rincian Kegiatan',
-      subtitle: 'Breakdown kegiatan selesai',
-      child: provider.pencapaianState == PencapaianState.error
-          ? _buildChartMessage('Gagal memuat data', Icons.error_outline_rounded, _errorRed)
-          : provider.pencapaianState == PencapaianState.loaded &&
-                provider.pencapaianData != null &&
-                provider.pencapaianData!.rincian.isNotEmpty
-              ? _buildBarChart(provider.pencapaianData!)
-              : _buildChartMessage('Belum ada kegiatan', Iconsax.chart, _textSecondary),
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: _primaryBlue.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Iconsax.chart_215, size: 20, color: _primaryBlue),
+              ),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Rincian Kegiatan',
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: _textPrimary,
+                      ),
+                    ),
+                    Text(
+                      'Breakdown kegiatan selesai',
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 11,
+                        color: _textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          if (provider.pencapaianState == PencapaianState.error)
+            _buildChartError('Gagal memuat data kegiatan')
+          else if (provider.pencapaianState == PencapaianState.loaded &&
+                   provider.pencapaianData != null)
+            _buildBarChart(provider.pencapaianData!)
+          else
+            _buildChartEmpty('Belum ada data kegiatan'),
+        ],
+      ),
     );
   }
 
   Widget _buildBarChart(PencapaianResponse data) {
     final entries = data.rincian.entries.toList();
+    if (entries.isEmpty) return _buildChartEmpty('Belum ada kegiatan selesai');
+
     final maxVal = entries.map((e) => e.value).reduce((a, b) => a > b ? a : b);
     final maxY = (maxVal + 2).toDouble();
 
     return Column(
       children: [
         SizedBox(
-          height: 200,
+          height: 220,
           child: BarChart(
             BarChartData(
               alignment: BarChartAlignment.spaceAround,
@@ -619,7 +670,9 @@ class _PencapaianPageState extends State<PencapaianPage>
                     getTitlesWidget: (value, meta) => Text(
                       value.toInt().toString(),
                       style: const TextStyle(
-                        fontFamily: 'Poppins', fontSize: 11, color: _textSecondary,
+                        fontFamily: 'Poppins',
+                        fontSize: 11,
+                        color: _textSecondary,
                       ),
                     ),
                   ),
@@ -637,10 +690,13 @@ class _PencapaianPageState extends State<PencapaianPage>
                           : _capitalizeFirst(label);
                       return Padding(
                         padding: const EdgeInsets.only(top: 8),
-                        child: Text(short,
+                        child: Text(
+                          short,
                           style: const TextStyle(
-                            fontFamily: 'Poppins', fontSize: 9,
-                            fontWeight: FontWeight.w500, color: _textSecondary,
+                            fontFamily: 'Poppins',
+                            fontSize: 9,
+                            fontWeight: FontWeight.w500,
+                            color: _textSecondary,
                           ),
                           textAlign: TextAlign.center,
                         ),
@@ -654,22 +710,30 @@ class _PencapaianPageState extends State<PencapaianPage>
                 drawVerticalLine: false,
                 horizontalInterval: maxY > 10 ? (maxY / 5).ceilToDouble() : 1,
                 getDrawingHorizontalLine: (value) => FlLine(
-                  color: const Color(0xFFE5E7EB), strokeWidth: 1, dashArray: [5, 5],
+                  color: const Color(0xFFE5E7EB),
+                  strokeWidth: 1,
+                  dashArray: [5, 5],
                 ),
               ),
               borderData: FlBorderData(show: false),
               barGroups: entries.asMap().entries.map((e) {
-                final color = _barColors[e.key % _barColors.length];
+                final idx = e.key;
+                final val = e.value.value.toDouble();
+                final color = _barColors[idx % _barColors.length];
                 return BarChartGroupData(
-                  x: e.key,
+                  x: idx,
                   barRods: [
                     BarChartRodData(
-                      toY: e.value.value.toDouble(),
+                      toY: val,
                       color: color,
                       width: entries.length > 5 ? 16 : 28,
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(8),
+                      ),
                       backDrawRodData: BackgroundBarChartRodData(
-                        show: true, toY: maxY, color: color.withValues(alpha: 0.06),
+                        show: true,
+                        toY: maxY,
+                        color: color.withValues(alpha: 0.06),
                       ),
                     ),
                   ],
@@ -679,6 +743,7 @@ class _PencapaianPageState extends State<PencapaianPage>
           ),
         ),
         const SizedBox(height: 16),
+        // Legend
         Wrap(
           spacing: 12,
           runSpacing: 8,
@@ -688,16 +753,20 @@ class _PencapaianPageState extends State<PencapaianPage>
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  width: 10, height: 10,
+                  width: 10,
+                  height: 10,
                   decoration: BoxDecoration(
-                    color: color, borderRadius: BorderRadius.circular(3),
+                    color: color,
+                    borderRadius: BorderRadius.circular(3),
                   ),
                 ),
                 const SizedBox(width: 4),
                 Text(
                   '${_capitalizeFirst(e.value.key)} (${e.value.value})',
                   style: const TextStyle(
-                    fontFamily: 'Poppins', fontSize: 10, color: _textSecondary,
+                    fontFamily: 'Poppins',
+                    fontSize: 10,
+                    color: _textSecondary,
                   ),
                 ),
               ],
@@ -708,37 +777,86 @@ class _PencapaianPageState extends State<PencapaianPage>
     );
   }
 
-  // ════════════════════════════════════════════════════
-  // LINE CHART — Tren Pendapatan
-  // ════════════════════════════════════════════════════
+  // ─── LINE CHART ────────────────────────────────────
   Widget _buildLineChartSection() {
-    Widget content;
-    if (_isLoadingYearly) {
-      content = const SizedBox(
-        height: 180,
-        child: Center(child: CircularProgressIndicator(color: _primaryBlue, strokeWidth: 2)),
-      );
-    } else if (_yearlyData.isEmpty) {
-      content = _buildChartMessage('Belum ada data tren', Iconsax.trend_up, _textSecondary);
-    } else {
-      content = _buildLineChart();
-    }
-
-    return _buildChartCard(
-      icon: Iconsax.trend_up,
-      iconColor: _successGreen,
-      title: 'Tren Pendapatan',
-      subtitle: 'Pendapatan vs Target per bulan',
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          content,
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: _successGreen.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Iconsax.trend_up, size: 20, color: _successGreen),
+              ),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Tren Pendapatan',
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: _textPrimary,
+                      ),
+                    ),
+                    Text(
+                      'Pendapatan vs Target per bulan',
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 11,
+                        color: _textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          if (_isLoadingYearly)
+            const SizedBox(
+              height: 200,
+              child: Center(
+                child: CircularProgressIndicator(
+                  color: _primaryBlue,
+                  strokeWidth: 2,
+                ),
+              ),
+            )
+          else if (_yearlyError.isNotEmpty)
+            _buildChartError('Gagal memuat data tren')
+          else if (_yearlyData.isEmpty)
+            _buildChartEmpty('Belum ada data tren pendapatan')
+          else
+            _buildLineChart(),
           const SizedBox(height: 16),
+          // Legend
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _buildLegendDot('Pendapatan', _primaryBlue),
+              _buildLegendItem('Pendapatan', _primaryBlue),
               const SizedBox(width: 24),
-              _buildLegendDot('Target', _errorRed),
+              _buildLegendItem('Target', _errorRed),
             ],
           ),
         ],
@@ -746,18 +864,26 @@ class _PencapaianPageState extends State<PencapaianPage>
     );
   }
 
-  Widget _buildLegendDot(String label, Color color) {
+  Widget _buildLegendItem(String label, Color color) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 14, height: 4,
-          decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(2)),
+          width: 14,
+          height: 4,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(2),
+          ),
         ),
         const SizedBox(width: 6),
-        Text(label,
+        Text(
+          label,
           style: const TextStyle(
-            fontFamily: 'Poppins', fontSize: 11, fontWeight: FontWeight.w500, color: _textSecondary,
+            fontFamily: 'Poppins',
+            fontSize: 11,
+            fontWeight: FontWeight.w500,
+            color: _textSecondary,
           ),
         ),
       ],
@@ -765,8 +891,11 @@ class _PencapaianPageState extends State<PencapaianPage>
   }
 
   Widget _buildLineChart() {
+    // Sort by tanggal
     final sorted = List<DataPencapaian>.from(_yearlyData)
       ..sort((a, b) => a.tanggal.compareTo(b.tanggal));
+
+    // Take last 12 entries
     final data = sorted.length > 12 ? sorted.sublist(sorted.length - 12) : sorted;
 
     final pendapatanSpots = <FlSpot>[];
@@ -774,18 +903,19 @@ class _PencapaianPageState extends State<PencapaianPage>
     double maxY = 0;
 
     for (int i = 0; i < data.length; i++) {
-      final p = double.tryParse(data[i].pendapatan) ?? 0;
-      final t = double.tryParse(data[i].target) ?? 0;
-      pendapatanSpots.add(FlSpot(i.toDouble(), p));
-      targetSpots.add(FlSpot(i.toDouble(), t));
-      if (p > maxY) maxY = p;
-      if (t > maxY) maxY = t;
+      final pendapatan = double.tryParse(data[i].pendapatan) ?? 0;
+      final target = double.tryParse(data[i].target) ?? 0;
+      pendapatanSpots.add(FlSpot(i.toDouble(), pendapatan));
+      targetSpots.add(FlSpot(i.toDouble(), target));
+      if (pendapatan > maxY) maxY = pendapatan;
+      if (target > maxY) maxY = target;
     }
-    maxY = maxY * 1.2;
+
+    maxY = maxY * 1.2; // 20% padding
     if (maxY == 0) maxY = 1000000;
 
     return SizedBox(
-      height: 200,
+      height: 220,
       child: LineChart(
         LineChartData(
           minY: 0,
@@ -795,23 +925,30 @@ class _PencapaianPageState extends State<PencapaianPage>
             touchTooltipData: LineTouchTooltipData(
               tooltipRoundedRadius: 12,
               fitInsideHorizontally: true,
-              getTooltipItems: (spots) => spots.map((spot) {
-                final label = spot.barIndex == 0 ? 'Pendapatan' : 'Target';
-                return LineTooltipItem(
-                  '$label\n${_formatRupiah(spot.y.toInt())}',
-                  const TextStyle(
-                    fontFamily: 'Poppins', color: Colors.white, fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                  ),
-                );
-              }).toList(),
+              getTooltipItems: (touchedSpots) {
+                return touchedSpots.map((spot) {
+                  final isPendapatan = spot.barIndex == 0;
+                  return LineTooltipItem(
+                    '${isPendapatan ? 'Pendapatan' : 'Target'}\n${_formatRupiahFull(spot.y.toInt())}',
+                    TextStyle(
+                      fontFamily: 'Poppins',
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  );
+                }).toList();
+              },
             ),
           ),
           gridData: FlGridData(
-            show: true, drawVerticalLine: false,
+            show: true,
+            drawVerticalLine: false,
             horizontalInterval: maxY / 4,
             getDrawingHorizontalLine: (value) => FlLine(
-              color: const Color(0xFFE5E7EB), strokeWidth: 1, dashArray: [5, 5],
+              color: const Color(0xFFE5E7EB),
+              strokeWidth: 1,
+              dashArray: [5, 5],
             ),
           ),
           titlesData: FlTitlesData(
@@ -832,9 +969,12 @@ class _PencapaianPageState extends State<PencapaianPage>
                   } else {
                     label = value.toInt().toString();
                   }
-                  return Text(label,
+                  return Text(
+                    label,
                     style: const TextStyle(
-                      fontFamily: 'Poppins', fontSize: 9, color: _textSecondary,
+                      fontFamily: 'Poppins',
+                      fontSize: 9,
+                      color: _textSecondary,
                     ),
                   );
                 },
@@ -848,12 +988,16 @@ class _PencapaianPageState extends State<PencapaianPage>
                 getTitlesWidget: (value, meta) {
                   final idx = value.toInt();
                   if (idx < 0 || idx >= data.length) return const SizedBox();
+                  final month = data[idx].tanggal.month;
                   return Padding(
                     padding: const EdgeInsets.only(top: 8),
-                    child: Text(_monthShort[data[idx].tanggal.month - 1],
+                    child: Text(
+                      _monthShort[month - 1],
                       style: const TextStyle(
-                        fontFamily: 'Poppins', fontSize: 9,
-                        fontWeight: FontWeight.w500, color: _textSecondary,
+                        fontFamily: 'Poppins',
+                        fontSize: 9,
+                        fontWeight: FontWeight.w500,
+                        color: _textSecondary,
                       ),
                     ),
                   );
@@ -863,6 +1007,7 @@ class _PencapaianPageState extends State<PencapaianPage>
           ),
           borderData: FlBorderData(show: false),
           lineBarsData: [
+            // Pendapatan line
             LineChartBarData(
               spots: pendapatanSpots,
               isCurved: true,
@@ -874,8 +1019,10 @@ class _PencapaianPageState extends State<PencapaianPage>
                 show: true,
                 getDotPainter: (spot, percent, barData, index) =>
                     FlDotCirclePainter(
-                  radius: 4, color: Colors.white,
-                  strokeWidth: 2.5, strokeColor: _primaryBlue,
+                  radius: 4,
+                  color: Colors.white,
+                  strokeWidth: 2.5,
+                  strokeColor: _primaryBlue,
                 ),
               ),
               belowBarData: BarAreaData(
@@ -890,6 +1037,7 @@ class _PencapaianPageState extends State<PencapaianPage>
                 ),
               ),
             ),
+            // Target line
             LineChartBarData(
               spots: targetSpots,
               isCurved: false,
@@ -906,152 +1054,8 @@ class _PencapaianPageState extends State<PencapaianPage>
     );
   }
 
-  // ════════════════════════════════════════════════════
-  // TARGET PROGRESS
-  // ════════════════════════════════════════════════════
-  Widget _buildTargetProgress(PendapatanResponse data) {
-    final progress = data.target > 0
-        ? (data.totalKeseluruhan / data.target).clamp(0.0, 1.5)
-        : 0.0;
-    final isReached = data.totalKeseluruhan >= data.target;
-
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: (isReached ? _successGreen : _warningAmber).withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Icon(
-                      isReached ? Iconsax.medal_star5 : Iconsax.flag,
-                      size: 20,
-                      color: isReached ? _successGreen : _warningAmber,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  const Text(
-                    'Progress Target',
-                    style: TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: _textPrimary,
-                    ),
-                  ),
-                ],
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: (isReached ? _successGreen : _warningAmber).withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  '${(progress * 100).toStringAsFixed(0)}%',
-                  style: TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: isReached ? _successGreen : _warningAmber,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: LinearProgressIndicator(
-              value: progress.clamp(0.0, 1.0),
-              minHeight: 10,
-              backgroundColor: const Color(0xFFE5E7EB),
-              valueColor: AlwaysStoppedAnimation<Color>(
-                isReached ? _successGreen : _primaryBlue,
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                _formatRupiah(data.totalKeseluruhan),
-                style: const TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: _textPrimary,
-                ),
-              ),
-              Text(
-                'Target: ${_formatRupiah(data.target)}',
-                style: const TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 12,
-                  color: _textSecondary,
-                ),
-              ),
-            ],
-          ),
-          if (data.bonus > 0) ...[
-            const SizedBox(height: 12),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [_successGreen, _successGreen.withValues(alpha: 0.8)],
-                ),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Iconsax.gift, color: Colors.white, size: 20),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      'Bonus: ${_formatRupiah(data.bonus)}',
-                      style: const TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  // ════════════════════════════════════════════════════
-  // DETAIL PENDAPATAN
-  // ════════════════════════════════════════════════════
-  Widget _buildPendapatanDetail(PendapatanResponse data) {
+  // ─── PENDAPATAN BREAKDOWN ──────────────────────────
+  Widget _buildPendapatanBreakdown(PendapatanResponse data) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -1079,25 +1083,27 @@ class _PencapaianPageState extends State<PencapaianPage>
                 child: const Icon(Iconsax.receipt_text, size: 20, color: _purpleAccent),
               ),
               const SizedBox(width: 10),
-              const Text(
-                'Rincian Pendapatan',
-                style: TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: _textPrimary,
+              const Expanded(
+                child: Text(
+                  'Detail Pendapatan',
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: _textPrimary,
+                  ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 20),
-          _buildDetailRow('Jumlah Kegiatan', data.jumlahKegiatan.toString(), Iconsax.task_square, _primaryBlue),
-          _buildDetailRow('Selesai', data.selesai.toString(), Iconsax.tick_circle, _successGreen),
-          _buildDetailRow('Invoice', _formatRupiah(data.invoice), Iconsax.document_text, _cyanAccent),
-          _buildDetailRow('Fee Teknisi', _formatRupiah(data.fee), Iconsax.money_recive, _warningAmber),
-          _buildDetailRow('Total Pendapatan', _formatRupiah(data.totalPendapatan), Iconsax.wallet_money, _purpleAccent),
+          _buildBreakdownItem('Jumlah Kegiatan', data.jumlahKegiatan.toString(), Iconsax.task_square, _primaryBlue),
+          _buildBreakdownItem('Selesai', data.selesai.toString(), Iconsax.tick_circle, _successGreen),
+          _buildBreakdownItem('Invoice', _formatRupiahFull(data.invoice), Iconsax.document_text, _cyanAccent),
+          _buildBreakdownItem('Fee Teknisi', _formatRupiahFull(data.fee), Iconsax.money_recive, _warningAmber),
+          _buildBreakdownItem('Total Pendapatan', _formatRupiahFull(data.totalPendapatan), Iconsax.wallet_money, _purpleAccent),
           if (data.bonus > 0)
-            _buildDetailRow('Bonus', _formatRupiah(data.bonus), Iconsax.medal_star, _successGreen),
+            _buildBreakdownItem('Bonus', _formatRupiahFull(data.bonus), Iconsax.medal_star, _successGreen),
           const Divider(height: 24),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1114,11 +1120,13 @@ class _PencapaianPageState extends State<PencapaianPage>
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(colors: [_primaryBlue, _lightBlue]),
+                  gradient: const LinearGradient(
+                    colors: [_primaryBlue, _lightBlue],
+                  ),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  _formatRupiah(data.totalKeseluruhan),
+                  _formatRupiahFull(data.totalKeseluruhan),
                   style: const TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 14,
@@ -1134,7 +1142,7 @@ class _PencapaianPageState extends State<PencapaianPage>
     );
   }
 
-  Widget _buildDetailRow(String label, String value, IconData icon, Color color) {
+  Widget _buildBreakdownItem(String label, String value, IconData icon, Color color) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
       child: Row(
@@ -1149,15 +1157,22 @@ class _PencapaianPageState extends State<PencapaianPage>
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(label,
+            child: Text(
+              label,
               style: const TextStyle(
-                fontFamily: 'Poppins', fontSize: 13, color: _textSecondary,
+                fontFamily: 'Poppins',
+                fontSize: 13,
+                color: _textSecondary,
               ),
             ),
           ),
-          Text(value,
+          Text(
+            value,
             style: const TextStyle(
-              fontFamily: 'Poppins', fontSize: 14, fontWeight: FontWeight.w600, color: _textPrimary,
+              fontFamily: 'Poppins',
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: _textPrimary,
             ),
           ),
         ],
@@ -1165,90 +1180,7 @@ class _PencapaianPageState extends State<PencapaianPage>
     );
   }
 
-  // ════════════════════════════════════════════════════
-  // SHARED WIDGETS
-  // ════════════════════════════════════════════════════
-  Widget _buildChartCard({
-    required IconData icon,
-    required Color iconColor,
-    required String title,
-    required String subtitle,
-    required Widget child,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: iconColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(icon, size: 20, color: iconColor),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(title,
-                      style: const TextStyle(
-                        fontFamily: 'Poppins', fontSize: 16,
-                        fontWeight: FontWeight.w600, color: _textPrimary,
-                      ),
-                    ),
-                    Text(subtitle,
-                      style: const TextStyle(
-                        fontFamily: 'Poppins', fontSize: 11, color: _textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          child,
-        ],
-      ),
-    );
-  }
-
-  Widget _buildChartMessage(String msg, IconData icon, Color color) {
-    return SizedBox(
-      height: 140,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 36, color: color.withValues(alpha: 0.4)),
-            const SizedBox(height: 8),
-            Text(msg,
-              style: const TextStyle(
-                fontFamily: 'Poppins', fontSize: 13, color: _textSecondary,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
+  // ─── HELPERS ───────────────────────────────────────
   Widget _buildLoadingState() {
     return Center(
       child: Column(
@@ -1266,21 +1198,72 @@ class _PencapaianPageState extends State<PencapaianPage>
                 ),
               ],
             ),
-            child: const CircularProgressIndicator(color: _primaryBlue, strokeWidth: 3),
+            child: const CircularProgressIndicator(
+              color: _primaryBlue,
+              strokeWidth: 3,
+            ),
           ),
           const SizedBox(height: 20),
           const Text(
-            'Memuat data...',
-            style: TextStyle(fontFamily: 'Poppins', fontSize: 14, color: _textSecondary),
+            'Memuat statistik...',
+            style: TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 14,
+              color: _textSecondary,
+            ),
           ),
         ],
       ),
     );
   }
 
-  // ════════════════════════════════════════════════════
-  // MONTH PICKER MODAL
-  // ════════════════════════════════════════════════════
+  Widget _buildChartError(String message) {
+    return SizedBox(
+      height: 160,
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline_rounded, size: 36, color: _errorRed),
+            const SizedBox(height: 8),
+            Text(
+              message,
+              style: const TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 13,
+                color: _textSecondary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildChartEmpty(String message) {
+    return SizedBox(
+      height: 160,
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Iconsax.chart, size: 36, color: _textSecondary.withValues(alpha: 0.4)),
+            const SizedBox(height: 8),
+            Text(
+              message,
+              style: const TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 13,
+                color: _textSecondary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ─── MONTH PICKER MODAL ────────────────────────────
   Widget _buildMonthYearPickerModal() {
     int tempMonth = _selectedMonth;
     int tempYear = _selectedYear;
@@ -1297,7 +1280,8 @@ class _PencapaianPageState extends State<PencapaianPage>
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                width: 40, height: 4,
+                width: 40,
+                height: 4,
                 decoration: BoxDecoration(
                   color: Colors.grey[300],
                   borderRadius: BorderRadius.circular(2),
@@ -1307,8 +1291,10 @@ class _PencapaianPageState extends State<PencapaianPage>
               const Text(
                 'Pilih Bulan & Tahun',
                 style: TextStyle(
-                  fontFamily: 'Poppins', fontSize: 18,
-                  fontWeight: FontWeight.w600, color: _textPrimary,
+                  fontFamily: 'Poppins',
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: _textPrimary,
                 ),
               ),
               const SizedBox(height: 24),
@@ -1332,10 +1318,13 @@ class _PencapaianPageState extends State<PencapaianPage>
                       color: _primaryBlue,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Text(tempYear.toString(),
+                    child: Text(
+                      tempYear.toString(),
                       style: const TextStyle(
-                        fontFamily: 'Poppins', fontSize: 18,
-                        fontWeight: FontWeight.w600, color: Colors.white,
+                        fontFamily: 'Poppins',
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
                       ),
                     ),
                   ),
@@ -1357,8 +1346,10 @@ class _PencapaianPageState extends State<PencapaianPage>
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 4, childAspectRatio: 2,
-                  crossAxisSpacing: 10, mainAxisSpacing: 10,
+                  crossAxisCount: 4,
+                  childAspectRatio: 2,
+                  crossAxisSpacing: 10,
+                  mainAxisSpacing: 10,
                 ),
                 itemCount: 12,
                 itemBuilder: (context, index) {
@@ -1369,13 +1360,17 @@ class _PencapaianPageState extends State<PencapaianPage>
                     borderRadius: BorderRadius.circular(10),
                     child: Container(
                       decoration: BoxDecoration(
-                        color: isSelected ? _primaryBlue : _primaryBlue.withValues(alpha: 0.1),
+                        color: isSelected
+                            ? _primaryBlue
+                            : _primaryBlue.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Center(
-                        child: Text(_monthShort[index],
+                        child: Text(
+                          _monthShort[index],
                           style: TextStyle(
-                            fontFamily: 'Poppins', fontSize: 13,
+                            fontFamily: 'Poppins',
+                            fontSize: 13,
                             fontWeight: FontWeight.w500,
                             color: isSelected ? Colors.white : _primaryBlue,
                           ),
@@ -1406,9 +1401,12 @@ class _PencapaianPageState extends State<PencapaianPage>
                     ),
                     elevation: 0,
                   ),
-                  child: const Text('Terapkan',
+                  child: const Text(
+                    'Terapkan',
                     style: TextStyle(
-                      fontFamily: 'Poppins', fontSize: 16, fontWeight: FontWeight.w600,
+                      fontFamily: 'Poppins',
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),

@@ -1,5 +1,12 @@
   <link rel="apple-touch-icon" sizes="76x76" href="assets/img/logo/lwx.png">
   <link rel="icon" type="image/png" href="assets/img/logo/lwx.png">
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1a1a2e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Loewix">
+  <meta name="mobile-web-app-capable" content="yes">
   <title>
     LOEWIX | <?php echo $pageNow;?>
   </title>
