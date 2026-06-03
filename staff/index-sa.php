@@ -201,49 +201,86 @@ if (isset($_GET['export'])) {
     @media (max-width: 767px) { .w-sm-100 { width: 60% !important; } }
 
     /* ═══════ MOBILE COMPACT KEGIATAN ═══════ */
-    @media (max-width: 768px) {
-      /* Compact list items */
-      .tbl-row { padding: 10px 12px !important; }
-      .tbl-row .row { margin: 0 !important; }
-      .tbl-row .row > [class*="col-"] { padding: 0 !important; margin-bottom: 4px !important; }
-
-      /* Smaller fonts */
-      .text-time { font-size: 12px !important; margin: 2px 0 !important; }
-      .text-code { font-size: 9px !important; }
-      .text-name { font-size: 12px !important; margin: 0 !important; }
-      .text-phone { font-size: 10px !important; }
-      .text-note { font-size: 9px !important; margin: 1px 0 0 !important; max-width: 100%; }
-      .text-addr {
-        font-size: 10px !important; line-height: 1.4 !important;
-        display: -webkit-box !important; -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical; overflow: hidden;
+    @media (max-width: 991px) {
+      /* Force compact card layout */
+      .tbl-row {
+        padding: 10px 12px !important;
+        border-bottom: 1px solid #f1f5f9 !important;
       }
-      .text-date { font-size: 11px !important; }
-      .text-hour { font-size: 9px !important; }
+      .tbl-row .row.px-3 {
+        margin: 0 !important;
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 0 !important;
+      }
+      /* Row 1: Kegiatan info (badge + time) - left 35% */
+      .tbl-row .col-md-2:first-child {
+        width: 35% !important; flex: 0 0 35% !important;
+        padding: 0 4px 0 0 !important; margin: 0 !important;
+        display: flex !important; flex-wrap: wrap !important;
+        align-items: center !important; gap: 4px !important;
+      }
+      /* Row 1: Customer info - right 65% */
+      .tbl-row .col-md-2:nth-child(2) {
+        width: 65% !important; flex: 0 0 65% !important;
+        padding: 0 !important; margin: 0 !important;
+      }
+      /* Row 2: Teknisi + Status */
+      .tbl-row .col-md-2:nth-child(3) {
+        width: 50% !important; flex: 0 0 50% !important;
+        padding: 2px 0 0 !important; margin: 0 !important;
+      }
+      /* Row 2: Address */
+      .tbl-row .col-md-3:nth-child(4) {
+        width: 50% !important; flex: 0 0 50% !important;
+        padding: 2px 0 0 !important; margin: 0 !important;
+      }
+      /* Row 3: Info/Actions - full width */
+      .tbl-row .col-md-3:last-child {
+        width: 100% !important; flex: 0 0 100% !important;
+        padding: 4px 0 0 !important; margin: 0 !important;
+      }
+      .tbl-row .col-md-3:last-child .d-flex {
+        justify-content: flex-end !important;
+      }
 
-      /* Compact badges */
-      .badge-type { font-size: 8px !important; padding: 2px 8px !important; }
-      .badge-status { font-size: 9px !important; padding: 2px 8px !important; }
+      /* Typography compact */
+      .badge-type { font-size: 8px !important; padding: 2px 7px !important; }
+      .text-time { font-size: 11px !important; font-weight: 700 !important; margin: 0 !important; }
+      .text-code { font-size: 8px !important; display: none !important; }
+      .text-name { font-size: 12px !important; margin: 0 !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .text-phone { font-size: 10px !important; }
+      .text-note { font-size: 9px !important; margin: 0 !important; -webkit-line-clamp: 1; display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; }
+      .text-addr {
+        font-size: 9px !important; line-height: 1.3 !important; margin: 0 !important;
+        display: -webkit-box !important; -webkit-line-clamp: 1 !important;
+        -webkit-box-orient: vertical !important; overflow: hidden !important;
+      }
+      .text-addr .btn-act { display: none !important; }
+      .badge-status { font-size: 8px !important; padding: 2px 6px !important; }
+      .text-date { font-size: 10px !important; }
+      .text-hour { font-size: 8px !important; }
 
-      /* Compact action buttons */
-      .btn-act { width: 26px !important; height: 26px !important; }
-      .btn-act .material-icons { font-size: 13px !important; }
-      .avatar-initials { width: 26px !important; height: 26px !important; border-radius: 6px !important; }
+      /* Compact avatars and buttons */
+      .btn-act { width: 24px !important; height: 24px !important; }
+      .btn-act .material-icons { font-size: 12px !important; }
+      .avatar-initials { width: 24px !important; height: 24px !important; border-radius: 5px !important; }
       .avatar-initials span { font-size: 8px !important; }
 
-      /* Section header compact */
-      .section-header { padding: 10px 14px !important; }
+      /* Section header */
+      .section-header { padding: 8px 12px !important; border-radius: 8px 8px 0 0 !important; }
       .section-header h6 { font-size: 11px !important; }
-      .btn-export { font-size: 9px !important; padding: 4px 8px !important; }
-      .section-header input[type="text"] { width: 140px !important; font-size: 10px !important; padding: 5px 8px 5px 28px !important; }
+      .btn-export { font-size: 8px !important; padding: 4px 8px !important; gap: 2px !important; }
+      .btn-export .material-icons { font-size: 12px !important; }
+      .section-header input[type="text"] { width: 120px !important; font-size: 10px !important; padding: 5px 8px 5px 26px !important; }
+      .section-header > div > i { font-size: 14px !important; }
 
-      /* Scrollable content */
+      /* Section card */
       .section-card { border-radius: 0 0 8px 8px !important; }
-      .section-card .card-body { padding: 0 !important; }
 
-      /* Main content padding */
-      div[style*="padding:0 24px"] { padding: 0 8px !important; }
-      div[style*="padding:0 24px 24px"] { padding: 0 8px 12px !important; }
+      /* Padding */
+      div[style*="padding:0 24px"] { padding: 0 10px !important; }
+      div[style*="padding:0 24px 24px"] { padding: 0 10px 16px !important; }
     }
   </style>
 </head>
