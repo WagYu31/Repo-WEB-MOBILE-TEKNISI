@@ -31,9 +31,22 @@
         $current_time = date("H:i:s"); // Current time
         
         $sql = "SELECT pk.*, 
-                       GROUP_CONCAT(DISTINCT CONCAT('<a href=\"detail-lap-tek.php?cariBulanTahun=$current_date&idTek=', t.id, '\">', t.nama, '</a>') SEPARATOR '<br>') AS nama_teknisi, 
+                       GROUP_CONCAT(DISTINCT CONCAT('<a href=\"detail-lap-tek.php?cariBulanTahun=$current_date&idTek=', t.id, '\">',  t.nama, '</a>') SEPARATOR '<br>') AS nama_teknisi, 
                        k.customer_id, 
-                       c.nama AS nama_cust
+                       c.nama AS nama_cust,
+                       (SELECT GROUP_CONCAT(DISTINCT CONCAT(UPPER(k2.kegiatan), ' - ', DATE_FORMAT(k2.jadwal, '%d/%m/%Y')) SEPARATOR ', ')
+                        FROM kegiatan k2
+                        WHERE k2.kode = pk.kode 
+                        AND LOWER(k2.kegiatan) = 'survey'
+                       ) AS keterangan_survey,
+                       (SELECT GROUP_CONCAT(DISTINCT t2.nama SEPARATOR ', ')
+                        FROM kegiatan k3
+                        JOIN team_kegiatan tk3 ON tk3.kegiatan_id = k3.id
+                        JOIN teknisi t2 ON t2.id = tk3.teknisi_id
+                        WHERE k3.kode = pk.kode 
+                        AND LOWER(k3.kegiatan) = 'survey'
+                        AND tk3.deleted_at IS NULL
+                       ) AS surveyor
                 FROM pendapatan_kegiatan pk
                 JOIN kegiatan k ON k.kode = pk.kode
                 JOIN customer c ON c.id = k.customer_id
@@ -70,27 +83,37 @@
                     <li class="list-group-item border-0 d-flex flex-column justify-content-between align-items-center ps-0 mb-2 border-radius-lg d-md-block d-none">
                         <div class="row px-4 w-md-100">
 
-                            <div class="col-6 w-md-10 mb-md-0">
+                            <div class="col-6 w-md-8 mb-md-0">
                                 <h6 class="mb-1 text-dark font-weight-bold text-sm p-2 text-center">
                                     Tgl Invoice
                                 </h6>
                             </div>
-                            <div class="col-6 w-md-20 mb-md-0">
+                            <div class="col-6 w-md-12 mb-md-0">
                                 <h6 class="mb-1 text-dark font-weight-bold text-sm p-2 ms-1 text-start">
                                     No Invoice
                                 </h6>
                             </div>
-                            <div class="col-6 w-md-30 mb-md-0">
+                            <div class="col-6 w-md-12 mb-md-0">
                                 <h6 class="mb-1 text-dark font-weight-bold text-sm p-2 ms-2 text-start">
                                     Teknisi
                                 </h6>
                             </div>
-                            <div class="col-6 w-md-25 mb-md-0">
+                            <div class="col-6 w-md-18 mb-md-0">
                                 <h6 class="mb-1 text-dark font-weight-bold text-sm p-2 ms-2 text-start">
                                     Customer
                                 </h6>
                             </div>
                             <div class="col-6 w-md-15 mb-md-0">
+                                <h6 class="mb-1 text-dark font-weight-bold text-sm p-2 text-start">
+                                    Ket. Survey
+                                </h6>
+                            </div>
+                            <div class="col-6 w-md-15 mb-md-0">
+                                <h6 class="mb-1 text-dark font-weight-bold text-sm p-2 text-start">
+                                    Surveyor
+                                </h6>
+                            </div>
+                            <div class="col-6 w-md-10 mb-md-0">
                                 <h6 class="mb-1 text-dark font-weight-bold text-sm p-2 text-end">
                                     Nominal Invoice
                                 </h6>
@@ -114,6 +137,8 @@
                     $kodeTran = $row['kode'];
                     $nominal = $row['nominal_invoice'];
                     $tglInv = date('d M Y', strtotime($row['tanggal']));
+                    $ketSurvey = $row['keterangan_survey'] ?? '';
+                    $surveyor = $row['surveyor'] ?? '';
 
                 ?>
                     <li class="list-group-item border-0 d-flex flex-column justify-content-between align-items-center ps-0 mb-2 border-radius-lg d-md-block d-block">
@@ -124,59 +149,67 @@
                                 <span class="text-xs">Tanggal Invoice</span>
                             </div>
 
-                            <div class="col-6 w-md-10 mb-md-0">
+                            <div class="col-6 w-md-8 mb-md-0">
                                 <h6 class="mb-1 text-dark font-weight-normal text-sm p-2 text-start text-md-center">
-                                    <?php
-                                    echo $tglInv;
-                                    ?>
+                                    <?php echo $tglInv; ?>
                                 </h6>
                             </div>
                             
-                            <div class="col-6 w-md-20 mb-2 mb-md-0 d-md-none">
+                            <div class="col-6 w-md-12 mb-2 mb-md-0 d-md-none">
                                 <span class="text-xs">Nomor Invoice</span>
                             </div>
-                            <div class="col-6 w-md-20 mb-md-0">
+                            <div class="col-6 w-md-12 mb-md-0">
                                 <h6 class="mb-1 text-dark font-weight-md-normal font-weight-bold text-sm p-2 text-start">
-                                    <?php
-                                    echo $invoice;
-                                    ?>
+                                    <?php echo $invoice; ?>
                                 </h6>
                             </div>
                             
-                            <div class="col-6 w-md-10 mb-2 mb-md-0 d-md-none">
+                            <div class="col-6 w-md-12 mb-2 mb-md-0 d-md-none">
                                 <span class="text-xs">Teknisi</span>
                             </div>
-                            <div class="col-6 w-md-30 mb-md-0">
+                            <div class="col-6 w-md-12 mb-md-0">
                                 <h6 class="mb-1 text-dark font-weight-md-normal font-weight-bold text-sm p-2">
-                                    <?php
-                                    echo $namaT;
-                                    ?>
+                                    <?php echo $namaT; ?>
                                 </h6>
                             </div>
                             
-                            <div class="col-6 w-md-10 mb-2 mb-md-0 d-md-none">
+                            <div class="col-6 w-md-18 mb-2 mb-md-0 d-md-none">
                                 <span class="text-xs">Customer</span>
                             </div>
-                            <div class="col-6 w-md-25 mb-md-0">
+                            <div class="col-6 w-md-18 mb-md-0">
                                 <h6 class="mb-1 text-dark font-weight-normal text-sm p-2">
-                                    <?php
-                                    echo $namaC;
-                                    ?>
+                                    <?php echo $namaC; ?>
+                                </h6>
+                            </div>
+
+                            <div class="col-6 w-md-15 mb-2 mb-md-0 d-md-none">
+                                <span class="text-xs">Ket. Survey</span>
+                            </div>
+                            <div class="col-6 w-md-15 mb-md-0">
+                                <h6 class="mb-1 text-dark font-weight-normal text-sm p-2">
+                                    <?php echo !empty($ketSurvey) ? '<span class="badge bg-warning text-dark">' . $ketSurvey . '</span>' : '<span class="text-muted">-</span>'; ?>
+                                </h6>
+                            </div>
+
+                            <div class="col-6 w-md-15 mb-2 mb-md-0 d-md-none">
+                                <span class="text-xs">Surveyor</span>
+                            </div>
+                            <div class="col-6 w-md-15 mb-md-0">
+                                <h6 class="mb-1 text-dark font-weight-normal text-sm p-2">
+                                    <?php echo !empty($surveyor) ? $surveyor : '<span class="text-muted">-</span>'; ?>
                                 </h6>
                             </div>
                             
                             <div class="col-6 w-md-10 mb-2 mb-md-0 d-md-none">
                                 <span class="text-xs">Nominal Invoice</span>
                             </div>
-                            <div class="col-6 w-md-15 mb-md-0">
-                                <h6 class="mb-1 text-dark font-weight-normal text-sm p-2 text-start text-md-center">
+                            <div class="col-6 w-md-10 mb-md-0">
+                                <h6 class="mb-1 text-dark font-weight-normal text-sm p-2 text-start text-md-end">
                                     <?php
-                                        
                                         $totalBonusFormatted = "Rp " . number_format($nominal, 0, ',', '.');
                                         echo $totalBonusFormatted;
                                         $totalBonusAll += $nominal;
-                                        ?>
-
+                                    ?>
                                 </h6>
                             </div>
 
