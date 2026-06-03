@@ -118,6 +118,8 @@ if (isset($_GET['login']) && $_GET['login'] === 'failed') {
   </script>
   <script async defer src="https://buttons.github.io/buttons.js"></script>
   <script src="assets/js/material-dashboard.min.js?v=3.1.0"></script>
+  <!-- PWA Install Banner -->
+  <?php include 'pwa-install.php'; ?>
   <!-- PWA Service Worker Registration -->
   <script>
     if ('serviceWorker' in navigator) {
