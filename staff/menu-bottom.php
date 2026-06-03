@@ -52,7 +52,7 @@
     }
 </style>
 
-<nav class="navbar navbar-expand fixed-bottom d-xl-none p-0 btm-nav">
+<nav class="navbar navbar-expand fixed-bottom d-xxl-none p-0 btm-nav">
     <ul class="navbar-nav nav-justified w-100 flex-row">
         <?php if ($role == 'Super Admin' || $role == 'Admin') { ?>
             <li class="nav-item">
