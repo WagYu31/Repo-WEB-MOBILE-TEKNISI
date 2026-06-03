@@ -35,7 +35,7 @@ $stmtKegiatan->execute();
 $jumlahKegiatan = $stmtKegiatan->get_result()->fetch_assoc()['jumlah'] ?? 0;
 $stmtKegiatan->close();
 
-$stmtSelesai = $conn->prepare("SELECT COUNT(DISTINCT k.kode) AS jumlah FROM team_kegiatan tk JOIN kegiatan k ON tk.kegiatan_id = k.id WHERE tk.teknisi_id = ? AND DATE_FORMAT(k.jadwal, '%Y-%m') = ? AND tk.deleted_at IS NULL AND tk.status = 'selesai'");
+$stmtSelesai = $conn->prepare("SELECT COUNT(DISTINCT k.kode) AS jumlah FROM team_kegiatan tk JOIN kegiatan k ON tk.kegiatan_id = k.id WHERE tk.teknisi_id = ? AND DATE_FORMAT(k.jadwal, '%Y-%m') = ? AND tk.deleted_at IS NULL AND k.status = 'selesai'");
 $stmtSelesai->bind_param("is", $teknisiId, $date);
 $stmtSelesai->execute();
 $selesai = $stmtSelesai->get_result()->fetch_assoc()['jumlah'] ?? 0;

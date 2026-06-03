@@ -76,8 +76,8 @@ class PencapaianProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // PHP file uploaded to Laravel's public/ folder on api-teknisi.id-giti.com
-      final url = 'https://api-teknisi.id-giti.com/api_teknisi_stats.php?teknisi_id=$teknisiId&bulan=$bulan&tahun=$tahun';
+      // PHP file on jadwal.id-giti.com/staff/
+      final url = 'https://jadwal.id-giti.com/staff/api_teknisi_stats.php?teknisi_id=$teknisiId&bulan=$bulan&tahun=$tahun';
 
       final response = await http.get(
         Uri.parse(url),
