@@ -63,6 +63,7 @@ if (!function_exists('getStatusBadgeClass_ln')) {
       <i class="material-icons">schedule</i>
       <h6>Lanjut Nanti</h6>
     </div>
+    <input type="text" id="searchLN" placeholder="Cari nama, kode, teknisi..." style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:6px 12px;font-size:12px;color:#fff;outline:none;width:220px;" onfocus="this.style.borderColor='rgba(255,255,255,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.2)'" oninput="filterRows(this.value,'listLN')">
   </div>
 </div>
 <div class="col-lg-12 mt-0 mb-4">
@@ -76,7 +77,7 @@ if (!function_exists('getStatusBadgeClass_ln')) {
     $result = $stmt->get_result();
     ?>
     <div class="card-body pb-0 p-0">
-      <ul class="list-group m-0 mt-0 col-12 p-0 py-0">
+      <ul class="list-group m-0 mt-0 col-12 p-0 py-0" id="listLN">
         <li class="list-group-item tbl-header d-md-block d-none">
           <div class="row px-3">
             <div class="col-md-2"><span class="tbl-th">Kegiatan</span></div>
@@ -182,4 +183,22 @@ if (!function_exists('getStatusBadgeClass_ln')) {
     [latInput, lonInput, radInput].forEach(input => { input.addEventListener('input', updateMarkerAndCircle); });
     function openLocationModal(data) { document.getElementById('kegiatanId').value = data.id; document.getElementById('latitude').value = data.lat; document.getElementById('longitude').value = data.lon; document.getElementById('radius').value = data.rad; new bootstrap.Modal(locationModal).show(); }
     document.getElementById('locationForm').addEventListener('submit', function(e) { e.preventDefault(); const formData = new FormData(e.target); fetch('update_lokasi.php', { method: 'POST', body: formData }).then(res => res.json()).then(data => { if (data.success) { alert('Lokasi berhasil diperbarui.'); location.reload(); } else { alert('Gagal: ' + (data.message || 'Error')); } }).catch(() => alert('Terjadi kesalahan koneksi.')); });
+    function filterRows(query, listId) {
+      var list = document.getElementById(listId);
+      if (!list) return;
+      var rows = list.querySelectorAll('.tbl-row');
+      var q = query.toLowerCase().trim();
+      var count = 0;
+      rows.forEach(function(row) {
+        var text = row.textContent.toLowerCase();
+        if (q === '' || text.indexOf(q) > -1) { row.style.display = ''; count++; }
+        else { row.style.display = 'none'; }
+      });
+      var noResult = list.querySelector('.search-no-result');
+      if (count === 0 && q !== '') {
+        if (!noResult) { noResult = document.createElement('div'); noResult.className = 'search-no-result ms-4 text-sm py-4'; noResult.style.color = '#94a3b8'; list.appendChild(noResult); }
+        noResult.textContent = 'Tidak ditemukan "' + query + '"';
+        noResult.style.display = '';
+      } else if (noResult) { noResult.style.display = 'none'; }
+    }
 </script>
