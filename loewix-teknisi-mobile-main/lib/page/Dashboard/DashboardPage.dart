@@ -210,13 +210,9 @@ class _DashboardPageState extends State<DashboardPage> {
       child: CustomScrollView(
         physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
         slivers: [
-          // Premium gradient header
+          // Header + floating stats combined
           SliverToBoxAdapter(
-            child: _buildPremiumHeader(filteredData.length),
-          ),
-          // Statistik summary cards
-          SliverToBoxAdapter(
-            child: RepaintBoundary(child: _buildStatistikSection()),
+            child: _buildHeaderWithStats(filteredData.length),
           ),
           // Task count indicator
           SliverToBoxAdapter(
@@ -288,6 +284,201 @@ class _DashboardPageState extends State<DashboardPage> {
           ),
         ],
       ),
+    );
+  }
+
+  // ─── COMBINED HEADER + FLOATING STATS ─────────────
+  Widget _buildHeaderWithStats(int taskCount) {
+    return Consumer<PencapaianProvider>(
+      builder: (context, provider, child) {
+        final bool isLoading = provider.pencapaianState == PencapaianState.loading ||
+            provider.pendapatanState == PencapaianState.loading;
+        final bool isLoaded = provider.pencapaianState == PencapaianState.loaded ||
+            provider.pendapatanState == PencapaianState.loaded;
+
+        final totalKegiatan = provider.pencapaianData?.totalSelesai ?? 0;
+        final totalPendapatan = provider.pendapatanData?.totalKeseluruhan ?? 0;
+        final bonus = provider.pendapatanData?.bonus ?? 0;
+        final target = provider.pendapatanData?.target ?? 0;
+        final progress = target > 0
+            ? ((totalPendapatan / target) * 100).clamp(0, 999).toInt()
+            : 0;
+
+        // Stats card height estimate for overlap
+        const double overlapAmount = 50;
+
+        return Column(
+          children: [
+            // Use Stack to properly overlap
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                // Header background — extra padding at bottom for overlap
+                _buildPremiumHeader(taskCount),
+                // Floating stats card positioned at bottom of header
+                Positioned(
+                  left: 20,
+                  right: 20,
+                  bottom: -overlapAmount,
+                  child: isLoading
+                    ? Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(18),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF1E40AF).withValues(alpha: 0.1),
+                              blurRadius: 20,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
+                        ),
+                        child: const Center(
+                          child: SizedBox(
+                            width: 22, height: 22,
+                            child: CircularProgressIndicator(strokeWidth: 2.5, color: Color(0xFF0891B2)),
+                          ),
+                        ),
+                      )
+                    : !isLoaded
+                      ? const SizedBox.shrink()
+                      : Container(
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [Color(0xFF1E40AF), Color(0xFF0891B2)],
+                            ),
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF1E40AF).withValues(alpha: 0.18),
+                                blurRadius: 24,
+                                offset: const Offset(0, 10),
+                              ),
+                            ],
+                          ),
+                          child: Container(
+                            margin: const EdgeInsets.all(2),
+                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 20),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(18),
+                            ),
+                            child: Row(
+                              children: [
+                                _buildStatItem(
+                                  emoji: '\uD83D\uDCCB',
+                                  value: totalKegiatan.toString(),
+                                  label: 'Kegiatan',
+                                ),
+                                _buildStatDivider(),
+                                _buildStatItem(
+                                  emoji: '\uD83D\uDCB0',
+                                  value: _formatRupiah(totalPendapatan),
+                                  label: 'Pendapatan',
+                                ),
+                                _buildStatDivider(),
+                                _buildStatItem(
+                                  emoji: '\u2B50',
+                                  value: bonus > 0 ? _formatRupiah(bonus) : '-',
+                                  label: 'Bonus',
+                                ),
+                                _buildStatDivider(),
+                                _buildStatItem(
+                                  emoji: '\uD83C\uDFAF',
+                                  value: '$progress%',
+                                  label: 'Target',
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                ),
+              ],
+            ),
+            // Space for the overlapping card
+            SizedBox(height: overlapAmount + 16),
+            // Progress bar
+            if (isLoaded)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                child: GestureDetector(
+                  onTap: () => _navigateToMenu(3),
+                  child: Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.03),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              'Target Bulan Ini',
+                              style: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                                color: _textSecondary.withValues(alpha: 0.7),
+                              ),
+                            ),
+                            const Spacer(),
+                            Text(
+                              '$progress%',
+                              style: const TextStyle(
+                                fontFamily: 'Poppins',
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: _textPrimary,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(6),
+                          child: Stack(
+                            children: [
+                              Container(
+                                height: 8,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFE2E8F0),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                              ),
+                              FractionallySizedBox(
+                                widthFactor: (progress / 100).clamp(0.0, 1.0),
+                                child: Container(
+                                  height: 8,
+                                  decoration: BoxDecoration(
+                                    gradient: const LinearGradient(
+                                      colors: [Color(0xFF1E40AF), Color(0xFF0891B2)],
+                                    ),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 
@@ -694,189 +885,7 @@ class _DashboardPageState extends State<DashboardPage> {
     return 'Rp $value';
   }
 
-  // ─── STATISTIK SECTION ─────────────────────────────
-  Widget _buildStatistikSection() {
-    return Consumer<PencapaianProvider>(
-      builder: (context, provider, child) {
-        if (provider.pencapaianState == PencapaianState.loading ||
-            provider.pendapatanState == PencapaianState.loading) {
-          return Padding(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-            child: Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.04),
-                    blurRadius: 16,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: const Center(
-                child: SizedBox(
-                  width: 22, height: 22,
-                  child: CircularProgressIndicator(strokeWidth: 2.5, color: _skyBlue),
-                ),
-              ),
-            ),
-          );
-        }
 
-        if (provider.pencapaianState != PencapaianState.loaded &&
-            provider.pendapatanState != PencapaianState.loaded) {
-          return const SizedBox.shrink();
-        }
-
-        final totalKegiatan = provider.pencapaianData?.totalSelesai ?? 0;
-        final totalPendapatan = provider.pendapatanData?.totalKeseluruhan ?? 0;
-        final bonus = provider.pendapatanData?.bonus ?? 0;
-        final target = provider.pendapatanData?.target ?? 0;
-        final progress = target > 0
-            ? ((totalPendapatan / target) * 100).clamp(0, 999).toInt()
-            : 0;
-
-        return Transform.translate(
-          offset: const Offset(0, -36),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
-            child: Column(
-              children: [
-                // Floating stats card with gradient border
-                Container(
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [Color(0xFF1E40AF), Color(0xFF0891B2)],
-                    ),
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF1E40AF).withValues(alpha: 0.15),
-                        blurRadius: 24,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
-                  ),
-                  child: Container(
-                    margin: const EdgeInsets.all(2),
-                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 20),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(18),
-                    ),
-                  child: Row(
-                    children: [
-                      _buildStatItem(
-                        emoji: '\uD83D\uDCCB',
-                        value: totalKegiatan.toString(),
-                        label: 'Kegiatan',
-                      ),
-                      _buildStatDivider(),
-                      _buildStatItem(
-                        emoji: '\uD83D\uDCB0',
-                        value: _formatRupiah(totalPendapatan),
-                        label: 'Pendapatan',
-                      ),
-                      _buildStatDivider(),
-                      _buildStatItem(
-                        emoji: '\u2B50',
-                        value: bonus > 0 ? _formatRupiah(bonus) : '-',
-                        label: 'Bonus',
-                      ),
-                      _buildStatDivider(),
-                      _buildStatItem(
-                        emoji: '\uD83C\uDFAF',
-                        value: '$progress%',
-                        label: 'Target',
-                      ),
-                    ],
-                  ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                // Progress bar
-                GestureDetector(
-                  onTap: () => _navigateToMenu(3),
-                  child: Container(
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(14),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.03),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      children: [
-                        Row(
-                          children: [
-                            Text(
-                              'Target Bulan Ini',
-                              style: TextStyle(
-                                fontFamily: 'Poppins',
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                                color: _textSecondary.withValues(alpha: 0.7),
-                              ),
-                            ),
-                            const Spacer(),
-                            Text(
-                              '$progress%',
-                              style: const TextStyle(
-                                fontFamily: 'Poppins',
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                                color: _textPrimary,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(6),
-                          child: Stack(
-                            children: [
-                              Container(
-                                height: 8,
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFE2E8F0),
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                              ),
-                              FractionallySizedBox(
-                                widthFactor: (progress / 100).clamp(0.0, 1.0),
-                                child: Container(
-                                  height: 8,
-                                  decoration: BoxDecoration(
-                                    gradient: const LinearGradient(
-                                      colors: [Color(0xFF1E40AF), Color(0xFF0891B2)],
-                                    ),
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
 
   Widget _buildStatItem({
     required String emoji,
