@@ -270,7 +270,10 @@ if (isset($_GET['export'])) {
               <h6>Kegiatan Hari Ini</h6>
             </div>
             <div class="d-flex align-items-center gap-2">
-              <input type="text" placeholder="Cari nama, kode, teknisi..." style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:6px 12px;font-size:12px;color:#fff;outline:none;width:220px;" onfocus="this.style.borderColor='rgba(255,255,255,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.2)'" oninput="event.stopPropagation();filterRows(this.value,'data-tek-today')" onclick="event.stopPropagation();">
+              <div style="position:relative;" onclick="event.stopPropagation();">
+                <i class="material-icons" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:16px;color:#94a3b8;pointer-events:none;">search</i>
+                <input type="text" placeholder="Cari nama, kode, teknisi..." style="background:#fff;border:2px solid #e2e8f0;border-radius:8px;padding:7px 12px 7px 32px;font-size:12px;color:#1e293b;outline:none;width:240px;transition:border-color 0.2s;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#e2e8f0'" oninput="event.stopPropagation();filterRows(this.value,'data-tek-today')">
+              </div>
               <a href="?export=hari_ini" class="btn-export" onclick="event.stopPropagation();"><i class="material-icons" style="font-size:14px;">download</i> Export TXT</a>
             </div>
           </div>
@@ -414,7 +417,10 @@ if (isset($_GET['export'])) {
               <h6>Kegiatan Akan Datang</h6>
             </div>
             <div class="d-flex align-items-center gap-2">
-              <input type="text" placeholder="Cari nama, kode, teknisi..." style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:6px 12px;font-size:12px;color:#fff;outline:none;width:220px;" onfocus="this.style.borderColor='rgba(255,255,255,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.2)'" oninput="event.stopPropagation();filterRows(this.value,'data-tek-upcoming')" onclick="event.stopPropagation();">
+              <div style="position:relative;" onclick="event.stopPropagation();">
+                <i class="material-icons" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:16px;color:#94a3b8;pointer-events:none;">search</i>
+                <input type="text" placeholder="Cari nama, kode, teknisi..." style="background:#fff;border:2px solid #e2e8f0;border-radius:8px;padding:7px 12px 7px 32px;font-size:12px;color:#1e293b;outline:none;width:240px;transition:border-color 0.2s;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#e2e8f0'" oninput="event.stopPropagation();filterRows(this.value,'data-tek-upcoming')">
+              </div>
               <a href="?export=akan_datang" class="btn-export" onclick="event.stopPropagation();"><i class="material-icons" style="font-size:14px;">download</i> Export TXT</a>
             </div>
           </div>

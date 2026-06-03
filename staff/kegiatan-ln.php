@@ -63,7 +63,10 @@ if (!function_exists('getStatusBadgeClass_ln')) {
       <i class="material-icons">schedule</i>
       <h6>Lanjut Nanti</h6>
     </div>
-    <input type="text" id="searchLN" placeholder="Cari nama, kode, teknisi..." style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:6px 12px;font-size:12px;color:#fff;outline:none;width:220px;" onfocus="this.style.borderColor='rgba(255,255,255,0.5)'" onblur="this.style.borderColor='rgba(255,255,255,0.2)'" oninput="filterRows(this.value,'listLN')">
+    <div class="d-flex align-items-center" style="position:relative;">
+      <i class="material-icons" style="position:absolute;left:10px;font-size:16px;color:#94a3b8;pointer-events:none;">search</i>
+      <input type="text" id="searchLN" placeholder="Cari nama, kode, teknisi..." style="background:#fff;border:2px solid #e2e8f0;border-radius:8px;padding:7px 12px 7px 32px;font-size:12px;color:#1e293b;outline:none;width:240px;transition:border-color 0.2s;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#e2e8f0'" oninput="filterRows(this.value,'listLN')">
+    </div>
   </div>
 </div>
 <div class="col-lg-12 mt-0 mb-4">
