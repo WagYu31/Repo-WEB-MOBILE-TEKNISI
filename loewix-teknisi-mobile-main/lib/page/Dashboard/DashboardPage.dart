@@ -820,84 +820,42 @@ class _DashboardPageState extends State<DashboardPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Section header with icon
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.03),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [_skyBlue, _skyBlue.withValues(alpha: 0.7)],
-                        ),
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: [
-                          BoxShadow(
-                            color: _skyBlue.withValues(alpha: 0.25),
-                            blurRadius: 6,
-                            offset: const Offset(0, 2),
+              // Section header — clean, professional
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Ringkasan Bulan Ini',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: _textPrimary.withValues(alpha: 0.85),
+                            letterSpacing: -0.2,
                           ),
-                        ],
-                      ),
-                      child: const Icon(Iconsax.chart_2, size: 16, color: Colors.white),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 10),
-                    const Expanded(
-                      child: Text(
-                        'Ringkasan Bulan Ini',
-                        style: TextStyle(
-                          fontFamily: 'Poppins',
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: _textPrimary,
-                        ),
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: () => _navigateToMenu(3),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [_skyBlue.withValues(alpha: 0.15), _skyBlue.withValues(alpha: 0.08)],
-                          ),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              'Detail',
-                              style: TextStyle(
-                                fontFamily: 'Poppins',
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: _skyBlue,
-                              ),
-                            ),
-                            SizedBox(width: 4),
-                            Icon(Iconsax.arrow_right_3, size: 12, color: _skyBlue),
-                          ],
-                        ),
+                  ),
+                  GestureDetector(
+                    onTap: () => _navigateToMenu(3),
+                    child: Text(
+                      'Lihat Detail',
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: _textSecondary.withValues(alpha: 0.6),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
               const SizedBox(height: 14),
-              // Premium stat cards — dark gradient
+              // Stat cards — 2x2 dark navy
               Row(
                 children: [
                   Expanded(
@@ -905,7 +863,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       icon: Iconsax.task_square,
                       label: 'Kegiatan',
                       value: totalKegiatan.toString(),
-                      gradientColors: [const Color(0xFF0EA5E9), const Color(0xFF0284C7)],
+                      accentColor: const Color(0xFF0EA5E9),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -914,7 +872,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       icon: Iconsax.wallet_3,
                       label: 'Pendapatan',
                       value: _formatRupiah(totalPendapatan),
-                      gradientColors: [const Color(0xFF14B8A6), const Color(0xFF0D9488)],
+                      accentColor: const Color(0xFF14B8A6),
                     ),
                   ),
                 ],
@@ -927,7 +885,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       icon: Iconsax.medal_star,
                       label: 'Bonus',
                       value: bonus > 0 ? _formatRupiah(bonus) : '-',
-                      gradientColors: [const Color(0xFFF97316), const Color(0xFFEA580C)],
+                      accentColor: const Color(0xFFF97316),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -936,7 +894,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       icon: Iconsax.diagram,
                       label: 'Target',
                       value: '$progress%',
-                      gradientColors: [const Color(0xFF6366F1), const Color(0xFF4F46E5)],
+                      accentColor: const Color(0xFF6366F1),
                     ),
                   ),
                 ],
@@ -952,94 +910,67 @@ class _DashboardPageState extends State<DashboardPage> {
     required IconData icon,
     required String label,
     required String value,
-    required List<Color> gradientColors,
+    required Color accentColor,
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
+        gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: gradientColors,
+          colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
         ),
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: gradientColors[0].withValues(alpha: 0.35),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
+            color: Colors.black.withValues(alpha: 0.12),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
-      child: Stack(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Decorative circle overlay for depth
-          Positioned(
-            right: -12,
-            top: -12,
-            child: Container(
-              width: 50,
-              height: 50,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withValues(alpha: 0.08),
-              ),
-            ),
-          ),
-          Positioned(
-            right: 10,
-            bottom: -8,
-            child: Container(
-              width: 30,
-              height: 30,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withValues(alpha: 0.05),
-              ),
-            ),
-          ),
-          // Content
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          Row(
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(9),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.22),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(icon, size: 18, color: Colors.white),
-                  ),
-                  const Spacer(),
-                  Text(
-                    label,
-                    style: TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white.withValues(alpha: 0.8),
-                      letterSpacing: 0.3,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
+              Icon(icon, size: 16, color: accentColor.withValues(alpha: 0.8)),
+              const Spacer(),
               Text(
-                value,
-                style: const TextStyle(
+                label,
+                style: TextStyle(
                   fontFamily: 'Poppins',
-                  fontSize: 22,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
-                  letterSpacing: -0.5,
-                  height: 1.1,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white.withValues(alpha: 0.5),
+                  letterSpacing: 0.3,
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
               ),
             ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            value,
+            style: const TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+              letterSpacing: -0.5,
+              height: 1.1,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 8),
+          // Subtle accent line
+          Container(
+            height: 2,
+            width: 28,
+            decoration: BoxDecoration(
+              color: accentColor.withValues(alpha: 0.6),
+              borderRadius: BorderRadius.circular(1),
+            ),
           ),
         ],
       ),
