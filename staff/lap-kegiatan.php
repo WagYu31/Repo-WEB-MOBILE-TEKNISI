@@ -93,12 +93,13 @@ if (isset($_GET['error'])) {
                                     <tbody>
                                         <?php
                                         $search = $_GET['cari'] ?? '';
+                                        
+                                        // Optimized: removed redundant JOIN, added LIMIT
                                         $sql_main = "SELECT k.id, k.kode AS kode_transaksi, k.keterangan, k.kegiatan, k.created_at, k.status AS status_kegiatan, c.id AS id_cust, c.nama AS nama_cust
                                                      FROM kegiatan k
                                                      LEFT JOIN customer c ON k.customer_id = c.id
-                                                     LEFT JOIN pelaksanaan_kegiatan p ON k.kode = p.kode
                                                      WHERE k.status != 'waiting' AND (k.paid IS NULL OR k.paid = '')
-                                                     AND k.deleted_at IS NULL AND p.kode IS NOT NULL
+                                                     AND k.deleted_at IS NULL
                                                      AND EXISTS (
                                                          SELECT 1 FROM pelaksanaan_kegiatan px
                                                          WHERE px.kode = k.kode AND px.deleted_at IS NULL
@@ -109,22 +110,55 @@ if (isset($_GET['error'])) {
                                             $sql_main .= " AND (c.nama LIKE ? OR k.kode LIKE ? OR k.kegiatan LIKE ? OR k.keterangan LIKE ?)";
                                         }
 
-                                        $sql_main .= " GROUP BY k.kode ORDER BY k.created_at DESC";
+                                        $sql_main .= " ORDER BY k.created_at DESC LIMIT 100";
 
                                         $stmt_main = $conn->prepare($sql_main);
 
                                         if (!empty($search)) {
                                             $search_param = "%$search%";
-                                            // Mengikat parameter pencarian ke empat placeholder (?)
                                             $stmt_main->bind_param("ssss", $search_param, $search_param, $search_param, $search_param);
                                         }
 
                                         $stmt_main->execute();
                                         $result_main = $stmt_main->get_result();
                                         
+                                        // Collect all rows first
+                                        $allRows = [];
+                                        while ($row_main = $result_main->fetch_assoc()) {
+                                            $allRows[] = $row_main;
+                                        }
+                                        $stmt_main->close();
 
-                                        if ($result_main->num_rows > 0) {
-                                            while ($row_main = $result_main->fetch_assoc()) {
+                                        // ═══ BATCH LOAD ALL TEKNISI + ABSENSI IN 1 QUERY ═══
+                                        $teknisiByKode = [];
+                                        if (!empty($allRows)) {
+                                            $allKodes = array_unique(array_column($allRows, 'kode_transaksi'));
+                                            $placeholders = implode(',', array_fill(0, count($allKodes), '?'));
+                                            $typesStr = str_repeat('s', count($allKodes));
+                                            
+                                            $sqlBatch = "SELECT p.kode, t.nama_teknisi,
+                                                         MIN(p.waktu_mulai) AS waktu_mulai_pertama,
+                                                         MAX(p.waktu_selesai) AS waktu_selesai_terakhir
+                                                         FROM pelaksanaan_kegiatan p
+                                                         JOIN team_kegiatan t ON t.teknisi_id = p.teknisi_id AND t.kode = p.kode
+                                                         WHERE p.kode IN ($placeholders) AND p.deleted_at IS NULL
+                                                         GROUP BY p.kode, p.teknisi_id";
+                                            
+                                            $stmtBatch = $conn->prepare($sqlBatch);
+                                            if ($stmtBatch) {
+                                                $kodeArr = array_values($allKodes);
+                                                $stmtBatch->bind_param($typesStr, ...$kodeArr);
+                                                $stmtBatch->execute();
+                                                $resBatch = $stmtBatch->get_result();
+                                                while ($r = $resBatch->fetch_assoc()) {
+                                                    $teknisiByKode[$r['kode']][] = $r;
+                                                }
+                                                $stmtBatch->close();
+                                            }
+                                        }
+
+                                        if (!empty($allRows)) {
+                                            foreach ($allRows as $row_main) {
                                                 $kodeTransaksi = $row_main['kode_transaksi'];
                                                 $idC = $row_main['id_cust'];
                                         ?>
@@ -144,22 +178,9 @@ if (isset($_GET['error'])) {
 
                                                     <td class="technician-list">
                                                         <?php
-                                                        $sql_teknisi = "SELECT p.status, t.nama_teknisi,
-                                                                        (SELECT MIN(waktu_mulai) FROM pelaksanaan_kegiatan WHERE teknisi_id = p.teknisi_id AND kode = p.kode) AS waktu_mulai_pertama,
-                                                                        (SELECT MAX(waktu_selesai) FROM pelaksanaan_kegiatan WHERE teknisi_id = p.teknisi_id AND kode = p.kode) AS waktu_selesai_terakhir
-                                                                    FROM pelaksanaan_kegiatan p
-                                                                    JOIN team_kegiatan t ON t.teknisi_id = p.teknisi_id
-                                                                    JOIN kegiatan k ON t.kegiatan_id = k.id
-                                                                    WHERE p.kode = ? AND k.customer_id = ? AND p.deleted_at IS NULL
-                                                                    GROUP BY p.teknisi_id";
-                                                        
-                                                        $stmt_teknisi = $conn->prepare($sql_teknisi);
-                                                        $stmt_teknisi->bind_param("si", $kodeTransaksi, $idC);
-                                                        $stmt_teknisi->execute();
-                                                        $result_teknisi = $stmt_teknisi->get_result();
-
-                                                        if($result_teknisi->num_rows > 0) {
-                                                            while($row_teknisi = $result_teknisi->fetch_assoc()) {
+                                                        $tekList = $teknisiByKode[$kodeTransaksi] ?? [];
+                                                        if (!empty($tekList)) {
+                                                            foreach ($tekList as $row_teknisi) {
                                                         ?>
                                                         <div class="d-flex justify-content-between align-items-center py-2 technician-item">
                                                             <div>
@@ -175,7 +196,6 @@ if (isset($_GET['error'])) {
                                                         } else {
                                                             echo "<p style='font-size:11px;color:#94a3b8;margin:0;'>Data teknisi tidak ditemukan.</p>";
                                                         }
-                                                        $stmt_teknisi->close();
                                                         ?>
                                                     </td>
 
@@ -196,7 +216,6 @@ if (isset($_GET['error'])) {
                                         } else {
                                             echo "<tr><td colspan='4' class='text-center py-5'>Tidak ada data laporan yang ditemukan.</td></tr>";
                                         }
-                                        $stmt_main->close();
                                         ?>
                                     </tbody>
                                 </table>
