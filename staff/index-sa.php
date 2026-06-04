@@ -142,15 +142,24 @@ if (isset($_GET['export'])) {
 
     /* ── Status Badges (Pill Shape) ── */
     .badge-status {
-      font-size: 10px; font-weight: 600; padding: 4px 10px;
-      border-radius: 20px; letter-spacing: 0.02em; display: inline-block;
+      font-size: 9px; font-weight: 700; padding: 2px 7px;
+      border-radius: 4px; letter-spacing: 0.04em; display: inline-flex;
+      align-items: center; gap: 3px; white-space: nowrap;
     }
+    .badge-status .dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
     .badge-selesai { background: #dcfce7; color: #166534; }
+    .badge-selesai .dot { background: #16a34a; }
     .badge-dikerjakan { background: #dbeafe; color: #1e40af; }
-    .badge-lanjut { background: #f1f5f9; color: #475569; }
+    .badge-dikerjakan .dot { background: #2563eb; animation: pulse-dot 1.5s infinite; }
+    .badge-lanjut { background: #fef2f2; color: #991b1b; }
+    .badge-lanjut .dot { background: #dc2626; }
     .badge-dilanjutkan { background: #e0e7ff; color: #3730a3; }
+    .badge-dilanjutkan .dot { background: #6366f1; }
     .badge-dijadwalkan { background: #f1f5f9; color: #64748b; }
+    .badge-dijadwalkan .dot { background: #94a3b8; }
     .badge-menunggu { background: #fef3c7; color: #92400e; }
+    .badge-menunggu .dot { background: #f59e0b; }
+    @keyframes pulse-dot { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
 
     /* ── Kegiatan Type Badge ── */
     .badge-type {
@@ -369,8 +378,15 @@ if (isset($_GET['export'])) {
           return null;
         }
         function getStatusInfo($status) {
-          $statusMap = ['selesai' => ['text' => 'Selesai', 'class' => 'badge-status badge-selesai'], 'berjalan' => ['text' => 'Dikerjakan', 'class' => 'badge-status badge-dikerjakan'], 'menunggu laporan' => ['text' => 'Menunggu Laporan', 'class' => 'badge-status badge-menunggu'], 'Lanjut Nanti' => ['text' => 'Lanjut Nanti', 'class' => 'badge-status badge-lanjut'], 'Lanjutan' => ['text' => 'Dilanjutkan', 'class' => 'badge-status badge-dilanjutkan'], 'dijadwalkan' => ['text' => 'Dijadwalkan', 'class' => 'badge-status badge-dijadwalkan']];
-          return $statusMap[$status] ?? ['text' => 'Dijadwalkan', 'class' => 'badge-status badge-dijadwalkan'];
+          $statusMap = [
+            'selesai' => ['text' => '<span class="dot"></span>SLS', 'class' => 'badge-status badge-selesai'],
+            'berjalan' => ['text' => '<span class="dot"></span>DKJ', 'class' => 'badge-status badge-dikerjakan'],
+            'menunggu laporan' => ['text' => '<span class="dot"></span>M.Lap', 'class' => 'badge-status badge-menunggu'],
+            'Lanjut Nanti' => ['text' => '<span class="dot"></span>LN', 'class' => 'badge-status badge-lanjut'],
+            'Lanjutan' => ['text' => '<span class="dot"></span>DLJ', 'class' => 'badge-status badge-dilanjutkan'],
+            'dijadwalkan' => ['text' => '<span class="dot"></span>JDW', 'class' => 'badge-status badge-dijadwalkan']
+          ];
+          return $statusMap[$status] ?? ['text' => '<span class="dot"></span>JDW', 'class' => 'badge-status badge-dijadwalkan'];
         }
         ?>
         <div class="col-lg-12 mt-4 mb-0">
