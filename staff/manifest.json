@@ -1,6 +1,6 @@
 {
-  "name": "WEB TEKNISI ADMIN & FINANCE",
-  "short_name": "Loewix Admin",
+  "name": "WEB TEKNISI",
+  "short_name": "WEB TEKNISI",
   "description": "Loewix - Sistem Manajemen Teknisi, Admin & Finance",
   "start_url": "/staff/index-sa.php",
   "scope": "/staff/",
