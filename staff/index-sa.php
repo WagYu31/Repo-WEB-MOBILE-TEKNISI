@@ -490,16 +490,47 @@ if (isset($_GET['export'])) {
                         $resultTeknisi = $stmtTeknisi->get_result();
                         while ($rowTeknisi = $resultTeknisi->fetch_assoc()) {
                           $status_pelaksanaan = null;
-                          $stmtStatus = $conn->prepare("SELECT status FROM pelaksanaan_kegiatan WHERE kode = ? AND teknisi_id = ? AND DATE(waktu_mulai) = ? ORDER BY id DESC LIMIT 1");
+                          $waktu_mulai_tek = null;
+                          $lat_mulai = null;
+                          $lon_mulai = null;
+                          $waktu_selesai_tek = null;
+                          $lat_selesai = null;
+                          $lon_selesai = null;
+                          $stmtStatus = $conn->prepare("SELECT status, waktu_mulai, waktu_selesai, latitude, longitude, latitude_s, longitude_s FROM pelaksanaan_kegiatan WHERE kode = ? AND teknisi_id = ? AND DATE(waktu_mulai) = ? ORDER BY id DESC LIMIT 1");
                           $stmtStatus->bind_param("sis", $kodeTransaksi, $rowTeknisi['teknisi_id'], $current_date);
                           $stmtStatus->execute();
                           $resultStatus = $stmtStatus->get_result();
-                          if ($rowStatus = $resultStatus->fetch_assoc()) { $status_pelaksanaan = $rowStatus['status']; }
+                          if ($rowStatus = $resultStatus->fetch_assoc()) {
+                            $status_pelaksanaan = $rowStatus['status'];
+                            $waktu_mulai_tek = $rowStatus['waktu_mulai'];
+                            $lat_mulai = $rowStatus['latitude'];
+                            $lon_mulai = $rowStatus['longitude'];
+                            $waktu_selesai_tek = $rowStatus['waktu_selesai'];
+                            $lat_selesai = $rowStatus['latitude_s'];
+                            $lon_selesai = $rowStatus['longitude_s'];
+                          }
                           $statusInfo = getStatusInfo($status_pelaksanaan);
+                          $hasMulai = !empty($waktu_mulai_tek) && $waktu_mulai_tek !== '0000-00-00 00:00:00';
+                          $hasSelesai = !empty($waktu_selesai_tek) && substr($waktu_selesai_tek, 0, 10) !== '0000-00-00';
                         ?>
                           <div style="margin-bottom:6px;">
                             <a href="list-kegiatan-teknisi.php?idTek=<?= $rowTeknisi['teknisi_id']; ?>" style="font-size:12px;font-weight:600;color:#1e293b;text-decoration:none;display:block;line-height:1.3;"><?= shortenTechnicianName($rowTeknisi['nama_teknisi']); ?></a>
                             <span class="<?= $statusInfo['class']; ?>" style="margin-top:3px;"><?= $statusInfo['text']; ?></span>
+                            <?php if ($hasMulai): ?>
+                            <div style="margin-top:4px;font-size:10px;color:#64748b;display:flex;align-items:center;gap:3px;flex-wrap:wrap;">
+                              <span style="color:#059669;font-weight:600;">▶ <?= date("H:i", strtotime($waktu_mulai_tek)); ?></span>
+                              <?php if (!empty($lat_mulai) && !empty($lon_mulai)): ?>
+                              <a href="https://www.google.com/maps?q=<?= $lat_mulai ?>,<?= $lon_mulai ?>" target="_blank" style="color:#3b82f6;text-decoration:none;font-size:11px;" title="Lokasi Mulai">📍</a>
+                              <?php endif; ?>
+                              <?php if ($hasSelesai): ?>
+                              <span style="color:#94a3b8;margin:0 1px;">→</span>
+                              <span style="color:#dc2626;font-weight:600;">⏹ <?= date("H:i", strtotime($waktu_selesai_tek)); ?></span>
+                              <?php if (!empty($lat_selesai) && !empty($lon_selesai)): ?>
+                              <a href="https://www.google.com/maps?q=<?= $lat_selesai ?>,<?= $lon_selesai ?>" target="_blank" style="color:#3b82f6;text-decoration:none;font-size:11px;" title="Lokasi Selesai">📍</a>
+                              <?php endif; ?>
+                              <?php endif; ?>
+                            </div>
+                            <?php endif; ?>
                           </div>
                         <?php } $stmtTeknisi->close(); ?>
                       </div>
