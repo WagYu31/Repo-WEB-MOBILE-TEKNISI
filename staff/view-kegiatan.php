@@ -185,72 +185,101 @@ $stmt_pelaksanaan->close();
         /* ── Timeline Modern ── */
         .tl-container { padding: 0; }
         .tl-teknisi-tabs {
-            display: flex; gap: 6px; padding: 0 0 12px; overflow-x: auto;
-            border-bottom: 2px solid #f1f5f9; margin-bottom: 16px;
+            display: flex; gap: 6px; padding: 0 0 14px; overflow-x: auto;
+            border-bottom: 2px solid #f1f5f9; margin-bottom: 20px;
         }
         .tl-tab {
-            padding: 7px 16px; border-radius: 8px; font-size: 12px; font-weight: 600;
+            padding: 8px 18px; border-radius: 10px; font-size: 12px; font-weight: 600;
             border: 1.5px solid #e2e8f0; background: #fff; color: #64748b;
-            cursor: pointer; transition: all 0.2s; white-space: nowrap;
+            cursor: pointer; transition: all 0.25s ease; white-space: nowrap;
         }
-        .tl-tab:hover { border-color: #94a3b8; }
-        .tl-tab.active { background: #1e293b; color: #fff; border-color: #1e293b; }
+        .tl-tab:hover { border-color: #6366f1; color: #6366f1; background: #eef2ff; }
+        .tl-tab.active { background: linear-gradient(135deg, #1e293b 0%, #334155 100%); color: #fff; border-color: transparent; box-shadow: 0 2px 8px rgba(30,41,59,0.2); }
 
         .tl-entry {
-            position: relative; padding-left: 28px; margin-bottom: 20px;
+            position: relative; padding-left: 32px; margin-bottom: 24px;
             border-left: 2px solid #e2e8f0;
         }
         .tl-entry:last-child { border-left-color: transparent; margin-bottom: 0; }
         .tl-dot {
-            position: absolute; left: -8px; top: 4px;
-            width: 14px; height: 14px; border-radius: 50%;
-            border: 2.5px solid; background: #fff;
+            position: absolute; left: -9px; top: 4px;
+            width: 16px; height: 16px; border-radius: 50%;
+            border: 3px solid; background: #fff;
+            box-shadow: 0 0 0 3px rgba(255,255,255,1);
         }
         .tl-dot-selesai { border-color: #22c55e; }
-        .tl-dot-berjalan { border-color: #3b82f6; }
-        .tl-dot-menunggu { border-color: #f59e0b; }
+        .tl-dot-berjalan { border-color: #3b82f6; background: #dbeafe; }
+        .tl-dot-menunggu { border-color: #f59e0b; background: #fef3c7; }
         .tl-dot-lanjut { border-color: #ef4444; }
-        .tl-dot-lanjutan { border-color: #8b5cf6; }
+        .tl-dot-lanjutan { border-color: #8b5cf6; background: #ede9fe; }
         .tl-dot-dijadwalkan { border-color: #94a3b8; }
 
-        .tl-status {
-            font-size: 13px; font-weight: 600; color: #1e293b;
-            text-transform: capitalize; margin-bottom: 2px;
+        .tl-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+        .tl-status-badge {
+            font-size: 10px; font-weight: 700; padding: 3px 10px;
+            border-radius: 6px; text-transform: capitalize; letter-spacing: 0.03em;
+            display: inline-flex; align-items: center; gap: 4px;
         }
-        .tl-date { font-size: 11px; color: #94a3b8; margin-bottom: 10px; }
+        .tl-badge-selesai { background: #dcfce7; color: #166534; }
+        .tl-badge-berjalan { background: #dbeafe; color: #1e40af; }
+        .tl-badge-menunggu { background: #fef3c7; color: #92400e; }
+        .tl-badge-lanjut { background: #fef2f2; color: #991b1b; }
+        .tl-badge-lanjutan { background: #ede9fe; color: #5b21b6; }
+        .tl-badge-dijadwalkan { background: #f1f5f9; color: #64748b; }
+        .tl-date { font-size: 11px; color: #94a3b8; font-weight: 500; }
+        .tl-duration {
+            font-size: 10px; color: #6366f1; font-weight: 700;
+            background: #eef2ff; padding: 2px 8px; border-radius: 4px;
+        }
 
         .tl-detail-card {
-            background: #f8fafc; border-radius: 10px; padding: 14px 16px;
-            border: 1px solid #e2e8f0;
+            background: #fff; border-radius: 12px; padding: 0;
+            border: 1px solid #e2e8f0; overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
         }
-        .tl-time-row {
-            display: flex; gap: 20px; margin-bottom: 10px; flex-wrap: wrap;
+        .tl-time-section {
+            display: flex; gap: 20px; padding: 14px 16px; flex-wrap: wrap;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-bottom: 1px solid #e2e8f0;
         }
         .tl-time-item {
             display: flex; align-items: center; gap: 6px; font-size: 12px;
         }
         .tl-time-icon {
-            width: 22px; height: 22px; border-radius: 6px; display: flex;
-            align-items: center; justify-content: center; font-size: 10px;
+            width: 24px; height: 24px; border-radius: 7px; display: flex;
+            align-items: center; justify-content: center; font-size: 11px;
         }
         .tl-start-icon { background: #dcfce7; color: #166534; }
         .tl-end-icon { background: #fee2e2; color: #991b1b; }
-        .tl-time-val { font-weight: 700; color: #1e293b; }
+        .tl-time-val { font-weight: 700; color: #1e293b; font-size: 13px; }
         .tl-loc-link {
             color: #3b82f6; text-decoration: none; font-size: 11px; font-weight: 600;
+            background: #eff6ff; padding: 2px 6px; border-radius: 4px;
+            transition: all 0.15s;
         }
-        .tl-loc-link:hover { text-decoration: underline; }
+        .tl-loc-link:hover { background: #dbeafe; text-decoration: none; }
 
-        .tl-info-row { font-size: 12px; color: #475569; margin-bottom: 4px; }
-        .tl-info-row strong { color: #1e293b; }
-        .tl-info-row:last-child { margin-bottom: 0; }
+        .tl-info-section { padding: 14px 16px; }
+        .tl-info-row {
+            font-size: 12px; color: #475569; padding: 6px 0;
+            border-bottom: 1px solid #f8fafc;
+            display: flex; gap: 6px;
+        }
+        .tl-info-row:last-of-type { border-bottom: none; }
+        .tl-info-row strong { color: #1e293b; min-width: 95px; flex-shrink: 0; font-size: 11px; text-transform: uppercase; letter-spacing: 0.03em; color: #94a3b8; font-weight: 600; }
+        .tl-info-val { color: #334155; }
 
-        .tl-photos { display: flex; gap: 6px; margin-top: 10px; }
+        .tl-photos {
+            display: flex; gap: 8px; padding: 12px 16px;
+            border-top: 1px solid #f1f5f9;
+            background: #fafbfc;
+        }
         .tl-photo {
-            width: 52px; height: 52px; border-radius: 8px; object-fit: cover;
-            border: 2px solid #e2e8f0; transition: transform 0.2s;
+            width: 56px; height: 56px; border-radius: 10px; object-fit: cover;
+            border: 2px solid #e2e8f0; transition: all 0.2s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
         }
-        .tl-photo:hover { transform: scale(1.1); border-color: #3b82f6; }
+        .tl-photo:hover { transform: scale(1.08); border-color: #6366f1; box-shadow: 0 4px 12px rgba(99,102,241,0.2); }
 
         .lunas-background { position: relative; z-index: 1; }
         .lunas-background::after {
@@ -265,7 +294,9 @@ $stmt_pelaksanaan->close();
             .view-hero { padding: 16px; }
             .hero-customer { font-size: 16px; }
             .vk-card-body { padding: 12px 14px; }
-            .tl-time-row { gap: 12px; }
+            .tl-time-section { gap: 12px; padding: 12px; }
+            .tl-info-section { padding: 12px; }
+            .tl-entry { padding-left: 24px; }
         }
     </style>
 </head>
@@ -403,36 +434,53 @@ $stmt_pelaksanaan->close();
                                         <div class="tab-pane fade <?= ($tab_index == 1) ? 'show active' : '' ?>" id="panel-<?= $tab_index ?>" role="tabpanel">
                                             <?php foreach ($tasks as $task) :
                                                 $dotClass = 'tl-dot-dijadwalkan';
-                                                if ($task['status'] == 'selesai') $dotClass = 'tl-dot-selesai';
-                                                elseif ($task['status'] == 'berjalan') $dotClass = 'tl-dot-berjalan';
-                                                elseif ($task['status'] == 'menunggu laporan') $dotClass = 'tl-dot-menunggu';
-                                                elseif ($task['status'] == 'Lanjut Nanti') $dotClass = 'tl-dot-lanjut';
-                                                elseif ($task['status'] == 'Lanjutan') $dotClass = 'tl-dot-lanjutan';
+                                                $badgeClass = 'tl-badge-dijadwalkan';
+                                                if ($task['status'] == 'selesai') { $dotClass = 'tl-dot-selesai'; $badgeClass = 'tl-badge-selesai'; }
+                                                elseif ($task['status'] == 'berjalan') { $dotClass = 'tl-dot-berjalan'; $badgeClass = 'tl-badge-berjalan'; }
+                                                elseif ($task['status'] == 'menunggu laporan') { $dotClass = 'tl-dot-menunggu'; $badgeClass = 'tl-badge-menunggu'; }
+                                                elseif ($task['status'] == 'Lanjut Nanti') { $dotClass = 'tl-dot-lanjut'; $badgeClass = 'tl-badge-lanjut'; }
+                                                elseif ($task['status'] == 'Lanjutan') { $dotClass = 'tl-dot-lanjutan'; $badgeClass = 'tl-badge-lanjutan'; }
+                                                // Calculate duration
+                                                $durationText = '';
+                                                $mulaiValid = !empty($task['waktu_mulai']) && substr($task['waktu_mulai'], 0, 10) != '0000-00-00';
+                                                $selesaiValid = !empty($task['waktu_selesai']) && substr($task['waktu_selesai'], 0, 10) != '0000-00-00';
+                                                if ($mulaiValid && $selesaiValid) {
+                                                    $diffSec = strtotime($task['waktu_selesai']) - strtotime($task['waktu_mulai']);
+                                                    if ($diffSec > 0) {
+                                                        $h = floor($diffSec / 3600); $m = floor(($diffSec % 3600) / 60);
+                                                        $durationText = ($h > 0 ? $h . 'j ' : '') . $m . 'm';
+                                                    }
+                                                }
                                             ?>
                                                 <div class="tl-entry">
                                                     <div class="tl-dot <?= $dotClass ?>"></div>
-                                                    <div class="tl-status"><?= htmlspecialchars($task['status']) ?></div>
-                                                    <div class="tl-date"><?= date("d M Y", strtotime($task['waktu_mulai'])) ?></div>
+                                                    <div class="tl-header">
+                                                        <span class="tl-status-badge <?= $badgeClass ?>"><?= htmlspecialchars($task['status']) ?></span>
+                                                        <span class="tl-date"><?= date("d M Y", strtotime($task['waktu_mulai'])) ?></span>
+                                                        <?php if ($durationText): ?><span class="tl-duration">⏱ <?= $durationText ?></span><?php endif; ?>
+                                                    </div>
                                                     <div class="tl-detail-card">
-                                                        <div class="tl-time-row">
+                                                        <div class="tl-time-section">
                                                             <div class="tl-time-item">
                                                                 <div class="tl-time-icon tl-start-icon">▶</div>
-                                                                <span class="tl-time-val"><?= (!empty($task['waktu_mulai']) && substr($task['waktu_mulai'], 0, 10) != '0000-00-00') ? date("H:i", strtotime($task['waktu_mulai'])) : '--:--' ?></span>
+                                                                <span class="tl-time-val"><?= $mulaiValid ? date("H:i", strtotime($task['waktu_mulai'])) : '--:--' ?></span>
                                                                 <?php if(!empty($task['latitude']) && !empty($task['longitude'])): ?>
                                                                     <a href="https://maps.google.com/maps?q=<?= $task['latitude'] ?>,<?= $task['longitude'] ?>" target="_blank" class="tl-loc-link">📍 Lokasi</a>
                                                                 <?php endif; ?>
                                                             </div>
                                                             <div class="tl-time-item">
                                                                 <div class="tl-time-icon tl-end-icon">⏹</div>
-                                                                <span class="tl-time-val"><?= (!empty($task['waktu_selesai']) && substr($task['waktu_selesai'], 0, 10) != '0000-00-00') ? date("H:i", strtotime($task['waktu_selesai'])) : '--:--' ?></span>
+                                                                <span class="tl-time-val"><?= $selesaiValid ? date("H:i", strtotime($task['waktu_selesai'])) : '--:--' ?></span>
                                                                 <?php if(!empty($task['latitude_s']) && !empty($task['longitude_s'])): ?>
                                                                     <a href="https://maps.google.com/maps?q=<?= $task['latitude_s'] ?>,<?= $task['longitude_s'] ?>" target="_blank" class="tl-loc-link">📍 Lokasi</a>
                                                                 <?php endif; ?>
                                                             </div>
                                                         </div>
-                                                        <div class="tl-info-row"><strong>Permasalahan:</strong> <?= !empty($task['permasalahan']) ? htmlspecialchars($task['permasalahan']) : '<span style="color:#cbd5e1;">-</span>' ?></div>
-                                                        <div class="tl-info-row"><strong>Solusi:</strong> <?= !empty($task['solusi']) ? htmlspecialchars($task['solusi']) : '<span style="color:#cbd5e1;">-</span>' ?></div>
-                                                        <div class="tl-info-row"><strong>Keterangan:</strong> <?= !empty($task['keterangan']) ? htmlspecialchars($task['keterangan']) : '<span style="color:#cbd5e1;">-</span>' ?></div>
+                                                        <div class="tl-info-section">
+                                                            <div class="tl-info-row"><strong>Masalah</strong> <span class="tl-info-val"><?= !empty($task['permasalahan']) ? htmlspecialchars($task['permasalahan']) : '<span style="color:#cbd5e1;">-</span>' ?></span></div>
+                                                            <div class="tl-info-row"><strong>Solusi</strong> <span class="tl-info-val"><?= !empty($task['solusi']) ? htmlspecialchars($task['solusi']) : '<span style="color:#cbd5e1;">-</span>' ?></span></div>
+                                                            <div class="tl-info-row"><strong>Keterangan</strong> <span class="tl-info-val"><?= !empty($task['keterangan']) ? htmlspecialchars($task['keterangan']) : '<span style="color:#cbd5e1;">-</span>' ?></span></div>
+                                                        </div>
                                                         <?php
                                                         $hasPhotos = false;
                                                         foreach (['image_1', 'image_2', 'image_3', 'image_4', 'image_5'] as $img) {
