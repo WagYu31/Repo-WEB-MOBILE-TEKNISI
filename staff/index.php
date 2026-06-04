@@ -369,7 +369,7 @@ $loginError = isset($_GET['error']) ? htmlspecialchars($_GET['error'], ENT_QUOTE
       <div class="logo-section">
         <img src="assets/img/logo/lwx-logo.png" alt="Loewix">
         <div class="logo-divider"></div>
-        <p class="welcome-text">Staff Management Portal</p>
+        <p class="welcome-text">Portal Admin · Teknisi · Finance</p>
       </div>
 
       <!-- Form -->
