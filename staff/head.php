@@ -14,36 +14,30 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-  <!-- Fonts -->
-  <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&family=Roboto+Slab:wght@400;700&display=swap" />
-    <!-- Bootstrap 5.3 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Nucleo Icons -->
-  <link href="assets/css/nucleo-icons.css" rel="stylesheet" />
-  <link href="assets/css/nucleo-svg.css" rel="stylesheet" />
-  <!-- Font Awesome Icons (CDN CSS - faster than Kit JS) -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <!-- Material Icons -->
+  <!-- Fonts (only weights we actually use) -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" />
+  <!-- Bootstrap 5.3 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Material Icons (critical - used in sidebar/nav) -->
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round&display=swap" rel="stylesheet">
-  <!-- CSS Files -->
+  <!-- CSS Files (critical) -->
   <link id="pagestyle" href="assets/css/material-dashboard.css?v=3.1.0" rel="stylesheet" />
-  <!-- Nepcha Analytics (nepcha.com) -->
-  <!-- Nepcha is a easy-to-use web analytics. No cookies and fully compliant with GDPR, CCPA and PECR. -->
-  <script defer data-site="https://jadwal.id-giti.com" src="https://api.nepcha.com/js/nepcha-analytics.js"></script>
+  <!-- Non-critical CSS: load async via media swap trick -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" media="print" onload="this.media='all'" crossorigin="anonymous" />
+  <link href="assets/css/nucleo-icons.css" rel="stylesheet" media="print" onload="this.media='all'" />
+  <link href="assets/css/nucleo-svg.css" rel="stylesheet" media="print" onload="this.media='all'" />
   <style>
     .nav-link i.material-icons {
       font-size: 2em;
-      /* Adjust the size as needed */
     }
     .btm-nav {
         position: fixed;
-        bottom: 15px; /* Adjust the distance from the bottom as needed */
+        bottom: 15px;
         left: 0;
         right: 0;
-        margin: 0 auto; /* Center the navbar horizontally */
-        border-radius: 15px; /* Add border-radius */
-        /* overflow: hidden; */
-        background-color: rgba(0, 0, 0, 0.7); /* Add a background color with transparency */
+        margin: 0 auto;
+        border-radius: 15px;
+        background-color: rgba(0, 0, 0, 0.7);
         width:94%;
         margin-left:3%;
     }
