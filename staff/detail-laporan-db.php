@@ -170,6 +170,70 @@
     }
 </style>
 
+<?php
+    $tomorrow_date = date("Y-m-d", strtotime("+1 day"));
+    $current_time = date("H:i:s");
+    
+    // Calculate month range for index-friendly filtering
+    $monthStart = $current_date . '-01';
+    $monthEnd = date('Y-m-t', strtotime($monthStart));
+    
+    $sql = "SELECT pk.*, 
+                   GROUP_CONCAT(DISTINCT CONCAT('<a href=\"detail-lap-tek.php?cariBulanTahun=$current_date&idTek=', t.id, '\">', t.nama, '</a>') SEPARATOR '<br>') AS nama_teknisi,
+                   GROUP_CONCAT(DISTINCT t.nama SEPARATOR ', ') AS nama_teknisi_plain,
+                   k.customer_id, 
+                   c.nama AS nama_cust,
+                   sv.keterangan_survey,
+                   sv.surveyor
+            FROM pendapatan_kegiatan pk
+            JOIN kegiatan k ON k.kode = pk.kode
+            JOIN customer c ON c.id = k.customer_id
+            JOIN teknisi t ON t.id = pk.teknisi_id
+            LEFT JOIN (
+                SELECT k2.kode,
+                       GROUP_CONCAT(DISTINCT CONCAT(UPPER(k2.kegiatan), ' - ', DATE_FORMAT(k2.jadwal, '%d/%m/%Y')) SEPARATOR ', ') AS keterangan_survey,
+                       GROUP_CONCAT(DISTINCT t2.nama SEPARATOR ', ') AS surveyor
+                FROM kegiatan k2
+                LEFT JOIN team_kegiatan tk3 ON tk3.kegiatan_id = k2.id AND tk3.deleted_at IS NULL
+                LEFT JOIN teknisi t2 ON t2.id = tk3.teknisi_id
+                WHERE LOWER(k2.kegiatan) = 'survey'
+                GROUP BY k2.kode
+            ) sv ON sv.kode = pk.kode
+            WHERE pk.deleted_at IS NULL
+            AND pk.tanggal >= '$monthStart' AND pk.tanggal <= '$monthEnd 23:59:59'
+            GROUP BY pk.kode
+            ORDER BY pk.tanggal ASC";
+            
+    $result = mysqli_query($conn, $sql);
+    $totalBonusAll = 0;
+    $rowNum = 0;
+    $totalSurvey = 0;
+    $allRows = [];
+    $teknisiList = [];
+
+    if ($result) {
+        while ($row = mysqli_fetch_assoc($result)) {
+            $allRows[] = $row;
+            $totalBonusAll += $row['nominal_invoice'];
+            if (!empty($row['keterangan_survey'])) $totalSurvey++;
+            $names = explode(', ', $row['nama_teknisi_plain']);
+            foreach ($names as $n) {
+                $n = trim($n);
+                if ($n && !in_array($n, $teknisiList)) $teknisiList[] = $n;
+            }
+        }
+    }
+    sort($teknisiList);
+
+    $daftar_bulan = [
+        1 => 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+    ];
+    $timestamp = strtotime($current_date);
+    $bulan = $daftar_bulan[(int)date('m', $timestamp)];
+    $tahun_display = date('Y', $timestamp);
+?>
+
 <div class="col-lg-12" id="printable-content">
     <div class="detail-card">
         <!-- Header -->
