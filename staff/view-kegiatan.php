@@ -511,5 +511,29 @@ $stmt_pelaksanaan->close();
         <?php include "footer.php"; ?>
     </main>
     <?php include "js-include.php"; ?>
+    <script>
+    // Manual tab handler - fix Bootstrap/Material Dashboard conflict
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.tl-tab').forEach(function(tab) {
+            tab.addEventListener('click', function(e) {
+                e.preventDefault();
+                // Remove active from all tabs
+                document.querySelectorAll('.tl-tab').forEach(function(t) { t.classList.remove('active'); });
+                // Add active to clicked tab
+                this.classList.add('active');
+                // Hide all panels
+                document.querySelectorAll('#teknisiTabContent .tab-pane').forEach(function(p) {
+                    p.classList.remove('show', 'active');
+                });
+                // Show target panel
+                var target = this.getAttribute('data-bs-target');
+                var panel = document.querySelector(target);
+                if (panel) {
+                    panel.classList.add('show', 'active');
+                }
+            });
+        });
+    });
+    </script>
 </body>
 </html>
