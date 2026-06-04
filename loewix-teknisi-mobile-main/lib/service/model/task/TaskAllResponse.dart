@@ -288,6 +288,7 @@ class DataTeknisi {
     int kegiatanId;
     int teknisiId;
     String namaDataTeknisi;
+    int isKetua;
     String kode;
     DateTime createdAt;
     DateTime updatedAt;
@@ -298,6 +299,7 @@ class DataTeknisi {
         required this.kegiatanId,
         required this.teknisiId,
         required this.namaDataTeknisi,
+        this.isKetua = 0,
         required this.kode,
         required this.createdAt,
         required this.updatedAt,
@@ -309,6 +311,7 @@ class DataTeknisi {
         kegiatanId: json["kegiatan_id"],
         teknisiId: json["teknisi_id"],
         namaDataTeknisi: json["nama_teknisi"],
+        isKetua: json["is_ketua"] ?? 0,
         kode: json["kode"],
         createdAt: DateTime.parse(json["created_at"]),
         updatedAt: DateTime.parse(json["updated_at"]),
@@ -320,6 +323,7 @@ class DataTeknisi {
         "kegiatan_id": kegiatanId,
         "teknisi_id": teknisiId,
         "nama_teknisi": namaDataTeknisi,
+        "is_ketua": isKetua,
         "kode": kode,
         "created_at": createdAt.toIso8601String(),
         "updated_at": updatedAt.toIso8601String(),

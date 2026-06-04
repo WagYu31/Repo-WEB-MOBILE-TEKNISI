@@ -37,6 +37,8 @@ class _TaskPageState extends State<TaskPage> {
   late String id;
   late int _idTeknisi;
   bool start = false;
+  late bool _isKetua;
+  late bool _isSoloTeknisi;
 
   // Cached computed values
   String? _cachedStatus;
@@ -64,6 +66,11 @@ class _TaskPageState extends State<TaskPage> {
     start = data.pelaksanaan.any(
       (e) => e.teknisiId == _idTeknisi && e.status == 'berjalan',
     );
+
+    // Determine ketua status
+    _isSoloTeknisi = data.dataTeknisi.length == 1;
+    final myTeknisiData = data.dataTeknisi.where((t) => t.teknisiId == _idTeknisi);
+    _isKetua = _isSoloTeknisi || (myTeknisiData.isNotEmpty && myTeknisiData.first.isKetua == 1);
 
     // Pre-compute status values
     _computeStatusValues();
@@ -550,7 +557,85 @@ class _TaskPageState extends State<TaskPage> {
           data.keterangan ?? 'Tidak ada catatan',
           Colors.purple[400]!,
         ),
+        if (data.dataTeknisi.length > 1) ...[
+          const SizedBox(height: 8),
+          _buildTeamMembersCard(),
+        ],
       ],
+    );
+  }
+
+  Widget _buildTeamMembersCard() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: surfaceColor,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: primaryColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.groups, color: primaryColor, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Text('Tim Teknisi', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600, fontSize: 14, color: textSecondary)),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ...data.dataTeknisi.map((t) {
+            final isMe = t.teknisiId == _idTeknisi;
+            final isLeader = t.isKetua == 1;
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Row(
+                children: [
+                  if (isLeader)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      margin: const EdgeInsets.only(right: 8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFEF3C7),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: const Color(0xFFFDE68A)),
+                      ),
+                      child: const Text('👑', style: TextStyle(fontSize: 12)),
+                    )
+                  else
+                    const SizedBox(width: 36),
+                  Expanded(
+                    child: Text(
+                      '${t.namaDataTeknisi}${isMe ? ' (Anda)' : ''}',
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 14,
+                        fontWeight: isMe ? FontWeight.w600 : FontWeight.w400,
+                        color: isMe ? primaryColor : textPrimary,
+                      ),
+                    ),
+                  ),
+                  if (isLeader)
+                    Text('Ketua', style: TextStyle(fontFamily: 'Poppins', fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFF92400E))),
+                ],
+              ),
+            );
+          }),
+        ],
+      ),
     );
   }
 
@@ -643,24 +728,45 @@ class _TaskPageState extends State<TaskPage> {
                   ),
                 ],
               ),
-              child: SlideAction(
-                outerColor: start ? successColor : primaryColor,
-                elevation: 0,
-                innerColor: Colors.white,
-                borderRadius: 16,
-                text: start ? 'Geser untuk Laporan' : 'Geser untuk Mulai',
-                textStyle: TextStyle(fontFamily: 'Poppins',
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-                sliderButtonIcon: Icon(
-                  start ? Icons.description : Icons.play_arrow,
-                  color: start ? successColor : primaryColor,
-                  size: 24,
-                ),
-                onSubmit: () => _handleSlideAction(isWithinRadius),
-              ),
+              child: start && !_isKetua
+                ? Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: secondaryColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: secondaryColor.withValues(alpha: 0.3)),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.info_outline, color: secondaryColor, size: 24),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'Menunggu Ketua Tim menyelesaikan & mengirim laporan. Status Anda akan otomatis terupdate.',
+                            style: TextStyle(fontFamily: 'Poppins', color: secondaryColor, fontWeight: FontWeight.w500, fontSize: 13),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : SlideAction(
+                    outerColor: start ? successColor : primaryColor,
+                    elevation: 0,
+                    innerColor: Colors.white,
+                    borderRadius: 16,
+                    text: start ? 'Geser untuk Laporan' : 'Geser untuk Mulai',
+                    textStyle: TextStyle(fontFamily: 'Poppins',
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    sliderButtonIcon: Icon(
+                      start ? Icons.description : Icons.play_arrow,
+                      color: start ? successColor : primaryColor,
+                      size: 24,
+                    ),
+                    onSubmit: () => _handleSlideAction(isWithinRadius),
+                  ),
             ),
           ],
         );
@@ -830,12 +936,21 @@ class _TaskPageState extends State<TaskPage> {
           spacing: 12,
           runSpacing: 12,
           children: [
-            if (status == 'menunggu laporan' && selisih < 2)
+            if (status == 'menunggu laporan' && selisih < 2 && _isKetua)
               _buildActionButton('Kirim Laporan', Icons.task, successColor, () {
                 Navigator.pushNamed(
                   context,
                   ReportDonePage.routeName,
                   arguments: [int.parse(id), data.id],
+                );
+              }),
+            if (status == 'menunggu laporan' && selisih < 2 && !_isKetua)
+              _buildActionButton('Menunggu Ketua', Icons.hourglass_top, secondaryColor, () {
+                QuickAlert.show(
+                  context: context,
+                  type: QuickAlertType.info,
+                  title: 'Hanya Ketua Tim',
+                  text: 'Hanya Ketua Tim yang dapat mengirim laporan. Status Anda akan otomatis terupdate setelah Ketua menyelesaikan laporan.',
                 );
               }),
             if ((status == 'menunggu laporan' || status == 'selesai') &&
