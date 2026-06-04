@@ -60,9 +60,77 @@ class _ReportDonePageState extends State<ReportDonePage> {
   }
 
   Future<void> _pickImage(int index) async {
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        margin: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 12),
+              Container(
+                width: 40, height: 4,
+                decoration: BoxDecoration(
+                  color: _borderColor,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Pilih Sumber Foto',
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16,
+                  color: _textPrimary,
+                ),
+              ),
+              const SizedBox(height: 16),
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: _primaryBlue.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.camera_alt_rounded, color: _primaryBlue, size: 24),
+                ),
+                title: const Text('Kamera', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600, fontSize: 14)),
+                subtitle: const Text('Ambil foto langsung', style: TextStyle(fontFamily: 'Poppins', fontSize: 12, color: _textSecondary)),
+                onTap: () => Navigator.pop(ctx, ImageSource.camera),
+              ),
+              const Divider(height: 1, indent: 72),
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: _successGreen.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.photo_library_rounded, color: _successGreen, size: 24),
+                ),
+                title: const Text('Galeri', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600, fontSize: 14)),
+                subtitle: const Text('Pilih dari galeri foto', style: TextStyle(fontFamily: 'Poppins', fontSize: 12, color: _textSecondary)),
+                onTap: () => Navigator.pop(ctx, ImageSource.gallery),
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    if (source == null) return;
+
     try {
       final XFile? image = await _picker.pickImage(
-        source: ImageSource.gallery,
+        source: source,
         imageQuality: 80,
         maxWidth: 1920,
         maxHeight: 1080,
@@ -663,13 +731,15 @@ class _ReportDonePageState extends State<ReportDonePage> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: _primaryBlue.withValues(alpha: 0.1),
+                      color: index == 0 
+                          ? _primaryBlue.withValues(alpha: 0.1) 
+                          : const Color(0xFFF1F5F9),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
-                      index == 0 ? Iconsax.camera : Iconsax.add,
+                      index == 0 ? Icons.camera_alt_rounded : Iconsax.add,
                       size: 24,
-                      color: _primaryBlue,
+                      color: index == 0 ? _primaryBlue : _textSecondary,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -682,6 +752,15 @@ class _ReportDonePageState extends State<ReportDonePage> {
                       color: index == 0 ? _primaryBlue : _textSecondary,
                     ),
                   ),
+                  if (index == 0)
+                    const Text(
+                      'Kamera / Galeri',
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 10,
+                        color: _textSecondary,
+                      ),
+                    ),
                 ],
               ),
       ),

@@ -198,14 +198,27 @@ class ApiPelaksanaan {
 
     if (statusCode >= 200 && statusCode <= 300) {
       print('Success: $responseData');
-      final PelaksanaanSendResponse uploadResponse =
-          PelaksanaanSendResponse.fromJson(
-        json.decode(responseData),
-      );
-      return uploadResponse;
+      try {
+        final PelaksanaanSendResponse uploadResponse =
+            PelaksanaanSendResponse.fromJson(
+          json.decode(responseData),
+        );
+        return uploadResponse;
+      } catch (e) {
+        // Server returned success status but malformed/empty JSON
+        // Treat as success since status code indicates it worked
+        return PelaksanaanSendResponse(message: 'Pelaksanaan kegiatan berhasil diselesaikan');
+      }
     } else {
       print('Error: $responseData');
-      throw Exception("Upload file error");
+      try {
+        Map<String, dynamic> jsonResponse = jsonDecode(responseData);
+        String message = jsonResponse['message'] ?? 'Upload gagal';
+        throw Exception(message);
+      } catch (e) {
+        if (e is Exception) rethrow;
+        throw Exception("Upload file error: $statusCode");
+      }
     }
   }
 

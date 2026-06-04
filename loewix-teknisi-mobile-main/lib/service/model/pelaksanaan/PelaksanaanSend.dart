@@ -10,21 +10,21 @@ String pelaksanaanSendResponseToJson(PelaksanaanSendResponse data) => json.encod
 
 class PelaksanaanSendResponse {
     String message;
-    Data data;
+    Data? data;
 
     PelaksanaanSendResponse({
         required this.message,
-        required this.data,
+        this.data,
     });
 
     factory PelaksanaanSendResponse.fromJson(Map<String, dynamic> json) => PelaksanaanSendResponse(
         message: json["message"],
-        data: Data.fromJson(json["data"]),
+        data: json["data"] != null ? Data.fromJson(json["data"]) : null,
     );
 
     Map<String, dynamic> toJson() => {
         "message": message,
-        "data": data.toJson(),
+        "data": data?.toJson(),
     };
 }
 
