@@ -896,27 +896,51 @@ if (isset($_GET['export'])) {
         </div>
 
         <div class="modal fade" id="jadwalkanModal" tabindex="-1">
-          <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-              <div class="modal-header"><h5>Jadwalkan Kegiatan</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-              <div class="modal-body">
+          <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content" style="border:none;border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.15);">
+              <div class="modal-header" style="background:linear-gradient(135deg,#1e293b,#334155);border:none;padding:18px 24px;">
+                <h5 style="color:#fff;font-size:16px;font-weight:700;margin:0;display:flex;align-items:center;gap:8px;">
+                  <span style="background:rgba(99,102,241,0.2);width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;">
+                    <i class="material-icons" style="font-size:16px;color:#a5b4fc;">event</i>
+                  </span>
+                  Jadwalkan Kegiatan
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" style="opacity:0.7;"></button>
+              </div>
+              <div class="modal-body" style="padding:20px 24px;max-height:60vh;overflow-y:auto;">
                 <form id="jadwalkanForm">
-                  <div class="form-group"><label>Tanggal:</label><input type="date" class="form-control border px-2" id="tanggal" name="tanggal" value="<?= date('Y-m-d') ?>" required></div>
-                  <div class="form-group mt-2"><label>Jam:</label><input type="time" class="form-control border px-2" id="jam" name="jam" required></div>
-                  <div class="form-group mt-2">
-                    <label>Pilih Teknisi</label>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+                    <div>
+                      <label style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;display:block;">Tanggal</label>
+                      <input type="date" class="form-control" id="tanggal" name="tanggal" value="<?= date('Y-m-d') ?>" required style="border:1.5px solid #e2e8f0;border-radius:10px;padding:10px 12px;font-size:13px;font-weight:500;color:#1e293b;">
+                    </div>
+                    <div>
+                      <label style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;display:block;">Jam</label>
+                      <input type="time" class="form-control" id="jam" name="jam" required style="border:1.5px solid #e2e8f0;border-radius:10px;padding:10px 12px;font-size:13px;font-weight:500;color:#1e293b;">
+                    </div>
+                  </div>
+                  <div>
+                    <label style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;display:block;">Pilih Teknisi</label>
                     <div id="technician-list-container">
                       <?php
                       $res_tek = mysqli_query($conn, "SELECT id, nama FROM teknisi WHERE deleted_at IS NULL ORDER BY nama ASC");
                       while ($t = mysqli_fetch_assoc($res_tek)) {
-                        echo "<div class='form-check mt-2'><input class='form-check-input teknisi-checkbox' type='checkbox' name='teknisi[]' value='".$t['id']."' id='tek".$t['id']."'><label class='form-check-label' for='tek".$t['id']."'>".htmlspecialchars($t['nama'])."</label><div class='text-muted text-xs ms-4' id='jadwal-teknisi-".$t['id']."'></div></div>";
+                        echo "<label for='tek".$t['id']."' style='display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1px solid #f1f5f9;border-radius:10px;margin-bottom:8px;cursor:pointer;transition:all 0.15s;background:#fff;' onmouseover=\"this.style.borderColor='#6366f1';this.style.background='#fafafe'\" onmouseout=\"this.style.borderColor='#f1f5f9';this.style.background='#fff'\">";
+                        echo "<input class='form-check-input teknisi-checkbox' type='checkbox' name='teknisi[]' value='".$t['id']."' id='tek".$t['id']."' style='margin-top:2px;flex-shrink:0;width:16px;height:16px;border-radius:4px;border:1.5px solid #cbd5e1;'>";
+                        echo "<div style='flex:1;min-width:0;'>";
+                        echo "<div style='font-size:13px;font-weight:600;color:#1e293b;'>".htmlspecialchars($t['nama'])."</div>";
+                        echo "<div class='text-xs' id='jadwal-teknisi-".$t['id']."' style='margin-top:3px;line-height:1.4;'></div>";
+                        echo "</div></label>";
                       }
                       ?>
                     </div>
                   </div>
                 </form>
               </div>
-              <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button><button type="button" class="btn btn-primary" id="submitJadwalkan">Jadwalkan</button></div>
+              <div class="modal-footer" style="border-top:1px solid #f1f5f9;padding:14px 24px;gap:8px;">
+                <button type="button" class="btn" data-bs-dismiss="modal" style="background:#f1f5f9;color:#64748b;font-size:12px;font-weight:600;border:none;border-radius:8px;padding:8px 20px;">Tutup</button>
+                <button type="button" class="btn" id="submitJadwalkan" style="background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;font-size:12px;font-weight:600;border:none;border-radius:8px;padding:8px 20px;box-shadow:0 2px 8px rgba(99,102,241,0.3);">Jadwalkan</button>
+              </div>
             </div>
           </div>
         </div>
@@ -1040,8 +1064,8 @@ if (isset($_GET['export'])) {
       const data = await res.json();
       $('[id^="jadwal-teknisi-"]').html('');
       for (const id in data) {
-        const txt = data[id].map(i => `(${i.customer} | ${i.waktu})`).join(', ');
-        $(`#jadwal-teknisi-${id}`).html(`<span class="text-danger fw-bold">${txt}</span>`);
+        const badges = data[id].map(i => `<span style="display:inline-block;background:#fef3c7;color:#92400e;font-size:10px;font-weight:600;padding:2px 8px;border-radius:4px;margin:2px 3px 2px 0;">${i.customer} | ${i.waktu}</span>`).join('');
+        $(`#jadwal-teknisi-${id}`).html(badges);
       }
     }
 
