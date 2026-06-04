@@ -521,12 +521,41 @@ if (isset($_GET['export'])) {
             $sql_today = "SELECT k.*, c.nama AS nama_customer, c.telp AS cust_nomor, c.alamat, c.id AS customer_id FROM kegiatan k LEFT JOIN customer c ON k.customer_id = c.id WHERE k.status NOT IN ('waiting', 'selesai by admin') AND DATE(k.jadwal) = ? AND k.deleted_at IS NULL ORDER BY k.jadwal ASC";
 
             $stmt_today = $conn->prepare($sql_today);
-
             $stmt_today->bind_param("s", $current_date);
-
             $stmt_today->execute();
-
             $result_today = $stmt_today->get_result();
+
+            // ── BULK PREFETCH: teknisi + pelaksanaan for today (eliminates N+1 queries) ──
+            $allTodayRows = [];
+            $allKegiatanIds = [];
+            $allKodes = [];
+            while ($r = $result_today->fetch_assoc()) {
+              $allTodayRows[] = $r;
+              $allKegiatanIds[$r['id']] = true;
+              $allKodes[$r['kode']] = true;
+            }
+
+            // Bulk fetch ALL teknisi for today's kegiatan IDs
+            $teknisiByKegiatan = [];
+            if (!empty($allKegiatanIds)) {
+              $idList = implode(',', array_map('intval', array_keys($allKegiatanIds)));
+              $resTek = $conn->query("SELECT kegiatan_id, nama_teknisi, teknisi_id FROM team_kegiatan WHERE kegiatan_id IN ($idList) AND deleted_at IS NULL GROUP BY kegiatan_id, teknisi_id");
+              if ($resTek) { while ($rt = $resTek->fetch_assoc()) { $teknisiByKegiatan[$rt['kegiatan_id']][] = $rt; } $resTek->free(); }
+            }
+
+            // Bulk fetch ALL pelaksanaan for today's kodes
+            $pelaksanaanByKodeTek = [];
+            if (!empty($allKodes)) {
+              $kodeList = implode(',', array_map(function($k) use ($conn) { return "'" . $conn->real_escape_string($k) . "'"; }, array_keys($allKodes)));
+              $resPel = $conn->query("SELECT kode, teknisi_id, status, waktu_mulai, waktu_selesai, latitude, longitude, latitude_s, longitude_s FROM pelaksanaan_kegiatan WHERE kode IN ($kodeList) AND DATE(waktu_mulai) = '$current_date' ORDER BY id DESC");
+              if ($resPel) {
+                while ($rp = $resPel->fetch_assoc()) {
+                  $key = $rp['kode'] . '_' . $rp['teknisi_id'];
+                  if (!isset($pelaksanaanByKodeTek[$key])) { $pelaksanaanByKodeTek[$key] = $rp; } // keep latest (ORDER BY id DESC)
+                }
+                $resPel->free();
+              }
+            }
             ?>
             <div class="card-body pb-0 p-0">
               <ul class="list-group m-0 mt-0 col-12 p-0 py-0" id="data-tek-today">
@@ -541,8 +570,8 @@ if (isset($_GET['export'])) {
                 </li>
                 <?php
                 $groupedDataToday = [];
-                if ($result_today->num_rows > 0) {
-                  while ($row = $result_today->fetch_assoc()) { $groupedDataToday[$row['kode']][] = $row; }
+                if (!empty($allTodayRows)) {
+                  foreach ($allTodayRows as $row) { $groupedDataToday[$row['kode']][] = $row; }
                 } else {
                   echo "<div class='ms-4 text-sm'>Tidak ada kegiatan untuk Hari Ini</div>";
                 }
@@ -571,32 +600,17 @@ if (isset($_GET['export'])) {
                       </div>
                       <div class="col-md-2">
                         <?php
-                        $sqlGetTeknisi = "SELECT t.nama_teknisi, t.teknisi_id FROM team_kegiatan t WHERE t.kegiatan_id = ? AND t.deleted_at IS NULL GROUP BY t.teknisi_id";
-                        $stmtTeknisi = $conn->prepare($sqlGetTeknisi);
-                        $stmtTeknisi->bind_param("i", $data['id']);
-                        $stmtTeknisi->execute();
-                        $resultTeknisi = $stmtTeknisi->get_result();
-                        while ($rowTeknisi = $resultTeknisi->fetch_assoc()) {
-                          $status_pelaksanaan = null;
-                          $waktu_mulai_tek = null;
-                          $lat_mulai = null;
-                          $lon_mulai = null;
-                          $waktu_selesai_tek = null;
-                          $lat_selesai = null;
-                          $lon_selesai = null;
-                          $stmtStatus = $conn->prepare("SELECT status, waktu_mulai, waktu_selesai, latitude, longitude, latitude_s, longitude_s FROM pelaksanaan_kegiatan WHERE kode = ? AND teknisi_id = ? AND DATE(waktu_mulai) = ? ORDER BY id DESC LIMIT 1");
-                          $stmtStatus->bind_param("sis", $kodeTransaksi, $rowTeknisi['teknisi_id'], $current_date);
-                          $stmtStatus->execute();
-                          $resultStatus = $stmtStatus->get_result();
-                          if ($rowStatus = $resultStatus->fetch_assoc()) {
-                            $status_pelaksanaan = $rowStatus['status'];
-                            $waktu_mulai_tek = $rowStatus['waktu_mulai'];
-                            $lat_mulai = $rowStatus['latitude'];
-                            $lon_mulai = $rowStatus['longitude'];
-                            $waktu_selesai_tek = $rowStatus['waktu_selesai'];
-                            $lat_selesai = $rowStatus['latitude_s'];
-                            $lon_selesai = $rowStatus['longitude_s'];
-                          }
+                        $teknisiList = $teknisiByKegiatan[$data['id']] ?? [];
+                        foreach ($teknisiList as $rowTeknisi) {
+                          $pelKey = $kodeTransaksi . '_' . $rowTeknisi['teknisi_id'];
+                          $rowStatus = $pelaksanaanByKodeTek[$pelKey] ?? null;
+                          $status_pelaksanaan = $rowStatus['status'] ?? null;
+                          $waktu_mulai_tek = $rowStatus['waktu_mulai'] ?? null;
+                          $lat_mulai = $rowStatus['latitude'] ?? null;
+                          $lon_mulai = $rowStatus['longitude'] ?? null;
+                          $waktu_selesai_tek = $rowStatus['waktu_selesai'] ?? null;
+                          $lat_selesai = $rowStatus['latitude_s'] ?? null;
+                          $lon_selesai = $rowStatus['longitude_s'] ?? null;
                           $statusInfo = getStatusInfo($status_pelaksanaan);
                           $hasMulai = !empty($waktu_mulai_tek) && $waktu_mulai_tek !== '0000-00-00 00:00:00';
                           $hasSelesai = !empty($waktu_selesai_tek) && substr($waktu_selesai_tek, 0, 10) !== '0000-00-00';
@@ -620,7 +634,7 @@ if (isset($_GET['export'])) {
                             </div>
                             <?php endif; ?>
                           </div>
-                        <?php } $stmtTeknisi->close(); ?>
+                        <?php } ?>
                       </div>
                       <div class="col-md-3">
                         <p class="text-addr">
@@ -711,6 +725,20 @@ if (isset($_GET['export'])) {
             $stmt_upcoming->bind_param("s", $current_date);
             $stmt_upcoming->execute();
             $result_upcoming = $stmt_upcoming->get_result();
+
+            // ── BULK PREFETCH: teknisi for upcoming ──
+            $allUpcomingRows = [];
+            $upcomingKegIds = [];
+            while ($r = $result_upcoming->fetch_assoc()) {
+              $allUpcomingRows[] = $r;
+              $upcomingKegIds[$r['id']] = true;
+            }
+            $teknisiByKegUpcoming = [];
+            if (!empty($upcomingKegIds)) {
+              $idList2 = implode(',', array_map('intval', array_keys($upcomingKegIds)));
+              $resTek2 = $conn->query("SELECT kegiatan_id, nama_teknisi, teknisi_id FROM team_kegiatan WHERE kegiatan_id IN ($idList2) AND deleted_at IS NULL GROUP BY kegiatan_id, teknisi_id");
+              if ($resTek2) { while ($rt = $resTek2->fetch_assoc()) { $teknisiByKegUpcoming[$rt['kegiatan_id']][] = $rt; } $resTek2->free(); }
+            }
             ?>
             <div class="card-body pb-0 p-0">
               <ul class="list-group m-0 mt-0 col-12 p-0 py-0" id="data-tek-upcoming">
@@ -725,8 +753,8 @@ if (isset($_GET['export'])) {
                 </li>
                 <?php
                 $groupedDataUpcoming = [];
-                if ($result_upcoming->num_rows > 0) {
-                  while ($row = $result_upcoming->fetch_assoc()) { $groupedDataUpcoming[$row['kode']][] = $row; }
+                if (!empty($allUpcomingRows)) {
+                  foreach ($allUpcomingRows as $row) { $groupedDataUpcoming[$row['kode']][] = $row; }
                 } else {
                   echo "<div style='padding:32px 16px;text-align:center;'><i class='material-icons' style='font-size:40px;color:#cbd5e1;'>event_available</i><p style='font-size:13px;color:#94a3b8;margin:8px 0 0;'>Tidak ada kegiatan yang akan datang.</p></div>";
                 }
@@ -753,15 +781,10 @@ if (isset($_GET['export'])) {
                       </div>
                       <div class="col-md-2">
                         <?php
-                        $sqlGetTeknisi2 = "SELECT t.nama_teknisi, t.teknisi_id FROM team_kegiatan t WHERE t.kegiatan_id = ? AND t.deleted_at IS NULL GROUP BY t.teknisi_id";
-                        $stmtTeknisi2 = $conn->prepare($sqlGetTeknisi2);
-                        $stmtTeknisi2->bind_param("i", $data['id']);
-                        $stmtTeknisi2->execute();
-                        $resultTeknisi2 = $stmtTeknisi2->get_result();
-                        while ($rowTeknisi = $resultTeknisi2->fetch_assoc()) {
+                        $teknisiListUp = $teknisiByKegUpcoming[$data['id']] ?? [];
+                        foreach ($teknisiListUp as $rowTeknisi) {
                           echo "<div style='margin-bottom:4px;'><a href='list-kegiatan-teknisi.php?idTek=".$rowTeknisi['teknisi_id']."' style='font-size:12px;font-weight:600;color:#1e293b;text-decoration:none;display:block;line-height:1.3;'>".shortenTechnicianName($rowTeknisi['nama_teknisi'])."</a></div>";
-                        }
-                        $stmtTeknisi2->close(); ?>
+                        } ?>
                       </div>
                       <div class="col-md-3">
                         <p class="text-addr">
