@@ -146,6 +146,170 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
         .lunas-background { position: relative; z-index: 1; }
         .lunas-background::after { content: ''; position: absolute; top: 0; left: 0; width: 80%; height: 80%; background-image: url('assets/img/lunas.png'); background-size: contain; background-position: center; background-repeat: no-repeat; opacity: 0.1; z-index: -1; }
         <?php include "css/floating-menu2.css";?>
+
+        /* ═══ PREMIUM FILTER CARD ═══ */
+        .filter-card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 6px 24px rgba(0,0,0,0.03);
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+
+        .filter-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 18px 24px 0;
+        }
+        .filter-header .icon-wrap {
+            width: 36px; height: 36px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+        }
+        .filter-header .icon-wrap i { color: #fff; font-size: 15px; }
+        .filter-header h5 {
+            margin: 0; font-size: 15px; font-weight: 700; color: #1e293b;
+            letter-spacing: -0.01em;
+        }
+        .filter-header .badge-count {
+            font-size: 11px; font-weight: 700; padding: 3px 10px;
+            border-radius: 20px; background: #f1f5f9; color: #64748b;
+        }
+
+        .filter-body { padding: 20px 24px 24px; }
+
+        .filter-body label {
+            font-size: 11px; font-weight: 700; color: #64748b;
+            text-transform: uppercase; letter-spacing: 0.06em;
+            margin-bottom: 6px; display: block;
+        }
+
+        .filter-body .form-control, .filter-body select {
+            border: 1.5px solid #e5e7eb !important;
+            border-radius: 10px !important;
+            padding: 10px 14px !important;
+            font-size: 13px !important;
+            color: #1e293b !important;
+            background: #f8fafc !important;
+            transition: all 0.2s ease !important;
+            font-weight: 500 !important;
+        }
+        .filter-body .form-control:focus, .filter-body select:focus {
+            border-color: #6366f1 !important;
+            box-shadow: 0 0 0 3px rgba(99,102,241,0.08) !important;
+            background: #fff !important;
+        }
+        .filter-body .form-control::placeholder { color: #94a3b8 !important; font-weight: 400 !important; }
+
+        .btn-filter {
+            padding: 12px 28px; border: none; border-radius: 10px;
+            font-size: 13px; font-weight: 700; cursor: pointer;
+            display: inline-flex; align-items: center; gap: 8px;
+            transition: all 0.2s ease; letter-spacing: 0.02em;
+        }
+        .btn-filter-primary {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: #fff; box-shadow: 0 4px 12px rgba(99,102,241,0.25);
+        }
+        .btn-filter-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(99,102,241,0.35); }
+        .btn-filter-export {
+            background: #f0fdf4; color: #16a34a; border: 1.5px solid #bbf7d0;
+        }
+        .btn-filter-export:hover { background: #16a34a; color: #fff; border-color: #16a34a; }
+
+        /* ═══ PREMIUM DATA TABLE ═══ */
+        .data-card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 6px 24px rgba(0,0,0,0.03);
+            overflow: hidden;
+        }
+
+        .data-card .table { margin: 0; }
+        .data-card .table thead th {
+            background: #f8fafc;
+            border-bottom: 2px solid #e5e7eb;
+            padding: 14px 18px;
+            font-size: 10px;
+            font-weight: 800;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            white-space: nowrap;
+        }
+        .data-card .table tbody tr {
+            transition: all 0.15s ease;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .data-card .table tbody tr:hover { background: #f8fafc; }
+        .data-card .table tbody td { padding: 16px 18px; vertical-align: middle; }
+
+        /* Type badges */
+        .type-badge {
+            display: inline-block; font-size: 10px; font-weight: 700;
+            padding: 4px 10px; border-radius: 20px;
+            text-transform: uppercase; letter-spacing: 0.03em;
+        }
+        .type-survey { background: #fef3c7; color: #92400e; }
+        .type-service { background: #e0e7ff; color: #3730a3; }
+        .type-pasang { background: #dcfce7; color: #166534; }
+        .type-default { background: #f1f5f9; color: #475569; }
+
+        /* Customer link */
+        .cust-link { color: #1e293b; font-weight: 700; font-size: 13px; text-decoration: none; transition: color 0.2s; }
+        .cust-link:hover { color: #6366f1; }
+
+        /* Technician avatar */
+        .tek-avatar {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 4px 0; font-size: 12px; color: #475569; font-weight: 500;
+        }
+        .tek-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            flex-shrink: 0;
+        }
+
+        /* Invoice */
+        .inv-number { font-size: 11px; font-weight: 700; color: #1e293b; margin: 0; }
+        .inv-amount { font-size: 12px; font-weight: 700; color: #16a34a; margin: 2px 0 0; }
+        .inv-none { font-size: 11px; color: #ef4444; font-weight: 600; }
+
+        /* Request badge */
+        .req-badge {
+            width: 36px; height: 36px; border-radius: 10px;
+            background: #1e293b; color: #fff;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; font-weight: 800; letter-spacing: 0.02em;
+        }
+
+        /* Action button */
+        .btn-view {
+            width: 36px; height: 36px; border-radius: 10px;
+            border: 1.5px solid #e5e7eb; background: #fff;
+            display: inline-flex; align-items: center; justify-content: center;
+            color: #64748b; cursor: pointer; transition: all 0.2s;
+        }
+        .btn-view:hover { background: #6366f1; color: #fff; border-color: #6366f1; transform: scale(1.08); }
+
+        /* Empty state */
+        .empty-state {
+            padding: 60px 20px; text-align: center;
+        }
+        .empty-state i { font-size: 48px; color: #e2e8f0; margin-bottom: 12px; }
+        .empty-state p { font-size: 13px; color: #94a3b8; margin: 0; }
+
+        /* Search results dropdown */
+        #searchResults .list-group-item {
+            font-size: 13px; padding: 10px 14px;
+            border: 1px solid #e5e7eb; cursor: pointer;
+        }
+        #searchResults .list-group-item:hover { background: #f8fafc; }
     </style>
 </head>
 <body class="g-sidenav-show bg-gray-200">
@@ -153,69 +317,176 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
     <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg">
         <?php include "nav-top.php"; ?>
         <div class="container-fluid py-4">
-            <div class="card mb-4">
-                <div class="card-header pb-0"><h5 class="mb-0"><i class="fa-solid fa-filter me-2"></i>Filter Laporan Kegiatan</h5></div>
-                <div class="card-body">
+
+            <!-- ═══ FILTER CARD ═══ -->
+            <div class="filter-card">
+                <div class="filter-header">
+                    <div class="icon-wrap"><i class="fa-solid fa-filter"></i></div>
+                    <h5>Filter Laporan Kegiatan</h5>
+                    <?php if (!empty($groupedData)): ?>
+                    <span class="badge-count"><?= count($groupedData) ?> hasil</span>
+                    <?php endif; ?>
+                </div>
+                <div class="filter-body">
                     <form method="GET">
-                        <div class="row">
-                            <div class="col-md-4 mb-3"><label>Jenis Kegiatan</label><select class="form-control border p-2" name="jenis_kegiatan"><option value="">Semua Jenis</option><option value="survey" <?= ($jenis_kegiatan == 'survey' ? ' selected' : '') ?>>Survey</option><option value="service" <?= ($jenis_kegiatan == 'service' ? ' selected' : '') ?>>Service</option><option value="pasang baru" <?= ($jenis_kegiatan == 'pasang baru' ? ' selected' : '') ?>>Pasang Baru</option></select></div>
-                            <div class="col-md-4 mb-3"><label>Teknisi</label><select class="form-control border p-2" name="teknisi_id"><option value="">Semua Teknisi</option><?php mysqli_data_seek($result_all_teknisi, 0); while ($teknisi = mysqli_fetch_assoc($result_all_teknisi)) { echo "<option value='" . $teknisi['id'] . "'" . ($teknisi_id == $teknisi['id'] ? ' selected' : '') . ">" . htmlspecialchars($teknisi['nama']) . "</option>"; } ?></select></div>
-                            <div class="col-md-4 mb-3 mb-3 position-relative">
-                                <label for="customerSearchInput" class="form-label">Nama Customer</label>
-                                
-                                <input type="text" id="customerSearchInput" name="nama_customer_display" class="form-control border p-2" placeholder="Ketik untuk mencari nama customer..." autocomplete="off">
-                                
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label>Jenis Kegiatan</label>
+                                <select class="form-control" name="jenis_kegiatan">
+                                    <option value="">Semua Jenis</option>
+                                    <option value="survey" <?= ($jenis_kegiatan == 'survey' ? ' selected' : '') ?>>Survey</option>
+                                    <option value="service" <?= ($jenis_kegiatan == 'service' ? ' selected' : '') ?>>Service</option>
+                                    <option value="pasang baru" <?= ($jenis_kegiatan == 'pasang baru' ? ' selected' : '') ?>>Pasang Baru</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label>Teknisi</label>
+                                <select class="form-control" name="teknisi_id">
+                                    <option value="">Semua Teknisi</option>
+                                    <?php mysqli_data_seek($result_all_teknisi, 0); while ($teknisi = mysqli_fetch_assoc($result_all_teknisi)) { echo "<option value='" . $teknisi['id'] . "'" . ($teknisi_id == $teknisi['id'] ? ' selected' : '') . ">" . htmlspecialchars($teknisi['nama']) . "</option>"; } ?>
+                                </select>
+                            </div>
+                            <div class="col-md-4 position-relative">
+                                <label>Nama Customer</label>
+                                <input type="text" id="customerSearchInput" name="nama_customer_display" class="form-control" placeholder="Ketik nama customer..." autocomplete="off">
                                 <input type="hidden" id="customerIdInput" name="customer_id">
-                                
                                 <div id="searchResults" class="list-group position-absolute w-100" style="z-index: 1000;"></div>
                             </div>
-                            <div class="col-md-4 mb-3"><label>Dari Tanggal</label><input type="date" class="form-control border p-2" name="start_date" id="startDate" value="<?= htmlspecialchars($start_date) ?>"></div>
-                            <div class="col-md-4 mb-3"><label>Sampai Tanggal</label><input type="date" class="form-control border p-2" name="end_date" id="endDate" value="<?= htmlspecialchars($end_date) ?>"></div>
-                            <!--<div class="col-md-4 mb-3 align-self-end"><div class="d-flex"><button type="button" class="btn btn-outline-secondary w-50 me-2" id="btn7Days">7 Hari Terakhir</button><button type="button" class="btn btn-outline-secondary w-50" id="btn30Days">30 Hari Terakhir</button></div></div>-->
-                            <div class="col-12 d-flex gap-2">
-    <button type="submit" class="btn btn-primary w-100">Tampilkan Data</button>
-    <button type="submit" name="export_txt" value="1" class="btn btn-success w-100"><i class="fa-solid fa-download me-2"></i>Export to TXT</button>
-</div>
+                            <div class="col-md-4">
+                                <label>Dari Tanggal</label>
+                                <input type="date" class="form-control" name="start_date" id="startDate" value="<?= htmlspecialchars($start_date) ?>">
+                            </div>
+                            <div class="col-md-4">
+                                <label>Sampai Tanggal</label>
+                                <input type="date" class="form-control" name="end_date" id="endDate" value="<?= htmlspecialchars($end_date) ?>">
+                            </div>
+                            <div class="col-md-4 d-flex align-items-end">
+                                <div class="d-flex gap-2 w-100">
+                                    <button type="submit" class="btn-filter btn-filter-primary flex-fill">
+                                        <i class="fa-solid fa-magnifying-glass"></i> Tampilkan
+                                    </button>
+                                    <button type="submit" name="export_txt" value="1" class="btn-filter btn-filter-export flex-fill">
+                                        <i class="fa-solid fa-download"></i> Export
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </form>
                 </div>
             </div>
-            <div class="card">
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead>
-                                <tr>
-                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-4">Jadwal & Jenis</th>
-                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Customer & Alamat</th>
-                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Invoice & Status Bayar</th>
-                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Teknisi Terlibat</th>
-                                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Info Request</th>
-                                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 pe-4">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                            <?php if (!$is_search_triggered): ?>
-                                <tr><td colspan="6" class="text-center py-5 text-muted">Silakan gunakan filter di atas untuk menampilkan data.</td></tr>
-                            <?php elseif (empty($groupedData)): ?>
-                                <tr><td colspan="6" class="text-center py-5 text-muted">Tidak ada kegiatan yang cocok dengan kriteria filter Anda.</td></tr>
-                            <?php else: ?>
-                                <?php foreach ($groupedData as $kodeTransaksi => $kegiatan_group):
-                                    $latest_kegiatan = $kegiatan_group[0];
-                                    $lunas_class = (!empty($latest_kegiatan['lunas']) && $latest_kegiatan['lunas'] != '0000-00-00') ? 'lunas-background' : ''; ?>
-                                    <tr>
-                                        <td class="ps-4 text-wrap"><div class="d-flex flex-column"><span class="badge badge-secondary text-capitalize p-1 px-2"><?= htmlspecialchars($latest_kegiatan['kegiatan']) ?></span><h6 class="mb-0 text-sm font-weight-bold"><?= date("d M Y", strtotime($latest_kegiatan['jadwal'])) ?></h6><p class="text-xs text-secondary mb-0"><?= date("H:i", strtotime($latest_kegiatan['jadwal'])) ?> WIB</p></div></td>
-                                        <td class="text-wrap w-50"><div class="d-flex flex-column"><h6 class="mb-0 text-sm"><a href="customer-detail.php?id_cust=<?= $latest_kegiatan['customer_id'] ?>" target="_blank"><?= htmlspecialchars($latest_kegiatan['nama_customer']) ?></a></h6><p class="text-xs text-secondary mb-1"><?php $nomorHandphone = $latest_kegiatan['cust_nomor']; if (substr($nomorHandphone, 0, 1) === '0') $nomorHandphone = '62' . substr($nomorHandphone, 1); ?><a href="https://api.whatsapp.com/send?phone=<?= $nomorHandphone ?>" target="_blank"><?= htmlspecialchars($latest_kegiatan['cust_nomor']) ?></a></p><p class="text-xs font-weight-bold mb-0"><?= htmlspecialchars($latest_kegiatan['alamat']) ?></p></div></td>
-                                        <td class="text-sm text-wrap <?= $lunas_class ?>"><?php if (!empty($latest_kegiatan['no_invoice'])) : ?><p class="font-weight-bold text-dark mb-0 text-xs"><?= htmlspecialchars($latest_kegiatan['no_invoice']) ?></p><p class="text-success font-weight-bold mb-0 text-xs">Rp <?= number_format($latest_kegiatan['nominal_invoice'], 0, ',', '.') ?></p><?php else: ?><p class="text-xs text-danger mb-0">Belum Ada Invoice</p><?php endif; ?></td>
-                                        <td><?php $sqlTeknisi = "SELECT tk.nama_teknisi FROM team_kegiatan tk WHERE tk.kode = ? AND tk.deleted_at IS NULL GROUP BY tk.teknisi_id"; $stmt_tek = $conn->prepare($sqlTeknisi); $stmt_tek->bind_param("s", $kodeTransaksi); $stmt_tek->execute(); $resultTeknisi = $stmt_tek->get_result(); if($resultTeknisi->num_rows > 0) { while ($rowTeknisi = $resultTeknisi->fetch_assoc()) { echo "<p class='text-xs font-weight-bold mb-1'>" . shortenTechnicianName(htmlspecialchars($rowTeknisi['nama_teknisi'])) . "</p>"; } } else { echo "<p class='text-xs text-secondary mb-0'>N/A</p>"; } $stmt_tek->close(); ?></td>
-                                        <td class="text-center"><div class="d-flex flex-column justify-content-center align-items-center"><div class="avatar-initials mb-1 bg-dark px-2 text-white d-flex align-items-center justify-content-center fw-bold"><?= getInitials($latest_kegiatan['request']) ?></div><p class="text-xxs text-secondary mb-0"><?= date("d/m/y, H:i", strtotime($latest_kegiatan['created_at'])) ?></p></div></td>
-                                        <td class="text-center pe-4"><div><a class="btn btn-outline-secondary text-dark p-1 px-2 mb-0" href="view-kegiatan.php?kode_transaksi=<?= $kodeTransaksi ?>"><i class="fa-solid fa-eye text-sm"></i></a></div></td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
-                            </tbody>
-                        </table>
-                    </div>
+
+            <!-- ═══ DATA TABLE ═══ -->
+            <div class="data-card">
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th style="padding-left:24px;">Jadwal & Jenis</th>
+                                <th>Customer & Alamat</th>
+                                <th>Invoice</th>
+                                <th>Teknisi</th>
+                                <th class="text-center">Request</th>
+                                <th class="text-center" style="padding-right:24px;">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        <?php if (!$is_search_triggered): ?>
+                            <tr><td colspan="6">
+                                <div class="empty-state">
+                                    <i class="fa-solid fa-filter" style="display:block;"></i>
+                                    <p>Gunakan filter di atas untuk menampilkan data kegiatan.</p>
+                                </div>
+                            </td></tr>
+                        <?php elseif (empty($groupedData)): ?>
+                            <tr><td colspan="6">
+                                <div class="empty-state">
+                                    <i class="fa-solid fa-inbox" style="display:block;"></i>
+                                    <p>Tidak ada kegiatan yang cocok dengan kriteria filter.</p>
+                                </div>
+                            </td></tr>
+                        <?php else: ?>
+                            <?php foreach ($groupedData as $kodeTransaksi => $kegiatan_group):
+                                $latest_kegiatan = $kegiatan_group[0];
+                                $lunas_class = (!empty($latest_kegiatan['lunas']) && $latest_kegiatan['lunas'] != '0000-00-00') ? 'lunas-background' : '';
+                                $kegL = strtolower($latest_kegiatan['kegiatan']);
+                                $typeClass = 'type-default';
+                                if (strpos($kegL, 'survey') !== false) $typeClass = 'type-survey';
+                                elseif (strpos($kegL, 'service') !== false) $typeClass = 'type-service';
+                                elseif (strpos($kegL, 'pasang') !== false) $typeClass = 'type-pasang';
+                            ?>
+                            <tr>
+                                <!-- Jadwal & Jenis -->
+                                <td style="padding-left:24px;">
+                                    <span class="type-badge <?= $typeClass ?>"><?= htmlspecialchars($latest_kegiatan['kegiatan']) ?></span>
+                                    <div style="margin-top:6px;">
+                                        <div style="font-size:13px;font-weight:700;color:#1e293b;"><?= date("d M Y", strtotime($latest_kegiatan['jadwal'])) ?></div>
+                                        <div style="font-size:11px;color:#94a3b8;font-weight:500;"><?= date("H:i", strtotime($latest_kegiatan['jadwal'])) ?> WIB</div>
+                                    </div>
+                                </td>
+
+                                <!-- Customer & Alamat -->
+                                <td style="max-width:280px;">
+                                    <a href="customer-detail.php?id_cust=<?= $latest_kegiatan['customer_id'] ?>" target="_blank" class="cust-link"><?= htmlspecialchars($latest_kegiatan['nama_customer']) ?></a>
+                                    <?php
+                                        $nomorHandphone = $latest_kegiatan['cust_nomor'];
+                                        if (substr($nomorHandphone, 0, 1) === '0') $nomorHandphone = '62' . substr($nomorHandphone, 1);
+                                    ?>
+                                    <div style="margin-top:2px;">
+                                        <a href="https://api.whatsapp.com/send?phone=<?= $nomorHandphone ?>" target="_blank" style="font-size:11px;color:#3b82f6;text-decoration:none;font-weight:500;">
+                                            <i class="fa-brands fa-whatsapp" style="margin-right:2px;"></i><?= htmlspecialchars($latest_kegiatan['cust_nomor']) ?>
+                                        </a>
+                                    </div>
+                                    <div style="font-size:11px;color:#64748b;margin-top:4px;line-height:1.4;"><?= htmlspecialchars($latest_kegiatan['alamat']) ?></div>
+                                </td>
+
+                                <!-- Invoice -->
+                                <td class="<?= $lunas_class ?>">
+                                    <?php if (!empty($latest_kegiatan['no_invoice'])) : ?>
+                                        <p class="inv-number"><?= htmlspecialchars($latest_kegiatan['no_invoice']) ?></p>
+                                        <p class="inv-amount">Rp <?= number_format($latest_kegiatan['nominal_invoice'], 0, ',', '.') ?></p>
+                                    <?php else: ?>
+                                        <span class="inv-none">Belum Ada Invoice</span>
+                                    <?php endif; ?>
+                                </td>
+
+                                <!-- Teknisi -->
+                                <td>
+                                    <?php
+                                    $sqlTeknisi = "SELECT tk.nama_teknisi FROM team_kegiatan tk WHERE tk.kode = ? AND tk.deleted_at IS NULL GROUP BY tk.teknisi_id";
+                                    $stmt_tek = $conn->prepare($sqlTeknisi);
+                                    $stmt_tek->bind_param("s", $kodeTransaksi);
+                                    $stmt_tek->execute();
+                                    $resultTeknisi = $stmt_tek->get_result();
+                                    if($resultTeknisi->num_rows > 0) {
+                                        while ($rowTeknisi = $resultTeknisi->fetch_assoc()) {
+                                            echo "<div class='tek-avatar'><span class='tek-dot'></span>" . shortenTechnicianName(htmlspecialchars($rowTeknisi['nama_teknisi'])) . "</div>";
+                                        }
+                                    } else {
+                                        echo "<span style='font-size:11px;color:#94a3b8;'>N/A</span>";
+                                    }
+                                    $stmt_tek->close();
+                                    ?>
+                                </td>
+
+                                <!-- Request -->
+                                <td class="text-center">
+                                    <div class="d-flex flex-column align-items-center gap-1">
+                                        <div class="req-badge"><?= getInitials($latest_kegiatan['request']) ?></div>
+                                        <span style="font-size:10px;color:#94a3b8;"><?= date("d/m/y", strtotime($latest_kegiatan['created_at'])) ?></span>
+                                    </div>
+                                </td>
+
+                                <!-- Aksi -->
+                                <td class="text-center" style="padding-right:24px;">
+                                    <a class="btn-view" href="view-kegiatan.php?kode_transaksi=<?= $kodeTransaksi ?>">
+                                        <i class="fa-solid fa-eye" style="font-size:13px;"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
