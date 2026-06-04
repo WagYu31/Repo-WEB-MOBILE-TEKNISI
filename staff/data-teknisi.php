@@ -127,35 +127,46 @@ $pageNow = "Data Teknisi";
         .tek-card-header h6 { margin: 0; font-size: 13px; font-weight: 800; color: #1e293b; }
         .tek-card-body { padding: 10px 18px 14px; }
 
-        /* Donut center label */
+        /* Donut card */
+        .donut-section { display: flex; flex-direction: column; align-items: center; gap: 14px; }
         .donut-wrap { position: relative; display: flex; align-items: center; justify-content: center; }
-        .donut-center {
-            position: absolute; text-align: center;
-        }
-        .donut-center .pct { font-size: 24px; font-weight: 800; color: #1e293b; line-height: 1; }
-        .donut-center .lbl { font-size: 10px; color: #94a3b8; font-weight: 600; }
+        .donut-center { position: absolute; text-align: center; }
+        .donut-center .pct { font-size: 26px; font-weight: 900; color: #1e293b; line-height: 1; }
+        .donut-center .lbl { font-size: 9px; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
+        .donut-legend { display: flex; gap: 16px; justify-content: center; }
+        .donut-legend-item { display: flex; align-items: center; gap: 6px; }
+        .donut-legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+        .donut-legend-text { font-size: 11px; color: #64748b; font-weight: 600; }
+        .donut-legend-num { font-weight: 800; color: #1e293b; }
 
         /* Top performer list */
         .top-list { list-style: none; padding: 0; margin: 0; }
         .top-item {
             display: flex; align-items: center; gap: 10px;
-            padding: 10px 0; border-bottom: 1px solid #f1f5f9;
+            padding: 11px 14px; margin-bottom: 6px;
+            border-radius: 12px; background: #f8fafc;
+            transition: all 0.2s;
         }
-        .top-item:last-child { border: none; }
+        .top-item:hover { background: #f1f5f9; transform: translateX(2px); }
+        .top-item.gold { background: linear-gradient(135deg, #fffbeb, #fef3c7); border: 1px solid #fde68a; }
+        .top-item.silver { background: linear-gradient(135deg, #f8fafc, #f1f5f9); border: 1px solid #e2e8f0; }
+        .top-item.bronze { background: linear-gradient(135deg, #fff7ed, #ffedd5); border: 1px solid #fed7aa; }
         .top-rank {
-            width: 22px; height: 22px; border-radius: 6px; font-size: 10px; font-weight: 800;
+            width: 28px; height: 28px; border-radius: 8px; font-size: 11px; font-weight: 900;
             display: flex; align-items: center; justify-content: center;
-            background: #f1f5f9; color: #64748b; flex-shrink: 0;
+            background: #e2e8f0; color: #64748b; flex-shrink: 0;
         }
-        .top-rank.r1 { background: #fef3c7; color: #92400e; }
-        .top-rank.r2 { background: #f1f5f9; color: #475569; }
-        .top-rank.r3 { background: #fff7ed; color: #c2410c; }
+        .top-rank.r1 { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; box-shadow: 0 2px 8px rgba(245,158,11,0.3); }
+        .top-rank.r2 { background: linear-gradient(135deg, #94a3b8, #64748b); color: #fff; box-shadow: 0 2px 8px rgba(100,116,139,0.2); }
+        .top-rank.r3 { background: linear-gradient(135deg, #f97316, #c2410c); color: #fff; box-shadow: 0 2px 8px rgba(249,115,22,0.2); }
         .top-info { flex: 1; min-width: 0; }
         .top-name { font-size: 13px; font-weight: 700; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .top-sub { font-size: 10px; color: #94a3b8; }
-        .top-bar-wrap { width: 80px; height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden; }
-        .top-bar { height: 100%; border-radius: 3px; background: linear-gradient(90deg, #f59e0b, #22c55e); }
-        .top-val { font-size: 11px; font-weight: 800; color: #1e293b; width: 80px; text-align: right; }
+        .top-sub { font-size: 10px; color: #94a3b8; display: flex; align-items: center; gap: 4px; }
+        .top-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+        .top-val { font-size: 12px; font-weight: 800; color: #1e293b; }
+        .top-achieve { font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 10px; }
+        .top-achieve.above { background: #dcfce7; color: #16a34a; }
+        .top-achieve.below { background: #fef3c7; color: #92400e; }
 
         /* Table card */
         .tek-table-card {
@@ -336,14 +347,17 @@ $pageNow = "Data Teknisi";
                     <!-- Donut + Top Performer -->
                     <div style="display:flex; flex-direction:column; gap:16px;">
                         <!-- Donut -->
-                        <div class="tek-card" style="flex:1;">
+                        <div class="tek-card">
                             <div class="tek-card-header">
                                 <div class="tek-card-hicon h-green"><i class="fa-solid fa-chart-pie"></i></div>
                                 <h6>Target Achievement</h6>
                             </div>
                             <div class="tek-card-body">
-                                <div class="donut-wrap"><div style="height:120px; width:120px;"><canvas id="donutChart"></canvas></div>
-                                    <div class="donut-center"><div class="pct" id="donutPct">-</div><div class="lbl">achieved</div></div>
+                                <div class="donut-section">
+                                    <div class="donut-wrap"><div style="height:110px; width:110px;"><canvas id="donutChart"></canvas></div>
+                                        <div class="donut-center"><div class="pct" id="donutPct">-</div><div class="lbl">achieved</div></div>
+                                    </div>
+                                    <div class="donut-legend" id="donutLegend"></div>
                                 </div>
                             </div>
                         </div>
@@ -353,7 +367,7 @@ $pageNow = "Data Teknisi";
                                 <div class="tek-card-hicon h-purple"><i class="fa-solid fa-trophy"></i></div>
                                 <h6>Top Performer</h6>
                             </div>
-                            <div class="tek-card-body" style="padding-top:10px;">
+                            <div class="tek-card-body" style="padding-top:6px;">
                                 <ul class="top-list" id="topList"><li style="text-align:center; padding:20px; color:#94a3b8; font-size:12px;">Loading...</li></ul>
                             </div>
                         </div>
@@ -562,10 +576,22 @@ $pageNow = "Data Teknisi";
                 if (target > 0) { total >= target ? above++ : below++; }
             });
             const pct = (above + below) > 0 ? Math.round((above / (above + below)) * 100) : 0;
+            const gradient1 = donutChart.ctx.createLinearGradient(0, 0, 100, 100);
+            gradient1.addColorStop(0, '#22c55e'); gradient1.addColorStop(1, '#16a34a');
             donutChart.data.datasets[0].data = [above, below];
-            donutChart.data.datasets[0].backgroundColor = ['#22c55e', '#fef2f2'];
+            donutChart.data.datasets[0].backgroundColor = [gradient1, '#f1f5f9'];
+            donutChart.data.datasets[0].borderWidth = 0;
             donutChart.update();
             document.getElementById('donutPct').textContent = pct + '%';
+            document.getElementById('donutLegend').innerHTML = `
+                <div class="donut-legend-item">
+                    <div class="donut-legend-dot" style="background:#22c55e;"></div>
+                    <span class="donut-legend-text">Tercapai <span class="donut-legend-num">${above}</span></span>
+                </div>
+                <div class="donut-legend-item">
+                    <div class="donut-legend-dot" style="background:#e2e8f0;"></div>
+                    <span class="donut-legend-text">Belum <span class="donut-legend-num">${below}</span></span>
+                </div>`;
         }
 
         function updateTopPerformers(data) {
@@ -574,18 +600,27 @@ $pageNow = "Data Teknisi";
                 const tB = parseFloat(b.total_pendapatan) + parseFloat(b.total_fee);
                 return tB - tA;
             }).slice(0, 5);
-            const maxVal = sorted.length > 0 ? parseFloat(sorted[0].total_pendapatan) + parseFloat(sorted[0].total_fee) : 1;
             const list = document.getElementById('topList');
             if (sorted.length === 0) { list.innerHTML = '<li style="text-align:center; padding:20px; color:#94a3b8; font-size:12px;">Tidak ada data</li>'; return; }
+            const medals = ['🥇', '🥈', '🥉'];
+            const tierClass = ['gold', 'silver', 'bronze'];
             list.innerHTML = sorted.map((r, i) => {
                 const total = parseFloat(r.total_pendapatan) + parseFloat(r.total_fee);
-                const barW = Math.max(10, Math.round((total / maxVal) * 100));
-                const rankClass = i === 0 ? 'r1' : (i === 1 ? 'r2' : (i === 2 ? 'r3' : ''));
-                return `<li class="top-item">
-                    <span class="top-rank ${rankClass}">${i + 1}</span>
-                    <div class="top-info"><div class="top-name">${r.nama}</div><div class="top-sub">${r.jumlah_kegiatan} kegiatan</div></div>
-                    <div class="top-bar-wrap"><div class="top-bar" style="width:${barW}%"></div></div>
-                    <span class="top-val">${shortRupiah(total)}</span>
+                const target = parseFloat(r.target || 0);
+                const achPct = target > 0 ? Math.round((total / target) * 100) : 0;
+                const achClass = total >= target && target > 0 ? 'above' : 'below';
+                const rankClass = i < 3 ? 'r' + (i+1) : '';
+                const itemClass = i < 3 ? tierClass[i] : '';
+                return `<li class="top-item ${itemClass}">
+                    <span class="top-rank ${rankClass}">${i < 3 ? medals[i] : (i+1)}</span>
+                    <div class="top-info">
+                        <div class="top-name">${r.nama}</div>
+                        <div class="top-sub"><i class="fa-solid fa-briefcase" style="font-size:8px;"></i> ${r.jumlah_kegiatan} kegiatan</div>
+                    </div>
+                    <div class="top-right">
+                        <span class="top-val">${shortRupiah(total)}</span>
+                        ${target > 0 ? `<span class="top-achieve ${achClass}">${achPct}%</span>` : ''}
+                    </div>
                 </li>`;
             }).join('');
         }
