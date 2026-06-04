@@ -677,6 +677,7 @@ if (isset($_GET['export'])) {
                       <div class="col-md-2">
                         <a href="customer-detail.php?id_cust=<?= $data['customer_id']; ?>" class="text-name d-block"><?= htmlspecialchars($data['nama_customer']); ?></a>
                         <a href="https://api.whatsapp.com/send?phone=62<?= substr(preg_replace('/[^0-9]/', '', $data['cust_nomor']), 1); ?>" target="_blank" class="text-phone"><?= htmlspecialchars($data['cust_nomor']); ?></a>
+                        <p class="text-note">"<?= !empty($data["keterangan"]) ? htmlspecialchars($data["keterangan"]) : '-'; ?>"</p>
                       </div>
                       <div class="col-md-2">
                         <?php
