@@ -226,6 +226,11 @@ $pageNow = "Waiting List";
                                 elseif (strpos($kegLower, 'pasang') !== false) $typeClass = 'wl-type wl-t-pasang';
 
                                 $fullAddr = $row['alamat'] ?? '';
+                                // If stored address is short and lat/lon exist, get full address from coordinates
+                                if (strlen($fullAddr) < 40 && !empty($row['lat']) && !empty($row['lon'])) {
+                                    $geoAddr = getAddressFromCoordinates($row['lat'], $row['lon']);
+                                    if ($geoAddr) $fullAddr = $geoAddr;
+                                }
                         ?>
                         <!-- CARD ITEM -->
                         <div class="wl-card <?= $card_class ?>">

@@ -879,6 +879,11 @@ if (isset($_GET['export'])) {
                 elseif (strpos($kegL, 'service') !== false) $tCSS = "background:#e0e7ff;color:#3730a3;";
                 elseif (strpos($kegL, 'pasang') !== false) $tCSS = "background:#dcfce7;color:#166534;";
                 $fullAddr = $row['alamat'] ?? '';
+                // If stored address is short and lat/lon exist, get full address from coordinates
+                if (strlen($fullAddr) < 40 && !empty($row['lat']) && !empty($row['lon'])) {
+                    $geoAddr = getAddressFromCoordinates($row['lat'], $row['lon']);
+                    if ($geoAddr) $fullAddr = $geoAddr;
+                }
             ?>
             <div class="waiting-card" data-type="<?= strtolower($row['kegiatan']) ?>" style="background:#fff;border:1px solid #e9ecef;border-radius:10px;margin-bottom:10px;overflow:hidden;transition:all 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.03);<?= $card_border ?>" onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.08)';this.style.transform='translateY(-1px)'" onmouseout="this.style.boxShadow='0 1px 3px rgba(0,0,0,0.03)';this.style.transform='none'">
               <div style="padding:14px 18px;">
