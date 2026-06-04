@@ -345,12 +345,38 @@ if (isset($_GET['export'])) {
       div[style*="padding:0 24px"] { padding: 0 6px !important; }
       div[style*="padding:0 24px 24px"] { padding: 0 6px 10px !important; }
     }
+
+    /* ═══════ LANDSCAPE MOBILE FIX ═══════ */
+    @media (max-width: 991px) {
+      .main-content {
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        max-height: none !important;
+        height: auto !important;
+        min-height: 100vh !important;
+      }
+      /* Let stat cards shrink in landscape */
+      .stat-desktop .card-body { padding: 8px !important; }
+      .stat-desktop h3 { font-size: 24px !important; }
+    }
+
+    /* Landscape on phone: use mobile strip + allow scroll */
+    @media (max-height: 500px) and (orientation: landscape) {
+      .stat-desktop { display: none !important; }
+      .stat-mobile { display: block !important; }
+      .main-content {
+        overflow-y: auto !important;
+        max-height: none !important;
+        height: auto !important;
+      }
+      body { padding-bottom: 60px !important; }
+    }
   </style>
 </head>
 
 <body class="g-sidenav-show bg-gray-200">
   <?php include "cek-menu.php"; ?>
-  <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg" style="display:flex;flex-direction:column;overflow:hidden;">
+  <main class="main-content position-relative border-radius-lg" style="display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;">
     <?php
     include "nav-top.php";
     $daftar_bulan = [1 => 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
