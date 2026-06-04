@@ -48,7 +48,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
   if (mysqli_query($conn, $sql)) {
     // $id_teknisi = mysqli_insert_id($conn);
-    echo '<script>window.location.href = "teknisi-db.php";</script>';
+    echo '<script>window.location.href = "data-teknisi.php";</script>';
     exit();
 
     // $sqll = "INSERT INTO loewix (nik, nama, no_tlp, jabatan, id_teknisi, niKTP) VALUES ('$nik', '$nama', '$no_tlp', '$jbtn', $id_teknisi, '$niKTP')";
