@@ -2,12 +2,12 @@
 <div id="pwa-install-banner" style="
   display: none;
   position: fixed;
-  bottom: 0;
+  top: 0;
   left: 0;
   right: 0;
   z-index: 99999;
-  padding: 0 16px 16px;
-  animation: slideUp 0.4s ease-out;
+  padding: 16px 16px 0;
+  animation: slideDown 0.4s ease-out;
 ">
   <div style="
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
@@ -54,8 +54,8 @@
   </div>
 </div>
 <style>
-  @keyframes slideUp {
-    from { transform: translateY(100%); opacity: 0; }
+  @keyframes slideDown {
+    from { transform: translateY(-100%); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
   }
 </style>
