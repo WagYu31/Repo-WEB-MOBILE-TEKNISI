@@ -11,7 +11,7 @@
     overflow-x: hidden !important;
 }
 </style>
-<nav class="navbar navbar-main navbar-expand-lg px-0 mx-4 shadow-none border-radius-xl" id="navbarBlur" style="flex-shrink:0 !important;z-index:100;background:rgba(245,247,250,0.97);padding-top:12px;padding-bottom:8px;margin-top:0 !important;">
+<nav class="navbar navbar-main navbar-expand-lg px-0 mx-4 shadow-none border-radius-xl" id="navbarBlur" style="flex-shrink:0 !important;z-index:100;background:rgba(245,247,250,0.97);padding-top:16px;padding-bottom:8px;margin-top:16px !important;">
     <div class="container-fluid py-1 px-3">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5">
