@@ -43,26 +43,42 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   date_default_timezone_set('Asia/Jakarta'); // Set timezone ke Jakarta
   $now = date('Y-m-d H:i:s'); // Menyimpan date time saat ini ke variabel $now
 
-  // Masukkan data ke dalam database
-  $sql = "INSERT INTO teknisi (nik, nama, telp, ktp, created_at) VALUES ('$nik', '$nama', '$no_tlp', '$niKTP', '$now')";
+  // Cek apakah NIK sudah ada (termasuk yang soft-deleted)
+  $checkStmt = $conn->prepare("SELECT id, deleted_at FROM teknisi WHERE nik = ?");
+  $checkStmt->bind_param("s", $nik);
+  $checkStmt->execute();
+  $checkResult = $checkStmt->get_result();
 
-  if (mysqli_query($conn, $sql)) {
-    // $id_teknisi = mysqli_insert_id($conn);
-    echo '<script>window.location.href = "data-teknisi.php";</script>';
-    exit();
-
-    // $sqll = "INSERT INTO loewix (nik, nama, no_tlp, jabatan, id_teknisi, niKTP) VALUES ('$nik', '$nama', '$no_tlp', '$jbtn', $id_teknisi, '$niKTP')";
-
-    // if (mysqli_query($conn, $sqll)) {
-    //     echo '<script>window.location.href = "teknisi-db.php";</script>';
-    //     exit();
-    // } else {
-    //     echo "Error: " . $sqll . "<br>" . mysqli_error($conn);
-    // }
-    // exit();
+  if ($checkResult->num_rows > 0) {
+    $existing = $checkResult->fetch_assoc();
+    if ($existing['deleted_at'] !== null) {
+      // Reactivate soft-deleted record
+      $reactivate = $conn->prepare("UPDATE teknisi SET nama = ?, telp = ?, ktp = ?, deleted_at = NULL, created_at = ? WHERE id = ?");
+      $reactivate->bind_param("ssssi", $nama, $no_tlp, $niKTP, $now, $existing['id']);
+      if ($reactivate->execute()) {
+        echo '<script>window.location.href = "data-teknisi.php";</script>';
+        exit();
+      } else {
+        echo "Error: Gagal mengaktifkan kembali teknisi. " . $conn->error;
+      }
+      $reactivate->close();
+    } else {
+      // NIK masih aktif, tampilkan error
+      echo '<script>alert("NIK ' . $nik . ' sudah digunakan oleh teknisi yang masih aktif."); window.location.href = "data-teknisi.php";</script>';
+      exit();
+    }
   } else {
-    echo "Error: " . $sql . "<br>" . mysqli_error($conn);
+    // Insert baru
+    $sql = "INSERT INTO teknisi (nik, nama, telp, ktp, created_at) VALUES ('$nik', '$nama', '$no_tlp', '$niKTP', '$now')";
+
+    if (mysqli_query($conn, $sql)) {
+      echo '<script>window.location.href = "data-teknisi.php";</script>';
+      exit();
+    } else {
+      echo "Error: " . $sql . "<br>" . mysqli_error($conn);
+    }
   }
+  $checkStmt->close();
 }
 ?>
 <!DOCTYPE html>
