@@ -259,15 +259,20 @@ $stmt_pelaksanaan->close();
         }
         .tl-loc-link:hover { background: #dbeafe; text-decoration: none; }
 
-        .tl-info-section { padding: 14px 16px; }
+        .tl-info-section { padding: 12px 16px; }
         .tl-info-row {
-            font-size: 12px; color: #475569; padding: 6px 0;
-            border-bottom: 1px solid #f8fafc;
-            display: flex; gap: 6px;
+            font-size: 13px; color: #475569; padding: 8px 0;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex; align-items: baseline; gap: 8px;
         }
-        .tl-info-row:last-of-type { border-bottom: none; }
-        .tl-info-row strong { color: #1e293b; min-width: 95px; flex-shrink: 0; font-size: 11px; text-transform: uppercase; letter-spacing: 0.03em; color: #94a3b8; font-weight: 600; }
-        .tl-info-val { color: #334155; }
+        .tl-info-row:last-of-type { border-bottom: none; padding-bottom: 0; }
+        .tl-info-row:first-of-type { padding-top: 0; }
+        .tl-info-label {
+            font-size: 12px; font-weight: 600; color: #64748b;
+            min-width: 85px; flex-shrink: 0;
+        }
+        .tl-info-val { color: #1e293b; font-weight: 500; flex: 1; word-break: break-word; }
+        .tl-info-empty { color: #cbd5e1; font-style: italic; font-weight: 400; font-size: 12px; }
 
         .tl-photos {
             display: flex; gap: 8px; padding: 12px 16px;
@@ -477,9 +482,9 @@ $stmt_pelaksanaan->close();
                                                             </div>
                                                         </div>
                                                         <div class="tl-info-section">
-                                                            <div class="tl-info-row"><strong>Masalah</strong> <span class="tl-info-val"><?= !empty($task['permasalahan']) ? htmlspecialchars($task['permasalahan']) : '<span style="color:#cbd5e1;">-</span>' ?></span></div>
-                                                            <div class="tl-info-row"><strong>Solusi</strong> <span class="tl-info-val"><?= !empty($task['solusi']) ? htmlspecialchars($task['solusi']) : '<span style="color:#cbd5e1;">-</span>' ?></span></div>
-                                                            <div class="tl-info-row"><strong>Keterangan</strong> <span class="tl-info-val"><?= !empty($task['keterangan']) ? htmlspecialchars($task['keterangan']) : '<span style="color:#cbd5e1;">-</span>' ?></span></div>
+                                                            <div class="tl-info-row"><span class="tl-info-label">Masalah</span> <span class="tl-info-val"><?= !empty($task['permasalahan']) ? htmlspecialchars($task['permasalahan']) : '<span class="tl-info-empty">Belum diisi</span>' ?></span></div>
+                                                            <div class="tl-info-row"><span class="tl-info-label">Solusi</span> <span class="tl-info-val"><?= !empty($task['solusi']) ? htmlspecialchars($task['solusi']) : '<span class="tl-info-empty">Belum diisi</span>' ?></span></div>
+                                                            <div class="tl-info-row"><span class="tl-info-label">Keterangan</span> <span class="tl-info-val"><?= !empty($task['keterangan']) ? htmlspecialchars($task['keterangan']) : '<span class="tl-info-empty">Belum diisi</span>' ?></span></div>
                                                         </div>
                                                         <?php
                                                         $hasPhotos = false;
