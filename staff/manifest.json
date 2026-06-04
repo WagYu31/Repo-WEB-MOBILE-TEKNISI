@@ -1,22 +1,22 @@
 {
-  "name": "Loewix Dashboard",
-  "short_name": "Loewix",
-  "description": "Loewix - Sistem Manajemen Teknisi & Penjadwalan",
+  "name": "WEB TEKNISI ADMIN & FINANCE",
+  "short_name": "Loewix Admin",
+  "description": "Loewix - Sistem Manajemen Teknisi, Admin & Finance",
   "start_url": "/staff/index-sa.php",
   "scope": "/staff/",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#1a1a2e",
-  "theme_color": "#1a1a2e",
+  "background_color": "#0f0f1a",
+  "theme_color": "#0f0f1a",
   "icons": [
     {
-      "src": "assets/img/logo/lwx.png",
+      "src": "assets/img/logo/lwx-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "assets/img/logo/lwx-logo.png",
+      "src": "assets/img/logo/lwx-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
