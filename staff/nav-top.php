@@ -1,4 +1,4 @@
-<nav class="navbar navbar-main navbar-expand-lg px-0 mx-4 mt-4 shadow-none border-radius-xl" id="navbarBlur" data-scroll="true">
+<nav class="navbar navbar-main navbar-expand-lg px-0 mx-4 mt-4 shadow-none border-radius-xl" id="navbarBlur" data-scroll="true" style="position:sticky;top:0;z-index:100;background:rgba(245,247,250,0.95);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid rgba(0,0,0,0.04);">
     <div class="container-fluid py-1 px-3">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5">
