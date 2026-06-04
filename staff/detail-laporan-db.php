@@ -68,7 +68,14 @@
     .laporan-table tbody tr { transition: all 0.15s; border-bottom: 1px solid #f1f5f9; }
     .laporan-table tbody tr:hover { background: #f8fafc; }
     .laporan-table tbody tr.hidden-row { display: none; }
-    .laporan-table tbody td { padding: 12px 14px; font-size: 13px; color: #334155; vertical-align: middle; }
+    .laporan-table tbody td {
+        padding: 12px 14px; font-size: 13px; color: #334155; vertical-align: top;
+        word-break: break-word; overflow: hidden;
+    }
+    .cell-truncate {
+        display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+        overflow: hidden; text-overflow: ellipsis; max-height: 2.8em; line-height: 1.4em;
+    }
     .laporan-table tfoot td {
         padding: 14px; font-size: 13px; font-weight: 700; color: #fff; border: none;
     }
@@ -309,17 +316,17 @@
 
         <!-- Table (scrollable) -->
         <div class="table-scroll-area">
-            <table class="laporan-table" id="data-tek">
+            <table class="laporan-table" id="data-tek" style="min-width:900px;">
                 <thead>
                     <tr>
-                        <th style="width:45px;padding-left:20px;">#</th>
-                        <th style="width:100px;">Tgl Invoice</th>
-                        <th style="width:130px;">No Invoice</th>
-                        <th>Teknisi</th>
-                        <th>Customer</th>
-                        <th style="width:140px;">Ket. Survey</th>
-                        <th style="width:110px;">Surveyor</th>
-                        <th style="width:120px;text-align:right;padding-right:20px;">Nominal</th>
+                        <th style="width:35px;padding-left:16px;">#</th>
+                        <th style="width:80px;">Tgl Invoice</th>
+                        <th style="width:120px;">No Invoice</th>
+                        <th style="width:13%;">Teknisi</th>
+                        <th style="width:18%;">Customer</th>
+                        <th style="width:15%;">Ket. Survey</th>
+                        <th style="width:12%;">Surveyor</th>
+                        <th style="width:110px;text-align:right;padding-right:16px;">Nominal</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -342,18 +349,18 @@
                             <td data-label="#"><span class="row-num"><?php echo $rowNum; ?></span></td>
                             <td data-label="Tgl Invoice"><?php echo $tglInv; ?></td>
                             <td data-label="No Invoice"><span class="invoice-link"><?php echo $invoice; ?></span></td>
-                            <td data-label="Teknisi"><span class="teknisi-link"><?php echo $namaT; ?></span></td>
-                            <td data-label="Customer"><?php echo $namaC; ?></td>
+                            <td data-label="Teknisi"><div class="cell-truncate teknisi-link"><?php echo $namaT; ?></div></td>
+                            <td data-label="Customer"><div class="cell-truncate"><?php echo $namaC; ?></div></td>
                             <td data-label="Ket. Survey">
                                 <?php if (!empty($ketSurvey)): ?>
-                                    <span class="badge-survey-tag"><?php echo $ketSurvey; ?></span>
+                                    <div class="cell-truncate"><span class="badge-survey-tag" style="white-space:normal;"><?php echo $ketSurvey; ?></span></div>
                                 <?php else: ?>
                                     <span class="no-data-text">-</span>
                                 <?php endif; ?>
                             </td>
                             <td data-label="Surveyor">
                                 <?php if (!empty($surveyor)): ?>
-                                    <span class="surveyor-name"><?php echo $surveyor; ?></span>
+                                    <div class="cell-truncate surveyor-name"><?php echo $surveyor; ?></div>
                                 <?php else: ?>
                                     <span class="no-data-text">-</span>
                                 <?php endif; ?>
