@@ -185,7 +185,7 @@ $stmt_pelaksanaan->close();
         /* ── Timeline Modern ── */
         .tl-container { padding: 0; }
         .tl-teknisi-tabs {
-            display: flex; gap: 6px; padding: 0 0 12px 12px; overflow-x: auto;
+            display: flex; gap: 6px; padding: 6px 0 12px 12px; overflow-x: auto;
             border-bottom: 1px solid #e2e8f0; margin-bottom: 14px;
         }
         .tl-tab {
