@@ -125,7 +125,7 @@ $pageNow = "Data Teknisi";
         .tek-card-hicon.h-green { background: linear-gradient(135deg, #22c55e, #16a34a); }
         .tek-card-hicon.h-cyan { background: linear-gradient(135deg, #06b6d4, #0891b2); }
         .tek-card-header h6 { margin: 0; font-size: 13px; font-weight: 800; color: #1e293b; }
-        .tek-card-body { padding: 14px 18px 18px; }
+        .tek-card-body { padding: 10px 18px 14px; }
 
         /* Donut center label */
         .donut-wrap { position: relative; display: flex; align-items: center; justify-content: center; }
@@ -153,7 +153,7 @@ $pageNow = "Data Teknisi";
         .top-info { flex: 1; min-width: 0; }
         .top-name { font-size: 13px; font-weight: 700; color: #1e293b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .top-sub { font-size: 10px; color: #94a3b8; }
-        .top-bar-wrap { width: 60px; height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden; }
+        .top-bar-wrap { width: 80px; height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden; }
         .top-bar { height: 100%; border-radius: 3px; background: linear-gradient(90deg, #f59e0b, #22c55e); }
         .top-val { font-size: 11px; font-weight: 800; color: #1e293b; width: 80px; text-align: right; }
 
@@ -600,10 +600,11 @@ $pageNow = "Data Teknisi";
                 totalPendapatan += parseFloat(row.total_pendapatan);
                 totalBonus += parseFloat(row.bonus);
                 totalFee += parseFloat(row.total_fee);
-                const totalEarning = parseFloat(row.total_pendapatan) + parseFloat(row.total_fee);
-                const target = parseFloat(row.target);
+                const totalEarning = parseFloat(row.total_pendapatan || 0) + parseFloat(row.total_fee || 0);
+                const target = parseFloat(row.target || 0);
                 const achievePct = target > 0 ? Math.round((totalEarning / target) * 100) : 0;
-                const achieveClass = totalEarning >= target && target > 0 ? 'above' : 'below';
+                const achieveClass = (totalEarning >= target && target > 0) ? 'above' : 'below';
+                const barW = Math.min(100, achievePct);
                 tableBody.innerHTML += `<tr>
                     <td style="padding-left:24px;">
                         <a class="tek-name-link" href="list-kegiatan-teknisi.php?cariBulanTahun=${document.getElementById('filterMonth').value}&idTek=${row.id}">${row.nama}</a>
@@ -614,7 +615,9 @@ $pageNow = "Data Teknisi";
                     <td style="text-align:center;"><span class="tek-val v-fee">${formatRupiah(row.total_fee)}</span></td>
                     <td style="text-align:center;"><span class="tek-val v-pendapatan">${formatRupiah(row.total_pendapatan)}</span></td>
                     <td style="text-align:center;"><span class="tek-val v-bonus">${formatRupiah(row.bonus)}</span></td>
-                    <td style="text-align:center;"><span class="tek-achievement ${achieveClass}">${target > 0 ? achievePct + '%' : '-'}</span></td>
+                    <td style="text-align:center;">
+                        ${target > 0 ? `<div style="display:flex;flex-direction:column;align-items:center;gap:3px;"><span class="tek-achievement ${achieveClass}">${achievePct}%</span><div style="width:50px;height:4px;background:#f1f5f9;border-radius:2px;overflow:hidden;"><div style="height:100%;width:${barW}%;background:${achieveClass==='above'?'#22c55e':'#f59e0b'};border-radius:2px;"></div></div></div>` : '<span style="color:#cbd5e1;">-</span>'}
+                    </td>
                     <td style="text-align:center;" class="no-print">
                         <div style="display:flex; gap:4px; justify-content:center;">
                             <button class="tek-act-btn tek-act-edit" onclick='openTargetModal(${JSON.stringify(row.nik)}, ${JSON.stringify(row.target)})' title="Set Target"><i class="fa-solid fa-pen"></i></button>
