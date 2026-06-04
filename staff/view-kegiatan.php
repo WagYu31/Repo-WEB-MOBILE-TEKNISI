@@ -108,16 +108,165 @@ $stmt_pelaksanaan->close();
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <?php include "head.php"; ?>
     <style>
+        /* ── Hero Header ── */
+        .view-hero {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 50%, #475569 100%);
+            border-radius: 16px; padding: 24px 28px; margin-bottom: 24px;
+            display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+            box-shadow: 0 4px 24px rgba(30,41,59,0.18);
+        }
+        .hero-badge {
+            padding: 5px 14px; border-radius: 8px; font-size: 11px;
+            font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+        }
+        .hero-badge-service { background: rgba(99,102,241,0.2); color: #a5b4fc; border: 1px solid rgba(99,102,241,0.3); }
+        .hero-badge-survey { background: rgba(251,191,36,0.2); color: #fcd34d; border: 1px solid rgba(251,191,36,0.3); }
+        .hero-badge-pasang { background: rgba(34,197,94,0.2); color: #86efac; border: 1px solid rgba(34,197,94,0.3); }
+        .hero-badge-default { background: rgba(148,163,184,0.2); color: #cbd5e1; border: 1px solid rgba(148,163,184,0.3); }
+        .hero-kode { color: #94a3b8; font-size: 12px; font-weight: 500; }
+        .hero-customer { color: #fff; font-size: 20px; font-weight: 700; margin: 0; }
+        .hero-meta { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 4px; }
+        .hero-meta span { color: #94a3b8; font-size: 12px; display: flex; align-items: center; gap: 4px; }
+        .hero-meta a { color: #60a5fa; text-decoration: none; font-size: 12px; display: flex; align-items: center; gap: 4px; }
+        .hero-meta a:hover { color: #93c5fd; }
+
+        /* ── Modern Cards ── */
+        .vk-card {
+            background: #fff; border-radius: 14px; border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.04); overflow: hidden;
+            transition: box-shadow 0.2s, transform 0.2s; margin-bottom: 20px;
+        }
+        .vk-card:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.08); transform: translateY(-1px); }
+        .vk-card-header {
+            display: flex; align-items: center; gap: 10px;
+            padding: 16px 20px; border-bottom: 1px solid #f1f5f9;
+        }
+        .vk-card-header .icon-circle {
+            width: 34px; height: 34px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+        }
+        .vk-card-header h6 { margin: 0; font-size: 14px; font-weight: 700; color: #1e293b; }
+        .vk-card-body { padding: 16px 20px; }
+
+        /* ── Detail Items ── */
+        .detail-row {
+            display: flex; align-items: flex-start; gap: 10px;
+            padding: 10px 0; border-bottom: 1px solid #f8fafc;
+        }
+        .detail-row:last-child { border-bottom: none; }
+        .detail-label {
+            font-size: 11px; font-weight: 600; color: #94a3b8;
+            text-transform: uppercase; letter-spacing: 0.06em;
+            min-width: 80px; flex-shrink: 0; padding-top: 2px;
+        }
+        .detail-value { font-size: 13px; color: #334155; font-weight: 500; word-break: break-word; }
+        .detail-value a { color: #3b82f6; text-decoration: none; }
+        .detail-value a:hover { text-decoration: underline; }
+
+        /* ── Tagihan Items ── */
+        .tagihan-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 14px; background: #f8fafc; border-radius: 8px;
+            margin-bottom: 6px; font-size: 13px; color: #334155;
+        }
+        .tagihan-qty {
+            background: #e0e7ff; color: #4338ca; font-size: 11px;
+            font-weight: 700; padding: 3px 10px; border-radius: 20px;
+        }
+
+        /* ── Invoice Card ── */
+        .invoice-status {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 4px 12px; border-radius: 6px; font-size: 11px; font-weight: 700;
+        }
+        .invoice-lunas { background: #dcfce7; color: #166534; }
+        .invoice-belum { background: #fef2f2; color: #991b1b; }
+
+        /* ── Timeline Modern ── */
+        .tl-container { padding: 0; }
+        .tl-teknisi-tabs {
+            display: flex; gap: 6px; padding: 0 0 12px; overflow-x: auto;
+            border-bottom: 2px solid #f1f5f9; margin-bottom: 16px;
+        }
+        .tl-tab {
+            padding: 7px 16px; border-radius: 8px; font-size: 12px; font-weight: 600;
+            border: 1.5px solid #e2e8f0; background: #fff; color: #64748b;
+            cursor: pointer; transition: all 0.2s; white-space: nowrap;
+        }
+        .tl-tab:hover { border-color: #94a3b8; }
+        .tl-tab.active { background: #1e293b; color: #fff; border-color: #1e293b; }
+
+        .tl-entry {
+            position: relative; padding-left: 28px; margin-bottom: 20px;
+            border-left: 2px solid #e2e8f0;
+        }
+        .tl-entry:last-child { border-left-color: transparent; margin-bottom: 0; }
+        .tl-dot {
+            position: absolute; left: -8px; top: 4px;
+            width: 14px; height: 14px; border-radius: 50%;
+            border: 2.5px solid; background: #fff;
+        }
+        .tl-dot-selesai { border-color: #22c55e; }
+        .tl-dot-berjalan { border-color: #3b82f6; }
+        .tl-dot-menunggu { border-color: #f59e0b; }
+        .tl-dot-lanjut { border-color: #ef4444; }
+        .tl-dot-lanjutan { border-color: #8b5cf6; }
+        .tl-dot-dijadwalkan { border-color: #94a3b8; }
+
+        .tl-status {
+            font-size: 13px; font-weight: 600; color: #1e293b;
+            text-transform: capitalize; margin-bottom: 2px;
+        }
+        .tl-date { font-size: 11px; color: #94a3b8; margin-bottom: 10px; }
+
+        .tl-detail-card {
+            background: #f8fafc; border-radius: 10px; padding: 14px 16px;
+            border: 1px solid #e2e8f0;
+        }
+        .tl-time-row {
+            display: flex; gap: 20px; margin-bottom: 10px; flex-wrap: wrap;
+        }
+        .tl-time-item {
+            display: flex; align-items: center; gap: 6px; font-size: 12px;
+        }
+        .tl-time-icon {
+            width: 22px; height: 22px; border-radius: 6px; display: flex;
+            align-items: center; justify-content: center; font-size: 10px;
+        }
+        .tl-start-icon { background: #dcfce7; color: #166534; }
+        .tl-end-icon { background: #fee2e2; color: #991b1b; }
+        .tl-time-val { font-weight: 700; color: #1e293b; }
+        .tl-loc-link {
+            color: #3b82f6; text-decoration: none; font-size: 11px; font-weight: 600;
+        }
+        .tl-loc-link:hover { text-decoration: underline; }
+
+        .tl-info-row { font-size: 12px; color: #475569; margin-bottom: 4px; }
+        .tl-info-row strong { color: #1e293b; }
+        .tl-info-row:last-child { margin-bottom: 0; }
+
+        .tl-photos { display: flex; gap: 6px; margin-top: 10px; }
+        .tl-photo {
+            width: 52px; height: 52px; border-radius: 8px; object-fit: cover;
+            border: 2px solid #e2e8f0; transition: transform 0.2s;
+        }
+        .tl-photo:hover { transform: scale(1.1); border-color: #3b82f6; }
+
         .lunas-background { position: relative; z-index: 1; }
-        .lunas-background::after { content: ''; position: absolute; top: 30%; left: 40%; width: 50%; height: 50%; background-image: url('assets/img/lunas.png'); background-size: contain; background-position: center; background-repeat: no-repeat; opacity: 0.1; z-index: -1; }
-        .timeline { position: relative; padding-left: 20px; border-left: 2px solid #e9ecef; }
-        .timeline-item { position: relative; margin-bottom: 20px; }
-        .timeline-item:last-child { margin-bottom: 0; }
-        .timeline-icon { position: absolute; left: -31px; top: 2px; width: 20px; height: 20px; border-radius: 50%; background-color: #fff; border: 2px solid; text-align: center; }
-        .timeline-icon-success { border-color: #2dce89; color: #2dce89; }
-        .timeline-icon-info { border-color: #11cdef; color: #11cdef; }
-        .timeline-icon-warning { border-color: #fb6340; color: #fb6340; }
+        .lunas-background::after {
+            content: ''; position: absolute; top: 30%; left: 40%;
+            width: 50%; height: 50%; background-image: url('assets/img/lunas.png');
+            background-size: contain; background-position: center;
+            background-repeat: no-repeat; opacity: 0.1; z-index: -1;
+        }
         <?php include "css/floating-menu2.css"; ?>
+
+        @media (max-width: 768px) {
+            .view-hero { padding: 16px; }
+            .hero-customer { font-size: 16px; }
+            .vk-card-body { padding: 12px 14px; }
+            .tl-time-row { gap: 12px; }
+        }
     </style>
 </head>
 <body class="g-sidenav-show bg-gray-200">
@@ -125,132 +274,203 @@ $stmt_pelaksanaan->close();
     <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg">
         <?php include "nav-top.php"; ?>
         <div class="container-fluid py-4">
-            <?php if ($kegiatan_data) : ?>
-                <div class="row">
-                    <div class="col-lg-4 mb-4">
-                        <div class="card mb-4">
-                            <div class="card-header pb-0"><h6><i class="material-icons text-sm me-1">info</i>Detail Kegiatan</h6></div>
-                            <div class="card-body pt-0">
-                                <ul class="list-group list-group-flush text-sm">
-                                    <li class="list-group-item px-0"><strong>Kode:</strong> <?= htmlspecialchars($kegiatan_data['kode']); ?></li>
-                                    <li class="list-group-item px-0"><strong>Jenis:</strong> <?= htmlspecialchars(ucwords($kegiatan_data['kegiatan'])); ?></li>
-                                    <li class="list-group-item px-0"><strong>Customer:</strong> <?= htmlspecialchars($kegiatan_data['nama_customer']); ?></li>
-                                    <li class="list-group-item px-0"><strong>Kontak:</strong> <?php $nomorHandphone = $kegiatan_data['cust_nomor']; if (substr($nomorHandphone, 0, 1) === '0') $nomorHandphone = '62' . substr($nomorHandphone, 1); ?><a href="https://api.whatsapp.com/send?phone=<?= $nomorHandphone; ?>" target="_blank"><?= htmlspecialchars($kegiatan_data['cust_nomor']); ?></a></li>
-                                    <li class="list-group-item px-0"><strong>Alamat:</strong> <?= htmlspecialchars($kegiatan_data['alamat']); ?></li>
-                                    <li class="list-group-item px-0"><strong>Keterangan:</strong><p class="mb-0 text-wrap"><?= !empty($kegiatan_data['keterangan']) ? htmlspecialchars($kegiatan_data['keterangan']) : '-'; ?></p></li>
-                                </ul>
-                            </div>
-                        </div>
-                        
-                        <div class="card mb-4">
-                            <div class="card-header pb-0"><h6><i class="material-icons text-sm me-1">add_shopping_cart</i>Perlu Ditagih by Teknisi</h6></div>
-                            <div class="card-body pt-2">
-                                <?php if (!empty($tagihan_items)) : ?>
-                                    <ul class="list-group list-group-flush">
-                                        <?php foreach($tagihan_items as $item): ?>
-                                            <li class="list-group-item d-flex justify-content-between align-items-center px-0">
-                                                <?= htmlspecialchars($item['name']); ?>
-                                                <span class="badge bg-primary"><?= htmlspecialchars($item['qty']); ?></span>
-                                            </li>
-                                        <?php endforeach; ?>
-                                    </ul>
-                                <?php else: ?>
-                                    <p class="text-center text-muted small">Tidak ada item tambahan yang perlu ditagih.</p>
-                                <?php endif; ?>
-                            </div>
-                        </div>
+            <?php if ($kegiatan_data) :
+                $kegL = strtolower($kegiatan_data['kegiatan']);
+                $heroBadge = 'hero-badge-default';
+                if (strpos($kegL, 'service') !== false) $heroBadge = 'hero-badge-service';
+                elseif (strpos($kegL, 'survey') !== false) $heroBadge = 'hero-badge-survey';
+                elseif (strpos($kegL, 'pasang') !== false) $heroBadge = 'hero-badge-pasang';
+            ?>
 
-                        <div class="card <?= (!empty($kegiatan_data['lunas']) && $kegiatan_data['lunas'] != '0000-00-00') ? 'lunas-background' : ''; ?>">
-                             <div class="card-header pb-0" style="background:none !important;"><h6><i class="material-icons text-sm me-1">receipt_long</i>Informasi Keuangan</h6></div>
-                            <div class="card-body pt-0">
-                                <?php if ($invoice_data) : ?>
-                                    <ul class="list-group list-group-flush">
-                                        <li class="list-group-item px-0" style="background:none !important;"><strong>No. Invoice:</strong> <?= htmlspecialchars($invoice_data['no_invoice']); ?></li>
-                                        <li class="list-group-item px-0" style="background:none !important;"><strong>Nominal:</strong> <span class="text-success font-weight-bold">Rp <?= number_format($invoice_data['nominal_invoice'], 0, ',', '.'); ?></span></li>
-                                        <li class="list-group-item px-0" style="background:none !important;"><strong>Status Bayar:</strong>
-                                            <?php if (!empty($kegiatan_data['lunas']) && $kegiatan_data['lunas'] != '0000-00-00') : ?>
-                                                <span class="badge bg-success" style="font-size: 10px !important">Lunas pada <?= date("d M Y", strtotime($kegiatan_data['lunas'])); ?></span>
-                                            <?php else : ?>
-                                                <span class="badge bg-danger" style="font-size: 10px !important">Belum Lunas</span>
-                                            <?php endif; ?>
-                                        </li>
-                                    </ul>
-                                <?php else : ?>
-                                    <p class="text-center text-danger">Invoice belum dibuat.</p>
-                                <?php endif; ?>
-                            </div>
+            <!-- ═══ HERO HEADER ═══ -->
+            <div class="view-hero">
+                <div style="flex:1;min-width:0;">
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+                        <span class="hero-badge <?= $heroBadge ?>"><?= htmlspecialchars(ucwords($kegiatan_data['kegiatan'])) ?></span>
+                        <span class="hero-kode"><?= htmlspecialchars($kegiatan_data['kode']) ?></span>
+                    </div>
+                    <p class="hero-customer"><?= htmlspecialchars($kegiatan_data['nama_customer']) ?></p>
+                    <div class="hero-meta">
+                        <?php
+                        $nomorHP = $kegiatan_data['cust_nomor'];
+                        if (substr($nomorHP, 0, 1) === '0') $nomorHP = '62' . substr($nomorHP, 1);
+                        ?>
+                        <a href="https://api.whatsapp.com/send?phone=<?= $nomorHP ?>" target="_blank">
+                            <i class="material-icons" style="font-size:14px;">phone</i> <?= htmlspecialchars($kegiatan_data['cust_nomor']) ?>
+                        </a>
+                        <span><i class="material-icons" style="font-size:14px;">location_on</i> <?= htmlspecialchars($kegiatan_data['alamat']) ?></span>
+                        <span><i class="material-icons" style="font-size:14px;">event</i> <?= date("d M Y, H:i", strtotime($kegiatan_data['jadwal'])) ?></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- ═══ LEFT COLUMN ═══ -->
+                <div class="col-lg-4 mb-4">
+                    <!-- Detail Kegiatan -->
+                    <div class="vk-card">
+                        <div class="vk-card-header">
+                            <div class="icon-circle" style="background:#eef2ff;"><i class="material-icons" style="font-size:16px;color:#6366f1;">info</i></div>
+                            <h6>Detail Kegiatan</h6>
+                        </div>
+                        <div class="vk-card-body">
+                            <div class="detail-row"><span class="detail-label">Kode</span><span class="detail-value"><?= htmlspecialchars($kegiatan_data['kode']) ?></span></div>
+                            <div class="detail-row"><span class="detail-label">Jenis</span><span class="detail-value" style="text-transform:capitalize;"><?= htmlspecialchars($kegiatan_data['kegiatan']) ?></span></div>
+                            <div class="detail-row"><span class="detail-label">Customer</span><span class="detail-value"><?= htmlspecialchars($kegiatan_data['nama_customer']) ?></span></div>
+                            <div class="detail-row"><span class="detail-label">Kontak</span><span class="detail-value"><a href="https://api.whatsapp.com/send?phone=<?= $nomorHP ?>" target="_blank"><?= htmlspecialchars($kegiatan_data['cust_nomor']) ?></a></span></div>
+                            <div class="detail-row"><span class="detail-label">Alamat</span><span class="detail-value"><?= htmlspecialchars($kegiatan_data['alamat']) ?></span></div>
+                            <div class="detail-row"><span class="detail-label">Ket.</span><span class="detail-value"><?= !empty($kegiatan_data['keterangan']) ? htmlspecialchars($kegiatan_data['keterangan']) : '<span style="color:#cbd5e1;">-</span>' ?></span></div>
                         </div>
                     </div>
 
-                    <div class="col-lg-8">
-                        <div class="card">
-                            <div class="card-header pb-0"><h6><i class="fa-solid fa-person-digging me-2"></i>Riwayat Pelaksanaan Teknisi</h6></div>
-                            <div class="card-body">
-                                <?php if (!empty($pelaksanaan_grouped)) : ?>
-                                    <ul class="nav nav-tabs" id="teknisiTab" role="tablist">
-                                        <?php $tab_index = 0; foreach ($pelaksanaan_grouped as $nama_teknisi => $tasks) : $tab_index++; ?>
-                                            <li class="nav-item" role="presentation">
-                                                <button class="nav-link <?= ($tab_index == 1) ? 'active' : '' ?>" id="tab-<?= $tab_index ?>" data-bs-toggle="tab" data-bs-target="#panel-<?= $tab_index ?>" type="button" role="tab"><?= htmlspecialchars(shortenTechnicianName($nama_teknisi)); ?></button>
-                                            </li>
-                                        <?php endforeach; ?>
-                                    </ul>
-                                    <div class="tab-content bg-white border border-top-0 rounded-bottom p-3" id="teknisiTabContent">
-                                        <?php $tab_index = 0; foreach ($pelaksanaan_grouped as $nama_teknisi => $tasks) : $tab_index++; ?>
-                                            <div class="tab-pane fade <?= ($tab_index == 1) ? 'show active' : '' ?>" id="panel-<?= $tab_index ?>" role="tabpanel">
-                                                <div class="timeline">
-                                                    <?php foreach ($tasks as $task) :
-                                                        $status_class = 'info';
-                                                        if ($task['status'] == 'selesai') $status_class = 'success';
-                                                        if ($task['status'] == 'Lanjut Nanti') $status_class = 'warning';
-                                                    ?>
-                                                        <div class="timeline-item">
-                                                            <div class="timeline-icon d-flex align-items-center justify-content-center timeline-icon-<?= $status_class ?>"><i class="material-icons text-xs">check</i></div>
-                                                            <h6 class="text-dark text-sm font-weight-bold mb-1 text-capitalize"><?= htmlspecialchars($task['status']); ?> <span class="font-weight-normal text-muted">- <?= date("d M Y", strtotime($task['waktu_mulai'])); ?></span></h6>
-                                                            <div class="card card-body shadow-none border p-3">
-                                                                <div class="d-flex justify-content-start text-sm gap-4 mb-2">
-                                                                    <div>
-                                                                        <strong>Mulai:</strong>
-                                                                        <?= (!empty($task['waktu_mulai']) && substr($task['waktu_mulai'], 0, 10) != '0000-00-00') ? date("H:i", strtotime($task['waktu_mulai'])) : 'Belum Absen' ?>
-                                                                        <?php if(!empty($task['latitude']) && !empty($task['longitude'])) echo "<a href='http://maps.google.com/maps?q={$task['latitude']},{$task['longitude']}' target='_blank' class='text-info ms-1'>[Lokasi]</a>"; ?>
-                                                                    </div>
-                                                                    <div>
-                                                                        <strong>Selesai:</strong>
-                                                                        <?= (!empty($task['waktu_selesai']) && substr($task['waktu_selesai'], 0, 10) != '0000-00-00') ? date("H:i", strtotime($task['waktu_selesai'])) : 'Belum Absen' ?>
-                                                                        <?php if(!empty($task['latitude_s']) && !empty($task['longitude_s'])) echo "<a href='http://maps.google.com/maps?q={$task['latitude_s']},{$task['longitude_s']}' target='_blank' class='text-info ms-1'>[Lokasi]</a>"; ?>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="d-flex justify-content-between text-wrap">
-                                                                    <div>
-                                                                        <p class="text-sm mb-0 text-wrap"><strong>Permasalahan :</strong> <?= !empty($task['permasalahan']) ? htmlspecialchars($task['permasalahan']) : '-'; ?></p>
-                                                                        <p class="text-sm mb-0 text-wrap"><strong>Solusi :</strong> <?= !empty($task['solusi']) ? htmlspecialchars($task['solusi']) : '-'; ?></p>
-                                                                        <p class="text-sm mb-0 text-wrap"><strong>Keterangan :</strong> <?= !empty($task['keterangan']) ? htmlspecialchars($task['keterangan']) : '-'; ?></p>
-                                                                    </div>
-                                                                    <div>
-                                                                        <?php foreach (['image_1', 'image_2', 'image_3'] as $img) : ?>
-                                                                            <?php if (!empty($task[$img])) : ?>
-                                                                                <a href="https://api-teknisi.id-giti.com/storage/image/<?= $task[$img] ?>" target="_blank" class="me-1">
-                                                                                    <img src="https://api-teknisi.id-giti.com/storage/image/<?= $task[$img] ?>" alt="bukti foto" style="width: 50px; height: 50px; object-fit: cover; border-radius: .3rem;">
-                                                                                </a>
-                                                                            <?php endif; ?>
-                                                                        <?php endforeach; ?>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    <?php endforeach; ?>
-                                                </div>
-                                            </div>
-                                        <?php endforeach; ?>
+                    <!-- Perlu Ditagih -->
+                    <div class="vk-card">
+                        <div class="vk-card-header">
+                            <div class="icon-circle" style="background:#fef3c7;"><i class="material-icons" style="font-size:16px;color:#d97706;">shopping_cart</i></div>
+                            <h6>Perlu Ditagih</h6>
+                        </div>
+                        <div class="vk-card-body">
+                            <?php if (!empty($tagihan_items)) : ?>
+                                <?php foreach($tagihan_items as $item): ?>
+                                    <div class="tagihan-item">
+                                        <span><?= htmlspecialchars($item['name']) ?></span>
+                                        <span class="tagihan-qty"><?= htmlspecialchars($item['qty']) ?></span>
                                     </div>
-                                <?php else : ?>
-                                    <p class="text-center">Tidak ditemukan riwayat pelaksanaan dari teknisi.</p>
-                                <?php endif; ?>
-                            </div>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <div style="text-align:center;padding:12px 0;color:#94a3b8;font-size:12px;">
+                                    <i class="material-icons" style="font-size:28px;color:#e2e8f0;display:block;margin-bottom:4px;">check_circle</i>
+                                    Tidak ada item tambahan
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <!-- Informasi Keuangan -->
+                    <div class="vk-card <?= (!empty($kegiatan_data['lunas']) && $kegiatan_data['lunas'] != '0000-00-00') ? 'lunas-background' : '' ?>">
+                        <div class="vk-card-header">
+                            <div class="icon-circle" style="background:#dcfce7;"><i class="material-icons" style="font-size:16px;color:#16a34a;">receipt_long</i></div>
+                            <h6>Informasi Keuangan</h6>
+                        </div>
+                        <div class="vk-card-body">
+                            <?php if ($invoice_data) : ?>
+                                <div class="detail-row">
+                                    <span class="detail-label">Invoice</span>
+                                    <span class="detail-value" style="font-weight:700;color:#3b82f6;"><?= htmlspecialchars($invoice_data['no_invoice']) ?></span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Nominal</span>
+                                    <span class="detail-value" style="font-weight:700;color:#059669;font-size:16px;">Rp <?= number_format($invoice_data['nominal_invoice'], 0, ',', '.') ?></span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Status</span>
+                                    <span class="detail-value">
+                                        <?php if (!empty($kegiatan_data['lunas']) && $kegiatan_data['lunas'] != '0000-00-00') : ?>
+                                            <span class="invoice-status invoice-lunas"><i class="material-icons" style="font-size:12px;">check_circle</i> Lunas <?= date("d M Y", strtotime($kegiatan_data['lunas'])) ?></span>
+                                        <?php else : ?>
+                                            <span class="invoice-status invoice-belum"><i class="material-icons" style="font-size:12px;">warning</i> Belum Lunas</span>
+                                        <?php endif; ?>
+                                    </span>
+                                </div>
+                            <?php else : ?>
+                                <div style="text-align:center;padding:16px 0;">
+                                    <i class="material-icons" style="font-size:32px;color:#fca5a5;display:block;margin-bottom:6px;">receipt</i>
+                                    <span style="color:#ef4444;font-size:13px;font-weight:600;">Invoice belum dibuat</span>
+                                </div>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
+
+                <!-- ═══ RIGHT COLUMN - RIWAYAT ═══ -->
+                <div class="col-lg-8">
+                    <div class="vk-card">
+                        <div class="vk-card-header">
+                            <div class="icon-circle" style="background:#dbeafe;"><i class="material-icons" style="font-size:16px;color:#2563eb;">engineering</i></div>
+                            <h6>Riwayat Pelaksanaan Teknisi</h6>
+                        </div>
+                        <div class="vk-card-body tl-container">
+                            <?php if (!empty($pelaksanaan_grouped)) : ?>
+                                <!-- Teknisi Tabs -->
+                                <div class="tl-teknisi-tabs">
+                                    <?php $tab_index = 0; foreach ($pelaksanaan_grouped as $nama_teknisi => $tasks) : $tab_index++; ?>
+                                        <button class="tl-tab <?= ($tab_index == 1) ? 'active' : '' ?>" data-bs-toggle="tab" data-bs-target="#panel-<?= $tab_index ?>" type="button"><?= htmlspecialchars(shortenTechnicianName($nama_teknisi)); ?></button>
+                                    <?php endforeach; ?>
+                                </div>
+                                <!-- Tab Content -->
+                                <div class="tab-content" id="teknisiTabContent">
+                                    <?php $tab_index = 0; foreach ($pelaksanaan_grouped as $nama_teknisi => $tasks) : $tab_index++; ?>
+                                        <div class="tab-pane fade <?= ($tab_index == 1) ? 'show active' : '' ?>" id="panel-<?= $tab_index ?>" role="tabpanel">
+                                            <?php foreach ($tasks as $task) :
+                                                $dotClass = 'tl-dot-dijadwalkan';
+                                                if ($task['status'] == 'selesai') $dotClass = 'tl-dot-selesai';
+                                                elseif ($task['status'] == 'berjalan') $dotClass = 'tl-dot-berjalan';
+                                                elseif ($task['status'] == 'menunggu laporan') $dotClass = 'tl-dot-menunggu';
+                                                elseif ($task['status'] == 'Lanjut Nanti') $dotClass = 'tl-dot-lanjut';
+                                                elseif ($task['status'] == 'Lanjutan') $dotClass = 'tl-dot-lanjutan';
+                                            ?>
+                                                <div class="tl-entry">
+                                                    <div class="tl-dot <?= $dotClass ?>"></div>
+                                                    <div class="tl-status"><?= htmlspecialchars($task['status']) ?></div>
+                                                    <div class="tl-date"><?= date("d M Y", strtotime($task['waktu_mulai'])) ?></div>
+                                                    <div class="tl-detail-card">
+                                                        <div class="tl-time-row">
+                                                            <div class="tl-time-item">
+                                                                <div class="tl-time-icon tl-start-icon">▶</div>
+                                                                <span class="tl-time-val"><?= (!empty($task['waktu_mulai']) && substr($task['waktu_mulai'], 0, 10) != '0000-00-00') ? date("H:i", strtotime($task['waktu_mulai'])) : '--:--' ?></span>
+                                                                <?php if(!empty($task['latitude']) && !empty($task['longitude'])): ?>
+                                                                    <a href="https://maps.google.com/maps?q=<?= $task['latitude'] ?>,<?= $task['longitude'] ?>" target="_blank" class="tl-loc-link">📍 Lokasi</a>
+                                                                <?php endif; ?>
+                                                            </div>
+                                                            <div class="tl-time-item">
+                                                                <div class="tl-time-icon tl-end-icon">⏹</div>
+                                                                <span class="tl-time-val"><?= (!empty($task['waktu_selesai']) && substr($task['waktu_selesai'], 0, 10) != '0000-00-00') ? date("H:i", strtotime($task['waktu_selesai'])) : '--:--' ?></span>
+                                                                <?php if(!empty($task['latitude_s']) && !empty($task['longitude_s'])): ?>
+                                                                    <a href="https://maps.google.com/maps?q=<?= $task['latitude_s'] ?>,<?= $task['longitude_s'] ?>" target="_blank" class="tl-loc-link">📍 Lokasi</a>
+                                                                <?php endif; ?>
+                                                            </div>
+                                                        </div>
+                                                        <div class="tl-info-row"><strong>Permasalahan:</strong> <?= !empty($task['permasalahan']) ? htmlspecialchars($task['permasalahan']) : '<span style="color:#cbd5e1;">-</span>' ?></div>
+                                                        <div class="tl-info-row"><strong>Solusi:</strong> <?= !empty($task['solusi']) ? htmlspecialchars($task['solusi']) : '<span style="color:#cbd5e1;">-</span>' ?></div>
+                                                        <div class="tl-info-row"><strong>Keterangan:</strong> <?= !empty($task['keterangan']) ? htmlspecialchars($task['keterangan']) : '<span style="color:#cbd5e1;">-</span>' ?></div>
+                                                        <?php
+                                                        $hasPhotos = false;
+                                                        foreach (['image_1', 'image_2', 'image_3', 'image_4', 'image_5'] as $img) {
+                                                            if (!empty($task[$img])) { $hasPhotos = true; break; }
+                                                        }
+                                                        if ($hasPhotos): ?>
+                                                            <div class="tl-photos">
+                                                                <?php foreach (['image_1', 'image_2', 'image_3', 'image_4', 'image_5'] as $img) : ?>
+                                                                    <?php if (!empty($task[$img])) : ?>
+                                                                        <a href="https://api-teknisi.id-giti.com/storage/image/<?= $task[$img] ?>" target="_blank">
+                                                                            <img src="https://api-teknisi.id-giti.com/storage/image/<?= $task[$img] ?>" alt="foto" class="tl-photo">
+                                                                        </a>
+                                                                    <?php endif; ?>
+                                                                <?php endforeach; ?>
+                                                            </div>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                </div>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php else : ?>
+                                <div style="text-align:center;padding:32px 0;color:#94a3b8;">
+                                    <i class="material-icons" style="font-size:48px;color:#e2e8f0;display:block;margin-bottom:8px;">engineering</i>
+                                    <p style="font-size:13px;margin:0;">Belum ada riwayat pelaksanaan dari teknisi</p>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <?php else : ?>
-                <div class="alert alert-danger text-white text-center">Data kegiatan dengan kode '<?= htmlspecialchars($kode_transaksi); ?>' tidak ditemukan.</div>
+                <div class="vk-card" style="text-align:center;padding:48px;">
+                    <i class="material-icons" style="font-size:56px;color:#fca5a5;display:block;margin-bottom:12px;">error_outline</i>
+                    <h5 style="color:#ef4444;margin:0 0 6px;">Data Tidak Ditemukan</h5>
+                    <p style="color:#94a3b8;font-size:13px;margin:0;">Kegiatan dengan kode '<strong><?= htmlspecialchars($kode_transaksi) ?></strong>' tidak ditemukan.</p>
+                </div>
             <?php endif; ?>
         </div>
         <?php include "footer.php"; ?>
