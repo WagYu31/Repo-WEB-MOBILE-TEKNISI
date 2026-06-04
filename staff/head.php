@@ -32,18 +32,50 @@
     }
     .btm-nav {
         position: fixed;
-        bottom: 15px;
+        bottom: 0;
         left: 0;
         right: 0;
-        margin: 0 auto;
-        border-radius: 15px;
-        background-color: rgba(0, 0, 0, 0.7);
-        width:94%;
-        margin-left:3%;
+        margin: 0;
+        border-radius: 20px 20px 0 0;
+        background-color: #ffffff;
+        width: 100%;
+        z-index: 1050;
+        padding-bottom: env(safe-area-inset-bottom);
+        box-shadow: 0 -4px 12px rgba(0,0,0,0.08);
     }
     .navbar-brand-img{
         width:4em;
         height: 5em;
+    }
+
+    /* ═══ GLOBAL MOBILE RESPONSIVE (≤991px) ═══ */
+    @media (max-width: 991px) {
+      /* Hide sidebar on mobile/tablet */
+      #sidenav-main,
+      .sidenav { display: none !important; }
+
+      /* Main content: full width, no margin */
+      .main-content,
+      .g-sidenav-show .main-content,
+      .sidenav.fixed-start + .main-content {
+        margin-left: 0 !important;
+        width: 100% !important;
+      }
+
+      /* Top nav: compact */
+      .navbar-main { margin: 0 8px !important; padding: 8px 0 !important; }
+      .navbar-main .breadcrumb { font-size: 10px !important; }
+      .navbar-main h6 { font-size: 14px !important; }
+
+      /* Bottom padding for bottom nav */
+      body { padding-bottom: 70px !important; }
+    }
+
+    /* ═══ SAMSUNG FOLD FOLDED (≤400px) ═══ */
+    @media (max-width: 400px) {
+      body { padding-bottom: 60px !important; }
+      .navbar-main { margin: 0 4px !important; }
+      .navbar-main h6 { font-size: 13px !important; }
     }
   </style>
   

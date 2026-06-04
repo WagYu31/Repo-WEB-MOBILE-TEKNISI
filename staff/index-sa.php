@@ -236,8 +236,22 @@ if (isset($_GET['export'])) {
     @media (min-width: 768px) and (max-width: 991px) { .w-md-70 { width: 50% !important; } }
     @media (max-width: 767px) { .w-sm-100 { width: 60% !important; } }
 
-    /* ═══════ MOBILE COMPACT KEGIATAN (Portrait Only) ═══════ */
-    @media (max-width: 767px) and (orientation: portrait) {
+    /* ═══════ MOBILE RESPONSIVE (≤991px) ═══════ */
+    @media (max-width: 991px) {
+      /* Reduce outer padding */
+      div[style*="padding:0 24px"] { padding: 0 12px !important; }
+      div[style*="padding:0 24px 24px"] { padding: 0 12px 16px !important; }
+    }
+
+    /* ═══════ TABLET / FOLD UNFOLDED (≤991px) ═══════ */
+    @media (max-width: 991px) {
+      .tbl-row { padding: 12px 14px !important; }
+      .section-header { padding: 10px 14px !important; }
+      .section-header h6 { font-size: 12px !important; }
+    }
+
+    /* ═══════ MOBILE COMPACT (≤767px) ═══════ */
+    @media (max-width: 767px) {
       /* Force compact card layout */
       .tbl-row {
         padding: 10px 12px !important;
@@ -315,8 +329,21 @@ if (isset($_GET['export'])) {
       .section-card { border-radius: 0 0 8px 8px !important; }
 
       /* Padding */
-      div[style*="padding:0 24px"] { padding: 0 10px !important; }
-      div[style*="padding:0 24px 24px"] { padding: 0 10px 16px !important; }
+      div[style*="padding:0 24px"] { padding: 0 8px !important; }
+      div[style*="padding:0 24px 24px"] { padding: 0 8px 12px !important; }
+    }
+
+    /* ═══════ EXTRA SMALL: Samsung Fold folded (≤400px) ═══════ */
+    @media (max-width: 400px) {
+      .tbl-row .col-md-2:first-child { width: 30% !important; flex: 0 0 30% !important; }
+      .tbl-row .col-md-2:nth-child(2) { width: 70% !important; flex: 0 0 70% !important; }
+      .tbl-row .col-md-2:nth-child(3) { width: 100% !important; flex: 0 0 100% !important; }
+      .tbl-row .col-md-3:nth-child(4) { width: 100% !important; flex: 0 0 100% !important; }
+      .text-name { font-size: 11px !important; max-width: 180px; }
+      .text-addr { -webkit-line-clamp: 2 !important; }
+      .section-header input[type="text"] { width: 90px !important; }
+      div[style*="padding:0 24px"] { padding: 0 6px !important; }
+      div[style*="padding:0 24px 24px"] { padding: 0 6px 10px !important; }
     }
   </style>
 </head>

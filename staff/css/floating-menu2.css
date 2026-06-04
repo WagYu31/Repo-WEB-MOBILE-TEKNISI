@@ -4,6 +4,12 @@
             right: 20px;
             z-index: 1000;
         }
+        @media (max-width: 991px) {
+            .floating-menu { bottom: 80px; }
+        }
+        @media (max-width: 400px) {
+            .floating-menu { bottom: 70px; right: 12px; }
+        }
         .menu-btn {
             width: 60px;
             height: 55px;

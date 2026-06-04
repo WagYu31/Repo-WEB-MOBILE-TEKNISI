@@ -229,10 +229,19 @@
   }
   .chip-val { font-size: 18px; font-weight: 800; line-height: 1.1; display: block; }
 
-  /* Portrait mobile: show strip, hide cards */
-  @media (max-width: 767px) and (orientation: portrait) {
+  /* Mobile: show strip, hide cards */
+  @media (max-width: 767px) {
     .stat-desktop { display: none !important; }
     .stat-mobile { display: block !important; }
+  }
+
+  /* Samsung Fold folded (≤400px): smaller chips */
+  @media (max-width: 400px) {
+    .stat-chip { padding: 6px 8px; gap: 6px; }
+    .chip-icon { width: 20px; height: 20px; border-radius: 5px; }
+    .chip-icon i { font-size: 12px; }
+    .chip-label { font-size: 6px; }
+    .chip-val { font-size: 15px; }
   }
 </style>
 
