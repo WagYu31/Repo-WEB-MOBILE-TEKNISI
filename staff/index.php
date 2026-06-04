@@ -25,7 +25,23 @@ $loginError = isset($_GET['error']) ? htmlspecialchars($_GET['error'], ENT_QUOTE
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" />
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons&display=swap" rel="stylesheet">
   <style>
+    .material-icons, .material-icons-round {
+      font-family: 'Material Icons' !important;
+      font-weight: normal;
+      font-style: normal;
+      font-size: 24px;
+      display: inline-block;
+      line-height: 1;
+      text-transform: none;
+      letter-spacing: normal;
+      word-wrap: normal;
+      white-space: nowrap;
+      direction: ltr;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
     
     body {
@@ -162,6 +178,7 @@ $loginError = isset($_GET['error']) ? htmlspecialchars($_GET['error'], ENT_QUOTE
       position: absolute;
       left: 16px;
       top: 50%;
+      font-family: 'Material Icons' !important;
       transform: translateY(-50%);
       color: rgba(255, 255, 255, 0.25);
       font-size: 20px;
