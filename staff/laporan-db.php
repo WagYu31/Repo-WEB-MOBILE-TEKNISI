@@ -104,7 +104,7 @@
             $kodePlaceholders = implode(',', array_fill(0, count($feeKodes), '?'));
             $kodeTypes = str_repeat('s', count($feeKodes));
             
-            $sql = "SELECT kode, teknisi_id, COUNT(DISTINCT teknisi_id) OVER (PARTITION BY kode) AS jml_aktif
+            $sql = "SELECT DISTINCT kode, teknisi_id
                     FROM pelaksanaan_kegiatan 
                     WHERE kode IN ($kodePlaceholders) AND waktu_mulai IS NOT NULL";
             $stmt = $conn->prepare($sql);
