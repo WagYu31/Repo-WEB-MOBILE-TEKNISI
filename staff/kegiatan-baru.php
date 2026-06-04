@@ -309,7 +309,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_kegiatan'])) {
             }
 
             const hourSelect = document.getElementById('tanggal_survey_time_hour');
-            for (let i = 7; i < 21; i++) {
+            for (let i = 0; i < 24; i++) {
                 let h = i.toString().padStart(2, '0');
                 hourSelect.add(new Option(h, h));
             }

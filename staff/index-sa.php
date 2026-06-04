@@ -1239,7 +1239,7 @@ if (isset($_GET['export'])) {
     $("#toggleLoadMoreWaiting").click(() => $(".table-responsive").parent().parent().toggle());
 
     $('#jam').on('input', function() {
-      if(this.value < "07:00" || this.value > "20:00") { alert("Jam operasional 07:00 - 20:00"); this.value = ""; }
+      // Jam bebas - tidak ada batasan
     });
   </script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
