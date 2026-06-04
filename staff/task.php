@@ -44,11 +44,10 @@ if ($is_search_triggered) {
     $params = [];
     $types = '';
 
-    $sql_kegiatan = "SELECT DISTINCT k.*, c.nama AS nama_customer, c.telp AS cust_nomor, c.alamat, inv.no_invoice, inv.nominal_invoice
+    // Optimized: removed unnecessary JOINs that caused DISTINCT overhead
+    $sql_kegiatan = "SELECT k.*, c.nama AS nama_customer, c.telp AS cust_nomor, c.alamat, inv.no_invoice, inv.nominal_invoice
                      FROM kegiatan k
                      LEFT JOIN customer c ON k.customer_id = c.id
-                     LEFT JOIN team_kegiatan tk ON k.id = tk.kegiatan_id
-                     LEFT JOIN pelaksanaan_kegiatan pk ON k.id = pk.kegiatan_id
                      LEFT JOIN (
                          SELECT kode, no_invoice, nominal_invoice 
                          FROM pendapatan_kegiatan 
@@ -57,15 +56,16 @@ if ($is_search_triggered) {
                      ) inv ON k.kode = inv.kode
                      WHERE k.status != 'waiting' AND k.deleted_at IS NULL";
 
-    if (!empty($start_date) && !empty($end_date)) {
-        $sql_kegiatan .= " AND DATE(k.jadwal) BETWEEN ? AND ?";
-        $types .= 'ss';
-        array_push($params, $start_date, $end_date);
-    }
+    // If filtering by teknisi, use EXISTS subquery instead of JOIN (avoids duplicates)
     if (!empty($teknisi_id)) {
-        $sql_kegiatan .= " AND pk.teknisi_id = ?";
+        $sql_kegiatan .= " AND EXISTS (SELECT 1 FROM pelaksanaan_kegiatan pk WHERE pk.kegiatan_id = k.id AND pk.teknisi_id = ?)";
         $types .= 'i';
         $params[] = $teknisi_id;
+    }
+    if (!empty($start_date) && !empty($end_date)) {
+        $sql_kegiatan .= " AND k.jadwal BETWEEN ? AND ?";
+        $types .= 'ss';
+        array_push($params, $start_date . ' 00:00:00', $end_date . ' 23:59:59');
     }
     if (!empty($customer_id)) {
         $sql_kegiatan .= " AND k.customer_id = ?";
@@ -77,7 +77,7 @@ if ($is_search_triggered) {
         $types .= 's';
         $params[] = $jenis_kegiatan;
     }
-    $sql_kegiatan .= " ORDER BY k.jadwal DESC";
+    $sql_kegiatan .= " ORDER BY k.jadwal DESC LIMIT 200";
     
     $stmt = $conn->prepare($sql_kegiatan);
     if ($stmt && !empty($types)) {
@@ -96,6 +96,28 @@ if ($is_search_triggered) {
     }
 }
 
+// ═══ BATCH LOAD ALL TEKNISI IN 1 QUERY (eliminates N+1) ═══
+$teknisiMap = [];
+if (!empty($groupedData)) {
+    $allKodes = array_keys($groupedData);
+    $placeholders = implode(',', array_fill(0, count($allKodes), '?'));
+    $typesStr = str_repeat('s', count($allKodes));
+    
+    $sqlBatchTeknisi = "SELECT kode, nama_teknisi FROM team_kegiatan 
+                        WHERE kode IN ($placeholders) AND deleted_at IS NULL 
+                        GROUP BY kode, teknisi_id";
+    $stmtBatch = $conn->prepare($sqlBatchTeknisi);
+    if ($stmtBatch) {
+        $stmtBatch->bind_param($typesStr, ...$allKodes);
+        $stmtBatch->execute();
+        $resBatch = $stmtBatch->get_result();
+        while ($r = $resBatch->fetch_assoc()) {
+            $teknisiMap[$r['kode']][] = $r['nama_teknisi'];
+        }
+        $stmtBatch->close();
+    }
+}
+
 if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedData)) {
     header('Content-Type: text/plain');
     header('Content-Disposition: attachment; filename="Export_Kegiatan_' . date('Y-m-d_H-i-s') . '.txt"');
@@ -106,17 +128,9 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
     foreach ($groupedData as $kodeTransaksi => $kegiatan_group) {
         $latest_kegiatan = $kegiatan_group[0];
         
-        $teknisi_list = [];
-        $sqlTeknisi = "SELECT tk.nama_teknisi FROM team_kegiatan tk WHERE tk.kode = ? AND tk.deleted_at IS NULL GROUP BY tk.teknisi_id";
-        $stmt_tek = $conn->prepare($sqlTeknisi);
-        $stmt_tek->bind_param("s", $kodeTransaksi);
-        $stmt_tek->execute();
-        $resultTeknisi = $stmt_tek->get_result();
-        while ($rowTeknisi = $resultTeknisi->fetch_assoc()) {
-            $teknisi_list[] = shortenTechnicianName($rowTeknisi['nama_teknisi']);
-        }
-        $stmt_tek->close();
-        
+        // Use pre-loaded teknisi data (no extra query!)
+        $teknisi_names = $teknisiMap[$kodeTransaksi] ?? [];
+        $teknisi_list = array_map(function($n) { return shortenTechnicianName($n); }, $teknisi_names);
         $teknisi_str = !empty($teknisi_list) ? implode(", ", $teknisi_list) : "N/A";
         
         $output .= "Nama Customer    : " . $latest_kegiatan['nama_customer'] . "\r\n";
@@ -488,19 +502,14 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
                                 <td>
                                     <div class="tek-wrap">
                                     <?php
-                                    $sqlTeknisi = "SELECT tk.nama_teknisi FROM team_kegiatan tk WHERE tk.kode = ? AND tk.deleted_at IS NULL GROUP BY tk.teknisi_id";
-                                    $stmt_tek = $conn->prepare($sqlTeknisi);
-                                    $stmt_tek->bind_param("s", $kodeTransaksi);
-                                    $stmt_tek->execute();
-                                    $resultTeknisi = $stmt_tek->get_result();
-                                    if($resultTeknisi->num_rows > 0) {
-                                        while ($rowTeknisi = $resultTeknisi->fetch_assoc()) {
-                                            echo "<span class='tek-chip'><span class='tek-dot'></span>" . shortenTechnicianName(htmlspecialchars($rowTeknisi['nama_teknisi'])) . "</span>";
+                                    $tekNames = $teknisiMap[$kodeTransaksi] ?? [];
+                                    if (!empty($tekNames)) {
+                                        foreach ($tekNames as $tName) {
+                                            echo "<span class='tek-chip'><span class='tek-dot'></span>" . shortenTechnicianName(htmlspecialchars($tName)) . "</span>";
                                         }
                                     } else {
                                         echo "<span style='font-size:11px;color:#94a3b8;'>N/A</span>";
                                     }
-                                    $stmt_tek->close();
                                     ?>
                                     </div>
                                 </td>
