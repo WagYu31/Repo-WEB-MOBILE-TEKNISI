@@ -848,19 +848,42 @@ if (isset($_GET['export'])) {
 
         <div class="modal fade" id="reasonModal" tabindex="-1">
           <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content">
-              <div class="modal-header"><h5>Riwayat Penangguhan</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-              <div class="modal-body">
-                <div class="row">
-                  <div class="col-md-5 border-end">
+            <div class="modal-content" style="border:none;border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.15);">
+              <div class="modal-header" style="background:linear-gradient(135deg,#1e293b,#334155);border:none;padding:18px 24px;">
+                <h5 style="color:#fff;font-size:16px;font-weight:700;margin:0;display:flex;align-items:center;gap:8px;">
+                  <span style="background:rgba(251,191,36,0.2);width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;">
+                    <i class="material-icons" style="font-size:16px;color:#fcd34d;">history</i>
+                  </span>
+                  Riwayat Penangguhan
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" style="opacity:0.7;"></button>
+              </div>
+              <div class="modal-body" style="padding:0;">
+                <div class="row g-0">
+                  <div class="col-md-5" style="padding:20px 24px;border-right:1px solid #f1f5f9;">
                     <form id="reasonForm">
                       <input type="hidden" id="reasonKegiatanId" name="kegiatan_id">
-                      <div class="mb-3"><label class="form-label text-xs">Alasan Update</label><textarea class="form-control border p-2" id="reasonText" name="reason" rows="4" required></textarea></div>
-                      <div class="mb-3"><label class="form-label text-xs">Upload Bukti</label><input class="form-control form-control-sm border" type="file" name="media" accept="image/*,.pdf"></div>
-                      <button type="submit" class="btn btn-primary btn-sm w-100" id="saveReasonBtn">Simpan Update</button>
+                      <div style="margin-bottom:14px;">
+                        <label style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;display:block;">Alasan Update</label>
+                        <textarea class="form-control" id="reasonText" name="reason" rows="4" required style="border:1.5px solid #e2e8f0;border-radius:10px;padding:10px 12px;font-size:13px;color:#1e293b;resize:vertical;"></textarea>
+                      </div>
+                      <div style="margin-bottom:16px;">
+                        <label style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;display:block;">Upload Bukti</label>
+                        <label style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:1.5px dashed #cbd5e1;border-radius:10px;cursor:pointer;transition:all 0.15s;background:#fafbfc;" onmouseover="this.style.borderColor='#6366f1';this.style.background='#f5f3ff'" onmouseout="this.style.borderColor='#cbd5e1';this.style.background='#fafbfc'">
+                          <i class="material-icons" style="font-size:20px;color:#94a3b8;">cloud_upload</i>
+                          <span style="font-size:12px;color:#64748b;font-weight:500;">Pilih file gambar atau PDF</span>
+                          <input type="file" name="media" accept="image/*,.pdf" style="display:none;">
+                        </label>
+                      </div>
+                      <button type="submit" class="btn w-100" id="saveReasonBtn" style="background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;font-size:12px;font-weight:600;border:none;border-radius:10px;padding:10px;box-shadow:0 2px 8px rgba(99,102,241,0.3);">
+                        <i class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:4px;">save</i> Simpan Update
+                      </button>
                     </form>
                   </div>
-                  <div class="col-md-7"><div id="reasonHistoryList" class="p-2 rounded border" style="max-height: 350px; overflow-y: auto; background-color: #f8f9fa;"></div></div>
+                  <div class="col-md-7" style="padding:20px 24px;background:#f8fafc;">
+                    <label style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:10px;display:block;">Riwayat Catatan</label>
+                    <div id="reasonHistoryList" style="max-height:300px;overflow-y:auto;border-radius:10px;border:1px solid #e2e8f0;background:#fff;padding:12px;"></div>
+                  </div>
                 </div>
               </div>
             </div>
