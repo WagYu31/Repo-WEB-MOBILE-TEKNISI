@@ -325,11 +325,31 @@ if (isset($_GET['export'])) {
       .avatar-initials { width: 26px !important; height: 26px !important; border-radius: 6px !important; }
       .avatar-initials span { font-size: 9px !important; }
 
-      /* Section header */
-      .section-header { padding: 8px 12px !important; border-radius: 8px 8px 0 0 !important; }
-      .section-header h6 { font-size: 11px !important; }
-      .btn-export { font-size: 9px !important; padding: 4px 10px !important; }
-      .section-header input[type="text"] { width: 140px !important; font-size: 11px !important; padding: 5px 8px 5px 28px !important; }
+      /* Section header: stack title / search on mobile */
+      .section-header {
+        padding: 10px 12px !important;
+        border-radius: 8px 8px 0 0 !important;
+        flex-wrap: wrap !important;
+        gap: 8px !important;
+      }
+      .section-header > div:first-child {
+        width: 100% !important;
+        flex: 0 0 100% !important;
+      }
+      .section-header > div:last-child {
+        width: 100% !important;
+        flex: 0 0 100% !important;
+        justify-content: space-between !important;
+      }
+      .section-header h6 { font-size: 12px !important; }
+      .section-header input[type="text"] {
+        flex: 1 !important;
+        width: auto !important;
+        min-width: 0 !important;
+        font-size: 11px !important;
+        padding: 6px 10px 6px 30px !important;
+      }
+      .btn-export { font-size: 9px !important; padding: 5px 12px !important; flex-shrink: 0; }
 
       /* Padding */
       div[style*="padding:0 24px"] { padding: 0 8px !important; }
@@ -339,7 +359,8 @@ if (isset($_GET['export'])) {
     /* ═══════ EXTRA SMALL: Samsung Fold folded (≤400px) ═══════ */
     @media (max-width: 400px) {
       .tbl-row .row.px-3 { min-width: 800px !important; }
-      .section-header input[type="text"] { width: 100px !important; }
+      .section-header input[type="text"] { font-size: 10px !important; padding: 5px 8px 5px 26px !important; }
+      .btn-export { font-size: 8px !important; padding: 4px 8px !important; }
       div[style*="padding:0 24px"] { padding: 0 6px !important; }
       div[style*="padding:0 24px 24px"] { padding: 0 6px 10px !important; }
     }
@@ -509,7 +530,7 @@ if (isset($_GET['export'])) {
             ?>
             <div class="card-body pb-0 p-0">
               <ul class="list-group m-0 mt-0 col-12 p-0 py-0" id="data-tek-today">
-                <li class="list-group-item tbl-header d-md-block d-none">
+                <li class="list-group-item tbl-header">
                   <div class="row px-3">
                     <div class="col-md-2"><span class="tbl-th">Kegiatan</span></div>
                     <div class="col-md-2"><span class="tbl-th">Customer</span></div>
@@ -693,7 +714,7 @@ if (isset($_GET['export'])) {
             ?>
             <div class="card-body pb-0 p-0">
               <ul class="list-group m-0 mt-0 col-12 p-0 py-0" id="data-tek-upcoming">
-                <li class="list-group-item tbl-header d-md-block d-none">
+                <li class="list-group-item tbl-header">
                   <div class="row px-3">
                     <div class="col-md-2"><span class="tbl-th">Kegiatan</span></div>
                     <div class="col-md-2"><span class="tbl-th">Customer</span></div>
