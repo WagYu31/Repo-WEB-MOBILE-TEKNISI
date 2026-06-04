@@ -185,27 +185,26 @@ $stmt_pelaksanaan->close();
         /* ── Timeline Modern ── */
         .tl-container { padding: 0; }
         .tl-teknisi-tabs {
-            display: flex; gap: 6px; padding: 0 0 14px; overflow-x: auto;
-            border-bottom: 2px solid #f1f5f9; margin-bottom: 20px;
+            display: flex; gap: 6px; padding: 0 0 12px; overflow-x: auto;
+            border-bottom: 1px solid #e2e8f0; margin-bottom: 16px;
         }
         .tl-tab {
-            padding: 8px 18px; border-radius: 10px; font-size: 12px; font-weight: 600;
+            padding: 6px 16px; border-radius: 8px; font-size: 12px; font-weight: 600;
             border: 1.5px solid #e2e8f0; background: #fff; color: #64748b;
-            cursor: pointer; transition: all 0.25s ease; white-space: nowrap;
+            cursor: pointer; transition: all 0.2s; white-space: nowrap;
         }
-        .tl-tab:hover { border-color: #6366f1; color: #6366f1; background: #eef2ff; }
-        .tl-tab.active { background: linear-gradient(135deg, #1e293b 0%, #334155 100%); color: #fff; border-color: transparent; box-shadow: 0 2px 8px rgba(30,41,59,0.2); }
+        .tl-tab:hover { border-color: #3b82f6; color: #3b82f6; background: #eff6ff; }
+        .tl-tab.active { background: #1e293b; color: #fff; border-color: #1e293b; }
 
         .tl-entry {
-            position: relative; padding-left: 32px; margin-bottom: 24px;
-            border-left: 2px solid #e2e8f0;
+            position: relative; padding-left: 28px; margin-bottom: 20px;
+            border-left: 2px solid #e2e8f0; margin-left: 7px;
         }
         .tl-entry:last-child { border-left-color: transparent; margin-bottom: 0; }
         .tl-dot {
-            position: absolute; left: -9px; top: 4px;
-            width: 16px; height: 16px; border-radius: 50%;
-            border: 3px solid; background: #fff;
-            box-shadow: 0 0 0 3px rgba(255,255,255,1);
+            position: absolute; left: -9px; top: 3px;
+            width: 14px; height: 14px; border-radius: 50%;
+            border: 2.5px solid; background: #fff; z-index: 1;
         }
         .tl-dot-selesai { border-color: #22c55e; }
         .tl-dot-berjalan { border-color: #3b82f6; background: #dbeafe; }
