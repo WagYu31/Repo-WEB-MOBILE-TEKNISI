@@ -1,4 +1,17 @@
-<nav class="navbar navbar-main navbar-expand-lg px-0 mx-4 shadow-none border-radius-xl" id="navbarBlur" style="position:sticky !important;top:0 !important;z-index:100 !important;background:rgba(245,247,250,0.97) !important;backdrop-filter:blur(12px) !important;-webkit-backdrop-filter:blur(12px) !important;margin-top:0 !important;padding-top:12px !important;padding-bottom:8px !important;">
+<style>
+/* Force main-content to flex layout so nav stays fixed */
+.main-content {
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+}
+.main-content > .container-fluid {
+    flex: 1 1 auto !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+}
+</style>
+<nav class="navbar navbar-main navbar-expand-lg px-0 mx-4 shadow-none border-radius-xl" id="navbarBlur" style="flex-shrink:0 !important;z-index:100;background:rgba(245,247,250,0.97);padding-top:12px;padding-bottom:8px;margin-top:0 !important;">
     <div class="container-fluid py-1 px-3">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5">
@@ -22,17 +35,3 @@
         </div>
     </div>
 </nav>
-<script>
-// Prevent Material Dashboard JS from overriding sticky position
-document.addEventListener('DOMContentLoaded', function() {
-    var nav = document.getElementById('navbarBlur');
-    if (nav) {
-        nav.removeAttribute('data-scroll');
-        // Re-apply sticky after any framework JS runs
-        setTimeout(function() {
-            nav.style.setProperty('position', 'sticky', 'important');
-            nav.style.setProperty('top', '0', 'important');
-        }, 100);
-    }
-});
-</script>
