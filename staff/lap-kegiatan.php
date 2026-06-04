@@ -98,7 +98,12 @@ if (isset($_GET['error'])) {
                                                      LEFT JOIN customer c ON k.customer_id = c.id
                                                      LEFT JOIN pelaksanaan_kegiatan p ON k.kode = p.kode
                                                      WHERE k.status != 'waiting' AND (k.paid IS NULL OR k.paid = '')
-                                                     AND k.deleted_at IS NULL AND p.kode IS NOT NULL";
+                                                     AND k.deleted_at IS NULL AND p.kode IS NOT NULL
+                                                     AND EXISTS (
+                                                         SELECT 1 FROM pelaksanaan_kegiatan px
+                                                         WHERE px.kode = k.kode AND px.deleted_at IS NULL
+                                                         AND px.status NOT IN ('Lanjut Nanti', 'Lanjutan', 'berjalan', 'dijadwalkan')
+                                                     )";
 
                                         if (!empty($search)) {
                                             $sql_main .= " AND (c.nama LIKE ? OR k.kode LIKE ? OR k.kegiatan LIKE ? OR k.keterangan LIKE ?)";
