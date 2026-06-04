@@ -126,75 +126,82 @@ $role = $jabatan;
 
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   
-  <script>
+<script>
 document.getElementById('download-btn').addEventListener('click', function () {
-    // Ambil elemen list dari HTML
-    const listGroupItems = document.querySelectorAll('#data-tek li.list-group-item');
-
-    // Inisialisasi array untuk menyimpan data
+    // Read from the actual table
+    const table = document.querySelector('#data-tek');
+    if (!table) return;
+    const dataRows = table.querySelectorAll('tbody tr[data-survey]');
+    
+    // Header row with all columns including survey info
     let data = [
-        ["Tanggal Invoice", "No Invoice", "Teknisi", "Customer", "Nominal Invoice"] // Header Kolom
+        ["No", "Tanggal Invoice", "No Invoice", "Teknisi", "Customer", "Ket. Survey", "Surveyor", "Nominal Invoice"]
     ];
 
-    let totalNominalInvoice = 0; // Inisialisasi total nominal
+    let totalNominal = 0;
+    let rowIndex = 0;
 
-    // Iterasi melalui setiap list item untuk mengambil data
-    listGroupItems.forEach((item, index) => {
-        if (index === 0 || index === listGroupItems.length - 1) return; // Skip header dan total
+    dataRows.forEach(function(row) {
+        // Skip hidden rows (filtered out)
+        if (row.classList.contains('hidden-row')) return;
         
-        const row = [];
+        rowIndex++;
+        const cells = row.querySelectorAll('td');
+        if (cells.length < 8) return;
 
-        // Ambil elemen yang sesuai dari setiap baris
-        const tanggalInvoice = item.querySelector('.col-6:nth-child(2)').innerText.trim();
-        const noInvoice = item.querySelector('.col-6:nth-child(4)').innerText.trim();
+        // Extract text content from each cell
+        const tglInvoice = cells[1].textContent.trim();
+        const noInvoice = cells[2].textContent.trim();
+        const teknisi = cells[3].textContent.trim().replace(/\n/g, ', ');
+        const customer = cells[4].textContent.trim();
+        const ketSurvey = cells[5].textContent.trim();
+        const surveyor = cells[6].textContent.trim();
         
-        // Mengambil nama teknisi sebagai teks dan menggabungkannya dengan koma
-        let teknisi = item.querySelector('.col-6:nth-child(6)').innerText.trim();
-        teknisi = teknisi.split('\n').join(', '); // Pisahkan dengan koma jika ada baris baru
+        // Get nominal from data attribute for accuracy
+        const nominal = parseInt(row.getAttribute('data-nominal')) || 0;
+        totalNominal += nominal;
 
-        const customer = item.querySelector('.col-6:nth-child(8)').innerText.trim();
-        let nominalInvoice = item.querySelector('.col-6:nth-child(10)').innerText.trim();
-
-        // Ubah nominal menjadi hanya angka saja
-        nominalInvoice = nominalInvoice.replace(/[^\d]/g, ''); // Hanya ambil angka
-        
-        // Ubah nominalInvoice menjadi number
-        const nominalNumber = parseInt(nominalInvoice, 10);
-
-        // Tambahkan nominal ke total
-        if (!isNaN(nominalNumber)) {
-            totalNominalInvoice += nominalNumber;
-        }
-
-        // Tambahkan data ke array row
-        row.push(tanggalInvoice, noInvoice, teknisi, customer, nominalNumber.toLocaleString('id-ID'));
-
-        // Tambahkan row ke data
-        data.push(row);
+        data.push([
+            rowIndex,
+            tglInvoice,
+            noInvoice,
+            teknisi,
+            customer,
+            ketSurvey === '-' ? '' : ketSurvey,
+            surveyor === '-' ? '' : surveyor,
+            nominal
+        ]);
     });
 
-    // Tambahkan baris untuk total nominal invoice di bagian bawah
-    data.push(["", "", "", "TOTAL", totalNominalInvoice.toLocaleString('id-ID')]);
+    // Total row
+    data.push(["", "", "", "", "", "", "TOTAL", totalNominal]);
 
-    // Konversi data menjadi worksheet menggunakan SheetJS
+    // Create worksheet
     const ws = XLSX.utils.aoa_to_sheet(data);
+    
+    // Format nominal column as number
+    const range = XLSX.utils.decode_range(ws['!ref']);
+    for (let R = 1; R <= range.e.r; R++) {
+        const cell = ws[XLSX.utils.encode_cell({r: R, c: 7})];
+        if (cell && typeof cell.v === 'number') {
+            cell.t = 'n';
+            cell.z = '#,##0';
+        }
+    }
+    
+    // Set column widths
+    ws['!cols'] = [
+        {wch: 5}, {wch: 16}, {wch: 18}, {wch: 22}, {wch: 28}, 
+        {wch: 28}, {wch: 18}, {wch: 18}
+    ];
 
-    // Buat workbook baru
     const wb = XLSX.utils.book_new();
-
-    // Tambahkan worksheet ke workbook
     XLSX.utils.book_append_sheet(wb, ws, "Laporan Pendapatan Teknisi");
 
-    // Ambil nilai current_date dari PHP
-    const currentDate = '<?php echo $current_date; ?>'; // Menggunakan PHP untuk menyuntikkan nilai ke JavaScript
-
-    // Pisahkan bulan dan tahun dari currentDate
+    const currentDate = '<?php echo $current_date; ?>';
     const [tahun, bulan] = currentDate.split('-');
-
-    // Simpan workbook ke file Excel dengan format nama sesuai bulan dan tahun dari current_date
     XLSX.writeFile(wb, `Laporan_Pendapatan_Teknisi_${bulan}_${tahun}.xlsx`);
 });
-
 </script>
   
 </body>
