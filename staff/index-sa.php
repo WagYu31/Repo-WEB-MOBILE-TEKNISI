@@ -552,7 +552,7 @@ if (isset($_GET['export'])) {
                       </div>
                       <div class="col-md-3">
                         <p class="text-addr">
-                          <?= htmlspecialchars(getAddressFromCoordinates($data['lat'], $data['lon']) ?: $data['alamat']); ?>
+                          <?= htmlspecialchars($data['alamat'] ?? ''); ?>
                           <button class="btn-act" style="width:22px;height:22px;display:inline-flex;vertical-align:middle;margin-left:4px;background:transparent;" onclick='openLocationModal(<?= json_encode($data) ?>)'><i class="material-icons" style="font-size:12px;color:#3b82f6;">edit_location</i></button>
                         </p>
                       </div>
@@ -693,7 +693,7 @@ if (isset($_GET['export'])) {
                       </div>
                       <div class="col-md-3">
                         <p class="text-addr">
-                          <?= htmlspecialchars(getAddressFromCoordinates($data['lat'], $data['lon']) ?: $data['alamat']); ?>
+                          <?= htmlspecialchars($data['alamat'] ?? ''); ?>
                           <button class="btn-act" style="width:22px;height:22px;display:inline-flex;vertical-align:middle;margin-left:4px;background:transparent;" onclick='openLocationModal(<?= json_encode($data) ?>)'><i class="material-icons" style="font-size:12px;color:#3b82f6;">edit_location</i></button>
                         </p>
                       </div>
@@ -783,7 +783,7 @@ if (isset($_GET['export'])) {
                 if (strpos($kegL, 'survey') !== false) $tCSS = "background:#fef3c7;color:#92400e;";
                 elseif (strpos($kegL, 'service') !== false) $tCSS = "background:#e0e7ff;color:#3730a3;";
                 elseif (strpos($kegL, 'pasang') !== false) $tCSS = "background:#dcfce7;color:#166534;";
-                $fullAddr = getAddressFromCoordinates($row['lat'], $row['lon']) ?: $row['alamat'];
+                $fullAddr = $row['alamat'] ?? '';
             ?>
             <div class="waiting-card" data-type="<?= strtolower($row['kegiatan']) ?>" style="background:#fff;border:1px solid #e9ecef;border-radius:10px;margin-bottom:10px;overflow:hidden;transition:all 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.03);<?= $card_border ?>" onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.08)';this.style.transform='translateY(-1px)'" onmouseout="this.style.boxShadow='0 1px 3px rgba(0,0,0,0.03)';this.style.transform='none'">
               <div style="padding:14px 18px;">

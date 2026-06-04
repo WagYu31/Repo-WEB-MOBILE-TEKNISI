@@ -225,7 +225,7 @@ $pageNow = "Waiting List";
                                 elseif (strpos($kegLower, 'service') !== false) $typeClass = 'wl-type wl-t-service';
                                 elseif (strpos($kegLower, 'pasang') !== false) $typeClass = 'wl-type wl-t-pasang';
 
-                                $fullAddr = getAddressFromCoordinates($row['lat'], $row['lon']) ?: $row['alamat'];
+                                $fullAddr = $row['alamat'] ?? '';
                         ?>
                         <!-- CARD ITEM -->
                         <div class="wl-card <?= $card_class ?>">
