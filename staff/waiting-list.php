@@ -118,8 +118,8 @@ $pageNow = "Waiting List";
         .wl-code { font-size: 10px; color: #b0b8c4; }
 
         /* Address */
-        .wl-addr { font-size: 11.5px; color: #475569; line-height: 1.5; margin: 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .wl-ket { font-size: 10.5px; color: #94a3b8; font-style: italic; margin: 4px 0 0; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+        .wl-addr { font-size: 11.5px; color: #475569; line-height: 1.5; margin: 0; }
+        .wl-ket { font-size: 10.5px; color: #94a3b8; font-style: italic; margin: 4px 0 0; }
 
         /* ── Right side meta ── */
         .wl-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; min-width: 140px; }
