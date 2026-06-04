@@ -190,6 +190,30 @@ $pageNow = "Data Teknisi";
             font-size: 11px; font-weight: 700; color: #f59e0b; background: #fffbeb;
             padding: 5px 14px; border-radius: 20px; border: 1px solid #fde68a;
         }
+        /* Perf filter tabs */
+        .perf-filter-row { display: flex; gap: 8px; padding: 0 24px 14px; flex-wrap: wrap; }
+        .perf-tab {
+            padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 700;
+            cursor: pointer; border: 1.5px solid #e5e7eb; background: #fff; color: #64748b;
+            transition: all 0.15s; display: inline-flex; align-items: center; gap: 6px;
+        }
+        .perf-tab:hover { border-color: #cbd5e1; background: #f8fafc; }
+        .perf-tab.active { border-color: #f59e0b; background: #fffbeb; color: #92400e; }
+        .perf-tab.active.tab-good { border-color: #22c55e; background: #f0fdf4; color: #166534; }
+        .perf-tab.active.tab-bad { border-color: #ef4444; background: #fef2f2; color: #991b1b; }
+        .perf-tab.active.tab-zero { border-color: #94a3b8; background: #f1f5f9; color: #334155; }
+        .perf-badge {
+            font-size: 10px; font-weight: 800; padding: 1px 6px; border-radius: 10px;
+            background: #f1f5f9; color: #64748b; min-width: 18px; text-align: center;
+        }
+        .perf-tab.active .perf-badge { background: rgba(0,0,0,0.08); }
+        .perf-alert {
+            display: none; padding: 12px 20px; margin: 0 24px 14px;
+            border-radius: 10px; font-size: 12px; font-weight: 600;
+            background: #fef2f2; color: #991b1b; border: 1px solid #fecaca;
+            align-items: center; gap: 8px;
+        }
+        .perf-alert.show { display: flex; }
         .tek-table { width: 100%; border-collapse: separate; border-spacing: 0; min-width: 800px; }
         .tek-table thead th {
             background: #f8fafc; border-bottom: 2px solid #e5e7eb;
@@ -383,6 +407,25 @@ $pageNow = "Data Teknisi";
                         </div>
                         <span class="tek-period-badge" id="report-period"></span>
                     </div>
+                    <!-- Performance Filter -->
+                    <div class="perf-filter-row" id="perfFilterRow">
+                        <button class="perf-tab active" data-filter="all" onclick="filterPerf('all', this)">
+                            <i class="fa-solid fa-users"></i> Semua <span class="perf-badge" id="perfAll">0</span>
+                        </button>
+                        <button class="perf-tab tab-good" data-filter="good" onclick="filterPerf('good', this)">
+                            <i class="fa-solid fa-circle-check"></i> Performa Baik <span class="perf-badge" id="perfGood">0</span>
+                        </button>
+                        <button class="perf-tab tab-bad" data-filter="bad" onclick="filterPerf('bad', this)">
+                            <i class="fa-solid fa-circle-exclamation"></i> Perlu Perhatian <span class="perf-badge" id="perfBad">0</span>
+                        </button>
+                        <button class="perf-tab tab-zero" data-filter="zero" onclick="filterPerf('zero', this)">
+                            <i class="fa-solid fa-ban"></i> Tanpa Kegiatan <span class="perf-badge" id="perfZero">0</span>
+                        </button>
+                    </div>
+                    <div class="perf-alert" id="perfAlert">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span id="perfAlertText"></span>
+                    </div>
                     <div style="overflow-x:auto;">
                         <table class="tek-table">
                             <thead>
@@ -459,7 +502,7 @@ $pageNow = "Data Teknisi";
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="assets/js/material-dashboard.min.js?v=3.1.0"></script>
     <script>
-        let technicianChart, donutChart, currentTechnicianData = [], prevMonthData = null, compareMode = false;
+        let technicianChart, donutChart, currentTechnicianData = [], prevMonthData = null, compareMode = false, currentPerfFilter = 'all';
         const formatRupiah = angka => 'Rp ' + (angka ? parseInt(angka).toLocaleString('id-ID') : '0');
         const shortRupiah = angka => {
             if (!angka) return 'Rp 0';
@@ -532,7 +575,26 @@ $pageNow = "Data Teknisi";
                 updateChart(data.chartData);
                 updateDonut(data.tableData);
                 updateTopPerformers(data.tableData);
+                currentPerfFilter = 'all';
+                document.querySelectorAll('.perf-tab').forEach(t => t.classList.remove('active'));
+                document.querySelector('.perf-tab[data-filter="all"]').classList.add('active');
             } catch (error) { tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:40px; color:#ef4444;">Gagal memuat data.</td></tr>'; }
+        }
+
+        function filterPerf(type, btn) {
+            currentPerfFilter = type;
+            document.querySelectorAll('.perf-tab').forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+            updateTable(currentTechnicianData);
+        }
+
+        function classifyPerf(row) {
+            const total = parseFloat(row.total_pendapatan || 0) + parseFloat(row.total_fee || 0);
+            const target = parseFloat(row.target || 0);
+            const kegiatan = parseInt(row.jumlah_kegiatan || 0);
+            if (kegiatan === 0) return 'zero';
+            if (target > 0 && total >= target) return 'good';
+            return 'bad';
         }
 
         function updateStats(data, prevData) {
@@ -629,9 +691,35 @@ $pageNow = "Data Teknisi";
             const tableBody = document.getElementById('teknisiTableBody');
             const tableFooter = document.getElementById('teknisiTableFooter');
             tableBody.innerHTML = ''; tableFooter.innerHTML = '';
-            if (data.length === 0) { tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:60px; color:#94a3b8;"><i class="fa-solid fa-user-slash" style="font-size:32px; display:block; margin-bottom:8px;"></i>Tidak ada data untuk periode ini.</td></tr>'; return; }
+
+            // Classify all
+            const counts = { all: data.length, good: 0, bad: 0, zero: 0 };
+            const badNames = [];
+            data.forEach(r => {
+                const perf = classifyPerf(r);
+                counts[perf]++;
+                if (perf === 'bad') badNames.push(r.nama);
+            });
+            document.getElementById('perfAll').textContent = counts.all;
+            document.getElementById('perfGood').textContent = counts.good;
+            document.getElementById('perfBad').textContent = counts.bad;
+            document.getElementById('perfZero').textContent = counts.zero;
+
+            // Alert
+            const alert = document.getElementById('perfAlert');
+            if (currentPerfFilter === 'bad' && badNames.length > 0) {
+                document.getElementById('perfAlertText').textContent = `${badNames.length} teknisi di bawah target: ${badNames.join(', ')}`;
+                alert.classList.add('show');
+            } else {
+                alert.classList.remove('show');
+            }
+
+            // Filter
+            const filtered = currentPerfFilter === 'all' ? data : data.filter(r => classifyPerf(r) === currentPerfFilter);
+
+            if (filtered.length === 0) { tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:60px; color:#94a3b8;"><i class="fa-solid fa-user-slash" style="font-size:32px; display:block; margin-bottom:8px;"></i>Tidak ada data untuk filter ini.</td></tr>'; return; }
             let totalPendapatan = 0, totalBonus = 0, totalFee = 0;
-            data.forEach(row => {
+            filtered.forEach(row => {
                 totalPendapatan += parseFloat(row.total_pendapatan);
                 totalBonus += parseFloat(row.bonus);
                 totalFee += parseFloat(row.total_fee);
