@@ -648,14 +648,14 @@ class _TaskPageState extends State<TaskPage> {
                 elevation: 0,
                 innerColor: Colors.white,
                 borderRadius: 16,
-                text: start ? 'Geser untuk Selesai' : 'Geser untuk Mulai',
+                text: start ? 'Geser untuk Laporan' : 'Geser untuk Mulai',
                 textStyle: TextStyle(fontFamily: 'Poppins',
                   color: Colors.white,
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),
                 sliderButtonIcon: Icon(
-                  start ? Icons.check : Icons.play_arrow,
+                  start ? Icons.description : Icons.play_arrow,
                   color: start ? successColor : primaryColor,
                   size: 24,
                 ),
@@ -710,7 +710,13 @@ class _TaskPageState extends State<TaskPage> {
     if (!start) {
       await _startTask();
     } else {
-      await _finishTask();
+      // Wajib isi laporan dulu sebelum selesai (seperti Gojek wajib foto)
+      if (!mounted) return;
+      Navigator.pushNamed(
+        context,
+        ReportDonePage.routeName,
+        arguments: [data.id, _idTeknisi],
+      );
     }
   }
 
