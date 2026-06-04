@@ -168,30 +168,34 @@
         $tomorrow_date = date("Y-m-d", strtotime("+1 day"));
         $current_time = date("H:i:s");
         
+        // Calculate month range for index-friendly filtering
+        $monthStart = $current_date . '-01';
+        $monthEnd = date('Y-m-t', strtotime($monthStart));
+        
+        // Optimized: replaced DATE_FORMAT() with range, correlated subqueries with pre-aggregated JOINs
         $sql = "SELECT pk.*, 
                        GROUP_CONCAT(DISTINCT CONCAT('<a href=\"detail-lap-tek.php?cariBulanTahun=$current_date&idTek=', t.id, '\">', t.nama, '</a>') SEPARATOR '<br>') AS nama_teknisi,
                        GROUP_CONCAT(DISTINCT t.nama SEPARATOR ', ') AS nama_teknisi_plain,
                        k.customer_id, 
                        c.nama AS nama_cust,
-                       (SELECT GROUP_CONCAT(DISTINCT CONCAT(UPPER(k2.kegiatan), ' - ', DATE_FORMAT(k2.jadwal, '%d/%m/%Y')) SEPARATOR ', ')
-                        FROM kegiatan k2
-                        WHERE k2.kode = pk.kode 
-                        AND LOWER(k2.kegiatan) = 'survey'
-                       ) AS keterangan_survey,
-                       (SELECT GROUP_CONCAT(DISTINCT t2.nama SEPARATOR ', ')
-                        FROM kegiatan k3
-                        JOIN team_kegiatan tk3 ON tk3.kegiatan_id = k3.id
-                        JOIN teknisi t2 ON t2.id = tk3.teknisi_id
-                        WHERE k3.kode = pk.kode 
-                        AND LOWER(k3.kegiatan) = 'survey'
-                        AND tk3.deleted_at IS NULL
-                       ) AS surveyor
+                       sv.keterangan_survey,
+                       sv.surveyor
                 FROM pendapatan_kegiatan pk
                 JOIN kegiatan k ON k.kode = pk.kode
                 JOIN customer c ON c.id = k.customer_id
                 JOIN teknisi t ON t.id = pk.teknisi_id
+                LEFT JOIN (
+                    SELECT k2.kode,
+                           GROUP_CONCAT(DISTINCT CONCAT(UPPER(k2.kegiatan), ' - ', DATE_FORMAT(k2.jadwal, '%d/%m/%Y')) SEPARATOR ', ') AS keterangan_survey,
+                           GROUP_CONCAT(DISTINCT t2.nama SEPARATOR ', ') AS surveyor
+                    FROM kegiatan k2
+                    LEFT JOIN team_kegiatan tk3 ON tk3.kegiatan_id = k2.id AND tk3.deleted_at IS NULL
+                    LEFT JOIN teknisi t2 ON t2.id = tk3.teknisi_id
+                    WHERE LOWER(k2.kegiatan) = 'survey'
+                    GROUP BY k2.kode
+                ) sv ON sv.kode = pk.kode
                 WHERE pk.deleted_at IS NULL
-                AND DATE_FORMAT(pk.tanggal, '%Y-%m') = '$current_date'
+                AND pk.tanggal >= '$monthStart' AND pk.tanggal <= '$monthEnd 23:59:59'
                 GROUP BY pk.kode
                 ORDER BY pk.tanggal ASC";
                 
