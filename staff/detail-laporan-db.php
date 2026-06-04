@@ -13,6 +13,9 @@
         border-radius: 16px;
         box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 6px 24px rgba(0,0,0,0.03);
         overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        max-height: calc(100vh - 140px);
     }
     .detail-header { padding: 24px 24px 0; }
     .detail-title-row {
@@ -55,6 +58,12 @@
         background: #f8fafc; border-bottom: 2px solid #e5e7eb;
         padding: 12px 14px; font-size: 10px; font-weight: 800; color: #94a3b8;
         text-transform: uppercase; letter-spacing: 0.08em; white-space: nowrap;
+        position: sticky; top: 0; z-index: 2;
+    }
+    .table-scroll-area {
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: auto;
     }
     .laporan-table tbody tr { transition: all 0.15s; border-bottom: 1px solid #f1f5f9; }
     .laporan-table tbody tr:hover { background: #f8fafc; }
@@ -298,8 +307,8 @@
             </div>
         </div>
 
-        <!-- Table -->
-        <div class="table-responsive">
+        <!-- Table (scrollable) -->
+        <div class="table-scroll-area">
             <table class="laporan-table" id="data-tek">
                 <thead>
                     <tr>
