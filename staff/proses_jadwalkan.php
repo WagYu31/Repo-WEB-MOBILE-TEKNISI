@@ -7,6 +7,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $tanggal = $_POST["tanggal"];
     $jam = $_POST["jam"];
     $selectedTechnicians = $_POST["teknisi"];
+    $ketuaId = isset($_POST["ketua_id"]) ? intval($_POST["ketua_id"]) : 0;
+    // Auto-set ketua jika hanya 1 teknisi
+    if (count($selectedTechnicians) === 1) {
+        $ketuaId = intval($selectedTechnicians[0]);
+    }
     date_default_timezone_set('Asia/Jakarta'); // Set timezone ke Jakarta
     $now = date('Y-m-d H:i:s'); // Menyimpan date time saat ini ke variabel $now
 
@@ -49,7 +54,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     mysqli_stmt_close($stmtKode);
 
     // Insert teknisi ke tabel team_kegiatan dengan kode dari tabel kegiatan
-    $insertQuery = "INSERT INTO team_kegiatan (kegiatan_id, teknisi_id, nama_teknisi, kode, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)";
+    $insertQuery = "INSERT INTO team_kegiatan (kegiatan_id, teknisi_id, nama_teknisi, is_ketua, kode, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)";
     $stmtInsert = mysqli_prepare($conn, $insertQuery);
     if (!$stmtInsert) {
         echo "Failed to prepare insert statement: " . mysqli_error($conn);
@@ -71,8 +76,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         mysqli_stmt_fetch($stmtTek);
         mysqli_stmt_close($stmtTek);
 
+        // Set is_ketua
+        $isKetua = (intval($teknisiId) === $ketuaId) ? 1 : 0;
+
         // Masukkan data ke dalam team_kegiatan
-        mysqli_stmt_bind_param($stmtInsert, "iissss", $kegiatanId, $teknisiId, $namaTeknisi, $kodeKegiatan, $now, $now);
+        mysqli_stmt_bind_param($stmtInsert, "iisisss", $kegiatanId, $teknisiId, $namaTeknisi, $isKetua, $kodeKegiatan, $now, $now);
         if (!mysqli_stmt_execute($stmtInsert)) {
             echo "Failed to insert teknisi: " . mysqli_stmt_error($stmtInsert);
             mysqli_stmt_close($stmtInsert);

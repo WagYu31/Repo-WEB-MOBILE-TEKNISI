@@ -332,9 +332,12 @@ $pageNow = "Waiting List";
                                 <?php
                                 $st = mysqli_query($conn, "SELECT id, nama FROM teknisi WHERE deleted_at IS NULL ORDER BY nama ASC");
                                 while ($rt = mysqli_fetch_assoc($st)) {
-                                    echo "<div class='form-check'>
-                                            <input class='form-check-input tek-check' type='checkbox' value='{$rt['id']}' id='tk{$rt['id']}'>
-                                            <label class='form-check-label' for='tk{$rt['id']}'>{$rt['nama']}</label>
+                                    echo "<div class='form-check' style='display:flex;align-items:center;gap:6px;padding:6px 4px;'>
+                                            <input class='form-check-input tek-check' type='checkbox' value='{$rt['id']}' id='tk{$rt['id']}' onchange='updateKetuaRadiosWL()'>
+                                            <label class='form-check-label' for='tk{$rt['id']}' style='flex:1;'>{$rt['nama']}</label>
+                                            <label class='ketua-radio-wl' id='ketua-wl-{$rt['id']}' style='display:none;align-items:center;gap:3px;cursor:pointer;padding:2px 6px;border-radius:10px;background:#fef3c7;border:1px solid #fde68a;font-size:10px;font-weight:700;color:#92400e;white-space:nowrap;' onclick='event.stopPropagation()'>
+                                              <input type='radio' name='ketua_id_wl' value='{$rt['id']}' class='ketua-radio-wl-input' style='width:11px;height:11px;accent-color:#f59e0b;'> 👑 Ketua
+                                            </label>
                                             <div class='text-xs text-danger' id='info-tk-{$rt['id']}'></div>
                                           </div>";
                                 }
@@ -458,12 +461,28 @@ $pageNow = "Waiting List";
                 const id = $('#modalKegiatanId').val(), tgl = $('#tanggal').val(), jam = $('#jam').val();
                 const teks = $('.tek-check:checked').map(function() { return this.value; }).get();
                 if(!tgl || !jam || teks.length === 0) return alert('Data tidak lengkap!');
-                $.post('proses_jadwalkan.php', { kegiatanId: id, teknisi: teks, tanggal: tgl, jam: jam }, function(res) {
+                // Validasi ketua
+                let ketuaId = $('input[name="ketua_id_wl"]:checked').val();
+                if (teks.length === 1) { ketuaId = teks[0]; }
+                if (!ketuaId) return alert('Pilih satu teknisi sebagai Ketua Tim!');
+                $.post('proses_jadwalkan.php', { kegiatanId: id, teknisi: teks, tanggal: tgl, jam: jam, ketua_id: ketuaId }, function(res) {
                     if(res.trim() === 'success') { $.post('wa-msg.php', { teknisi: teks, kegiatanId: id, tanggal: tgl, jam: jam }); location.reload(); }
                     else alert('Gagal menjadwalkan.');
                 });
             });
         });
+
+        function updateKetuaRadiosWL() {
+            const checked = $('.tek-check:checked');
+            $('.ketua-radio-wl').hide();
+            $('.ketua-radio-wl-input').prop('checked', false);
+            checked.each(function() {
+                $('#ketua-wl-' + this.value).css('display', 'inline-flex');
+            });
+            if (checked.length === 1) {
+                $('#ketua-wl-' + checked[0].value).find('.ketua-radio-wl-input').prop('checked', true);
+            }
+        }
 
         function fetchSchedules() {
             const tgl = $('#tanggal').val(); if(!tgl) return;

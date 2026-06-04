@@ -539,7 +539,7 @@ if (isset($_GET['export'])) {
             $teknisiByKegiatan = [];
             if (!empty($allKegiatanIds)) {
               $idList = implode(',', array_map('intval', array_keys($allKegiatanIds)));
-              $resTek = $conn->query("SELECT kegiatan_id, nama_teknisi, teknisi_id FROM team_kegiatan WHERE kegiatan_id IN ($idList) AND deleted_at IS NULL GROUP BY kegiatan_id, teknisi_id");
+              $resTek = $conn->query("SELECT kegiatan_id, nama_teknisi, teknisi_id, is_ketua FROM team_kegiatan WHERE kegiatan_id IN ($idList) AND deleted_at IS NULL GROUP BY kegiatan_id, teknisi_id");
               if ($resTek) { while ($rt = $resTek->fetch_assoc()) { $teknisiByKegiatan[$rt['kegiatan_id']][] = $rt; } $resTek->free(); }
             }
 
@@ -616,7 +616,8 @@ if (isset($_GET['export'])) {
                           $hasSelesai = !empty($waktu_selesai_tek) && substr($waktu_selesai_tek, 0, 10) !== '0000-00-00';
                         ?>
                           <div style="margin-bottom:6px;">
-                            <a href="list-kegiatan-teknisi.php?idTek=<?= $rowTeknisi['teknisi_id']; ?>" style="font-size:12px;font-weight:600;color:#1e293b;text-decoration:none;display:block;line-height:1.3;"><?= shortenTechnicianName($rowTeknisi['nama_teknisi']); ?></a>
+                            <a href="list-kegiatan-teknisi.php?idTek=<?= $rowTeknisi['teknisi_id']; ?>" style="font-size:12px;font-weight:600;color:#1e293b;text-decoration:none;display:inline;line-height:1.3;"><?= shortenTechnicianName($rowTeknisi['nama_teknisi']); ?></a>
+                            <?php if (!empty($rowTeknisi['is_ketua'])): ?><span style="font-size:9px;font-weight:700;padding:1px 5px;border-radius:8px;background:#fef3c7;color:#92400e;margin-left:4px;vertical-align:middle;">👑</span><?php endif; ?>
                             <span class="<?= $statusInfo['class']; ?>" style="margin-top:3px;"><?= $statusInfo['text']; ?></span>
                             <?php if ($hasMulai): ?>
                             <div style="margin-top:4px;font-size:10px;color:#64748b;display:flex;align-items:center;gap:3px;flex-wrap:wrap;">
@@ -736,7 +737,7 @@ if (isset($_GET['export'])) {
             $teknisiByKegUpcoming = [];
             if (!empty($upcomingKegIds)) {
               $idList2 = implode(',', array_map('intval', array_keys($upcomingKegIds)));
-              $resTek2 = $conn->query("SELECT kegiatan_id, nama_teknisi, teknisi_id FROM team_kegiatan WHERE kegiatan_id IN ($idList2) AND deleted_at IS NULL GROUP BY kegiatan_id, teknisi_id");
+              $resTek2 = $conn->query("SELECT kegiatan_id, nama_teknisi, teknisi_id, is_ketua FROM team_kegiatan WHERE kegiatan_id IN ($idList2) AND deleted_at IS NULL GROUP BY kegiatan_id, teknisi_id");
               if ($resTek2) { while ($rt = $resTek2->fetch_assoc()) { $teknisiByKegUpcoming[$rt['kegiatan_id']][] = $rt; } $resTek2->free(); }
             }
             ?>
@@ -783,7 +784,8 @@ if (isset($_GET['export'])) {
                         <?php
                         $teknisiListUp = $teknisiByKegUpcoming[$data['id']] ?? [];
                         foreach ($teknisiListUp as $rowTeknisi) {
-                          echo "<div style='margin-bottom:4px;'><a href='list-kegiatan-teknisi.php?idTek=".$rowTeknisi['teknisi_id']."' style='font-size:12px;font-weight:600;color:#1e293b;text-decoration:none;display:block;line-height:1.3;'>".shortenTechnicianName($rowTeknisi['nama_teknisi'])."</a></div>";
+                          $ketuaBadge = !empty($rowTeknisi['is_ketua']) ? " <span style='font-size:9px;font-weight:700;padding:1px 5px;border-radius:8px;background:#fef3c7;color:#92400e;vertical-align:middle;'>👑</span>" : "";
+                          echo "<div style='margin-bottom:4px;'><a href='list-kegiatan-teknisi.php?idTek=".$rowTeknisi['teknisi_id']."' style='font-size:12px;font-weight:600;color:#1e293b;text-decoration:none;display:inline;line-height:1.3;'>".shortenTechnicianName($rowTeknisi['nama_teknisi'])."</a>".$ketuaBadge."</div>";
                         } ?>
                       </div>
                       <div class="col-md-3">
@@ -1048,10 +1050,15 @@ if (isset($_GET['export'])) {
                       <?php
                       $res_tek = mysqli_query($conn, "SELECT id, nama FROM teknisi WHERE deleted_at IS NULL ORDER BY nama ASC");
                       while ($t = mysqli_fetch_assoc($res_tek)) {
-                        echo "<label for='tek".$t['id']."' style='display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1px solid #f1f5f9;border-radius:10px;margin-bottom:8px;cursor:pointer;transition:all 0.15s;background:#fff;' onmouseover=\"this.style.borderColor='#6366f1';this.style.background='#fafafe'\" onmouseout=\"this.style.borderColor='#f1f5f9';this.style.background='#fff'\">";
-                        echo "<input class='form-check-input teknisi-checkbox' type='checkbox' name='teknisi[]' value='".$t['id']."' id='tek".$t['id']."' style='margin-top:2px;flex-shrink:0;width:16px;height:16px;border-radius:4px;border:1.5px solid #cbd5e1;'>";
+                        echo "<label for='tek".$t['id']."' style='display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1px solid #f1f5f9;border-radius:10px;margin-bottom:8px;cursor:pointer;transition:all 0.15s;background:#fff;' onmouseover=\"this.style.borderColor='#6366f1';this.style.background='#fafafe'\" onmouseout=\"this.style.borderColor='#f1f5f9';this.style.background='#fff'\">"; 
+                        echo "<input class='form-check-input teknisi-checkbox' type='checkbox' name='teknisi[]' value='".$t['id']."' id='tek".$t['id']."' onchange='updateKetuaRadios()' style='margin-top:2px;flex-shrink:0;width:16px;height:16px;border-radius:4px;border:1.5px solid #cbd5e1;'>"; 
                         echo "<div style='flex:1;min-width:0;'>";
+                        echo "<div style='display:flex;align-items:center;justify-content:space-between;'>";
                         echo "<div style='font-size:13px;font-weight:600;color:#1e293b;'>".htmlspecialchars($t['nama'])."</div>";
+                        echo "<label class='ketua-radio-wrap' id='ketua-wrap-".$t['id']."' style='display:none;align-items:center;gap:4px;cursor:pointer;padding:2px 8px;border-radius:12px;background:#fef3c7;border:1px solid #fde68a;font-size:10px;font-weight:700;color:#92400e;white-space:nowrap;' onclick='event.stopPropagation()'>";
+                        echo "<input type='radio' name='ketua_id' value='".$t['id']."' class='ketua-radio' style='width:12px;height:12px;accent-color:#f59e0b;'> 👑 Ketua";
+                        echo "</label>";
+                        echo "</div>";
                         echo "<div class='text-xs' id='jadwal-teknisi-".$t['id']."' style='margin-top:3px;line-height:1.4;'></div>";
                         echo "</div></label>";
                       }
@@ -1197,10 +1204,29 @@ if (isset($_GET['export'])) {
     $('#submitJadwalkan').click(function() {
       const id = $('#jadwalkanForm').data('id'), tgl = $('#tanggal').val(), jam = $('#jam').val(), tek = $(".teknisi-checkbox:checked").map(function(){return this.value;}).get();
       if(!tgl || !jam || tek.length == 0) return alert("Lengkapi data");
-      $.post("proses_jadwalkan.php", {kegiatanId: id, teknisi: tek, tanggal: tgl, jam: jam}, r => {
+      // Validasi ketua
+      let ketuaId = $('input[name="ketua_id"]:checked').val();
+      if (tek.length === 1) { ketuaId = tek[0]; }
+      if (!ketuaId) return alert("Pilih satu teknisi sebagai Ketua Tim!");
+      $.post("proses_jadwalkan.php", {kegiatanId: id, teknisi: tek, tanggal: tgl, jam: jam, ketua_id: ketuaId}, r => {
         if(r == "success") { $.post("wa-msg.php", {teknisi: tek, kegiatanId: id, tanggal: tgl, jam: jam}, () => { location.reload(); }); }
       });
     });
+
+    function updateKetuaRadios() {
+      const checked = $('.teknisi-checkbox:checked');
+      // Hide all ketua radios first
+      $('.ketua-radio-wrap').hide();
+      $('.ketua-radio').prop('checked', false);
+      // Show radios for checked technicians
+      checked.each(function() {
+        $('#ketua-wrap-' + this.value).css('display', 'inline-flex');
+      });
+      // Auto-select if only 1 checked
+      if (checked.length === 1) {
+        $('#ketua-wrap-' + checked[0].value).find('.ketua-radio').prop('checked', true);
+      }
+    }
 
     $(document).on('click', '.hapus-btn', function() {
       if(confirm("Hapus kegiatan?")) {
