@@ -267,7 +267,7 @@ $pageNow = "Data Teknisi";
 </head>
 <body class="g-sidenav-show bg-gray-200">
     <?php include "cek-menu.php"; ?>
-    <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg">
+    <main class="main-content position-relative border-radius-lg" style="min-height:100vh;">
         <div class="no-print"><?php include "nav-top.php"; ?></div>
         <div class="container-fluid py-4">
             <!-- Header -->
@@ -330,7 +330,7 @@ $pageNow = "Data Teknisi";
                             <div class="tek-card-hicon h-orange"><i class="fa-solid fa-chart-column"></i></div>
                             <h6>Pendapatan vs Target</h6>
                         </div>
-                        <div class="tek-card-body"><div style="height:280px;"><canvas id="technicianChart"></canvas></div></div>
+                        <div class="tek-card-body"><div style="height:220px;"><canvas id="technicianChart"></canvas></div></div>
                     </div>
 
                     <!-- Donut + Top Performer -->
@@ -342,7 +342,7 @@ $pageNow = "Data Teknisi";
                                 <h6>Target Achievement</h6>
                             </div>
                             <div class="tek-card-body">
-                                <div class="donut-wrap"><div style="height:150px; width:150px;"><canvas id="donutChart"></canvas></div>
+                                <div class="donut-wrap"><div style="height:120px; width:120px;"><canvas id="donutChart"></canvas></div>
                                     <div class="donut-center"><div class="pct" id="donutPct">-</div><div class="lbl">achieved</div></div>
                                 </div>
                             </div>
