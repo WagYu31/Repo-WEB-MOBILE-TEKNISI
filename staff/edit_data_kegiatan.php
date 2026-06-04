@@ -35,37 +35,25 @@ if (!$kegiatan) {
     exit;
 }
 
-// Mark old kegiatan as 'selesai by admin'
-$sqlUpdate = "UPDATE kegiatan SET status = 'selesai by admin', updated_at = '$now' WHERE id = '{$kegiatan['id']}'";
-mysqli_query($conn, $sqlUpdate);
+$kegiatanId = $kegiatan['id'];
 
-// Insert new kegiatan record with updated data
-$sqlInsert = "INSERT INTO kegiatan (customer_id, kegiatan, jadwal, keterangan, status, request, lon, lat, rad, lanjutan_id, kode, paid, created_at, updated_at) 
-              VALUES (
-                  '{$kegiatan['customer_id']}', 
-                  '$kegiatanDipilih', 
-                  '$jadwal', 
-                  '$keterangan', 
-                  'dijadwalkan', 
-                  '{$kegiatan['request']}', 
-                  '{$kegiatan['lon']}', 
-                  '{$kegiatan['lat']}', 
-                  '{$kegiatan['rad']}', 
-                  '{$kegiatan['id']}', 
-                  '{$kegiatan['kode']}', 
-                  '{$kegiatan['paid']}', 
-                  '$now', 
-                  '$now'
-              )";
+// UPDATE existing kegiatan record (not create new)
+$sqlUpdate = "UPDATE kegiatan SET 
+    kegiatan = '$kegiatanDipilih', 
+    jadwal = '$jadwal', 
+    keterangan = '$keterangan', 
+    updated_at = '$now' 
+    WHERE id = '$kegiatanId'";
 
-if (!mysqli_query($conn, $sqlInsert)) {
+if (!mysqli_query($conn, $sqlUpdate)) {
     echo "<script>alert('Gagal menyimpan perubahan.'); window.history.back();</script>";
     exit;
 }
 
-$kegiatanBaruId = mysqli_insert_id($conn);
+// Delete old team_kegiatan for this kegiatan
+mysqli_query($conn, "DELETE FROM team_kegiatan WHERE kegiatan_id = '$kegiatanId'");
 
-// Insert team_kegiatan with is_ketua
+// Insert updated team_kegiatan with is_ketua
 foreach ($teknisiIds as $tekId) {
     $tekId = intval($tekId);
     
@@ -78,7 +66,7 @@ foreach ($teknisiIds as $tekId) {
     $isKetua = ($tekId === $ketuaId) ? 1 : 0;
     
     $sqlTeam = "INSERT INTO team_kegiatan (kegiatan_id, teknisi_id, nama_teknisi, is_ketua, kode, created_at, updated_at) 
-                VALUES ('$kegiatanBaruId', '$tekId', '$namaTek', '$isKetua', '$kodeTransaksi', '$now', '$now')";
+                VALUES ('$kegiatanId', '$tekId', '$namaTek', '$isKetua', '$kodeTransaksi', '$now', '$now')";
     mysqli_query($conn, $sqlTeam);
 }
 
