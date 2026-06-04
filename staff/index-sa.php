@@ -245,88 +245,65 @@ if (isset($_GET['export'])) {
 
     /* ═══════ TABLET / FOLD UNFOLDED (≤991px) ═══════ */
     @media (max-width: 991px) {
-      .tbl-row { padding: 12px 14px !important; }
       .section-header { padding: 10px 14px !important; }
       .section-header h6 { font-size: 12px !important; }
     }
 
-    /* ═══════ MOBILE COMPACT (≤767px) ═══════ */
+    /* ═══════ MOBILE: Horizontal Scroll Table (same as desktop) ═══════ */
     @media (max-width: 767px) {
-      /* Force compact card layout */
+      /* Make the list container horizontally scrollable */
+      .section-card {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+      }
+      .section-card::-webkit-scrollbar { height: 4px; }
+      .section-card::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+
+      /* Each row: force minimum width to match desktop columns */
       .tbl-row {
         padding: 10px 12px !important;
         border-bottom: 1px solid #f1f5f9 !important;
       }
       .tbl-row .row.px-3 {
-        margin: 0 !important;
-        display: flex !important;
-        flex-wrap: wrap !important;
-        gap: 0 !important;
-      }
-      /* Row 1: Kegiatan info (badge + time) - left 35% */
-      .tbl-row .col-md-2:first-child {
-        width: 35% !important; flex: 0 0 35% !important;
-        padding: 0 4px 0 0 !important; margin: 0 !important;
-        display: flex !important; flex-wrap: wrap !important;
-        align-items: center !important; gap: 4px !important;
-      }
-      /* Row 1: Customer info - right 65% */
-      .tbl-row .col-md-2:nth-child(2) {
-        width: 65% !important; flex: 0 0 65% !important;
-        padding: 0 !important; margin: 0 !important;
-      }
-      /* Row 2: Teknisi + Status */
-      .tbl-row .col-md-2:nth-child(3) {
-        width: 50% !important; flex: 0 0 50% !important;
-        padding: 2px 0 0 !important; margin: 0 !important;
-      }
-      /* Row 2: Address */
-      .tbl-row .col-md-3:nth-child(4) {
-        width: 50% !important; flex: 0 0 50% !important;
-        padding: 2px 0 0 !important; margin: 0 !important;
-      }
-      /* Row 3: Info/Actions - full width */
-      .tbl-row .col-md-3:last-child {
-        width: 100% !important; flex: 0 0 100% !important;
-        padding: 4px 0 0 !important; margin: 0 !important;
-      }
-      .tbl-row .col-md-3:last-child .d-flex {
-        justify-content: flex-end !important;
+        min-width: 850px !important;
+        flex-wrap: nowrap !important;
       }
 
-      /* Typography compact */
-      .badge-type { font-size: 8px !important; padding: 2px 7px !important; }
-      .text-time { font-size: 11px !important; font-weight: 700 !important; margin: 0 !important; }
-      .text-code { font-size: 8px !important; display: none !important; }
-      .text-name { font-size: 12px !important; margin: 0 !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-      .text-phone { font-size: 10px !important; }
-      .text-note { font-size: 9px !important; margin: 0 !important; -webkit-line-clamp: 1; display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; }
-      .text-addr {
-        font-size: 9px !important; line-height: 1.3 !important; margin: 0 !important;
-        display: -webkit-box !important; -webkit-line-clamp: 1 !important;
-        -webkit-box-orient: vertical !important; overflow: hidden !important;
+      /* Column widths matching desktop proportions */
+      .tbl-row .col-md-2 {
+        flex: 0 0 18% !important;
+        max-width: 18% !important;
+        padding: 0 6px !important;
       }
-      .text-addr .btn-act { display: none !important; }
+      .tbl-row .col-md-3 {
+        flex: 0 0 23% !important;
+        max-width: 23% !important;
+        padding: 0 6px !important;
+      }
+
+      /* Slightly smaller fonts for density */
+      .badge-type { font-size: 8px !important; padding: 2px 8px !important; }
+      .text-time { font-size: 12px !important; font-weight: 700 !important; margin: 2px 0 !important; }
+      .text-code { font-size: 9px !important; }
+      .text-name { font-size: 12px !important; margin: 0 0 2px !important; }
+      .text-phone { font-size: 10px !important; }
+      .text-note { font-size: 9px !important; margin: 2px 0 0 !important; -webkit-line-clamp: 1; display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; }
+      .text-addr { font-size: 10px !important; line-height: 1.4 !important; }
       .badge-status { font-size: 8px !important; padding: 2px 6px !important; }
       .text-date { font-size: 10px !important; }
-      .text-hour { font-size: 8px !important; }
+      .text-hour { font-size: 9px !important; }
 
-      /* Compact avatars and buttons */
-      .btn-act { width: 24px !important; height: 24px !important; }
-      .btn-act .material-icons { font-size: 12px !important; }
-      .avatar-initials { width: 24px !important; height: 24px !important; border-radius: 5px !important; }
-      .avatar-initials span { font-size: 8px !important; }
+      /* Compact elements */
+      .btn-act { width: 26px !important; height: 26px !important; }
+      .btn-act .material-icons { font-size: 13px !important; }
+      .avatar-initials { width: 26px !important; height: 26px !important; border-radius: 6px !important; }
+      .avatar-initials span { font-size: 9px !important; }
 
       /* Section header */
       .section-header { padding: 8px 12px !important; border-radius: 8px 8px 0 0 !important; }
       .section-header h6 { font-size: 11px !important; }
-      .btn-export { font-size: 8px !important; padding: 4px 8px !important; gap: 2px !important; }
-      .btn-export .material-icons { font-size: 12px !important; }
-      .section-header input[type="text"] { width: 120px !important; font-size: 10px !important; padding: 5px 8px 5px 26px !important; }
-      .section-header > div > i { font-size: 14px !important; }
-
-      /* Section card */
-      .section-card { border-radius: 0 0 8px 8px !important; }
+      .btn-export { font-size: 9px !important; padding: 4px 10px !important; }
+      .section-header input[type="text"] { width: 140px !important; font-size: 11px !important; padding: 5px 8px 5px 28px !important; }
 
       /* Padding */
       div[style*="padding:0 24px"] { padding: 0 8px !important; }
@@ -335,13 +312,8 @@ if (isset($_GET['export'])) {
 
     /* ═══════ EXTRA SMALL: Samsung Fold folded (≤400px) ═══════ */
     @media (max-width: 400px) {
-      .tbl-row .col-md-2:first-child { width: 30% !important; flex: 0 0 30% !important; }
-      .tbl-row .col-md-2:nth-child(2) { width: 70% !important; flex: 0 0 70% !important; }
-      .tbl-row .col-md-2:nth-child(3) { width: 100% !important; flex: 0 0 100% !important; }
-      .tbl-row .col-md-3:nth-child(4) { width: 100% !important; flex: 0 0 100% !important; }
-      .text-name { font-size: 11px !important; max-width: 180px; }
-      .text-addr { -webkit-line-clamp: 2 !important; }
-      .section-header input[type="text"] { width: 90px !important; }
+      .tbl-row .row.px-3 { min-width: 800px !important; }
+      .section-header input[type="text"] { width: 100px !important; }
       div[style*="padding:0 24px"] { padding: 0 6px !important; }
       div[style*="padding:0 24px 24px"] { padding: 0 6px 10px !important; }
     }
