@@ -325,12 +325,12 @@ $pageNow = "Data Teknisi";
                 <!-- Charts Grid -->
                 <div class="tek-charts-grid no-print">
                     <!-- Bar Chart -->
-                    <div class="tek-card">
+                    <div class="tek-card" style="display:flex; flex-direction:column;">
                         <div class="tek-card-header">
                             <div class="tek-card-hicon h-orange"><i class="fa-solid fa-chart-column"></i></div>
                             <h6>Pendapatan vs Target</h6>
                         </div>
-                        <div class="tek-card-body"><div style="height:220px;"><canvas id="technicianChart"></canvas></div></div>
+                        <div class="tek-card-body" style="flex:1; min-height:0;"><div style="height:100%; min-height:300px;"><canvas id="technicianChart"></canvas></div></div>
                     </div>
 
                     <!-- Donut + Top Performer -->
