@@ -251,34 +251,60 @@ if (isset($_GET['export'])) {
 
     /* ═══════ MOBILE: Horizontal Scroll Table (same as desktop) ═══════ */
     @media (max-width: 767px) {
-      /* Make the list container horizontally scrollable */
-      .section-card {
+      /* Make the list + card container horizontally scrollable */
+      .section-card,
+      .section-card .card-body,
+      .section-card .list-group {
         overflow-x: auto !important;
         -webkit-overflow-scrolling: touch;
       }
       .section-card::-webkit-scrollbar { height: 4px; }
       .section-card::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
 
-      /* Each row: force minimum width to match desktop columns */
+      /* Force EVERY data row to stay horizontal — override Bootstrap .row */
+      li.list-group-item.tbl-row > .row,
+      li.tbl-row > .row,
+      .tbl-row > .row,
+      .tbl-row .row.px-3,
+      .tbl-row .row.w-100 {
+        min-width: 850px !important;
+        flex-wrap: nowrap !important;
+        display: flex !important;
+        flex-direction: row !important;
+      }
+
       .tbl-row {
         padding: 10px 12px !important;
         border-bottom: 1px solid #f1f5f9 !important;
-      }
-      .tbl-row .row.px-3 {
-        min-width: 850px !important;
-        flex-wrap: nowrap !important;
+        overflow: visible !important;
       }
 
       /* Column widths matching desktop proportions */
       .tbl-row .col-md-2 {
         flex: 0 0 18% !important;
         max-width: 18% !important;
+        width: 18% !important;
         padding: 0 6px !important;
       }
       .tbl-row .col-md-3 {
         flex: 0 0 23% !important;
         max-width: 23% !important;
+        width: 23% !important;
         padding: 0 6px !important;
+      }
+
+      /* Table header row same treatment */
+      .tbl-header > .row,
+      .tbl-header .row {
+        min-width: 850px !important;
+        flex-wrap: nowrap !important;
+        display: flex !important;
+      }
+      .tbl-header .col-md-2 {
+        flex: 0 0 18% !important; max-width: 18% !important; width: 18% !important;
+      }
+      .tbl-header .col-md-3 {
+        flex: 0 0 23% !important; max-width: 23% !important; width: 23% !important;
       }
 
       /* Slightly smaller fonts for density */
