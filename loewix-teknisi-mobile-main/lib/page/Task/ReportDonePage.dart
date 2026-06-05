@@ -236,6 +236,13 @@ class _ReportDonePageState extends State<ReportDonePage> {
 
       for (int i = 0; i < _images.length; i++) {
         if (_images[i] != null) {
+          final file = File(_images[i]!.path);
+          if (!await file.exists()) {
+            if (mounted) {
+              _showError('Foto ${i + 1} sudah tidak tersedia. Silakan pilih ulang foto.');
+            }
+            return;
+          }
           final bytes = await _images[i]!.readAsBytes();
           final compressed = await upload.compressImage(bytes);
           dataGambar.add(compressed);
@@ -244,6 +251,13 @@ class _ReportDonePageState extends State<ReportDonePage> {
 
       // Add video if exists (DON'T compress - it's not an image)
       if (_video != null) {
+        final videoFile = File(_video!.path);
+        if (!await videoFile.exists()) {
+          if (mounted) {
+            _showError('Video sudah tidak tersedia. Silakan pilih ulang video.');
+          }
+          return;
+        }
         final videoBytes = await _video!.readAsBytes();
         dataGambar.add(videoBytes.toList());
       }
