@@ -187,7 +187,7 @@ class ApiPelaksanaan {
     // Set User-Agent custom karena Cloudflare blokir default Dart User-Agent
     final Map<String, String> headers = {
       'Accept': 'application/json',
-      'User-Agent': 'TeknisiLoewix/${AppConstants.appVersion}',
+      'User-Agent': 'TeknisiLoewix/3.7',
     };
 
     request.fields.addAll(fields);
