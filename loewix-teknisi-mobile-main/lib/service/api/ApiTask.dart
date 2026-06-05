@@ -15,6 +15,7 @@ class ApiTask {
   static const Map<String, String> _defaultHeaders = {
     'Content-type': 'application/json',
     'Accept': 'application/json',
+    'User-Agent': 'TeknisiLoewix/3.7',
   };
 
   Future<T> _handleRequest<T>(

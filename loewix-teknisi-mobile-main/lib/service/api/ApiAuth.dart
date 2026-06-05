@@ -15,6 +15,7 @@ class ApiAuth {
   Map<String, String> get _defaultHeaders => {
     'Accept': 'application/json',
     'Content-Type': 'application/x-www-form-urlencoded',
+    'User-Agent': 'TeknisiLoewix/3.7',
   };
 
   Future<String> teknisiRegister(
