@@ -202,6 +202,7 @@ if (isset($_GET['error'])) {
                                                             <span style="font-size:9px;padding:3px 8px;border-radius:4px;font-weight:700;letter-spacing:0.04em;<?= (strtolower($row_main['kegiatan']) == 'survey') ? 'background:#fef3c7;color:#92400e;' : 'background:#e0e7ff;color:#3730a3;'; ?>">
                                                                 <?= strtoupper(htmlspecialchars($row_main['kegiatan']));?>
                                                             </span>
+                                                            <span style="font-size:10px;color:#6366f1;font-family:monospace;font-weight:600;"><?= htmlspecialchars($kodeTransaksi); ?></span>
                                                         </div>
                                                         <a href="view-kegiatan.php?kode_transaksi=<?= $kodeTransaksi; ?>" target="_blank" style="text-decoration:none;color:#1e293b;">
                                                             <h6 class="font-weight-bold mb-1" style="font-size:0.9rem;"><?= htmlspecialchars($row_main['nama_cust']); ?></h6>
