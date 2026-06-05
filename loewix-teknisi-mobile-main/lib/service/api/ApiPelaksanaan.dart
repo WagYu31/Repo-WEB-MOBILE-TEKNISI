@@ -183,8 +183,8 @@ class ApiPelaksanaan {
       'keterangan_garansi': ketGaransi ?? '',
     };
 
+    // JANGAN set Content-type manual! MultipartRequest otomatis set dengan boundary
     final Map<String, String> headers = {
-      "Content-type": "multipart/form-data",
       'Accept': 'application/json',
     };
 
