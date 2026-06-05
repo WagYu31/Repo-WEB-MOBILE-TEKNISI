@@ -238,6 +238,18 @@ if (substr($nomorHP, 0, 1) === '0') $nomorHP = '62' . substr($nomorHP, 1);
                                 <textarea class="edit-input" name="keterangan" rows="3" style="resize:vertical;"><?= htmlspecialchars($data['keterangan'] ?? '') ?></textarea>
                             </div>
 
+                            <!-- Radius Lokasi -->
+                            <div class="edit-section">
+                                <label class="edit-label">Radius Lokasi (meter)</label>
+                                <div style="display:flex;align-items:center;gap:10px;">
+                                    <input type="number" class="edit-input" name="radius" 
+                                           value="<?= htmlspecialchars($data['rad'] ?? '100') ?>" 
+                                           min="50" max="5000" step="50" 
+                                           style="max-width:200px;" required>
+                                    <span style="font-size:12px;color:#94a3b8;">meter (min: 50, max: 5000)</span>
+                                </div>
+                            </div>
+
                             <!-- Teknisi Selection -->
                             <div class="edit-section">
                                 <label class="edit-label">Pilih Teknisi & Ketua Tim</label>

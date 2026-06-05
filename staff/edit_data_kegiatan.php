@@ -15,6 +15,9 @@ $tanggalPilihan = mysqli_real_escape_string($conn, $_POST['tanggal_pilihan']);
 $waktuPilihan = mysqli_real_escape_string($conn, $_POST['waktu_pilihan']);
 $kegiatanDipilih = mysqli_real_escape_string($conn, $_POST['kegiatan_pilihan']);
 $keterangan = mysqli_real_escape_string($conn, $_POST['keterangan'] ?? '');
+$radius = intval($_POST['radius'] ?? 100);
+if ($radius < 50) $radius = 50;
+if ($radius > 5000) $radius = 5000;
 $teknisiIds = isset($_POST['teknisi']) ? $_POST['teknisi'] : [];
 $ketuaId = isset($_POST['ketua_id']) ? intval($_POST['ketua_id']) : 0;
 $now = date("Y-m-d H:i:s");
@@ -42,6 +45,7 @@ $sqlUpdate = "UPDATE kegiatan SET
     kegiatan = '$kegiatanDipilih', 
     jadwal = '$jadwal', 
     keterangan = '$keterangan', 
+    rad = '$radius', 
     updated_at = '$now' 
     WHERE id = '$kegiatanId'";
 
