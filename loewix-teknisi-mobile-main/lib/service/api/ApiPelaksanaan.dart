@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'dart:io' show Platform;
 import 'dart:typed_data';
 
+import 'package:cronet_http/cronet_http.dart';
 import 'package:teknisi_loewix/service/model/invoice/DetailInvoiceModel.dart';
 
 import '../../../service/model/pelaksanaan/PelaksanaanSend.dart';
@@ -184,18 +186,32 @@ class ApiPelaksanaan {
     };
 
     // JANGAN set Content-type manual! MultipartRequest otomatis set dengan boundary
-    // Set User-Agent custom karena Cloudflare blokir default Dart User-Agent
-    request.headers['user-agent'] = 'Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36';
     request.headers['accept'] = 'application/json';
 
     request.fields.addAll(fields);
 
     print('DEBUG URL: $url');
-    print('DEBUG Headers: ${request.headers}');
     print('DEBUG Fields: ${request.fields}');
     print('DEBUG Files: ${request.files.map((f) => '${f.field}=${f.filename}(${f.length}bytes)').toList()}');
 
-    final http.StreamedResponse streamedResponse = await request.send();
+    // Pakai Cronet (Chrome network stack) untuk bypass Cloudflare Bot Fight Mode
+    // Cloudflare blokir TLS fingerprint Dart/BoringSSL, tapi Cronet pakai Chrome TLS
+    late final http.StreamedResponse streamedResponse;
+    if (Platform.isAndroid) {
+      final engine = CronetEngine.build(
+        cacheMode: CacheMode.disabled,
+        userAgent: 'Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36',
+      );
+      final client = CronetClient.fromCronetEngine(engine);
+      try {
+        streamedResponse = await client.send(request);
+      } finally {
+        client.close();
+      }
+    } else {
+      streamedResponse = await request.send();
+    }
+    
     final int statusCode = streamedResponse.statusCode;
     final Map<String, String> responseHeaders = streamedResponse.headers;
     final Uint8List responseList = await streamedResponse.stream.toBytes();

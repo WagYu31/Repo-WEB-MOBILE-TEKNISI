@@ -71,6 +71,7 @@ dependencies:
   iconsax: ^0.0.8
   video_player: ^2.8.6
   chewie: ^1.7.5
+  cronet_http: ^1.6.0
 
 flutter_launcher_icons:
   #  image_path: "assets/images/icon-128x128.png"
