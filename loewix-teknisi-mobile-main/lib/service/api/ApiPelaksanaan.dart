@@ -185,21 +185,25 @@ class ApiPelaksanaan {
 
     // JANGAN set Content-type manual! MultipartRequest otomatis set dengan boundary
     // Set User-Agent custom karena Cloudflare blokir default Dart User-Agent
-    final Map<String, String> headers = {
-      'Accept': 'application/json',
-      'User-Agent': 'TeknisiLoewix/3.7',
-    };
+    request.headers['user-agent'] = 'TeknisiLoewix/3.7';
+    request.headers['accept'] = 'application/json';
 
     request.fields.addAll(fields);
-    request.headers.addAll(headers);
+
+    print('DEBUG URL: $url');
+    print('DEBUG Headers: ${request.headers}');
+    print('DEBUG Fields: ${request.fields}');
+    print('DEBUG Files: ${request.files.map((f) => '${f.field}=${f.filename}(${f.length}bytes)').toList()}');
 
     final http.StreamedResponse streamedResponse = await request.send();
     final int statusCode = streamedResponse.statusCode;
+    final Map<String, String> responseHeaders = streamedResponse.headers;
     final Uint8List responseList = await streamedResponse.stream.toBytes();
-    final String responseData = String.fromCharCodes(responseList);
+    final String responseData = utf8.decode(responseList, allowMalformed: true);
 
     print('pelaksanaanselesai status: $statusCode');
-    print('pelaksanaanselesai response: $responseData');
+    print('pelaksanaanselesai headers: $responseHeaders');
+    print('pelaksanaanselesai response (${responseList.length} bytes): $responseData');
 
     if (statusCode >= 200 && statusCode <= 300) {
       try {
@@ -216,9 +220,10 @@ class ApiPelaksanaan {
         return uploadResponse;
       } catch (e) {
         // Server returned success status but malformed/empty JSON
-        // This likely means the server had an internal error
         print('WARNING: Server returned $statusCode but response is not valid JSON: $responseData');
-        throw Exception('Server mengembalikan respons tidak valid. Silakan coba lagi atau hubungi admin.\n\nDetail: $statusCode - ${responseData.length > 200 ? responseData.substring(0, 200) : responseData}');
+        String serverInfo = responseHeaders['server'] ?? 'unknown';
+        String cfRay = responseHeaders['cf-ray'] ?? 'none';
+        throw Exception('Upload gagal ($statusCode, server=$serverInfo, cf=$cfRay, body=${responseList.length}bytes)\n\n${responseData.length > 200 ? responseData.substring(0, 200) : responseData}');
       }
     } else {
       print('Error: $responseData');
