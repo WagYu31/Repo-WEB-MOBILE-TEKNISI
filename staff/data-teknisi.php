@@ -496,6 +496,31 @@ $pageNow = "Data Teknisi";
         </div></div>
     </div>
 
+    <!-- Modal: Reset Password Teknisi -->
+    <div class="modal fade prem-modal" id="resetPwModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm"><div class="modal-content">
+            <div class="modal-header" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);">
+                <h5 class="modal-title" style="color:#fff;"><i class="fa-solid fa-key me-2"></i>Reset Password</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" style="font-size:10px;"></button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size:12px;color:#64748b;margin-bottom:14px;">Reset password untuk: <strong id="resetPwName" style="color:#1e293b;"></strong></p>
+                <form id="resetPwForm">
+                    <input type="hidden" id="resetPwTeknisiId">
+                    <label class="prem-label">Password Baru</label>
+                    <div style="position:relative;">
+                        <input type="password" class="prem-input" id="resetPwInput" placeholder="Minimal 6 karakter" required minlength="6" style="padding-right:40px;">
+                        <button type="button" id="togglePwBtn" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:#94a3b8;cursor:pointer;font-size:14px;" onclick="togglePwVisibility()"><i class="fa-solid fa-eye"></i></button>
+                    </div>
+                    <div class="prem-footer" style="margin-top:16px;">
+                        <button type="button" class="prem-btn-cancel" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="prem-btn-save" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);">Reset Password</button>
+                    </div>
+                </form>
+            </div>
+        </div></div>
+    </div>
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -744,6 +769,7 @@ $pageNow = "Data Teknisi";
                     <td style="text-align:center;" class="no-print">
                         <div style="display:flex; gap:4px; justify-content:center;">
                             <button class="tek-act-btn tek-act-edit" onclick='openTargetModal(${JSON.stringify(row.nik)}, ${JSON.stringify(row.target)})' title="Set Target"><i class="fa-solid fa-pen"></i></button>
+                            <button class="tek-act-btn" style="background:#eef2ff;color:#6366f1;" onclick='openResetPwModal(${row.id}, ${JSON.stringify(row.nama)})' title="Reset Password"><i class="fa-solid fa-key"></i></button>
                             <button class="tek-act-btn tek-act-del" onclick='softDeleteTeknisi(${row.id})' title="Nonaktifkan"><i class="fa-solid fa-trash"></i></button>
                         </div>
                     </td>
@@ -785,6 +811,38 @@ $pageNow = "Data Teknisi";
         }
         document.getElementById('newFeeInput').addEventListener('input', e => { let v = e.target.value.replace(/[^0-9]/g, ''); e.target.value = v ? parseInt(v, 10).toLocaleString('id-ID') : ''; });
         $('#feeForm').on('submit', function(e) { e.preventDefault(); let newFee = $('#newFeeInput').val().replace(/[^\d]/g, ''); $.ajax({ url: 'proses_update_fee.php', type: 'POST', data: { new_fee: newFee }, dataType: 'json', success: function(response) { if(response.success) { alert('Fee berhasil diperbarui!'); $('#feeModal').modal('hide'); } else { alert('Gagal memperbarui fee: ' + response.message); } }, error: function() { alert('Terjadi kesalahan koneksi.'); } }); });
+
+        // Reset Password Teknisi
+        function openResetPwModal(teknisiId, nama) {
+            document.getElementById('resetPwTeknisiId').value = teknisiId;
+            document.getElementById('resetPwName').textContent = nama;
+            document.getElementById('resetPwInput').value = '';
+            $('#resetPwModal').modal('show');
+        }
+        function togglePwVisibility() {
+            const input = document.getElementById('resetPwInput');
+            const icon = document.querySelector('#togglePwBtn i');
+            if (input.type === 'password') { input.type = 'text'; icon.className = 'fa-solid fa-eye-slash'; }
+            else { input.type = 'password'; icon.className = 'fa-solid fa-eye'; }
+        }
+        $('#resetPwForm').on('submit', function(e) {
+            e.preventDefault();
+            const teknisiId = $('#resetPwTeknisiId').val();
+            const newPw = $('#resetPwInput').val();
+            if (newPw.length < 6) { alert('Password minimal 6 karakter.'); return; }
+            if (!confirm('Yakin reset password teknisi ini?')) return;
+            $.ajax({
+                url: 'reset_password_teknisi.php',
+                type: 'POST',
+                data: { teknisi_id: teknisiId, new_password: newPw },
+                dataType: 'json',
+                success: function(res) {
+                    if (res.success) { alert('Password berhasil direset!'); $('#resetPwModal').modal('hide'); }
+                    else { alert('Gagal: ' + res.message); }
+                },
+                error: function() { alert('Terjadi kesalahan koneksi.'); }
+            });
+        });
     </script>
 </body>
 </html>
