@@ -74,8 +74,22 @@ if (isset($_GET['error'])) {
                         <div class="card-header p-3 px-4">
                             <div class="d-flex flex-column flex-md-row justify-content-between align-items-center">
                                 <h5 class="mb-3 mb-md-0 text-uppercase font-weight-bold">Laporan Kegiatan</h5>
-                                <form method="GET" action="" class="d-flex gap-2" style="max-width:380px;width:100%;">
-                                    <input type="text" name="cari" class="search-box flex-grow-1" placeholder="Cari customer / kode..." value="<?= htmlspecialchars($_GET['cari'] ?? '') ?>">
+                                <form method="GET" action="" class="d-flex gap-2 flex-wrap justify-content-end" style="max-width:600px;width:100%;">
+                                    <select name="tahun" class="search-box" style="width:90px;padding:8px 10px;" onchange="this.form.submit()">
+                                        <option value="">Tahun</option>
+                                        <?php for($y=date('Y'); $y>=2025; $y--): ?>
+                                        <option value="<?=$y?>" <?= ($_GET['tahun'] ?? '')==$y ? 'selected' : '' ?>><?=$y?></option>
+                                        <?php endfor; ?>
+                                    </select>
+                                    <select name="bulan" class="search-box" style="width:110px;padding:8px 10px;" onchange="this.form.submit()">
+                                        <option value="">Bulan</option>
+                                        <?php
+                                        $namaBulan = ['','Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+                                        for($m=1; $m<=12; $m++): ?>
+                                        <option value="<?=$m?>" <?= ($_GET['bulan'] ?? '')==$m ? 'selected' : '' ?>><?=$namaBulan[$m]?></option>
+                                        <?php endfor; ?>
+                                    </select>
+                                    <input type="text" name="cari" class="search-box flex-grow-1" placeholder="Cari customer / kode..." value="<?= htmlspecialchars($_GET['cari'] ?? '') ?>" style="min-width:150px;">
                                     <button class="btn btn-search mb-0 text-white" type="submit"><i class="material-icons" style="font-size:16px;vertical-align:middle;">search</i></button>
                                 </form>
                             </div>
@@ -93,8 +107,9 @@ if (isset($_GET['error'])) {
                                     <tbody>
                                         <?php
                                         $search = $_GET['cari'] ?? '';
+                                        $filterTahun = $_GET['tahun'] ?? '';
+                                        $filterBulan = $_GET['bulan'] ?? '';
                                         
-                                        // Optimized: removed redundant JOIN, added LIMIT
                                         $sql_main = "SELECT k.id, k.kode AS kode_transaksi, k.keterangan, k.kegiatan, k.created_at, k.status AS status_kegiatan, c.id AS id_cust, c.nama AS nama_cust
                                                      FROM kegiatan k
                                                      LEFT JOIN customer c ON k.customer_id = c.id
@@ -106,17 +121,36 @@ if (isset($_GET['error'])) {
                                                          AND px.status NOT IN ('Lanjut Nanti', 'Lanjutan', 'berjalan', 'dijadwalkan')
                                                      )";
 
-                                        if (!empty($search)) {
-                                            $sql_main .= " AND (c.nama LIKE ? OR k.kode LIKE ? OR k.kegiatan LIKE ? OR k.keterangan LIKE ?)";
+                                        $bindTypes = '';
+                                        $bindValues = [];
+
+                                        if (!empty($filterTahun)) {
+                                            $sql_main .= " AND YEAR(k.created_at) = ?";
+                                            $bindTypes .= 'i';
+                                            $bindValues[] = intval($filterTahun);
+                                        }
+                                        if (!empty($filterBulan)) {
+                                            $sql_main .= " AND MONTH(k.created_at) = ?";
+                                            $bindTypes .= 'i';
+                                            $bindValues[] = intval($filterBulan);
                                         }
 
-                                        $sql_main .= " ORDER BY k.created_at DESC LIMIT 100";
+                                        if (!empty($search)) {
+                                            $sql_main .= " AND (c.nama LIKE ? OR k.kode LIKE ? OR k.kegiatan LIKE ? OR k.keterangan LIKE ?)";
+                                            $bindTypes .= 'ssss';
+                                            $searchParam = "%$search%";
+                                            $bindValues[] = $searchParam;
+                                            $bindValues[] = $searchParam;
+                                            $bindValues[] = $searchParam;
+                                            $bindValues[] = $searchParam;
+                                        }
+
+                                        $sql_main .= " ORDER BY k.created_at DESC";
 
                                         $stmt_main = $conn->prepare($sql_main);
 
-                                        if (!empty($search)) {
-                                            $search_param = "%$search%";
-                                            $stmt_main->bind_param("ssss", $search_param, $search_param, $search_param, $search_param);
+                                        if (!empty($bindTypes)) {
+                                            $stmt_main->bind_param($bindTypes, ...$bindValues);
                                         }
 
                                         $stmt_main->execute();

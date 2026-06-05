@@ -554,7 +554,7 @@ class _TaskPageState extends State<TaskPage> {
         _buildDetailCard(
           Icons.note_outlined,
           'Catatan',
-          data.keterangan ?? 'Tidak ada catatan',
+          (data.keterangan != null && data.keterangan!.isNotEmpty) ? data.keterangan! : 'Tidak ada catatan',
           Colors.purple[400]!,
         ),
         if (data.dataTeknisi.length > 1) ...[
