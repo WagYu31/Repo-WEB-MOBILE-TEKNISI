@@ -196,18 +196,27 @@ class ApiPelaksanaan {
     final Uint8List responseList = await streamedResponse.stream.toBytes();
     final String responseData = String.fromCharCodes(responseList);
 
+    print('pelaksanaanselesai status: $statusCode');
+    print('pelaksanaanselesai response: $responseData');
+
     if (statusCode >= 200 && statusCode <= 300) {
-      print('Success: $responseData');
       try {
         final PelaksanaanSendResponse uploadResponse =
             PelaksanaanSendResponse.fromJson(
           json.decode(responseData),
         );
+        // Verify the response actually indicates success
+        if (uploadResponse.message.toLowerCase().contains('berhasil') ||
+            uploadResponse.message.toLowerCase().contains('success')) {
+          return uploadResponse;
+        }
+        // Server returned 200 but message doesn't indicate success
         return uploadResponse;
       } catch (e) {
         // Server returned success status but malformed/empty JSON
-        // Treat as success since status code indicates it worked
-        return PelaksanaanSendResponse(message: 'Pelaksanaan kegiatan berhasil diselesaikan');
+        // This likely means the server had an internal error
+        print('WARNING: Server returned $statusCode but response is not valid JSON: $responseData');
+        throw Exception('Server mengembalikan respons tidak valid. Silakan coba lagi atau hubungi admin.\n\nDetail: $statusCode - ${responseData.length > 200 ? responseData.substring(0, 200) : responseData}');
       }
     } else {
       print('Error: $responseData');

@@ -242,11 +242,10 @@ class _ReportDonePageState extends State<ReportDonePage> {
         }
       }
 
-      // Add video if exists
+      // Add video if exists (DON'T compress - it's not an image)
       if (_video != null) {
         final videoBytes = await _video!.readAsBytes();
-        final compressedVideo = await upload.compressImage(videoBytes);
-        dataGambar.add(compressedVideo);
+        dataGambar.add(videoBytes.toList());
       }
 
       // Prepare garansi info

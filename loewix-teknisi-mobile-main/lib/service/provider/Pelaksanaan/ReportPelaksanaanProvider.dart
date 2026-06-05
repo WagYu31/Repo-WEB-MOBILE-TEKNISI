@@ -100,7 +100,8 @@ class ReportPelaksanaanProvider extends ChangeNotifier {
     Uint8List bytess = Uint8List.fromList(bytes);
     int imageLength = bytes.length;
     if (imageLength < 1000000) return bytes;
-    final img.Image image = img.decodeImage(bytess)!;
+    final img.Image? image = img.decodeImage(bytess);
+    if (image == null) return bytes; // Can't decode (not a valid image), return as-is
     int compressQuality = 100;
     int length = imageLength;
     List<int> newByte = [];
