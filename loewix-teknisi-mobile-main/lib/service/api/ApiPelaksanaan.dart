@@ -163,63 +163,45 @@ class ApiPelaksanaan {
   ) async {
     String url = '$_baseUrl/pelaksanaanselesai';
     final uri = Uri.parse(url);
-    var request = http.MultipartRequest('POST', uri);
 
-    // Tambahkan file gambar
-    for (int i = 0; i < imagesBytes.length; i++) {
-      String namaAngka = angkaKeKata(i + 1);
-      final multiPartFile = http.MultipartFile.fromBytes(
-        "image_$namaAngka",
-        imagesBytes[i],
-        filename: 'image_$namaAngka.jpg',
-      );
-      request.files.add(multiPartFile);
-    }
+    // === BASE64 JSON UPLOAD (bypass Cloudflare Bot Fight Mode) ===
+    // Cloudflare blokir multipart POST dari Dart TLS fingerprint,
+    // tapi JSON POST bisa lolos. Server sudah di-patch untuk decode base64.
 
-    final Map<String, String> fields = {
+    // Encode images ke base64
+    final List<String> imageFieldNames = ['image_satu', 'image_dua', 'image_tiga', 'image_empat', 'image_lima'];
+    final Map<String, dynamic> jsonBody = {
       "kegiatan_id": kegiatanId,
       "teknisi_id": teknisiId,
       "permasalahan": permasalahan ?? '',
       "solusi": solusi ?? '',
       "keterangan": keterangan ?? '',
-      'keterangan_garansi': ketGaransi ?? '',
+      "keterangan_garansi": ketGaransi ?? '',
     };
 
-    // JANGAN set Content-type manual! MultipartRequest otomatis set dengan boundary
-    request.headers['accept'] = 'application/json';
-
-    request.fields.addAll(fields);
+    for (int i = 0; i < imagesBytes.length && i < imageFieldNames.length; i++) {
+      jsonBody[imageFieldNames[i]] = base64Encode(imagesBytes[i]);
+    }
 
     print('DEBUG URL: $url');
-    print('DEBUG Fields: ${request.fields}');
-    print('DEBUG Files: ${request.files.map((f) => '${f.field}=${f.filename}(${f.length}bytes)').toList()}');
+    print('DEBUG Fields: kegiatan=$kegiatanId, teknisi=$teknisiId');
+    print('DEBUG Images: ${imagesBytes.length} foto, sizes=${imagesBytes.map((b) => '${(b.length/1024).toStringAsFixed(0)}KB').toList()}');
 
-    // Pakai Cronet (Chrome network stack) untuk bypass Cloudflare Bot Fight Mode
-    // Cloudflare blokir TLS fingerprint Dart/BoringSSL, tapi Cronet pakai Chrome TLS
-    late final http.StreamedResponse streamedResponse;
-    if (Platform.isAndroid) {
-      final engine = CronetEngine.build(
-        cacheMode: CacheMode.disabled,
-        userAgent: 'Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36',
-      );
-      final client = CronetClient.fromCronetEngine(engine);
-      try {
-        streamedResponse = await client.send(request);
-      } finally {
-        client.close();
-      }
-    } else {
-      streamedResponse = await request.send();
-    }
-    
-    final int statusCode = streamedResponse.statusCode;
-    final Map<String, String> responseHeaders = streamedResponse.headers;
-    final Uint8List responseList = await streamedResponse.stream.toBytes();
-    final String responseData = utf8.decode(responseList, allowMalformed: true);
+    final response = await http.post(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-Base64-Upload': 'true',
+      },
+      body: json.encode(jsonBody),
+    );
+
+    final int statusCode = response.statusCode;
+    final String responseData = response.body;
 
     print('pelaksanaanselesai status: $statusCode');
-    print('pelaksanaanselesai headers: $responseHeaders');
-    print('pelaksanaanselesai response (${responseList.length} bytes): $responseData');
+    print('pelaksanaanselesai response (${responseData.length} bytes): $responseData');
 
     if (statusCode >= 200 && statusCode <= 300) {
       try {
@@ -227,19 +209,13 @@ class ApiPelaksanaan {
             PelaksanaanSendResponse.fromJson(
           json.decode(responseData),
         );
-        // Verify the response actually indicates success
-        if (uploadResponse.message.toLowerCase().contains('berhasil') ||
-            uploadResponse.message.toLowerCase().contains('success')) {
-          return uploadResponse;
-        }
-        // Server returned 200 but message doesn't indicate success
         return uploadResponse;
       } catch (e) {
-        // Server returned success status but malformed/empty JSON
         print('WARNING: Server returned $statusCode but response is not valid JSON: $responseData');
-        String serverInfo = responseHeaders['server'] ?? 'unknown';
-        String cfRay = responseHeaders['cf-ray'] ?? 'none';
-        throw Exception('Upload gagal ($statusCode, server=$serverInfo, cf=$cfRay, body=${responseList.length}bytes)\n\n${responseData.length > 200 ? responseData.substring(0, 200) : responseData}');
+        if (responseData.isEmpty) {
+          throw Exception('Server tidak merespons. Coba lagi.');
+        }
+        throw Exception('Upload gagal: $responseData');
       }
     } else {
       print('Error: $responseData');
