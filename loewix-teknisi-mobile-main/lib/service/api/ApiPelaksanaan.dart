@@ -185,7 +185,7 @@ class ApiPelaksanaan {
 
     // JANGAN set Content-type manual! MultipartRequest otomatis set dengan boundary
     // Set User-Agent custom karena Cloudflare blokir default Dart User-Agent
-    request.headers['user-agent'] = 'TeknisiLoewix/3.7';
+    request.headers['user-agent'] = 'Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36';
     request.headers['accept'] = 'application/json';
 
     request.fields.addAll(fields);
