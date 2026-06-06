@@ -56,15 +56,26 @@
         $stmt->close();
 
         // ═══ BATCH QUERY 4: Invoice count + pendapatan per teknisi ═══
+        // Patokan: nominal_invoice / jumlah_teknisi_per_kode (agar Total Pendapatan = Detail Invoice)
         $invCount = [];
         $pendapatanSum = [];
-        $sql = "SELECT teknisi_id, COUNT(DISTINCT kode) as cnt, SUM(pendapatan) as total 
-                FROM pendapatan_kegiatan 
-                WHERE teknisi_id IN ($placeholders) AND DATE_FORMAT(tanggal, '%Y-%m') = ? AND deleted_at IS NULL
-                GROUP BY teknisi_id";
+        $sql = "SELECT pk.teknisi_id, 
+                       COUNT(DISTINCT pk.kode) as cnt, 
+                       SUM(ROUND(pk.nominal_invoice / counts.tek_count)) as total 
+                FROM pendapatan_kegiatan pk
+                JOIN (
+                    SELECT kode, COUNT(*) as tek_count 
+                    FROM pendapatan_kegiatan 
+                    WHERE DATE_FORMAT(tanggal, '%Y-%m') = ? AND deleted_at IS NULL
+                    GROUP BY kode
+                ) counts ON pk.kode = counts.kode
+                WHERE pk.teknisi_id IN ($placeholders) 
+                AND DATE_FORMAT(pk.tanggal, '%Y-%m') = ? 
+                AND pk.deleted_at IS NULL
+                GROUP BY pk.teknisi_id";
         $stmt = $conn->prepare($sql);
-        $paramTypes = $types . 's';
-        $paramVals = array_merge($allTekIds, [$ym]);
+        $paramTypes = 's' . $types . 's';
+        $paramVals = array_merge([$ym], $allTekIds, [$ym]);
         $stmt->bind_param($paramTypes, ...$paramVals);
         $stmt->execute();
         $res = $stmt->get_result();
