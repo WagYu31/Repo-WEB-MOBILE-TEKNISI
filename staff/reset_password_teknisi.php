@@ -5,7 +5,7 @@ include "session.php";
 header('Content-Type: application/json');
 
 // Only allow admin
-if (!in_array($_SESSION['role'], ['Admin', 'SA'])) {
+if (!in_array($_SESSION['jabatan'], ['Admin', 'SA'])) {
     echo json_encode(['success' => false, 'message' => 'Akses ditolak.']);
     exit;
 }
