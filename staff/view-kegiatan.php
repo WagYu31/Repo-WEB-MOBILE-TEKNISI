@@ -280,6 +280,37 @@ $stmt_pelaksanaan->close();
             background-size: contain; background-position: center;
             background-repeat: no-repeat; opacity: 0.1; z-index: -1;
         }
+
+        /* Edit button */
+        .btn-edit-pelaksanaan {
+            margin-left: auto; width: 28px; height: 28px; border-radius: 6px;
+            border: 1px solid #e2e8f0; background: #fff; color: #3b82f6;
+            display: inline-flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.15s; flex-shrink: 0;
+        }
+        .btn-edit-pelaksanaan:hover { background: #3b82f6; color: #fff; border-color: #3b82f6; }
+
+        /* Edit Modal Inputs */
+        .ep-input {
+            width: 100%; border: 1.5px solid #e5e7eb; border-radius: 10px;
+            padding: 10px 14px; font-size: 13px; color: #1e293b; background: #f8fafc;
+            transition: all 0.2s; font-weight: 500; font-family: inherit;
+        }
+        .ep-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.08); outline: none; background: #fff; }
+        .ep-btn-cancel {
+            flex: 1; padding: 10px; border: 1.5px solid #e5e7eb; border-radius: 10px;
+            background: #fff; color: #64748b; font-size: 13px; font-weight: 600;
+            cursor: pointer; transition: all 0.15s;
+        }
+        .ep-btn-cancel:hover { background: #f8fafc; }
+        .ep-btn-save {
+            flex: 2; padding: 10px; border: none; border-radius: 10px;
+            background: linear-gradient(135deg, #2563eb, #3b82f6); color: #fff;
+            font-size: 13px; font-weight: 700; cursor: pointer;
+            box-shadow: 0 4px 12px rgba(37,99,235,0.25); transition: all 0.15s;
+        }
+        .ep-btn-save:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(37,99,235,0.3); }
+
         <?php include "css/floating-menu2.css"; ?>
 
         @media (max-width: 768px) {
@@ -447,6 +478,9 @@ $stmt_pelaksanaan->close();
                                                         <span class="tl-status-badge <?= $badgeClass ?>"><?= htmlspecialchars($task['status']) ?></span>
                                                         <span class="tl-date"><?= date("d M Y", strtotime($task['waktu_mulai'])) ?></span>
                                                         <?php if ($durationText): ?><span class="tl-duration">⏱ <?= $durationText ?></span><?php endif; ?>
+                                                        <button type="button" class="btn-edit-pelaksanaan" title="Edit Pelaksanaan" onclick="openEditPelaksanaan(<?= $task['id'] ?>, '<?= addslashes($task['status']) ?>', '<?= $mulaiValid ? $task['waktu_mulai'] : '' ?>', '<?= $selesaiValid ? $task['waktu_selesai'] : '' ?>', '<?= addslashes($task['permasalahan'] ?? '') ?>', '<?= addslashes($task['solusi'] ?? '') ?>', '<?= addslashes($task['keterangan'] ?? '') ?>')">
+                                                            <i class="material-icons" style="font-size:14px;">edit</i>
+                                                        </button>
                                                     </div>
                                                     <div class="tl-body">
                                                         <div class="tl-time-section">
@@ -510,6 +544,60 @@ $stmt_pelaksanaan->close();
         </div>
         <?php include "footer.php"; ?>
     </main>
+
+    <!-- Modal Edit Pelaksanaan -->
+    <div class="modal fade" id="editPelaksanaanModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius:16px;border:none;box-shadow:0 8px 32px rgba(0,0,0,0.15);">
+                <div class="modal-header" style="background:linear-gradient(135deg,#2563eb,#3b82f6);border-radius:16px 16px 0 0;padding:16px 20px;">
+                    <h5 class="modal-title" style="color:#fff;font-size:15px;font-weight:700;"><i class="material-icons" style="font-size:18px;vertical-align:middle;margin-right:6px;">edit_note</i>Edit Pelaksanaan</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" style="font-size:10px;"></button>
+                </div>
+                <div class="modal-body" style="padding:20px;">
+                    <form id="editPelaksanaanForm">
+                        <input type="hidden" id="ep_id">
+                        <div style="margin-bottom:14px;">
+                            <label style="font-size:12px;font-weight:700;color:#475569;margin-bottom:4px;display:block;">Status</label>
+                            <select id="ep_status" class="ep-input" style="cursor:pointer;">
+                                <option value="berjalan">Berjalan</option>
+                                <option value="menunggu laporan">Menunggu Laporan</option>
+                                <option value="selesai">Selesai</option>
+                                <option value="Lanjut Nanti">Lanjut Nanti</option>
+                                <option value="Lanjutan">Lanjutan</option>
+                            </select>
+                        </div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+                            <div>
+                                <label style="font-size:12px;font-weight:700;color:#475569;margin-bottom:4px;display:block;">Waktu Mulai</label>
+                                <input type="datetime-local" id="ep_waktu_mulai" class="ep-input">
+                            </div>
+                            <div>
+                                <label style="font-size:12px;font-weight:700;color:#475569;margin-bottom:4px;display:block;">Waktu Selesai</label>
+                                <input type="datetime-local" id="ep_waktu_selesai" class="ep-input">
+                            </div>
+                        </div>
+                        <div style="margin-bottom:14px;">
+                            <label style="font-size:12px;font-weight:700;color:#475569;margin-bottom:4px;display:block;">Masalah / Permasalahan</label>
+                            <textarea id="ep_permasalahan" class="ep-input" rows="2" placeholder="Tulis permasalahan..."></textarea>
+                        </div>
+                        <div style="margin-bottom:14px;">
+                            <label style="font-size:12px;font-weight:700;color:#475569;margin-bottom:4px;display:block;">Solusi</label>
+                            <textarea id="ep_solusi" class="ep-input" rows="2" placeholder="Tulis solusi..."></textarea>
+                        </div>
+                        <div style="margin-bottom:14px;">
+                            <label style="font-size:12px;font-weight:700;color:#475569;margin-bottom:4px;display:block;">Keterangan</label>
+                            <textarea id="ep_keterangan" class="ep-input" rows="2" placeholder="Tulis keterangan..."></textarea>
+                        </div>
+                        <div style="display:flex;gap:8px;margin-top:18px;">
+                            <button type="button" class="ep-btn-cancel" data-bs-dismiss="modal">Batal</button>
+                            <button type="submit" class="ep-btn-save">Simpan Perubahan</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <?php include "js-include.php"; ?>
     <script>
     // Manual tab handler - fix Bootstrap/Material Dashboard conflict
@@ -533,6 +621,45 @@ $stmt_pelaksanaan->close();
                 }
             });
         });
+    });
+
+    function openEditPelaksanaan(id, status, mulai, selesai, masalah, solusi, keterangan) {
+        document.getElementById('ep_id').value = id;
+        document.getElementById('ep_status').value = status;
+        document.getElementById('ep_waktu_mulai').value = mulai ? mulai.replace(' ', 'T').substring(0, 16) : '';
+        document.getElementById('ep_waktu_selesai').value = selesai ? selesai.replace(' ', 'T').substring(0, 16) : '';
+        document.getElementById('ep_permasalahan').value = masalah;
+        document.getElementById('ep_solusi').value = solusi;
+        document.getElementById('ep_keterangan').value = keterangan;
+        var modal = new bootstrap.Modal(document.getElementById('editPelaksanaanModal'));
+        modal.show();
+    }
+
+    document.getElementById('editPelaksanaanForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        var formData = new FormData();
+        formData.append('id', document.getElementById('ep_id').value);
+        formData.append('status', document.getElementById('ep_status').value);
+        formData.append('waktu_mulai', document.getElementById('ep_waktu_mulai').value.replace('T', ' '));
+        formData.append('waktu_selesai', document.getElementById('ep_waktu_selesai').value.replace('T', ' '));
+        formData.append('permasalahan', document.getElementById('ep_permasalahan').value);
+        formData.append('solusi', document.getElementById('ep_solusi').value);
+        formData.append('keterangan', document.getElementById('ep_keterangan').value);
+
+        fetch('update_pelaksanaan.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(r => r.json())
+        .then(res => {
+            if (res.success) {
+                alert('Berhasil disimpan!');
+                location.reload();
+            } else {
+                alert('Gagal: ' + res.message);
+            }
+        })
+        .catch(() => alert('Terjadi kesalahan koneksi.'));
     });
     </script>
 </body>
