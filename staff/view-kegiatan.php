@@ -283,12 +283,13 @@ $stmt_pelaksanaan->close();
 
         /* Edit button */
         .btn-edit-pelaksanaan {
-            margin-left: auto; width: 28px; height: 28px; border-radius: 6px;
-            border: 1px solid #e2e8f0; background: #fff; color: #3b82f6;
-            display: inline-flex; align-items: center; justify-content: center;
+            margin-left: auto; padding: 4px 12px; border-radius: 6px;
+            border: 1px solid #3b82f6; background: #eff6ff; color: #2563eb;
+            display: inline-flex; align-items: center; gap: 4px;
             cursor: pointer; transition: all 0.15s; flex-shrink: 0;
+            font-size: 11px; font-weight: 600;
         }
-        .btn-edit-pelaksanaan:hover { background: #3b82f6; color: #fff; border-color: #3b82f6; }
+        .btn-edit-pelaksanaan:hover { background: #3b82f6; color: #fff; }
 
         /* Edit Modal Inputs */
         .ep-input {
@@ -479,7 +480,7 @@ $stmt_pelaksanaan->close();
                                                         <span class="tl-date"><?= date("d M Y", strtotime($task['waktu_mulai'])) ?></span>
                                                         <?php if ($durationText): ?><span class="tl-duration">⏱ <?= $durationText ?></span><?php endif; ?>
                                                         <button type="button" class="btn-edit-pelaksanaan" title="Edit Pelaksanaan" onclick="openEditPelaksanaan(<?= $task['id'] ?>, '<?= addslashes($task['status']) ?>', '<?= $mulaiValid ? $task['waktu_mulai'] : '' ?>', '<?= $selesaiValid ? $task['waktu_selesai'] : '' ?>', '<?= addslashes($task['permasalahan'] ?? '') ?>', '<?= addslashes($task['solusi'] ?? '') ?>', '<?= addslashes($task['keterangan'] ?? '') ?>')">
-                                                            <i class="material-icons" style="font-size:14px;">edit</i>
+                                                            <i class="material-icons" style="font-size:13px;">edit</i> Edit
                                                         </button>
                                                     </div>
                                                     <div class="tl-body">
