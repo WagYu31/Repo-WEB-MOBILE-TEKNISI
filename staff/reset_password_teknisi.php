@@ -1,11 +1,17 @@
 <?php
 include "conn.php";
-include "session.php";
+session_start();
 
 header('Content-Type: application/json');
 
+// Check login
+if (!isset($_SESSION['id']) || empty($_SESSION['id'])) {
+    echo json_encode(['success' => false, 'message' => 'Sesi login habis, silakan login ulang.']);
+    exit;
+}
+
 // Only allow admin
-if (!in_array($_SESSION['jabatan'], ['Admin', 'SA'])) {
+if (!isset($_SESSION['jabatan']) || !in_array($_SESSION['jabatan'], ['Admin', 'SA'])) {
     echo json_encode(['success' => false, 'message' => 'Akses ditolak.']);
     exit;
 }
