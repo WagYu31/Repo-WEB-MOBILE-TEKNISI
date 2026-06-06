@@ -11,7 +11,7 @@ if (!isset($_SESSION['id']) || empty($_SESSION['id'])) {
 }
 
 // Only allow admin
-if (!isset($_SESSION['jabatan']) || !in_array($_SESSION['jabatan'], ['Admin', 'SA'])) {
+if (!isset($_SESSION['jabatan']) || !in_array($_SESSION['jabatan'], ['Admin', 'Super Admin'])) {
     echo json_encode(['success' => false, 'message' => 'Akses ditolak.']);
     exit;
 }
@@ -37,19 +37,34 @@ if (strlen($new_password) < 6) {
 // Hash password (compatible with Laravel's bcrypt)
 $hashed = password_hash($new_password, PASSWORD_BCRYPT);
 
-// Update di tabel users (Laravel auth)
-$stmt = mysqli_prepare($conn, "UPDATE users SET password = ? WHERE teknisi_id = ?");
-mysqli_stmt_bind_param($stmt, "si", $hashed, $teknisi_id);
-$success = mysqli_stmt_execute($stmt);
-$affected = mysqli_stmt_affected_rows($stmt);
+// Cari user_id dari tabel user_teknisi
+$stmt_lookup = $conn->prepare("SELECT user_id FROM user_teknisi WHERE teknisi_id = ? LIMIT 1");
+$stmt_lookup->bind_param("i", $teknisi_id);
+$stmt_lookup->execute();
+$result = $stmt_lookup->get_result();
+$row = $result->fetch_assoc();
+$stmt_lookup->close();
+
+if (!$row) {
+    echo json_encode(['success' => false, 'message' => 'Akun user untuk teknisi ini tidak ditemukan.']);
+    exit;
+}
+
+$user_id = $row['user_id'];
+
+// Update password di tabel users
+$stmt = $conn->prepare("UPDATE users SET password = ? WHERE id = ?");
+$stmt->bind_param("si", $hashed, $user_id);
+$success = $stmt->execute();
+$affected = $stmt->affected_rows;
 
 if ($success && $affected > 0) {
     echo json_encode(['success' => true, 'message' => 'Password berhasil direset.']);
 } elseif ($affected === 0) {
-    echo json_encode(['success' => false, 'message' => 'Akun teknisi tidak ditemukan di tabel users.']);
+    echo json_encode(['success' => false, 'message' => 'User tidak ditemukan atau password sama.']);
 } else {
-    echo json_encode(['success' => false, 'message' => 'Gagal update password: ' . mysqli_error($conn)]);
+    echo json_encode(['success' => false, 'message' => 'Gagal update: ' . $conn->error]);
 }
 
-mysqli_stmt_close($stmt);
+$stmt->close();
 ?>
