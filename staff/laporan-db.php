@@ -85,6 +85,10 @@
         }
         $stmt->close();
 
+        // Reset params for subsequent queries (QUERY 5 etc.)
+        $paramTypes = $types . 's';
+        $paramVals = array_merge($allTekIds, [$ym]);
+
         // ═══ BATCH QUERY 5: Bonus fix per teknisi ═══
         $bonusSum = [];
         $sql = "SELECT teknisi_id, SUM(bonus) as total 
