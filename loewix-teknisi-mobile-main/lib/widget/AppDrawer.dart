@@ -49,7 +49,7 @@ class _AppDrawerState extends State<AppDrawer> {
   }
 
   void _showLogoutConfirmation() {
-    Navigator.pop(context); // Close drawer first
+    // Don't pop drawer here — it invalidates context for QuickAlert
     QuickAlert.show(
       context: context,
       type: QuickAlertType.confirm,
@@ -60,7 +60,11 @@ class _AppDrawerState extends State<AppDrawer> {
       confirmBtnColor: _rose,
       onConfirmBtnTap: () async {
         Navigator.pop(context); // Close dialog
+        Navigator.pop(context); // Close drawer
         await _performLogout();
+      },
+      onCancelBtnTap: () {
+        Navigator.pop(context); // Close dialog only
       },
     );
   }
