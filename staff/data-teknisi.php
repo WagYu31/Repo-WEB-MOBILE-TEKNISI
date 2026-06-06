@@ -840,7 +840,7 @@ $pageNow = "Data Teknisi";
                     if (res.success) { alert('Password berhasil direset!'); $('#resetPwModal').modal('hide'); }
                     else { alert('Gagal: ' + res.message); }
                 },
-                error: function() { alert('Terjadi kesalahan koneksi.'); }
+                error: function(xhr, status, error) { alert('Error [' + xhr.status + ']: ' + (xhr.responseText || error || 'Tidak ada response')); }
             });
         });
     </script>
