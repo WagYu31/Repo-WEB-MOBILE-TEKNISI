@@ -539,7 +539,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildVersionFooter() {
     return Text(
-      'LOEWIX • v2.2.0',
+      'LOEWIX • v3.7.6',
       style: TextStyle(
         fontFamily: 'Poppins',
         fontSize: 11,
