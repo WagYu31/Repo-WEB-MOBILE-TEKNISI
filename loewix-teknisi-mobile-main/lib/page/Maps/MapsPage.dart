@@ -388,6 +388,8 @@ class GoogleMapSampleState extends State<GoogleMapSample>
           _isLoading = false;
           _currentAddress = "Layanan lokasi tidak aktif";
         });
+        Provider.of<MapsProvider>(context, listen: false)
+            .setError("Layanan lokasi tidak aktif");
         return;
       }
 
@@ -401,6 +403,8 @@ class GoogleMapSampleState extends State<GoogleMapSample>
             _isLoading = false;
             _currentAddress = "Izin lokasi ditolak";
           });
+          Provider.of<MapsProvider>(context, listen: false)
+              .setError("Izin lokasi ditolak");
           return;
         }
       }
@@ -410,6 +414,8 @@ class GoogleMapSampleState extends State<GoogleMapSample>
           _isLoading = false;
           _currentAddress = "Izin lokasi ditolak permanen";
         });
+        Provider.of<MapsProvider>(context, listen: false)
+            .setError("Izin lokasi ditolak permanen");
         return;
       }
 
@@ -430,6 +436,10 @@ class GoogleMapSampleState extends State<GoogleMapSample>
       _updateUserMarker();
       setState(() { _isLoading = false; });
 
+      // Set MapsProvider ready immediately after getting position
+      Provider.of<MapsProvider>(context, listen: false)
+          .setData("Lokasi ditemukan", false);
+
       if (_mapReady && mounted) {
         _animatedMove(_userLocation!, 16.0);
       }
@@ -441,6 +451,8 @@ class GoogleMapSampleState extends State<GoogleMapSample>
         _isLoading = false;
         _currentAddress = "Gagal mendapatkan lokasi";
       });
+      Provider.of<MapsProvider>(context, listen: false)
+          .setError("Gagal mendapatkan lokasi");
     }
   }
 
