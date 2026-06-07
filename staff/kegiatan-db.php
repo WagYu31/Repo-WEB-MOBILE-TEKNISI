@@ -59,7 +59,7 @@ function getStatusInfo($status)
     <div class="card h-100 py-3" style="border-top-left-radius:0;">
         <?php
         $current_date = date("Y-m-d");
-        $sql_today = "SELECT k.*, c.nama AS nama_customer, c.telp AS cust_nomor, c.alamat, c.id AS customer_id FROM kegiatan k LEFT JOIN customer c ON k.customer_id = c.id WHERE k.status NOT IN ('waiting', 'selesai by admin') AND DATE(k.jadwal) = ? AND k.deleted_at IS NULL ORDER BY k.jadwal ASC";
+        $sql_today = "SELECT k.*, c.nama AS nama_customer, c.telp AS cust_nomor, c.alamat, c.id AS customer_id, (SELECT cc.address FROM cust_coordinate cc WHERE cc.cust_id = c.id AND cc.lat = k.lat AND cc.lon = k.lon LIMIT 1) AS alamat_lokasi FROM kegiatan k LEFT JOIN customer c ON k.customer_id = c.id WHERE k.status NOT IN ('waiting', 'selesai by admin') AND DATE(k.jadwal) = ? AND k.deleted_at IS NULL ORDER BY k.jadwal ASC";
         $stmt_today = $conn->prepare($sql_today);
         $stmt_today->bind_param("s", $current_date);
         $stmt_today->execute();
@@ -133,14 +133,7 @@ function getStatusInfo($status)
                             </div>
                             <div class="col-md-4">
                             <div class="d-flex align-items-center">
-                                    <?php
-                                    $fullAddr = $data['alamat'] ?? '';
-                                    if (!empty($data['lat']) && !empty($data['lon'])) {
-                                        $geoAddr = getAddressFromCoordinates($data['lat'], $data['lon']);
-                                        if ($geoAddr) $fullAddr = $geoAddr;
-                                    }
-                                    ?>
-                                    <p class="text-xs text-dark mb-0 me-2"><?= htmlspecialchars($fullAddr); ?>
+                                    <p class="text-xs text-dark mb-0 me-2"><?= htmlspecialchars(!empty($data['alamat_lokasi']) ? $data['alamat_lokasi'] : ($data['alamat'] ?? '')); ?>
                                         <button class="btn btn-secondary text-light p-0 px-1 m-0 ms-2" onclick='openLocationModal(<?= json_encode($data) ?>)'><i class="material-icons" style="font-size:12px;">edit</i></button>
                                     </p>
                                 </div>
@@ -185,7 +178,7 @@ function getStatusInfo($status)
 <div class="col-lg-12 mt-n3 mb-4" id="loadMoreX2" style="display: block;">
     <div class="card h-100 py-3" style="border-top-left-radius:0;">
         <?php
-        $sql_upcoming = "SELECT k.*, c.nama AS nama_customer, c.telp AS cust_nomor, c.alamat, c.id AS customer_id FROM kegiatan k LEFT JOIN customer c ON k.customer_id = c.id WHERE k.status != 'waiting' AND DATE(k.jadwal) > ? AND k.deleted_at IS NULL ORDER BY k.jadwal ASC";
+        $sql_upcoming = "SELECT k.*, c.nama AS nama_customer, c.telp AS cust_nomor, c.alamat, c.id AS customer_id, (SELECT cc.address FROM cust_coordinate cc WHERE cc.cust_id = c.id AND cc.lat = k.lat AND cc.lon = k.lon LIMIT 1) AS alamat_lokasi FROM kegiatan k LEFT JOIN customer c ON k.customer_id = c.id WHERE k.status != 'waiting' AND DATE(k.jadwal) > ? AND k.deleted_at IS NULL ORDER BY k.jadwal ASC";
         $stmt_upcoming = $conn->prepare($sql_upcoming);
         $stmt_upcoming->bind_param("s", $current_date);
         $stmt_upcoming->execute();
@@ -250,14 +243,7 @@ function getStatusInfo($status)
                             </div>
                             <div class="col-md-4">
                                 <div class="d-flex align-items-center">
-                                    <?php
-                                    $fullAddr2 = $data['alamat'] ?? '';
-                                    if (!empty($data['lat']) && !empty($data['lon'])) {
-                                        $geoAddr2 = getAddressFromCoordinates($data['lat'], $data['lon']);
-                                        if ($geoAddr2) $fullAddr2 = $geoAddr2;
-                                    }
-                                    ?>
-                                    <p class="text-xs text-dark mb-0 me-2"><?= htmlspecialchars($fullAddr2); ?><button class="btn btn-secondary text-light p-0 px-1 m-0 ms-2" onclick='openLocationModal(<?= json_encode($data) ?>)'><i class="material-icons" style="font-size:12px;">edit</i></button></p>
+                                    <p class="text-xs text-dark mb-0 me-2"><?= htmlspecialchars(!empty($data['alamat_lokasi']) ? $data['alamat_lokasi'] : ($data['alamat'] ?? '')); ?><button class="btn btn-secondary text-light p-0 px-1 m-0 ms-2" onclick='openLocationModal(<?= json_encode($data) ?>)'><i class="material-icons" style="font-size:12px;">edit</i></button></p>
                                 </div>
                             </div>
                             <div class="col-md-1 text-center">
@@ -325,6 +311,7 @@ function getStatusInfo($status)
                             c.telp AS cust_nomor, 
                             c.alamat, 
                             c.id as customer_id,
+                            (SELECT cc.address FROM cust_coordinate cc WHERE cc.cust_id = c.id AND cc.lat = k.lat AND cc.lon = k.lon LIMIT 1) AS alamat_lokasi,
                             (SELECT COUNT(*) FROM kegiatan_reasons kr WHERE kr.kegiatan_id = k.id) as reason_count,
                             (SELECT MAX(created_at) FROM kegiatan_reasons kr WHERE kr.kegiatan_id = k.id) as latest_reason_date
                             FROM kegiatan k 
@@ -359,14 +346,7 @@ function getStatusInfo($status)
                                         <p class="text-xs text-secondary mb-0"><?= htmlspecialchars($row['cust_nomor']); ?></p>
                                     </td>
                                     <td>
-                                        <?php
-                                        $fullAddrW = $row['alamat'] ?? '';
-                                        if (!empty($row['lat']) && !empty($row['lon'])) {
-                                            $geoAddrW = getAddressFromCoordinates($row['lat'], $row['lon']);
-                                            if ($geoAddrW) $fullAddrW = $geoAddrW;
-                                        }
-                                        ?>
-                                        <p class="text-xs font-weight-bold mb-0 text-capitalize text-wrap"><?= htmlspecialchars($fullAddrW); ?> <button class="btn btn-secondary text-light p-0 px-1 m-0" onclick='openLocationModal(<?= json_encode($row) ?>)'><i class="material-icons" style="font-size:12px;">edit</i></button></p>
+                                        <p class="text-xs font-weight-bold mb-0 text-capitalize text-wrap"><?= htmlspecialchars(!empty($row['alamat_lokasi']) ? $row['alamat_lokasi'] : ($row['alamat'] ?? '')); ?> <button class="btn btn-secondary text-light p-0 px-1 m-0" onclick='openLocationModal(<?= json_encode($row) ?>)'><i class="material-icons" style="font-size:12px;">edit</i></button></p>
                                         <p class="text-xs text-secondary mb-0 fst-italic text-wrap">"<?= !empty($row["keterangan"]) ? htmlspecialchars($row["keterangan"]) : '-'; ?>"</p>
                                     </td>
                                     <td class="text-center">
