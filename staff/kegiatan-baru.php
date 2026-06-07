@@ -345,14 +345,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_kegiatan'])) {
                 document.getElementById('radius').value = r;
                 document.getElementById('radius_input').value = r;
 
-                fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latlng.lat}&lon=${latlng.lng}`)
+                fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${latlng.lat},${latlng.lng}&key=${GMAP_KEY}&language=id`)
                     .then(res => res.json())
                     .then(data => {
-                        if (data && data.display_name) {
-                            document.getElementById('location_address').value = data.display_name;
-                        } else {
-                            document.getElementById('location_address').value = '';
-                        }
+                        const addr = data.results?.[0]?.formatted_address || '';
+                        document.getElementById('location_address').value = addr;
                     })
                     .catch(() => {
                         document.getElementById('location_address').value = '';
@@ -384,9 +381,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_kegiatan'])) {
                 }
             });
 
+            const GMAP_KEY = 'AIzaSyDm07QPGP4-Zm76TqxShHFnNlbkhKmR5H4';
+
             document.getElementById('gmap_search_btn').addEventListener('click', () => {
                 const q = document.getElementById('gmap_search').value.trim();
                 if (!q) return;
+                const btn = document.getElementById('gmap_search_btn');
+                btn.disabled = true;
+                btn.innerHTML = '<i class="material-icons" style="font-size:16px;">hourglass_top</i>Mencari...';
+
                 // Detect coordinate input: "lat, lng" or "lat lng"
                 const coordMatch = q.match(/^(-?\d+\.?\d*)[,\s]+\s*(-?\d+\.?\d*)$/);
                 if (coordMatch) {
@@ -406,41 +409,40 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_kegiatan'])) {
                         document.getElementById('radius').value = r;
                         document.getElementById('radius_input').value = r;
                         saveLocationContainer.style.display = 'block';
-                        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+                        // Reverse geocode with Google
+                        fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${GMAP_KEY}&language=id`)
                             .then(res => res.json())
-                            .then(data => { document.getElementById('location_address').value = data?.display_name || ''; })
+                            .then(data => {
+                                const addr = data.results?.[0]?.formatted_address || '';
+                                document.getElementById('location_address').value = addr;
+                                if (addr) document.getElementById('gmap_search').value = addr;
+                            })
                             .catch(() => { document.getElementById('location_address').value = ''; });
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="material-icons" style="font-size:16px;">search</i>CARI';
                         return;
                     }
                 }
-                // Search by address text - try full query first, then shorter version
-                function searchAddress(query) {
-                    return fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1&countrycodes=id`)
-                        .then(res => res.json());
-                }
-                searchAddress(q).then(data => {
-                    if (data.length > 0) {
-                        saveLocationContainer.style.display = 'block';
-                        document.getElementById('gmap_search').value = data[0].display_name || q;
-                        updateAllData(L.latLng(data[0].lat, data[0].lon), document.getElementById('radius_input').value);
-                    } else {
-                        // Retry with shorter address (first 3-4 words)
-                        const shortQ = q.split(',').slice(0, 2).join(',').trim();
-                        if (shortQ !== q && shortQ.length > 5) {
-                            searchAddress(shortQ).then(data2 => {
-                                if (data2.length > 0) {
-                                    saveLocationContainer.style.display = 'block';
-                                    document.getElementById('gmap_search').value = data2[0].display_name || shortQ;
-                                    updateAllData(L.latLng(data2[0].lat, data2[0].lon), document.getElementById('radius_input').value);
-                                } else {
-                                    alert('Alamat tidak ditemukan. Coba masukkan alamat lebih singkat (contoh: "Jl. Tanjung Duren Raya, Jakarta Barat")');
-                                }
-                            });
+                // Search by address text using Google Geocoding API
+                fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(q)}&key=${GMAP_KEY}&language=id&region=id`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.status === 'OK' && data.results.length > 0) {
+                            const result = data.results[0];
+                            const lat = result.geometry.location.lat;
+                            const lng = result.geometry.location.lng;
+                            saveLocationContainer.style.display = 'block';
+                            document.getElementById('gmap_search').value = result.formatted_address;
+                            updateAllData(L.latLng(lat, lng), document.getElementById('radius_input').value);
                         } else {
-                            alert('Alamat tidak ditemukan. Coba masukkan alamat lebih singkat.');
+                            alert('Alamat tidak ditemukan. Coba masukkan alamat yang berbeda.');
                         }
-                    }
-                }).catch(() => alert('Gagal mencari alamat. Periksa koneksi internet.'));
+                    })
+                    .catch(() => alert('Gagal mencari alamat. Periksa koneksi internet.'))
+                    .finally(() => {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="material-icons" style="font-size:16px;">search</i>CARI';
+                    });
             });
 
             // Enter key support for search
