@@ -59,7 +59,7 @@ function getStatusInfo($status)
     <div class="card h-100 py-3" style="border-top-left-radius:0;">
         <?php
         $current_date = date("Y-m-d");
-        $sql_today = "SELECT k.*, c.nama AS nama_customer, c.telp AS cust_nomor, c.alamat, c.id AS customer_id, (SELECT cc.address FROM cust_coordinate cc WHERE cc.cust_id = c.id AND cc.lat = k.lat AND cc.lon = k.lon LIMIT 1) AS alamat_lokasi FROM kegiatan k LEFT JOIN customer c ON k.customer_id = c.id WHERE k.status NOT IN ('waiting', 'selesai by admin') AND DATE(k.jadwal) = ? AND k.deleted_at IS NULL ORDER BY k.jadwal ASC";
+        $sql_today = "SELECT k.*, c.nama AS nama_customer, c.telp AS cust_nomor, c.alamat, c.id AS customer_id, COALESCE(k.alamat_lokasi, (SELECT cc.address FROM cust_coordinate cc WHERE cc.cust_id = c.id AND cc.lat = k.lat AND cc.lon = k.lon LIMIT 1), c.alamat) AS alamat_lokasi FROM kegiatan k LEFT JOIN customer c ON k.customer_id = c.id WHERE k.status NOT IN ('waiting', 'selesai by admin') AND DATE(k.jadwal) = ? AND k.deleted_at IS NULL ORDER BY k.jadwal ASC";
         $stmt_today = $conn->prepare($sql_today);
         $stmt_today->bind_param("s", $current_date);
         $stmt_today->execute();
@@ -178,7 +178,7 @@ function getStatusInfo($status)
 <div class="col-lg-12 mt-n3 mb-4" id="loadMoreX2" style="display: block;">
     <div class="card h-100 py-3" style="border-top-left-radius:0;">
         <?php
-        $sql_upcoming = "SELECT k.*, c.nama AS nama_customer, c.telp AS cust_nomor, c.alamat, c.id AS customer_id, (SELECT cc.address FROM cust_coordinate cc WHERE cc.cust_id = c.id AND cc.lat = k.lat AND cc.lon = k.lon LIMIT 1) AS alamat_lokasi FROM kegiatan k LEFT JOIN customer c ON k.customer_id = c.id WHERE k.status != 'waiting' AND DATE(k.jadwal) > ? AND k.deleted_at IS NULL ORDER BY k.jadwal ASC";
+        $sql_upcoming = "SELECT k.*, c.nama AS nama_customer, c.telp AS cust_nomor, c.alamat, c.id AS customer_id, COALESCE(k.alamat_lokasi, (SELECT cc.address FROM cust_coordinate cc WHERE cc.cust_id = c.id AND cc.lat = k.lat AND cc.lon = k.lon LIMIT 1), c.alamat) AS alamat_lokasi FROM kegiatan k LEFT JOIN customer c ON k.customer_id = c.id WHERE k.status != 'waiting' AND DATE(k.jadwal) > ? AND k.deleted_at IS NULL ORDER BY k.jadwal ASC";
         $stmt_upcoming = $conn->prepare($sql_upcoming);
         $stmt_upcoming->bind_param("s", $current_date);
         $stmt_upcoming->execute();
@@ -311,7 +311,7 @@ function getStatusInfo($status)
                             c.telp AS cust_nomor, 
                             c.alamat, 
                             c.id as customer_id,
-                            (SELECT cc.address FROM cust_coordinate cc WHERE cc.cust_id = c.id AND cc.lat = k.lat AND cc.lon = k.lon LIMIT 1) AS alamat_lokasi,
+                            COALESCE(k.alamat_lokasi, (SELECT cc.address FROM cust_coordinate cc WHERE cc.cust_id = c.id AND cc.lat = k.lat AND cc.lon = k.lon LIMIT 1), c.alamat) AS alamat_lokasi,
                             (SELECT COUNT(*) FROM kegiatan_reasons kr WHERE kr.kegiatan_id = k.id) as reason_count,
                             (SELECT MAX(created_at) FROM kegiatan_reasons kr WHERE kr.kegiatan_id = k.id) as latest_reason_date
                             FROM kegiatan k 

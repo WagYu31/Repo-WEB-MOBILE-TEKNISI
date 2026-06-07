@@ -29,8 +29,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     try {
         // 1. Perbarui lokasi pada tabel kegiatan
-        $stmt_update = $conn->prepare("UPDATE kegiatan SET lat = ?, lon = ?, rad = ? WHERE id = ?");
-        $stmt_update->bind_param("ssii", $lat, $lon, $rad, $kegiatan_id);
+        $stmt_update = $conn->prepare("UPDATE kegiatan SET lat = ?, lon = ?, rad = ?, alamat_lokasi = ? WHERE id = ?");
+        $stmt_update->bind_param("ssisi", $lat, $lon, $rad, $address, $kegiatan_id);
         $stmt_update->execute();
         $stmt_update->close();
 
