@@ -132,8 +132,15 @@ function getStatusInfo($status)
                                 $stmtTeknisi->close(); ?>
                             </div>
                             <div class="col-md-4">
-                                <div class="d-flex align-items-center">
-                                    <p class="text-xs text-dark mb-0 me-2"><?= htmlspecialchars($data['alamat'] ?? ''); ?>
+                            <div class="d-flex align-items-center">
+                                    <?php
+                                    $fullAddr = $data['alamat'] ?? '';
+                                    if (!empty($data['lat']) && !empty($data['lon'])) {
+                                        $geoAddr = getAddressFromCoordinates($data['lat'], $data['lon']);
+                                        if ($geoAddr) $fullAddr = $geoAddr;
+                                    }
+                                    ?>
+                                    <p class="text-xs text-dark mb-0 me-2"><?= htmlspecialchars($fullAddr); ?>
                                         <button class="btn btn-secondary text-light p-0 px-1 m-0 ms-2" onclick='openLocationModal(<?= json_encode($data) ?>)'><i class="material-icons" style="font-size:12px;">edit</i></button>
                                     </p>
                                 </div>
@@ -243,7 +250,14 @@ function getStatusInfo($status)
                             </div>
                             <div class="col-md-4">
                                 <div class="d-flex align-items-center">
-                                    <p class="text-xs text-dark mb-0 me-2"><?= htmlspecialchars($data['alamat'] ?? ''); ?><button class="btn btn-secondary text-light p-0 px-1 m-0 ms-2" onclick='openLocationModal(<?= json_encode($data) ?>)'><i class="material-icons" style="font-size:12px;">edit</i></button></p>
+                                    <?php
+                                    $fullAddr2 = $data['alamat'] ?? '';
+                                    if (!empty($data['lat']) && !empty($data['lon'])) {
+                                        $geoAddr2 = getAddressFromCoordinates($data['lat'], $data['lon']);
+                                        if ($geoAddr2) $fullAddr2 = $geoAddr2;
+                                    }
+                                    ?>
+                                    <p class="text-xs text-dark mb-0 me-2"><?= htmlspecialchars($fullAddr2); ?><button class="btn btn-secondary text-light p-0 px-1 m-0 ms-2" onclick='openLocationModal(<?= json_encode($data) ?>)'><i class="material-icons" style="font-size:12px;">edit</i></button></p>
                                 </div>
                             </div>
                             <div class="col-md-1 text-center">
@@ -345,7 +359,14 @@ function getStatusInfo($status)
                                         <p class="text-xs text-secondary mb-0"><?= htmlspecialchars($row['cust_nomor']); ?></p>
                                     </td>
                                     <td>
-                                        <p class="text-xs font-weight-bold mb-0 text-capitalize text-wrap"><?= htmlspecialchars($row['alamat'] ?? ''); ?> <button class="btn btn-secondary text-light p-0 px-1 m-0" onclick='openLocationModal(<?= json_encode($row) ?>)'><i class="material-icons" style="font-size:12px;">edit</i></button></p>
+                                        <?php
+                                        $fullAddrW = $row['alamat'] ?? '';
+                                        if (!empty($row['lat']) && !empty($row['lon'])) {
+                                            $geoAddrW = getAddressFromCoordinates($row['lat'], $row['lon']);
+                                            if ($geoAddrW) $fullAddrW = $geoAddrW;
+                                        }
+                                        ?>
+                                        <p class="text-xs font-weight-bold mb-0 text-capitalize text-wrap"><?= htmlspecialchars($fullAddrW); ?> <button class="btn btn-secondary text-light p-0 px-1 m-0" onclick='openLocationModal(<?= json_encode($row) ?>)'><i class="material-icons" style="font-size:12px;">edit</i></button></p>
                                         <p class="text-xs text-secondary mb-0 fst-italic text-wrap">"<?= !empty($row["keterangan"]) ? htmlspecialchars($row["keterangan"]) : '-'; ?>"</p>
                                     </td>
                                     <td class="text-center">
