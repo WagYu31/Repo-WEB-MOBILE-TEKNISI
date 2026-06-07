@@ -36,6 +36,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_kegiatan'])) {
     if (mysqli_stmt_execute($stmt)) {
         echo '<script>window.location.href = "kegiatan-baru.php?status=sukses";</script>';
         exit();
+    } else {
+        echo '<script>window.location.href = "kegiatan-baru.php?status=gagal&pesan=' . urlencode(mysqli_error($conn)) . '";</script>';
+        exit();
     }
     mysqli_stmt_close($stmt);
 }
@@ -421,6 +424,55 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_kegiatan'])) {
                     });
             });
         });
+    </script>
+    <script>
+    // ─── Popup Notifikasi Sukses/Gagal ───
+    (function() {
+        const params = new URLSearchParams(window.location.search);
+        const status = params.get('status');
+        if (!status) return;
+
+        const isSuccess = status === 'sukses';
+        const overlay = document.createElement('div');
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.5);backdrop-filter:blur(4px);z-index:99999;display:flex;align-items:center;justify-content:center;animation:popFadeIn 0.3s ease';
+
+        const card = document.createElement('div');
+        card.style.cssText = 'background:#fff;border-radius:20px;padding:36px 32px;text-align:center;max-width:380px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.2);animation:popScaleIn 0.35s cubic-bezier(0.34,1.56,0.64,1)';
+
+        card.innerHTML = `
+            <div style="width:72px;height:72px;border-radius:50%;background:${isSuccess ? 'linear-gradient(135deg,#dcfce7,#bbf7d0)' : 'linear-gradient(135deg,#fef2f2,#fecaca)'};display:flex;align-items:center;justify-content:center;margin:0 auto 18px;">
+                <i class="material-icons" style="font-size:36px;color:${isSuccess ? '#16a34a' : '#dc2626'};">${isSuccess ? 'check_circle' : 'error'}</i>
+            </div>
+            <h5 style="margin:0 0 8px;font-size:20px;font-weight:700;color:#0f172a;">${isSuccess ? 'Berhasil! 🎉' : 'Gagal Submit'}</h5>
+            <p style="margin:0 0 24px;font-size:13px;color:#64748b;line-height:1.5;">${isSuccess ? 'Kegiatan baru berhasil ditambahkan.<br>Teknisi akan menerima notifikasi.' : 'Terjadi kesalahan saat menyimpan kegiatan.<br>' + (params.get('pesan') || 'Silakan coba lagi.')}</p>
+            <button id="popupOkBtn" style="width:100%;padding:13px;border:none;border-radius:12px;background:${isSuccess ? 'linear-gradient(135deg,#16a34a,#22c55e)' : 'linear-gradient(135deg,#dc2626,#ef4444)'};color:#fff;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px ${isSuccess ? 'rgba(22,163,74,0.3)' : 'rgba(220,38,38,0.3)'};transition:all 0.2s;">
+                ${isSuccess ? 'Tambah Kegiatan Lagi' : 'Coba Lagi'}
+            </button>
+        `;
+
+        overlay.appendChild(card);
+        document.body.appendChild(overlay);
+
+        // Add animation keyframes
+        if (!document.getElementById('popupAnimStyle')) {
+            const style = document.createElement('style');
+            style.id = 'popupAnimStyle';
+            style.textContent = '@keyframes popFadeIn{from{opacity:0}to{opacity:1}}@keyframes popScaleIn{from{opacity:0;transform:scale(0.85)}to{opacity:1;transform:scale(1)}}';
+            document.head.appendChild(style);
+        }
+
+        document.getElementById('popupOkBtn').addEventListener('click', function() {
+            overlay.style.animation = 'popFadeIn 0.2s ease reverse';
+            setTimeout(() => { overlay.remove(); window.history.replaceState({}, '', 'kegiatan-baru.php'); }, 200);
+        });
+
+        overlay.addEventListener('click', function(e) {
+            if (e.target === overlay) {
+                overlay.style.animation = 'popFadeIn 0.2s ease reverse';
+                setTimeout(() => { overlay.remove(); window.history.replaceState({}, '', 'kegiatan-baru.php'); }, 200);
+            }
+        });
+    })();
     </script>
 </body>
 </html>
