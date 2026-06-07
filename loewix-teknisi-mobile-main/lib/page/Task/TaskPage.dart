@@ -710,34 +710,35 @@ class _TaskPageState extends State<TaskPage> {
           );
         }
 
-        if (state.state == ResultState.error) {
-          return Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: warningColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: warningColor.withValues(alpha: 0.3)),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.location_off, color: warningColor, size: 24),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    state.message.isNotEmpty ? state.message : 'Lokasi tidak tersedia',
-                    style: TextStyle(fontFamily: 'Poppins', color: warningColor, fontWeight: FontWeight.w500, fontSize: 13),
-                  ),
-                ),
-              ],
-            ),
-          );
-        }
 
-        final isWithinRadius = _isWithinRadius();
+        final bool isLocationError = state.state == ResultState.error;
+
+        final isWithinRadius = isLocationError ? false : _isWithinRadius();
 
         return Column(
           children: [
-            if (!isWithinRadius) _buildRadiusWarning(),
+            if (isLocationError)
+              Container(
+                margin: const EdgeInsets.only(bottom: 16),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: warningColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: warningColor.withValues(alpha: 0.3)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.location_off, color: warningColor, size: 24),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        state.message.isNotEmpty ? state.message : 'Lokasi tidak tersedia',
+                        style: TextStyle(fontFamily: 'Poppins', color: warningColor, fontWeight: FontWeight.w500, fontSize: 13),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
