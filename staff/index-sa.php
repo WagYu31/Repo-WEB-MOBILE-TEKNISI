@@ -639,7 +639,7 @@ if (isset($_GET['export'])) {
                       </div>
                       <div class="col-md-3">
                         <p class="text-addr">
-                          <?= htmlspecialchars($data['alamat_lokasi'] ?? $data['alamat'] ?? ''); ?>
+                          <?= htmlspecialchars(!empty($data['alamat_lokasi']) ? $data['alamat_lokasi'] : ($data['alamat'] ?? '')); ?>
                           <button class="btn-act" style="width:22px;height:22px;display:inline-flex;vertical-align:middle;margin-left:4px;background:transparent;" onclick='openLocationModal(<?= json_encode($data) ?>)'><i class="material-icons" style="font-size:12px;color:#3b82f6;">edit_location</i></button>
                         </p>
                       </div>
@@ -790,7 +790,7 @@ if (isset($_GET['export'])) {
                       </div>
                       <div class="col-md-3">
                         <p class="text-addr">
-                          <?= htmlspecialchars($data['alamat_lokasi'] ?? $data['alamat'] ?? ''); ?>
+                          <?= htmlspecialchars(!empty($data['alamat_lokasi']) ? $data['alamat_lokasi'] : ($data['alamat'] ?? '')); ?>
                           <button class="btn-act" style="width:22px;height:22px;display:inline-flex;vertical-align:middle;margin-left:4px;background:transparent;" onclick='openLocationModal(<?= json_encode($data) ?>)'><i class="material-icons" style="font-size:12px;color:#3b82f6;">edit_location</i></button>
                         </p>
                       </div>
@@ -880,7 +880,7 @@ if (isset($_GET['export'])) {
                 if (strpos($kegL, 'survey') !== false) $tCSS = "background:#fef3c7;color:#92400e;";
                 elseif (strpos($kegL, 'service') !== false) $tCSS = "background:#e0e7ff;color:#3730a3;";
                 elseif (strpos($kegL, 'pasang') !== false) $tCSS = "background:#dcfce7;color:#166534;";
-                $fullAddr = $row['alamat_lokasi'] ?? $row['alamat'] ?? '';
+                $fullAddr = !empty($row['alamat_lokasi']) ? $row['alamat_lokasi'] : ($row['alamat'] ?? '');
                 // If stored address is short and lat/lon exist, get full address from coordinates
                 if (strlen($fullAddr) < 40 && !empty($row['lat']) && !empty($row['lon'])) {
                     $geoAddr = getAddressFromCoordinates($row['lat'], $row['lon']);
