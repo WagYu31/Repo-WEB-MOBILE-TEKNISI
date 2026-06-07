@@ -386,6 +386,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_kegiatan'])) {
 
             document.getElementById('gmap_search_btn').addEventListener('click', () => {
                 const q = document.getElementById('gmap_search').value.trim();
+                if (!q) return;
                 // Detect coordinate input: "lat, lng" or "lat lng"
                 const coordMatch = q.match(/^(-?\d+\.?\d*)[,\s]+\s*(-?\d+\.?\d*)$/);
                 if (coordMatch) {
@@ -398,7 +399,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_kegiatan'])) {
                         marker.setLatLng([lat, lng]);
                         circle.setLatLng([lat, lng]).setRadius(r);
                         map.setView([lat, lng], 16);
-                        // Use original string to preserve full precision
                         document.getElementById('lat').value = latStr;
                         document.getElementById('lon').value = lngStr;
                         document.getElementById('lat_display').value = latStr;
@@ -413,15 +413,39 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_kegiatan'])) {
                         return;
                     }
                 }
-                // Fallback: search by address text
-                fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=1`)
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.length > 0) {
-                            saveLocationContainer.style.display = 'block';
-                            updateAllData(L.latLng(data[0].lat, data[0].lon), document.getElementById('radius_input').value);
+                // Search by address text - try full query first, then shorter version
+                function searchAddress(query) {
+                    return fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1&countrycodes=id`)
+                        .then(res => res.json());
+                }
+                searchAddress(q).then(data => {
+                    if (data.length > 0) {
+                        saveLocationContainer.style.display = 'block';
+                        document.getElementById('gmap_search').value = data[0].display_name || q;
+                        updateAllData(L.latLng(data[0].lat, data[0].lon), document.getElementById('radius_input').value);
+                    } else {
+                        // Retry with shorter address (first 3-4 words)
+                        const shortQ = q.split(',').slice(0, 2).join(',').trim();
+                        if (shortQ !== q && shortQ.length > 5) {
+                            searchAddress(shortQ).then(data2 => {
+                                if (data2.length > 0) {
+                                    saveLocationContainer.style.display = 'block';
+                                    document.getElementById('gmap_search').value = data2[0].display_name || shortQ;
+                                    updateAllData(L.latLng(data2[0].lat, data2[0].lon), document.getElementById('radius_input').value);
+                                } else {
+                                    alert('Alamat tidak ditemukan. Coba masukkan alamat lebih singkat (contoh: "Jl. Tanjung Duren Raya, Jakarta Barat")');
+                                }
+                            });
+                        } else {
+                            alert('Alamat tidak ditemukan. Coba masukkan alamat lebih singkat.');
                         }
-                    });
+                    }
+                }).catch(() => alert('Gagal mencari alamat. Periksa koneksi internet.'));
+            });
+
+            // Enter key support for search
+            document.getElementById('gmap_search').addEventListener('keydown', e => {
+                if (e.key === 'Enter') { e.preventDefault(); document.getElementById('gmap_search_btn').click(); }
             });
         });
     </script>
