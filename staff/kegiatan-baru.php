@@ -333,6 +333,30 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_kegiatan'])) {
             let marker = L.marker([defaultLat, defaultLon], {draggable: true}).addTo(map);
             let circle = L.circle([defaultLat, defaultLon], {radius: defaultRad}).addTo(map);
 
+            // Clean Indonesian address for better Nominatim search
+            function cleanAddress(addr) {
+                return addr
+                    .replace(/RT\.?\s*\d+\s*\/?\s*RW\.?\s*\d+\s*,?/gi, '')
+                    .replace(/\b(Kec\.|Kecamatan|Kel\.|Kelurahan|Kota|Daerah Khusus|Ibukota)\b/gi, '')
+                    .replace(/\d{5}/g, '') // remove postal code
+                    .replace(/No\.?\s*\d+\w*/gi, '') // remove house numbers
+                    .replace(/,\s*,/g, ',')
+                    .replace(/\s+/g, ' ')
+                    .trim()
+                    .replace(/^,|,$/g, '')
+                    .trim();
+            }
+
+            function nominatimSearch(query) {
+                return fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1&countrycodes=id&accept-language=id`)
+                    .then(res => res.json());
+            }
+
+            function nominatimReverse(lat, lng) {
+                return fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=id`)
+                    .then(res => res.json());
+            }
+
             function updateAllData(latlng, rad) {
                 const r = parseInt(rad) || defaultRad;
                 marker.setLatLng(latlng);
@@ -345,11 +369,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_kegiatan'])) {
                 document.getElementById('radius').value = r;
                 document.getElementById('radius_input').value = r;
 
-                fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${latlng.lat},${latlng.lng}&key=${GMAP_KEY}&language=id`)
-                    .then(res => res.json())
+                nominatimReverse(latlng.lat, latlng.lng)
                     .then(data => {
-                        const addr = data.results?.[0]?.formatted_address || '';
-                        document.getElementById('location_address').value = addr;
+                        document.getElementById('location_address').value = data?.display_name || '';
                     })
                     .catch(() => {
                         document.getElementById('location_address').value = '';
@@ -381,68 +403,95 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_kegiatan'])) {
                 }
             });
 
-            const GMAP_KEY = 'AIzaSyDm07QPGP4-Zm76TqxShHFnNlbkhKmR5H4';
-
-            document.getElementById('gmap_search_btn').addEventListener('click', () => {
+            document.getElementById('gmap_search_btn').addEventListener('click', async () => {
                 const q = document.getElementById('gmap_search').value.trim();
                 if (!q) return;
                 const btn = document.getElementById('gmap_search_btn');
                 btn.disabled = true;
                 btn.innerHTML = '<i class="material-icons" style="font-size:16px;">hourglass_top</i>Mencari...';
 
-                // Detect coordinate input: "lat, lng" or "lat lng"
-                const coordMatch = q.match(/^(-?\d+\.?\d*)[,\s]+\s*(-?\d+\.?\d*)$/);
-                if (coordMatch) {
-                    const latStr = coordMatch[1];
-                    const lngStr = coordMatch[2];
-                    const lat = parseFloat(latStr);
-                    const lng = parseFloat(lngStr);
-                    if (!isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
-                        const r = parseInt(document.getElementById('radius_input').value) || defaultRad;
-                        marker.setLatLng([lat, lng]);
-                        circle.setLatLng([lat, lng]).setRadius(r);
-                        map.setView([lat, lng], 16);
-                        document.getElementById('lat').value = latStr;
-                        document.getElementById('lon').value = lngStr;
-                        document.getElementById('lat_display').value = latStr;
-                        document.getElementById('lon_display').value = lngStr;
-                        document.getElementById('radius').value = r;
-                        document.getElementById('radius_input').value = r;
+                try {
+                    // Detect coordinate input: "lat, lng" or "lat lng"
+                    const coordMatch = q.match(/^(-?\d+\.?\d*)[,\s]+\s*(-?\d+\.?\d*)$/);
+                    if (coordMatch) {
+                        const latStr = coordMatch[1], lngStr = coordMatch[2];
+                        const lat = parseFloat(latStr), lng = parseFloat(lngStr);
+                        if (!isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+                            const r = parseInt(document.getElementById('radius_input').value) || defaultRad;
+                            marker.setLatLng([lat, lng]);
+                            circle.setLatLng([lat, lng]).setRadius(r);
+                            map.setView([lat, lng], 16);
+                            document.getElementById('lat').value = latStr;
+                            document.getElementById('lon').value = lngStr;
+                            document.getElementById('lat_display').value = latStr;
+                            document.getElementById('lon_display').value = lngStr;
+                            document.getElementById('radius').value = r;
+                            document.getElementById('radius_input').value = r;
+                            saveLocationContainer.style.display = 'block';
+                            nominatimReverse(lat, lng)
+                                .then(data => {
+                                    const addr = data?.display_name || '';
+                                    document.getElementById('location_address').value = addr;
+                                    if (addr) document.getElementById('gmap_search').value = addr;
+                                })
+                                .catch(() => { document.getElementById('location_address').value = ''; });
+                            return;
+                        }
+                    }
+
+                    // Strategy 1: Search original text
+                    let data = await nominatimSearch(q);
+                    if (data.length > 0) {
                         saveLocationContainer.style.display = 'block';
-                        // Reverse geocode with Google
-                        fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${GMAP_KEY}&language=id`)
-                            .then(res => res.json())
-                            .then(data => {
-                                const addr = data.results?.[0]?.formatted_address || '';
-                                document.getElementById('location_address').value = addr;
-                                if (addr) document.getElementById('gmap_search').value = addr;
-                            })
-                            .catch(() => { document.getElementById('location_address').value = ''; });
-                        btn.disabled = false;
-                        btn.innerHTML = '<i class="material-icons" style="font-size:16px;">search</i>CARI';
+                        document.getElementById('gmap_search').value = data[0].display_name;
+                        updateAllData(L.latLng(parseFloat(data[0].lat), parseFloat(data[0].lon)), document.getElementById('radius_input').value);
                         return;
                     }
-                }
-                // Search by address text using Google Geocoding API
-                fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(q)}&key=${GMAP_KEY}&language=id&region=id`)
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.status === 'OK' && data.results.length > 0) {
-                            const result = data.results[0];
-                            const lat = result.geometry.location.lat;
-                            const lng = result.geometry.location.lng;
+
+                    // Strategy 2: Search cleaned address (remove RT/RW/Kec etc)
+                    const cleaned = cleanAddress(q);
+                    if (cleaned && cleaned !== q) {
+                        data = await nominatimSearch(cleaned);
+                        if (data.length > 0) {
                             saveLocationContainer.style.display = 'block';
-                            document.getElementById('gmap_search').value = result.formatted_address;
-                            updateAllData(L.latLng(lat, lng), document.getElementById('radius_input').value);
-                        } else {
-                            alert('Alamat tidak ditemukan. Coba masukkan alamat yang berbeda.');
+                            document.getElementById('gmap_search').value = data[0].display_name;
+                            updateAllData(L.latLng(parseFloat(data[0].lat), parseFloat(data[0].lon)), document.getElementById('radius_input').value);
+                            return;
                         }
-                    })
-                    .catch(() => alert('Gagal mencari alamat. Periksa koneksi internet.'))
-                    .finally(() => {
-                        btn.disabled = false;
-                        btn.innerHTML = '<i class="material-icons" style="font-size:16px;">search</i>CARI';
-                    });
+                    }
+
+                    // Strategy 3: Try just street name + city
+                    const parts = q.split(',').map(p => p.trim()).filter(p => p.length > 2);
+                    if (parts.length >= 2) {
+                        const shortQ = parts[0] + ', ' + parts[parts.length - 2];
+                        data = await nominatimSearch(shortQ);
+                        if (data.length > 0) {
+                            saveLocationContainer.style.display = 'block';
+                            document.getElementById('gmap_search').value = data[0].display_name;
+                            updateAllData(L.latLng(parseFloat(data[0].lat), parseFloat(data[0].lon)), document.getElementById('radius_input').value);
+                            return;
+                        }
+                    }
+
+                    // Strategy 4: Try just the first part (street name)
+                    if (parts.length >= 1) {
+                        data = await nominatimSearch(parts[0] + ' Jakarta');
+                        if (data.length > 0) {
+                            saveLocationContainer.style.display = 'block';
+                            document.getElementById('gmap_search').value = data[0].display_name;
+                            updateAllData(L.latLng(parseFloat(data[0].lat), parseFloat(data[0].lon)), document.getElementById('radius_input').value);
+                            return;
+                        }
+                    }
+
+                    alert('Alamat tidak ditemukan. Coba ketik nama jalan saja (contoh: "Jl Tanjung Duren Raya Jakarta")');
+
+                } catch(e) {
+                    alert('Gagal mencari alamat. Periksa koneksi internet.');
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="material-icons" style="font-size:16px;">search</i>CARI';
+                }
             });
 
             // Enter key support for search
