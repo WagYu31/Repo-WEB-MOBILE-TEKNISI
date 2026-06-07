@@ -639,7 +639,7 @@ if (isset($_GET['export'])) {
                       </div>
                       <div class="col-md-3">
                         <p class="text-addr">
-                          <?= htmlspecialchars($data['alamat'] ?? ''); ?>
+                          <?= htmlspecialchars($data['alamat_lokasi'] ?? $data['alamat'] ?? ''); ?>
                           <button class="btn-act" style="width:22px;height:22px;display:inline-flex;vertical-align:middle;margin-left:4px;background:transparent;" onclick='openLocationModal(<?= json_encode($data) ?>)'><i class="material-icons" style="font-size:12px;color:#3b82f6;">edit_location</i></button>
                         </p>
                       </div>
@@ -790,7 +790,7 @@ if (isset($_GET['export'])) {
                       </div>
                       <div class="col-md-3">
                         <p class="text-addr">
-                          <?= htmlspecialchars($data['alamat'] ?? ''); ?>
+                          <?= htmlspecialchars($data['alamat_lokasi'] ?? $data['alamat'] ?? ''); ?>
                           <button class="btn-act" style="width:22px;height:22px;display:inline-flex;vertical-align:middle;margin-left:4px;background:transparent;" onclick='openLocationModal(<?= json_encode($data) ?>)'><i class="material-icons" style="font-size:12px;color:#3b82f6;">edit_location</i></button>
                         </p>
                       </div>
@@ -880,7 +880,7 @@ if (isset($_GET['export'])) {
                 if (strpos($kegL, 'survey') !== false) $tCSS = "background:#fef3c7;color:#92400e;";
                 elseif (strpos($kegL, 'service') !== false) $tCSS = "background:#e0e7ff;color:#3730a3;";
                 elseif (strpos($kegL, 'pasang') !== false) $tCSS = "background:#dcfce7;color:#166534;";
-                $fullAddr = $row['alamat'] ?? '';
+                $fullAddr = $row['alamat_lokasi'] ?? $row['alamat'] ?? '';
                 // If stored address is short and lat/lon exist, get full address from coordinates
                 if (strlen($fullAddr) < 40 && !empty($row['lat']) && !empty($row['lon'])) {
                     $geoAddr = getAddressFromCoordinates($row['lat'], $row['lon']);
@@ -1088,6 +1088,27 @@ if (isset($_GET['export'])) {
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="assets/js/material-dashboard.min.js?v=3.1.0"></script>
 
+  <style>
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    .toast-notif { position:fixed;top:24px;right:24px;z-index:99999;padding:14px 24px;border-radius:12px;font-size:14px;font-weight:600;color:#fff;box-shadow:0 8px 32px rgba(0,0,0,0.18);transform:translateX(120%);transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1);display:flex;align-items:center;gap:8px; }
+    .toast-notif.show { transform:translateX(0); }
+    .toast-notif.success { background:linear-gradient(135deg,#10b981,#059669); }
+    .toast-notif.error { background:linear-gradient(135deg,#ef4444,#dc2626); }
+  </style>
+
+  <script>
+    function showToast(msg, type) {
+      const existing = document.querySelector('.toast-notif');
+      if (existing) existing.remove();
+      const t = document.createElement('div');
+      t.className = 'toast-notif ' + (type || 'success');
+      t.innerHTML = '<i class="material-icons" style="font-size:18px;">' + (type === 'error' ? 'error' : 'check_circle') + '</i> ' + msg;
+      document.body.appendChild(t);
+      requestAnimationFrame(() => { requestAnimationFrame(() => { t.classList.add('show'); }); });
+      setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 500); }, 3000);
+    }
+  </script>
+
   <script>
     let map, marker, radiusCircle;
     const latInput = $('#latitude')[0], lonInput = $('#longitude')[0], radInput = $('#radius')[0], addressInput = $('#address')[0];
@@ -1202,14 +1223,38 @@ if (isset($_GET['export'])) {
     $('#tanggal').change(checkJadwal);
 
     $('#submitJadwalkan').click(function() {
+      const btn = $(this);
       const id = $('#jadwalkanForm').data('id'), tgl = $('#tanggal').val(), jam = $('#jam').val(), tek = $(".teknisi-checkbox:checked").map(function(){return this.value;}).get();
       if(!tgl || !jam || tek.length == 0) return alert("Lengkapi data");
       // Validasi ketua
       let ketuaId = $('input[name="ketua_id"]:checked').val();
       if (tek.length === 1) { ketuaId = tek[0]; }
       if (!ketuaId) return alert("Pilih satu teknisi sebagai Ketua Tim!");
+      
+      // Disable button & show loading
+      btn.prop('disabled', true).html('<i class="material-icons" style="font-size:14px;vertical-align:middle;animation:spin 1s linear infinite;">sync</i> Memproses...');
+      
       $.post("proses_jadwalkan.php", {kegiatanId: id, teknisi: tek, tanggal: tgl, jam: jam, ketua_id: ketuaId}, r => {
-        if(r == "success") { $.post("wa-msg.php", {teknisi: tek, kegiatanId: id, tanggal: tgl, jam: jam}, () => { location.reload(); }); }
+        if(r == "success") {
+          // Show success toast
+          btn.html('<i class="material-icons" style="font-size:14px;vertical-align:middle;">check_circle</i> Berhasil!').css({background:'linear-gradient(135deg,#10b981,#059669)'});
+          // Close modal after brief delay
+          setTimeout(() => { bootstrap.Modal.getInstance($('#jadwalkanModal')[0])?.hide(); }, 500);
+          // Send WA notification then reload
+          $.post("wa-msg.php", {teknisi: tek, kegiatanId: id, tanggal: tgl, jam: jam}, () => {
+            showToast('Kegiatan berhasil dijadwalkan! ✅', 'success');
+            setTimeout(() => { location.reload(); }, 1200);
+          }).fail(() => {
+            showToast('Kegiatan dijadwalkan! (WA gagal dikirim)', 'success');
+            setTimeout(() => { location.reload(); }, 1200);
+          });
+        } else {
+          btn.prop('disabled', false).html('Jadwalkan').css({background:'linear-gradient(135deg,#6366f1,#4f46e5)'});
+          alert("Gagal menjadwalkan kegiatan: " + (r || "Error tidak diketahui"));
+        }
+      }).fail(() => {
+        btn.prop('disabled', false).html('Jadwalkan').css({background:'linear-gradient(135deg,#6366f1,#4f46e5)'});
+        alert("Gagal menghubungi server. Coba lagi.");
       });
     });
 
