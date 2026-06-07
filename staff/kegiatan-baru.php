@@ -7,7 +7,7 @@ include "get-user-data.php";
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_kegiatan'])) {
     $customer_id = $_POST['nama_cust'];
     $kegiatan = $_POST['kegiatan'];
-    $jadwal = $_POST['tanggal'];
+    $jadwal = !empty($_POST['tanggal']) ? $_POST['tanggal'] : NULL;
     $keterangan = $_POST['keterangan'];
     $kegiatan_relasi = !empty($_POST['kegiatan_relasi']) ? $_POST['kegiatan_relasi'] : NULL;
     $lat = !empty($_POST['lat']) ? $_POST['lat'] : NULL;
