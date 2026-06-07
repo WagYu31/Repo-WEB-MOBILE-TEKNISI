@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $save_location = $_POST['save_location'] ?? null;
     $location_alias = $_POST['location_alias'] ?? null;
     $customer_id = $_POST['customer_id'] ?? null;
-    $address = $_POST['address'] ?? null;
+    $address = !empty($_POST['address']) ? $_POST['address'] : null;
 
     if (empty($kegiatan_id)) {
         $response['message'] = 'ID Kegiatan tidak boleh kosong.';

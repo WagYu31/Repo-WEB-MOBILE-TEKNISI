@@ -1121,11 +1121,19 @@ if (isset($_GET['export'])) {
       }
     }
 
-    function handleNewLocation(latlng) {
+    function handleNewLocation(latlng, displayName) {
       latInput.value = latlng.lat.toFixed(6);
       lonInput.value = latlng.lng.toFixed(6);
       $('#saveLocationContainer').show();
       updateMarkerAndCircle();
+      // Auto-fill address via reverse geocode if not provided
+      if (displayName) {
+        addressInput.value = displayName;
+      } else {
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latlng.lat}&lon=${latlng.lng}`)
+          .then(r => r.json()).then(d => { if(d.display_name) addressInput.value = d.display_name; })
+          .catch(() => {});
+      }
     }
 
     function updateMarkerAndCircle() {
@@ -1146,13 +1154,14 @@ if (isset($_GET['export'])) {
       latInput.value = data.lat || '';
       lonInput.value = data.lon || '';
       radInput.value = data.rad || '';
+      addressInput.value = data.alamat_lokasi || data.alamat || '';
       $('#saveLocationContainer').hide();
       fetch(`get_cust_coords.php?customer_id=${data.customer_id}`).then(res => res.json()).then(locs => {
         $('#savedLocationsList').empty();
         if(locs.length > 0) {
           locs.forEach(l => {
             const item = $(`<a href="#" class="list-group-item list-group-item-action"><strong>${l.alias}</strong><br><small>${l.address}</small></a>`);
-            item.click(e => { e.preventDefault(); latInput.value = l.lat; lonInput.value = l.lon; radInput.value = l.rad; updateMarkerAndCircle(); });
+            item.click(e => { e.preventDefault(); latInput.value = l.lat; lonInput.value = l.lon; radInput.value = l.rad; addressInput.value = l.address || ''; updateMarkerAndCircle(); });
             $('#savedLocationsList').append(item);
           });
           $('#savedLocationsContainer').show();
@@ -1166,7 +1175,7 @@ if (isset($_GET['export'])) {
     $('#addressSearchBtn').click(() => {
       const q = $('#addressSearch').val();
       if(q) fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=1`).then(res => res.json()).then(d => {
-        if(d.length > 0) handleNewLocation(L.latLng(parseFloat(d[0].lat), parseFloat(d[0].lon)));
+        if(d.length > 0) handleNewLocation(L.latLng(parseFloat(d[0].lat), parseFloat(d[0].lon)), d[0].display_name);
       });
     });
 
