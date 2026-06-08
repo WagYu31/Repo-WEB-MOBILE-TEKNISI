@@ -47,6 +47,8 @@ class _DashboardPageState extends State<DashboardPage> {
   String? _teknisiId;
   int? _cachedTeknisiIdParsed;
   bool _isRefreshing = false;
+  List<DataTask> _orderedTasks = [];
+  List<int> _lastDataIds = [];
 
   @override
   void initState() {
@@ -131,18 +133,42 @@ class _DashboardPageState extends State<DashboardPage> {
 
                       // Cek apakah teknisi ini ditugaskan ke task ini (via dataTeknisi / team_kegiatan)
                       final isAssigned = task.dataTeknisi.any((t) => t.teknisiId == teknisiIdParsed);
-                      if (!isAssigned) return <DataTask>[]; // Bukan tugasnya, sembunyikan
+                      // Fallback: jika ada pelaksanaan milik teknisi ini, berarti pasti ditugaskan
+                      final hasPelaksanaan = task.pelaksanaan.any((p) => p.teknisiId == teknisiIdParsed);
+                      if (!isAssigned && !hasPelaksanaan) return <DataTask>[]; // Bukan tugasnya
 
                       // Teknisi ditugaskan. Cek pelaksanaan:
                       if (task.pelaksanaan.isEmpty) {
                         return [task]; // Belum ada pelaksanaan tapi ditugaskan, tampilkan
                       }
 
-                      // Ada pelaksanaan, filter hanya yang milik teknisi ini dan belum selesai
-                      final myActivePelaksanaan = task.pelaksanaan
-                          .where((data) => data.teknisiId == teknisiIdParsed &&
-                                           data.status != 'selesai' &&
-                                           data.status != 'Lanjut Nanti');
+                      // Ada pelaksanaan, cek milik teknisi ini
+                      final myPelaksanaan = task.pelaksanaan
+                          .where((data) => data.teknisiId == teknisiIdParsed);
+
+                      // Jika teknisi ini belum punya pelaksanaan sama sekali (belum clock in),
+                      // tetap tampilkan task karena dia ditugaskan
+                      if (myPelaksanaan.isEmpty) return [task];
+
+                      // Jika sudah punya pelaksanaan, filter yang masih aktif
+                      // Untuk Ketua: tetap tampilkan 'selesai' yang belum upload laporan
+                      // Untuk Anggota: selesai = hilang (anggota tidak perlu upload laporan)
+                      final myTeknisiData = task.dataTeknisi.where((t) => t.teknisiId == teknisiIdParsed);
+                      final bool isKetua = task.dataTeknisi.length == 1 || 
+                          (myTeknisiData.isNotEmpty && myTeknisiData.first.isKetua == 1);
+
+                      final myActivePelaksanaan = myPelaksanaan
+                          .where((data) {
+                            if (data.status != 'selesai' && data.status != 'Lanjut Nanti') return true;
+                            // Hanya Ketua yang perlu upload laporan
+                            if (data.status == 'selesai' && isKetua) {
+                              final hasReport = (data.permasalahan != null && 
+                                  data.permasalahan.toString().trim().isNotEmpty) ||
+                                  data.image1 != null;
+                              return !hasReport; // Tampilkan jika laporan kosong
+                            }
+                            return false;
+                          });
 
                       return myActivePelaksanaan.isNotEmpty ? [task] : <DataTask>[];
                     }).toList();
@@ -151,7 +177,14 @@ class _DashboardPageState extends State<DashboardPage> {
                       return _buildEmptyState('Belum ada tugas untuk kamu');
                     }
 
-                    return _buildTaskList(filteredData);
+                    // Sync reorder state with fresh data
+                    final newIds = filteredData.map((t) => t.id).toList();
+                    if (!_listEquals(newIds, _lastDataIds)) {
+                      _lastDataIds = newIds;
+                      _orderedTasks = List<DataTask>.from(filteredData);
+                    }
+
+                    return _buildTaskList(_orderedTasks);
                   } else {
                     return _buildErrorState(state.message);
                   }
@@ -201,7 +234,24 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  Widget _buildTaskList(List<dynamic> filteredData) {
+  bool _listEquals(List<int> a, List<int> b) {
+    if (a.length != b.length) return false;
+    for (int i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
+  }
+
+  void _onReorder(int oldIndex, int newIndex) {
+    setState(() {
+      if (oldIndex < newIndex) newIndex -= 1;
+      final item = _orderedTasks.removeAt(oldIndex);
+      _orderedTasks.insert(newIndex, item);
+      _lastDataIds = _orderedTasks.map((t) => t.id).toList();
+    });
+  }
+
+  Widget _buildTaskList(List<DataTask> filteredData) {
     return RefreshIndicator(
       onRefresh: _onRefresh,
       color: Colors.white,
@@ -261,13 +311,15 @@ class _DashboardPageState extends State<DashboardPage> {
               ),
             ),
           ),
-          // Task list with RepaintBoundary
+          // Reorderable task list
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
-            sliver: SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  return RepaintBoundary(
+            sliver: SliverReorderableList(
+              itemBuilder: (context, index) {
+                return ReorderableDelayedDragStartListener(
+                  key: ValueKey(filteredData[index].id),
+                  index: index,
+                  child: RepaintBoundary(
                     child: Padding(
                       padding: const EdgeInsets.only(bottom: 12),
                       child: CardTask(
@@ -275,11 +327,11 @@ class _DashboardPageState extends State<DashboardPage> {
                         history: false,
                       ),
                     ),
-                  );
-                },
-                childCount: filteredData.length,
-                addAutomaticKeepAlives: true,
-              ),
+                  ),
+                );
+              },
+              itemCount: filteredData.length,
+              onReorder: _onReorder,
             ),
           ),
         ],

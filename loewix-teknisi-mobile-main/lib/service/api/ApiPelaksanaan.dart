@@ -161,12 +161,11 @@ class ApiPelaksanaan {
     // List<int>? recordFileBytes, // ← Tambahkan parameter audio
     String? ketGaransi,
   ) async {
-    String url = '$_baseUrl/pelaksanaanselesai';
-    final uri = Uri.parse(url);
-
-    // === BASE64 JSON UPLOAD (bypass Cloudflare Bot Fight Mode) ===
-    // Cloudflare blokir multipart POST dari Dart TLS fingerprint,
-    // tapi JSON POST bisa lolos. Server sudah di-patch untuk decode base64.
+    // === BASE64 JSON → PROXY → MULTIPART (fix multi-image upload) ===
+    // Proxy converts base64 JSON to multipart, which Laravel handles correctly
+    // for ALL images. Direct base64 to API only saved 1 image.
+    String proxyUrl = 'https://jadwal.id-giti.com/staff/upload_proxy.php';
+    final uri = Uri.parse(proxyUrl);
 
     // Encode images ke base64
     final List<String> imageFieldNames = ['image_satu', 'image_dua', 'image_tiga', 'image_empat', 'image_lima'];
@@ -183,7 +182,7 @@ class ApiPelaksanaan {
       jsonBody[imageFieldNames[i]] = base64Encode(imagesBytes[i]);
     }
 
-    print('DEBUG URL: $url');
+    print('DEBUG URL: $proxyUrl (proxy → multipart)');
     print('DEBUG Fields: kegiatan=$kegiatanId, teknisi=$teknisiId');
     print('DEBUG Images: ${imagesBytes.length} foto, sizes=${imagesBytes.map((b) => '${(b.length/1024).toStringAsFixed(0)}KB').toList()}');
 
@@ -192,7 +191,6 @@ class ApiPelaksanaan {
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-        'X-Base64-Upload': 'true',
       },
       body: json.encode(jsonBody),
     );

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../service/api/ApiLink.dart';
 import '../../service/model/task/TaskAllResponse.dart';
 import '../../service/provider/preferences/PreferencesIDProvider.dart';
+import '../Task/ReportDonePage.dart';
 
 class HistoryDetailPage extends StatelessWidget {
   static const routeName = '/history_detail';
@@ -31,6 +32,12 @@ class HistoryDetailPage extends StatelessWidget {
     final myPelaksanaan = data.pelaksanaan
         .where((p) => p.teknisiId == teknisiId)
         .toList();
+
+    // Cek apakah laporan belum diisi
+    final bool isReportEmpty = myPelaksanaan.isNotEmpty &&
+        (myPelaksanaan.first.permasalahan == null ||
+         myPelaksanaan.first.permasalahan.toString().isEmpty) &&
+        !_hasImages(myPelaksanaan.first);
 
     return Scaffold(
       backgroundColor: _bgColor,
@@ -297,7 +304,7 @@ class HistoryDetailPage extends StatelessWidget {
                 // Time info
                 _buildTimeRow(
                   'Mulai',
-                  _formatDateTime(p.waktuMulai),
+                  p.waktuMulai != null ? _formatDateTime(p.waktuMulai!) : 'Belum mulai',
                   Icons.play_circle_outline,
                   _successGreen,
                 ),
@@ -671,6 +678,60 @@ class HistoryDetailPage extends StatelessWidget {
       default:
         return status;
     }
+  }
+
+  Widget _buildLengkapiLaporanButton(BuildContext context, int? teknisiId) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF2563EB), Color(0xFF3B82F6)],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF2563EB).withValues(alpha: 0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ReportDonePage(
+                  data: [teknisiId ?? 0, data.id],
+                ),
+              ),
+            );
+          },
+          child: const Padding(
+            padding: EdgeInsets.symmetric(vertical: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.edit_document, color: Colors.white, size: 22),
+                SizedBox(width: 10),
+                Text(
+                  'Lengkapi Laporan',
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   String _formatDateTime(DateTime dateTime) {

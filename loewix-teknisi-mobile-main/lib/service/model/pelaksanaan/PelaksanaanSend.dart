@@ -59,8 +59,8 @@ class Data {
 
     factory Data.fromJson(Map<String, dynamic> json) => Data(
         id: json["id"],
-        kegiatanId: json["kegiatan_id"],
-        teknisiId: json["teknisi_id"],
+        kegiatanId: json["kegiatan_id"].toString(),
+        teknisiId: json["teknisi_id"].toString(),
         waktuMulai: json["waktu_mulai"],
         waktuSelesai: json["waktu_selesai"],
         status: json["status"],

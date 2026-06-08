@@ -37,6 +37,7 @@ class _TaskPageState extends State<TaskPage> {
   late String id;
   late int _idTeknisi;
   bool start = false;
+  bool _needsReport = false;
   late bool _isKetua;
   late bool _isSoloTeknisi;
 
@@ -67,6 +68,9 @@ class _TaskPageState extends State<TaskPage> {
       (e) => e.teknisiId == _idTeknisi && e.status == 'berjalan',
     );
 
+    // Cek apakah tugas selesai tapi belum upload laporan
+    _computeNeedsReport();
+
     // Determine ketua status
     _isSoloTeknisi = data.dataTeknisi.length == 1;
     final myTeknisiData = data.dataTeknisi.where((t) => t.teknisiId == _idTeknisi);
@@ -74,6 +78,35 @@ class _TaskPageState extends State<TaskPage> {
 
     // Pre-compute status values
     _computeStatusValues();
+
+    // Auto-refresh from API to get latest pelaksanaan data
+    WidgetsBinding.instance.addPostFrameCallback((_) => _refreshFromApi());
+  }
+
+  Future<void> _refreshFromApi() async {
+    try {
+      final provider = Provider.of<DetailTaskGetProvider>(context, listen: false);
+      final result = await provider.getTask(id);
+      if (result is TaskAllResponse && mounted) {
+        // Find the same task by ID in the fresh response
+        final freshTask = result.data.where((t) => t.id == data.id);
+        if (freshTask.isNotEmpty) {
+          setState(() {
+            data = freshTask.first;
+            start = data.pelaksanaan.any(
+              (e) => e.teknisiId == _idTeknisi && e.status == 'berjalan',
+            );
+            _computeNeedsReport();
+            _isSoloTeknisi = data.dataTeknisi.length == 1;
+            final myTeknisiData = data.dataTeknisi.where((t) => t.teknisiId == _idTeknisi);
+            _isKetua = _isSoloTeknisi || (myTeknisiData.isNotEmpty && myTeknisiData.first.isKetua == 1);
+            _computeStatusValues();
+          });
+        }
+      }
+    } catch (_) {
+      // Fallback: use the data passed from CardTask
+    }
   }
 
   void _computeStatusValues() {
@@ -85,7 +118,11 @@ class _TaskPageState extends State<TaskPage> {
     final selisih = now.difference(data.jadwal).inDays;
 
     // Compute status text
-    if (status == 'selesai') {
+    if (_needsReport) {
+      _cachedStatus = 'Perlu Laporan';
+      _cachedStatusColor = warningColor;
+      _cachedStatusIcon = Icons.edit_document;
+    } else if (status == 'selesai') {
       _cachedStatus = 'Selesai';
       _cachedStatusColor = successColor;
       _cachedStatusIcon = Icons.check_circle;
@@ -118,6 +155,69 @@ class _TaskPageState extends State<TaskPage> {
       _cachedStatusColor = warningColor;
       _cachedStatusIcon = Icons.schedule;
     }
+  }
+
+  void _computeNeedsReport() {
+    final myPel = data.pelaksanaan.where(
+      (e) => e.teknisiId == _idTeknisi && e.status == 'selesai',
+    );
+    if (myPel.isNotEmpty && _isKetua) {
+      // Hanya Ketua yang perlu upload laporan
+      final pel = myPel.first;
+      _needsReport = (pel.permasalahan == null ||
+          pel.permasalahan.toString().trim().isEmpty) &&
+          pel.image1 == null;
+    } else {
+      _needsReport = false;
+    }
+  }
+
+  Widget _buildLengkapiLaporanButton() {
+    // Kumpulkan ID anggota (selain Ketua sendiri) untuk sync laporan
+    final anggotaIds = data.dataTeknisi
+        .where((t) => t.teknisiId != _idTeknisi)
+        .map((t) => t.teknisiId)
+        .toList();
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () {
+          Navigator.pushNamed(
+            context,
+            ReportDonePage.routeName,
+            arguments: [_idTeknisi, data.id, anggotaIds],
+          );
+        },
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF2563EB), Color(0xFF3B82F6)],
+            ),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: const Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.edit_document, color: Colors.white, size: 22),
+              SizedBox(width: 10),
+              Text(
+                'Lengkapi Laporan',
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -744,7 +844,7 @@ class _TaskPageState extends State<TaskPage> {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: (start ? successColor : primaryColor).withValues(alpha:
+                    color: (_needsReport ? const Color(0xFF2563EB) : start ? successColor : primaryColor).withValues(alpha:
                       0.3,
                     ),
                     blurRadius: 12,
@@ -752,40 +852,21 @@ class _TaskPageState extends State<TaskPage> {
                   ),
                 ],
               ),
-              child: start && !_isKetua
-                ? Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: secondaryColor.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: secondaryColor.withValues(alpha: 0.3)),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.info_outline, color: secondaryColor, size: 24),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            'Menunggu Ketua Tim menyelesaikan & mengirim laporan. Status Anda akan otomatis terupdate.',
-                            style: TextStyle(fontFamily: 'Poppins', color: secondaryColor, fontWeight: FontWeight.w500, fontSize: 13),
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
+              child: _needsReport
+                ? _buildLengkapiLaporanButton()
                 : SlideAction(
                     outerColor: start ? successColor : primaryColor,
                     elevation: 0,
                     innerColor: Colors.white,
                     borderRadius: 16,
-                    text: start ? 'Geser untuk Laporan' : 'Geser untuk Mulai',
+                    text: start ? 'Geser untuk Selesai' : 'Geser untuk Mulai',
                     textStyle: TextStyle(fontFamily: 'Poppins',
                       color: Colors.white,
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
                     sliderButtonIcon: Icon(
-                      start ? Icons.description : Icons.play_arrow,
+                      start ? Icons.stop_rounded : Icons.play_arrow,
                       color: start ? successColor : primaryColor,
                       size: 24,
                     ),
@@ -840,13 +921,8 @@ class _TaskPageState extends State<TaskPage> {
     if (!start) {
       await _startTask();
     } else {
-      // Wajib isi laporan dulu sebelum selesai (seperti Gojek wajib foto)
-      if (!mounted) return;
-      Navigator.pushNamed(
-        context,
-        ReportDonePage.routeName,
-        arguments: [_idTeknisi, data.id],
-      );
+      // Clock-out: rekam waktu selesai teknisi
+      await _finishTask();
     }
   }
 
@@ -962,10 +1038,14 @@ class _TaskPageState extends State<TaskPage> {
           children: [
             if (status == 'menunggu laporan' && selisih < 2 && _isKetua)
               _buildActionButton('Kirim Laporan', Icons.task, successColor, () {
+                final anggotaIds = data.dataTeknisi
+                    .where((t) => t.teknisiId != _idTeknisi)
+                    .map((t) => t.teknisiId)
+                    .toList();
                 Navigator.pushNamed(
                   context,
                   ReportDonePage.routeName,
-                  arguments: [int.parse(id), data.id],
+                  arguments: [int.parse(id), data.id, anggotaIds],
                 );
               }),
             if (status == 'menunggu laporan' && selisih < 2 && !_isKetua)

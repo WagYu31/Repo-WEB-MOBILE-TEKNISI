@@ -200,16 +200,8 @@ class _ReportDonePageState extends State<ReportDonePage> {
   }
 
   bool _validateForm() {
-    if (_permasalahanController.text.trim().isEmpty) {
-      _showInfo('Field Wajib Diisi', 'Silakan isi permasalahan yang ditemukan.');
-      return false;
-    }
-
-    if (_images[0] == null) {
-      _showInfo('Foto Wajib Diisi', 'Minimal satu foto dokumentasi harus diupload.');
-      return false;
-    }
-
+    // Semua field laporan opsional - bisa diisi nanti
+    // Hanya garansi yang wajib isi keterangan jika dicentang
     if (_isGaransi && _garansiController.text.trim().isEmpty) {
       _showInfo('Keterangan Garansi', 'Silakan isi keterangan garansi.');
       return false;
@@ -278,6 +270,26 @@ class _ReportDonePageState extends State<ReportDonePage> {
       if (!mounted) return;
 
       if (result == 'Pelaksanaan kegiatan berhasil diselesaikan') {
+        // Sync laporan ke anggota tim (jika ada)
+        if (widget.data.length > 2 && widget.data[2] is List) {
+          final anggotaIds = widget.data[2] as List;
+          for (final anggotaId in anggotaIds) {
+            try {
+              await upload.upload(
+                dataGambar, // Kirim foto yang sama
+                widget.data[1].toString(),
+                anggotaId.toString(),
+                _permasalahanController.text,
+                _solusiController.text,
+                _keteranganController.text,
+                garansiKeterangan,
+              );
+            } catch (e) {
+              debugPrint('Sync laporan ke anggota $anggotaId gagal: $e');
+            }
+          }
+        }
+
         await taskProvider.getTask();
         final teknisiId = idProvider.isUserRole;
         detailProvider.getTask(teknisiId);
@@ -423,7 +435,7 @@ class _ReportDonePageState extends State<ReportDonePage> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Isi laporan penyelesaian tugas dengan lengkap',
+                  'Laporan bisa diisi nanti setelah tugas selesai',
                   style: TextStyle(
                     fontFamily: 'Poppins',
                     fontSize: 13,
@@ -450,7 +462,7 @@ class _ReportDonePageState extends State<ReportDonePage> {
             label: 'Permasalahan',
             hint: 'Jelaskan permasalahan yang ditemukan...',
             icon: Iconsax.warning_2,
-            isRequired: true,
+            isRequired: false,
             maxLines: 3,
           ),
           const SizedBox(height: 16),
@@ -637,12 +649,12 @@ class _ReportDonePageState extends State<ReportDonePage> {
     return _buildSectionCard(
       title: 'Dokumentasi',
       icon: Iconsax.gallery,
-      isRequired: true,
+      isRequired: false,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Minimal 1 foto dokumentasi',
+            'Opsional — bisa diupload nanti',
             style: TextStyle(
               fontFamily: 'Poppins',
               fontSize: 12,
@@ -750,30 +762,29 @@ class _ReportDonePageState extends State<ReportDonePage> {
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
-                      index == 0 ? Icons.camera_alt_rounded : Iconsax.add,
+                      Icons.camera_alt_rounded,
                       size: 24,
-                      color: index == 0 ? _primaryBlue : _textSecondary,
+                      color: _textSecondary,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    index == 0 ? 'Foto Wajib' : 'Foto ${index + 1}',
-                    style: TextStyle(
+                    'Foto ${index + 1}',
+                    style: const TextStyle(
                       fontFamily: 'Poppins',
                       fontSize: 12,
-                      fontWeight: index == 0 ? FontWeight.w600 : FontWeight.w500,
-                      color: index == 0 ? _primaryBlue : _textSecondary,
+                      fontWeight: FontWeight.w500,
+                      color: _textSecondary,
                     ),
                   ),
-                  if (index == 0)
-                    const Text(
-                      'Kamera / Galeri',
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 10,
-                        color: _textSecondary,
-                      ),
+                  const Text(
+                    'Kamera / Galeri',
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 10,
+                      color: _textSecondary,
                     ),
+                  ),
                 ],
               ),
       ),

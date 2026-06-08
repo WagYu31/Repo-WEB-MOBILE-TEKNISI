@@ -187,15 +187,15 @@ class Pelaksanaan {
     int id;
     int kegiatanId;
     int teknisiId;
-    String kode;
-    DateTime waktuMulai;
+    String? kode;
+    DateTime? waktuMulai;
     dynamic waktuSelesai;
     String status;
     dynamic permasalahan;
     dynamic solusi;
     dynamic keterangan;
-    String latitude;
-    String longitude;
+    String? latitude;
+    String? longitude;
     dynamic latitudeS;
     dynamic longitudeS;
     dynamic image1;
@@ -211,15 +211,15 @@ class Pelaksanaan {
         required this.id,
         required this.kegiatanId,
         required this.teknisiId,
-        required this.kode,
-        required this.waktuMulai,
+        this.kode,
+        this.waktuMulai,
         required this.waktuSelesai,
         required this.status,
         required this.permasalahan,
         required this.solusi,
         required this.keterangan,
-        required this.latitude,
-        required this.longitude,
+        this.latitude,
+        this.longitude,
         required this.latitudeS,
         required this.longitudeS,
         required this.image1,
@@ -237,9 +237,9 @@ class Pelaksanaan {
         kegiatanId: json["kegiatan_id"],
         teknisiId: json["teknisi_id"],
         kode: json["kode"],
-        waktuMulai: DateTime.parse(json["waktu_mulai"]),
+        waktuMulai: json["waktu_mulai"] != null ? DateTime.parse(json["waktu_mulai"]) : null,
         waktuSelesai: json["waktu_selesai"],
-        status: json["status"],
+        status: json["status"] ?? '',
         permasalahan: json["permasalahan"],
         solusi: json["solusi"],
         keterangan: json["keterangan"],
@@ -262,7 +262,7 @@ class Pelaksanaan {
         "kegiatan_id": kegiatanId,
         "teknisi_id": teknisiId,
         "kode": kode,
-        "waktu_mulai": waktuMulai.toIso8601String(),
+        "waktu_mulai": waktuMulai?.toIso8601String(),
         "waktu_selesai": waktuSelesai,
         "status": status,
         "permasalahan": permasalahan,

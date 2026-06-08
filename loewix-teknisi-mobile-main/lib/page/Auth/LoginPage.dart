@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../service/model/auth/LoginResponse.dart';
 import '../../service/provider/Auth/AuthProvider.dart';
@@ -37,6 +39,11 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
   bool _isLoading = false;
   bool _obscurePassword = true;
   String? _errorMessage;
+  bool _rememberMe = true; // Default checked
+
+  // Multi-account saved credentials
+  static const String _prefSavedAccounts = 'saved_accounts_list';
+  List<Map<String, String>> _savedAccounts = [];
 
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -60,6 +67,51 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
     ).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic));
 
     _animationController.forward();
+    _loadSavedAccounts();
+  }
+
+  Future<void> _loadSavedAccounts() async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonStr = prefs.getString(_prefSavedAccounts);
+    if (jsonStr != null && jsonStr.isNotEmpty) {
+      try {
+        final List<dynamic> decoded = json.decode(jsonStr);
+        _savedAccounts = decoded.map((e) => Map<String, String>.from(e)).toList();
+        // Auto-fill with the last used account
+        if (_savedAccounts.isNotEmpty) {
+          setState(() {
+            _usernameController.text = _savedAccounts.first['username'] ?? '';
+            _passwordController.text = _savedAccounts.first['password'] ?? '';
+            _rememberMe = true;
+          });
+        }
+      } catch (_) {
+        _savedAccounts = [];
+      }
+    }
+  }
+
+  Future<void> _saveAccount(String username, String password, String nama) async {
+    // Remove existing entry for this username (update)
+    _savedAccounts.removeWhere((a) => a['username'] == username);
+    // Add at top (most recent first)
+    _savedAccounts.insert(0, {
+      'username': username,
+      'password': password,
+      'nama': nama,
+    });
+    // Keep max 10 accounts
+    if (_savedAccounts.length > 10) {
+      _savedAccounts = _savedAccounts.sublist(0, 10);
+    }
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_prefSavedAccounts, json.encode(_savedAccounts));
+  }
+
+  Future<void> _removeAccount(String username) async {
+    _savedAccounts.removeWhere((a) => a['username'] == username);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_prefSavedAccounts, json.encode(_savedAccounts));
   }
 
   @override
@@ -117,7 +169,18 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
 
       await authProvider.login();
       tokenProvider.setUserToken(response.token);
-      idProvider.setUserRole(response.user.teknisiId.toString());
+      await idProvider.setUserRole(response.user.teknisiId.toString());
+      // Force refresh the in-memory value
+      await idProvider.getUserRolePreferences();
+
+      // Auto-save credentials if "Ingat Saya" is checked
+      if (_rememberMe) {
+        await _saveAccount(
+          _usernameController.text.trim(),
+          _passwordController.text,
+          response.user.nama,
+        );
+      }
 
       if (!mounted) return;
 
@@ -344,7 +407,9 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
             _buildUsernameField(),
             const SizedBox(height: 18),
             _buildPasswordField(),
-            const SizedBox(height: 28),
+            const SizedBox(height: 14),
+            _buildRememberMeCheckbox(),
+            const SizedBox(height: 20),
             _buildLoginButton(),
           ],
         ),
@@ -416,9 +481,20 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
           textInputAction: TextInputAction.next,
           enabled: !_isLoading,
           onChanged: (_) => _clearError(),
+          onTap: () {
+            if (_savedAccounts.isNotEmpty && _usernameController.text.isEmpty) {
+              _showSavedAccountsPicker();
+            }
+          },
           decoration: _inputDecoration(
             hint: 'Masukkan username',
             prefixIcon: Icons.person_outline_rounded,
+            suffixIcon: _savedAccounts.isNotEmpty
+                ? IconButton(
+                    icon: const Icon(Icons.arrow_drop_down_rounded, color: _textSecondary, size: 28),
+                    onPressed: _isLoading ? null : _showSavedAccountsPicker,
+                  )
+                : null,
           ),
           style: const TextStyle(fontFamily: 'Poppins', fontSize: 14, color: _textPrimary),
           validator: (value) {
@@ -432,6 +508,192 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
           },
         ),
       ],
+    );
+  }
+
+  void _showSavedAccountsPicker() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle bar
+            Container(
+              margin: const EdgeInsets.only(top: 12),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: const Color(0xFFE2E8F0),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            // Header
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(colors: [_skyBlue, _skyDark]),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(Icons.key_rounded, color: Colors.white, size: 20),
+                  ),
+                  const SizedBox(width: 14),
+                  const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Akun Tersimpan',
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: _textPrimary,
+                        ),
+                      ),
+                      Text(
+                        'Pilih akun untuk login otomatis',
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 12,
+                          color: _textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const Divider(height: 1),
+            // Account list
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              itemCount: _savedAccounts.length,
+              itemBuilder: (context, index) {
+                final account = _savedAccounts[index];
+                final username = account['username'] ?? '';
+                final nama = account['nama'] ?? username;
+                final password = account['password'] ?? '';
+                final isSelected = _usernameController.text == username;
+
+                return Dismissible(
+                  key: Key(username),
+                  direction: DismissDirection.endToStart,
+                  background: Container(
+                    alignment: Alignment.centerRight,
+                    padding: const EdgeInsets.only(right: 24),
+                    color: _rose.withValues(alpha: 0.1),
+                    child: const Icon(Icons.delete_outline, color: _rose),
+                  ),
+                  onDismissed: (_) async {
+                    await _removeAccount(username);
+                    if (mounted) setState(() {});
+                  },
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+                    leading: Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: isSelected ? _skyBlue : const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Center(
+                        child: Text(
+                          nama.isNotEmpty ? nama[0].toUpperCase() : '?',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                            color: isSelected ? Colors.white : _skyBlue,
+                          ),
+                        ),
+                      ),
+                    ),
+                    title: Text(
+                      nama,
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 14,
+                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                        color: _textPrimary,
+                      ),
+                    ),
+                    subtitle: Row(
+                      children: [
+                        Text(
+                          username,
+                          style: const TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 12,
+                            color: _textSecondary,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          '•  ${'•' * (password.length > 8 ? 8 : password.length)}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: _textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                    trailing: isSelected
+                        ? const Icon(Icons.check_circle, color: _skyBlue, size: 22)
+                        : const Icon(Icons.arrow_forward_ios, size: 14, color: _textSecondary),
+                    onTap: () {
+                      setState(() {
+                        _usernameController.text = username;
+                        _passwordController.text = password;
+                        _rememberMe = true;
+                      });
+                      Navigator.pop(ctx);
+                    },
+                  ),
+                );
+              },
+            ),
+            // Manual login option
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
+              child: TextButton.icon(
+                onPressed: () {
+                  setState(() {
+                    _usernameController.clear();
+                    _passwordController.clear();
+                  });
+                  Navigator.pop(ctx);
+                },
+                icon: const Icon(Icons.add_circle_outline, size: 20),
+                label: const Text(
+                  'Login dengan akun lain',
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                style: TextButton.styleFrom(
+                  foregroundColor: _skyBlue,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -530,6 +792,69 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
     );
   }
 
+  Widget _buildRememberMeCheckbox() {
+    return GestureDetector(
+      onTap: _isLoading ? null : () {
+        setState(() => _rememberMe = !_rememberMe);
+      },
+      child: Row(
+        children: [
+          SizedBox(
+            width: 22,
+            height: 22,
+            child: Checkbox(
+              value: _rememberMe,
+              onChanged: _isLoading ? null : (value) {
+                setState(() => _rememberMe = value ?? false);
+              },
+              activeColor: _skyBlue,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(5),
+              ),
+              side: const BorderSide(color: _inputBorder, width: 1.5),
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+          ),
+          const SizedBox(width: 10),
+          const Text(
+            'Ingat Saya',
+            style: TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: _textSecondary,
+            ),
+          ),
+          const Spacer(),
+          if (_rememberMe)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: _skyBlue.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.check_circle, size: 12, color: _skyBlue),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Tersimpan',
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: _skyBlue,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildLoginButton() {
     return Container(
       height: 54,
@@ -601,7 +926,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
         ),
         const SizedBox(height: 4),
         Text(
-          'v2.0.1 • Teknisi App',
+          'v3.7.8 • Teknisi App',
           style: TextStyle(
             fontFamily: 'Poppins',
             fontSize: 11,
