@@ -27,6 +27,7 @@ class BarangGetResponse {
 class DataBarang {
   int id;
   String namaBarang;
+  String? imageBarang;
   String deskripsi;
   int stok;
   DateTime createdAt;
@@ -36,6 +37,7 @@ class DataBarang {
   DataBarang({
     required this.id,
     required this.namaBarang,
+    this.imageBarang,
     required this.deskripsi,
     required this.stok,
     required this.createdAt,
@@ -46,8 +48,9 @@ class DataBarang {
   factory DataBarang.fromJson(Map<String, dynamic> json) => DataBarang(
     id: json["id"],
     namaBarang: json["nama_barang"],
-    deskripsi: json["deskripsi"],
-    stok: json["stok"],
+    imageBarang: json["image_barang"],
+    deskripsi: json["deskripsi"] ?? '',
+    stok: json["stok"] is int ? json["stok"] : (int.tryParse(json["stok"].toString()) ?? 0),
     createdAt: DateTime.parse(json["created_at"]),
     updatedAt: DateTime.parse(json["updated_at"]),
     deletedAt: json["deleted_at"],
@@ -56,10 +59,17 @@ class DataBarang {
   Map<String, dynamic> toJson() => {
     "id": id,
     "nama_barang": namaBarang,
+    "image_barang": imageBarang,
     "deskripsi": deskripsi,
     "stok": stok,
     "created_at": createdAt.toIso8601String(),
     "updated_at": updatedAt.toIso8601String(),
     "deleted_at": deletedAt,
   };
+
+  /// Get full image URL for display
+  String? get imageUrl {
+    if (imageBarang == null || imageBarang!.isEmpty) return null;
+    return 'https://jadwal.id-giti.com/staff/uploads/$imageBarang';
+  }
 }

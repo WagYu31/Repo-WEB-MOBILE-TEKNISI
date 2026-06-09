@@ -273,19 +273,32 @@ class _PinjamBarangPageState extends State<PinjamBarangPage> {
               child: Row(
                 children: [
                   Container(
-                    width: 48,
-                    height: 48,
+                    width: 56,
+                    height: 56,
                     decoration: BoxDecoration(
                       color: isSelected
                           ? _primaryBlue.withValues(alpha: 0.1)
                           : const Color(0xFFF3F4F6),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Icon(
-                      Icons.inventory_2_rounded,
-                      color: isSelected ? _primaryBlue : _textSecondary,
-                      size: 24,
-                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: barang.imageUrl != null
+                        ? Image.network(
+                            barang.imageUrl!,
+                            fit: BoxFit.cover,
+                            width: 56,
+                            height: 56,
+                            errorBuilder: (_, __, ___) => Icon(
+                              Icons.inventory_2_rounded,
+                              color: isSelected ? _primaryBlue : _textSecondary,
+                              size: 24,
+                            ),
+                          )
+                        : Icon(
+                            Icons.inventory_2_rounded,
+                            color: isSelected ? _primaryBlue : _textSecondary,
+                            size: 24,
+                          ),
                   ),
                   const SizedBox(width: 14),
                   Expanded(
