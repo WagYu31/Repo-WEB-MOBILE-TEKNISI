@@ -13,7 +13,7 @@
 
     // ═══ BATCH QUERY 1: All teknisi ═══
     $teknisiList = [];
-    $res_tek = mysqli_query($conn, "SELECT id, nama FROM teknisi ORDER BY nama ASC");
+    $res_tek = mysqli_query($conn, "SELECT id, nama FROM teknisi WHERE deleted_at IS NULL ORDER BY nama ASC");
     while ($r = mysqli_fetch_assoc($res_tek)) {
         $teknisiList[$r['id']] = $r['nama'];
     }
