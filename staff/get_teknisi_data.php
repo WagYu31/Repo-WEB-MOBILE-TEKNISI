@@ -8,7 +8,7 @@ $date = $_GET['date'] ?? date('Y-m');
 $sql = "SELECT 
             t.id, t.nik, t.nama, t.telp, t.target,
             (SELECT COUNT(DISTINCT k.kode) FROM team_kegiatan tk JOIN kegiatan k ON tk.kegiatan_id = k.id WHERE tk.teknisi_id = t.id AND DATE_FORMAT(k.jadwal, '%Y-%m') = ? AND tk.deleted_at IS NULL) AS jumlah_kegiatan,
-            (SELECT COALESCE(SUM(pk.pendapatan), 0) FROM pendapatan_kegiatan pk WHERE pk.teknisi_id = t.id AND DATE_FORMAT(pk.tanggal, '%Y-%m') = ? AND pk.deleted_at IS NULL) AS total_pendapatan,
+            (SELECT COALESCE(SUM(ROUND(pk.nominal_invoice / (SELECT COUNT(*) FROM pendapatan_kegiatan pk2 WHERE pk2.kode = pk.kode AND DATE_FORMAT(pk2.tanggal, '%Y-%m') = ? AND pk2.deleted_at IS NULL))), 0) FROM pendapatan_kegiatan pk WHERE pk.teknisi_id = t.id AND DATE_FORMAT(pk.tanggal, '%Y-%m') = ? AND pk.deleted_at IS NULL) AS total_pendapatan,
             (SELECT COALESCE(SUM(k.paid), 0) 
              FROM team_kegiatan tk 
              JOIN (
@@ -29,7 +29,7 @@ $sql = "SELECT
         ORDER BY t.nama ASC";
 
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("sss", $date, $date, $date);
+$stmt->bind_param("ssss", $date, $date, $date, $date);
 $stmt->execute();
 $result = $stmt->get_result();
 $technicians = $result->fetch_all(MYSQLI_ASSOC);
