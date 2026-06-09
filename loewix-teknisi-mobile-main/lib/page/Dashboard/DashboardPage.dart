@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
@@ -11,6 +10,7 @@ import '../../service/provider/preferences/PreferencesIDProvider.dart';
 import '../../service/model/task/TaskAllResponse.dart';
 import '../../utils/state.dart';
 import '../../widget/CardTask.dart';
+import '../../widget/CoachMarkHelper.dart';
 
 class DashboardPage extends StatefulWidget {
   final Function(int)? onNavigate;
@@ -101,7 +101,6 @@ class _DashboardPageState extends State<DashboardPage> {
 
   void _showCoachMark() {
     final targets = <TargetFocus>[
-      // 1. Stat Card
       TargetFocus(
         identify: 'stat_card',
         keyTarget: _keyStatCard,
@@ -112,22 +111,19 @@ class _DashboardPageState extends State<DashboardPage> {
         contents: [
           TargetContent(
             align: ContentAlign.bottom,
-            builder: (context, controller) => _buildTooltip(
-              icon: '📊',
-              title: 'Ringkasan Kinerja',
+            builder: (context, controller) => CoachMarkHelper.buildTooltip(
+              icon: '📊', title: 'Ringkasan Kinerja',
               descriptions: [
                 '📋 Kegiatan — Total tugas yang ditugaskan',
                 '💰 Pendapatan — Fee + Invoice yang kamu terima',
                 '⭐ Bonus — 60% dari selisih pendapatan di atas target',
                 '🎯 Target — Persentase pencapaian target kuartal',
               ],
-              note: 'Data dihitung per kuartal (3 bulan)',
-              step: '1 / 4',
+              note: 'Data dihitung per kuartal (3 bulan)', step: '1 / 4',
             ),
           ),
         ],
       ),
-      // 2. Tugas Aktif
       TargetFocus(
         identify: 'tugas_aktif',
         keyTarget: _keyTugasAktif,
@@ -138,9 +134,8 @@ class _DashboardPageState extends State<DashboardPage> {
         contents: [
           TargetContent(
             align: ContentAlign.bottom,
-            builder: (context, controller) => _buildTooltip(
-              icon: '📝',
-              title: 'Tugas Aktif',
+            builder: (context, controller) => CoachMarkHelper.buildTooltip(
+              icon: '📝', title: 'Tugas Aktif',
               descriptions: [
                 'Daftar semua tugas yang ditugaskan kepada kamu',
                 'Badge angka menunjukkan jumlah tugas aktif',
@@ -151,7 +146,6 @@ class _DashboardPageState extends State<DashboardPage> {
           ),
         ],
       ),
-      // 3. First Task Card
       TargetFocus(
         identify: 'first_task',
         keyTarget: _keyFirstTask,
@@ -162,19 +156,13 @@ class _DashboardPageState extends State<DashboardPage> {
         contents: [
           TargetContent(
             align: ContentAlign.bottom,
-            builder: (context, controller) => _buildTooltip(
-              icon: '📌',
-              title: 'Detail Kartu Tugas',
+            builder: (context, controller) => CoachMarkHelper.buildTooltip(
+              icon: '📌', title: 'Detail Kartu Tugas',
               descriptions: [
-                '🔴 Hari Ini — Tugas yang dijadwalkan hari ini',
+                '🔴 Hari Ini — Tugas dijadwalkan hari ini',
                 '🔵 Terjadwal — Tugas di hari mendatang',
-                '🟢 Berjalan — Sudah clock in, sedang dikerjakan',
-                '🟡 Menunggu Laporan — Selesai tapi belum upload laporan',
-                '',
-                '🔧 service / 🔍 survey / ➕ pasang baru — Jenis kegiatan',
-                '',
-                '📅 Tanggal & jam jadwal kunjungan',
-                '🧾 Icon nota = sudah ada invoice',
+                '🟢 Berjalan — Sudah clock in',
+                '🟡 Perlu Laporan — Belum upload laporan',
                 '',
                 'Tap kartu untuk buka detail & mulai tugas',
               ],
@@ -183,7 +171,6 @@ class _DashboardPageState extends State<DashboardPage> {
           ),
         ],
       ),
-      // 4. Drag Handle
       TargetFocus(
         identify: 'drag_handle',
         keyTarget: _keyDragHandle,
@@ -194,156 +181,21 @@ class _DashboardPageState extends State<DashboardPage> {
         contents: [
           TargetContent(
             align: ContentAlign.bottom,
-            builder: (context, controller) => _buildTooltip(
-              icon: '↕️',
-              title: 'Urutkan Tugas',
+            builder: (context, controller) => CoachMarkHelper.buildTooltip(
+              icon: '↕️', title: 'Urutkan Tugas',
               descriptions: [
-                'Tahan & geser titik-titik ini untuk mengubah urutan tugas',
-                'Prioritaskan tugas yang paling penting di atas',
+                'Tahan & geser titik-titik ini untuk mengubah urutan',
+                'Prioritaskan tugas paling penting di atas',
               ],
-              note: 'Urutan hanya berlaku di perangkat ini',
-              step: '4 / 4',
+              note: 'Urutan hanya berlaku di perangkat ini', step: '4 / 4',
             ),
           ),
         ],
       ),
     ];
-
-    TutorialCoachMark(
-      targets: targets,
-      colorShadow: const Color(0xFF0F172A),
-      opacityShadow: 0.85,
-      textSkip: 'LEWATI',
-      textStyleSkip: const TextStyle(
-        fontFamily: 'Poppins',
-        fontSize: 14,
-        fontWeight: FontWeight.w600,
-        color: Colors.white70,
-      ),
-      paddingFocus: 8,
-    ).show(context: context);
+    CoachMarkHelper.show(context: context, targets: targets);
   }
 
-  Widget _buildTooltip({
-    required String icon,
-    required String title,
-    required List<String> descriptions,
-    String? note,
-    String? step,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(top: 16),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.15),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            children: [
-              Text(icon, style: const TextStyle(fontSize: 24)),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  title,
-                  style: const TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF1E293B),
-                  ),
-                ),
-              ),
-              if (step != null)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF0EA5E9).withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    step,
-                    style: const TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF0EA5E9),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          ...descriptions.map((desc) => Padding(
-            padding: const EdgeInsets.only(bottom: 4),
-            child: Text(
-              desc,
-              style: const TextStyle(
-                fontFamily: 'Poppins',
-                fontSize: 13,
-                fontWeight: FontWeight.w400,
-                color: Color(0xFF475569),
-                height: 1.5,
-              ),
-            ),
-          )),
-          if (note != null) ...[
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFF7ED),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFFF97316).withValues(alpha: 0.2)),
-              ),
-              child: Row(
-                children: [
-                  const Text('💡', style: TextStyle(fontSize: 14)),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      note,
-                      style: const TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                        color: Color(0xFFF97316),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-          const SizedBox(height: 12),
-          const Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'Tap di mana saja untuk lanjut →',
-                style: TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                  color: Color(0xFF94A3B8),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
 
   Future<void> _onRefresh() async {
     setState(() => _isRefreshing = true);

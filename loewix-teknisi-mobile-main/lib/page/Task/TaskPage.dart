@@ -6,6 +6,7 @@ import 'package:teknisi_loewix/page/reimburse/reimburse_add_screen.dart';
 import 'package:teknisi_loewix/service/model/pelaksanaan/PelaksanaanSend.dart';
 import 'package:teknisi_loewix/service/provider/Pelaksanaan/CoProvider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 import 'dart:math';
 
 import '../../page/Maps/MapsPage.dart';
@@ -17,6 +18,7 @@ import '../../service/provider/Task/DetailTaskGetProvider.dart';
 import '../../service/provider/Pelaksanaan/RescheduleProvider.dart';
 import '../../service/provider/preferences/PreferencesIDProvider.dart';
 import '../../utils/state.dart';
+import '../../widget/CoachMarkHelper.dart';
 import 'ReportDonePage.dart';
 import '../Invoice/DetailInvoicePage.dart';
 import 'LanjutNantiPage.dart';
@@ -45,6 +47,12 @@ class _TaskPageState extends State<TaskPage> {
   String? _cachedStatus;
   Color? _cachedStatusColor;
   IconData? _cachedStatusIcon;
+
+  // Coach Mark Keys
+  final GlobalKey _keyMap = GlobalKey();
+  final GlobalKey _keyInfoChips = GlobalKey();
+  final GlobalKey _keyActionButton = GlobalKey();
+  bool _coachMarkShown = false;
 
   // Modern color scheme - consistent with app theme
   static const Color primaryColor = Color(0xFF2563EB);
@@ -80,7 +88,10 @@ class _TaskPageState extends State<TaskPage> {
     _computeStatusValues();
 
     // Auto-refresh from API to get latest pelaksanaan data
-    WidgetsBinding.instance.addPostFrameCallback((_) => _refreshFromApi());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _refreshFromApi();
+      _showTaskCoachMark();
+    });
   }
 
   Future<void> _refreshFromApi() async {
@@ -1336,6 +1347,7 @@ class _TaskPageState extends State<TaskPage> {
         children: [
           // Info chips row
           Container(
+            key: _keyInfoChips,
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               color: const Color(0xFFF1F5F9),
@@ -1443,6 +1455,7 @@ class _TaskPageState extends State<TaskPage> {
           const SizedBox(height: 14),
           // Gradient action button
           Container(
+            key: _keyActionButton,
             width: double.infinity,
             decoration: BoxDecoration(
               gradient: const LinearGradient(
@@ -1502,6 +1515,7 @@ class _TaskPageState extends State<TaskPage> {
           _buildCustomAppBar(),
           // Map
           Expanded(
+            key: _keyMap,
             child: ClipRRect(child: GoogleMapSample(taskData: data)),
           ),
           // Bottom action panel
@@ -1510,5 +1524,92 @@ class _TaskPageState extends State<TaskPage> {
       ),
     );
   }
+
+  // ─── Coach Mark for TaskPage ─────────────────────
+  Future<void> _showTaskCoachMark() async {
+    await Future.delayed(const Duration(milliseconds: 1500));
+    if (!mounted || _coachMarkShown) return;
+    _coachMarkShown = true;
+
+    final targets = <TargetFocus>[
+      TargetFocus(
+        identify: 'map',
+        keyTarget: _keyMap,
+        alignSkip: Alignment.bottomRight,
+        enableOverlayTab: true,
+        shape: ShapeLightFocus.RRect,
+        radius: 0,
+        contents: [
+          TargetContent(
+            align: ContentAlign.bottom,
+            builder: (context, controller) => CoachMarkHelper.buildTooltip(
+              icon: '🗺️', title: 'Peta Lokasi Customer',
+              descriptions: [
+                '📍 Titik merah = lokasi customer',
+                '🔵 Titik biru = lokasi kamu sekarang',
+                '🟢 Radius hijau = jarak yang diperbolehkan clock in',
+                '',
+                'Kamu harus berada di dalam radius hijau untuk bisa clock in',
+              ],
+              note: 'Pastikan GPS aktif & akurat',
+              step: '1 / 3',
+            ),
+          ),
+        ],
+      ),
+      TargetFocus(
+        identify: 'info_chips',
+        keyTarget: _keyInfoChips,
+        alignSkip: Alignment.bottomRight,
+        enableOverlayTab: true,
+        shape: ShapeLightFocus.RRect,
+        radius: 16,
+        contents: [
+          TargetContent(
+            align: ContentAlign.top,
+            builder: (context, controller) => CoachMarkHelper.buildTooltip(
+              icon: '📅', title: 'Info Jadwal',
+              descriptions: [
+                '📆 Tanggal jadwal kunjungan ke customer',
+                '⏰ Jam yang ditentukan admin',
+                '',
+                'Pastikan tiba sebelum jam ini!',
+              ],
+              step: '2 / 3',
+            ),
+          ),
+        ],
+      ),
+      TargetFocus(
+        identify: 'action_button',
+        keyTarget: _keyActionButton,
+        alignSkip: Alignment.bottomRight,
+        enableOverlayTab: true,
+        shape: ShapeLightFocus.RRect,
+        radius: 14,
+        contents: [
+          TargetContent(
+            align: ContentAlign.top,
+            builder: (context, controller) => CoachMarkHelper.buildTooltip(
+              icon: '👆', title: 'Detail & Aksi',
+              descriptions: [
+                'Tap tombol ini untuk membuka panel aksi:',
+                '',
+                '➡️ Geser slider untuk Clock In / Clock Out',
+                '📝 Kirim Laporan setelah selesai',
+                '💸 Claim Reimbursement',
+                '⏰ Lanjut Nanti jika belum selesai',
+                '❌ Batalkan tugas',
+              ],
+              note: 'Clock in hanya bisa jika di radius lokasi',
+              step: '3 / 3',
+            ),
+          ),
+        ],
+      ),
+    ];
+    CoachMarkHelper.show(context: context, targets: targets);
+  }
+
 
 }

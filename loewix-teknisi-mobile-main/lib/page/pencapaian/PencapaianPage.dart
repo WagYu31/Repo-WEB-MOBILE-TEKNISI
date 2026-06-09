@@ -2,6 +2,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
+import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
 import '../../service/api/ApiTeknisi.dart';
 import '../../service/model/pencapaian/PencapaianChartGet.dart';
@@ -9,6 +10,7 @@ import '../../service/provider/Pencapaian/PencapaianProvider.dart';
 import '../../service/provider/preferences/PreferencesIDProvider.dart';
 import '../../service/model/pencapaian/PencapaianResponse.dart';
 import '../../service/model/pencapaian/PendapatanResponse.dart';
+import '../../widget/CoachMarkHelper.dart';
 
 class PencapaianPage extends StatefulWidget {
   const PencapaianPage({super.key});
@@ -43,6 +45,11 @@ class _PencapaianPageState extends State<PencapaianPage>
   late AnimationController _animController;
   late Animation<double> _fadeAnim;
 
+  // Coach Mark Keys
+  final GlobalKey _keyMonthSelector = GlobalKey();
+  final GlobalKey _keySummaryCards = GlobalKey();
+  bool _coachMarkShown = false;
+
   static const List<String> _monthNames = [
     'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
     'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
@@ -76,6 +83,7 @@ class _PencapaianPageState extends State<PencapaianPage>
         _loadYearlyData();
       }
       _animController.forward();
+      _showStatistikCoachMark();
     });
   }
 
@@ -331,6 +339,7 @@ class _PencapaianPageState extends State<PencapaianPage>
       onTap: _showMonthYearPicker,
       borderRadius: BorderRadius.circular(16),
       child: Container(
+        key: _keyMonthSelector,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           gradient: const LinearGradient(
@@ -421,6 +430,7 @@ class _PencapaianPageState extends State<PencapaianPage>
         : 0;
 
     return Column(
+      key: _keySummaryCards,
       children: [
         Row(
           children: [
@@ -1419,5 +1429,64 @@ class _PencapaianPageState extends State<PencapaianPage>
         );
       },
     );
+  }
+
+  // ─── Coach Mark for PencapaianPage ────────────────
+  Future<void> _showStatistikCoachMark() async {
+    await Future.delayed(const Duration(milliseconds: 2000));
+    if (!mounted || _coachMarkShown) return;
+    _coachMarkShown = true;
+
+    final targets = <TargetFocus>[
+      TargetFocus(
+        identify: 'month_selector',
+        keyTarget: _keyMonthSelector,
+        alignSkip: Alignment.bottomRight,
+        enableOverlayTab: true,
+        shape: ShapeLightFocus.RRect,
+        radius: 16,
+        contents: [
+          TargetContent(
+            align: ContentAlign.bottom,
+            builder: (context, controller) => CoachMarkHelper.buildTooltip(
+              icon: '📅', title: 'Pilih Periode',
+              descriptions: [
+                'Tap untuk memilih bulan & tahun',
+                'Melihat statistik bulan sebelumnya',
+                '',
+                'Data berubah sesuai periode yang dipilih',
+              ],
+              step: '1 / 2',
+            ),
+          ),
+        ],
+      ),
+      TargetFocus(
+        identify: 'summary_cards',
+        keyTarget: _keySummaryCards,
+        alignSkip: Alignment.bottomRight,
+        enableOverlayTab: true,
+        shape: ShapeLightFocus.RRect,
+        radius: 18,
+        contents: [
+          TargetContent(
+            align: ContentAlign.bottom,
+            builder: (context, controller) => CoachMarkHelper.buildTooltip(
+              icon: '📊', title: 'Ringkasan Statistik',
+              descriptions: [
+                '📋 Kegiatan — Jumlah tugas selesai bulan ini',
+                '💰 Pendapatan — Total fee + invoice',
+                '⭐ Bonus — 60% dari selisih di atas target',
+                '🎯 Target — Progress pencapaian',
+                '',
+                'Scroll ke bawah untuk lihat grafik detail',
+              ],
+              step: '2 / 2',
+            ),
+          ),
+        ],
+      ),
+    ];
+    CoachMarkHelper.show(context: context, targets: targets);
   }
 }

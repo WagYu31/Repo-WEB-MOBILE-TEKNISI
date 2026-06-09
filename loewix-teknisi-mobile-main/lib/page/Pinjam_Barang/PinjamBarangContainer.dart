@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
+import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
 import '../../page/Pinjam_Barang/CreatePinjamBarang.dart';
 import '../../page/Pinjam_Barang/PinjamanAktifPage.dart';
 import '../../page/Pinjam_Barang/PinjamanRiwayatPage.dart';
 import '../../service/provider/Pinjam/PinjamGetProvider.dart';
 import '../../service/provider/preferences/PreferencesIDProvider.dart';
+import '../../widget/CoachMarkHelper.dart';
 
 class ContainerPinjamBarang extends StatefulWidget {
   static const routeName = '/container_pinjam_barang';
@@ -24,6 +26,11 @@ class _ContainerPinjamBarangState extends State<ContainerPinjamBarang> {
 
   String _id = '';
 
+  // Coach Mark Keys
+  final GlobalKey _keyFab = GlobalKey();
+  final GlobalKey _keyTabs = GlobalKey();
+  bool _coachMarkShown = false;
+
   @override
   void initState() {
     super.initState();
@@ -33,6 +40,7 @@ class _ContainerPinjamBarangState extends State<ContainerPinjamBarang> {
       if (_id.isNotEmpty) {
         Provider.of<PinjamGetProvider>(context, listen: false).getPinjam(_id);
       }
+      _showPinjamCoachMark();
     });
   }
 
@@ -49,6 +57,7 @@ class _ContainerPinjamBarangState extends State<ContainerPinjamBarang> {
       child: Scaffold(
         backgroundColor: const Color(0xFFF9FAFB),
         floatingActionButton: FloatingActionButton(
+          key: _keyFab,
           heroTag: 'fab_add_pinjam',
           onPressed: () async {
             final result = await Navigator.pushNamed(
@@ -102,6 +111,7 @@ class _ContainerPinjamBarangState extends State<ContainerPinjamBarang> {
             ),
           ],
           bottom: TabBar(
+            key: _keyTabs,
             isScrollable: false,
             indicatorColor: _primaryBlue,
             indicatorWeight: 3,
@@ -140,5 +150,59 @@ class _ContainerPinjamBarangState extends State<ContainerPinjamBarang> {
         ),
       ),
     );
+  }
+
+  // ─── Coach Mark for PinjamBarang ──────────────────
+  Future<void> _showPinjamCoachMark() async {
+    await Future.delayed(const Duration(milliseconds: 2000));
+    if (!mounted || _coachMarkShown) return;
+    _coachMarkShown = true;
+
+    final targets = <TargetFocus>[
+      TargetFocus(
+        identify: 'tabs',
+        keyTarget: _keyTabs,
+        alignSkip: Alignment.bottomRight,
+        enableOverlayTab: true,
+        shape: ShapeLightFocus.RRect,
+        radius: 0,
+        contents: [
+          TargetContent(
+            align: ContentAlign.bottom,
+            builder: (context, controller) => CoachMarkHelper.buildTooltip(
+              icon: '📦', title: 'Tab Peminjaman',
+              descriptions: [
+                '✅ Pinjaman Aktif — Barang yang sedang dipinjam',
+                '📜 Riwayat — Barang yang sudah dikembalikan',
+              ],
+              step: '1 / 2',
+            ),
+          ),
+        ],
+      ),
+      TargetFocus(
+        identify: 'fab_add',
+        keyTarget: _keyFab,
+        alignSkip: Alignment.topLeft,
+        enableOverlayTab: true,
+        shape: ShapeLightFocus.RRect,
+        radius: 16,
+        contents: [
+          TargetContent(
+            align: ContentAlign.top,
+            builder: (context, controller) => CoachMarkHelper.buildTooltip(
+              icon: '➕', title: 'Tambah Peminjaman',
+              descriptions: [
+                'Tap tombol ini untuk mengajukan peminjaman baru',
+                'Pilih barang, isi jumlah, lalu submit',
+              ],
+              note: 'Pastikan kembalikan barang tepat waktu!',
+              step: '2 / 2',
+            ),
+          ),
+        ],
+      ),
+    ];
+    CoachMarkHelper.show(context: context, targets: targets);
   }
 }

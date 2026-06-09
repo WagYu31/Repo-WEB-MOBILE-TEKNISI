@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:provider/provider.dart';
+import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
 import '../../service/provider/Task/HistoryGetAllProvider.dart';
 import '../../service/provider/preferences/PreferencesIDProvider.dart';
 import '../../utils/state.dart';
 import '../../widget/CardTask.dart';
+import '../../widget/CoachMarkHelper.dart';
 
 class HistoryPage extends StatefulWidget {
   const HistoryPage({super.key});
@@ -24,11 +26,19 @@ class _HistoryPageState extends State<HistoryPage> {
   final ScrollController _scrollController = ScrollController();
   String? _teknisiId;
 
+  // Coach Mark Keys
+  final GlobalKey _keyPaginationInfo = GlobalKey();
+  final GlobalKey _keyRefreshBtn = GlobalKey();
+  bool _coachMarkShown = false;
+
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _loadInitialData());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadInitialData();
+      _showHistoryCoachMark();
+    });
   }
 
   @override
@@ -157,6 +167,7 @@ class _HistoryPageState extends State<HistoryPage> {
                 ),
               ),
               Material(
+                key: _keyRefreshBtn,
                 color: Colors.white.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(14),
                 child: InkWell(
@@ -227,6 +238,7 @@ class _HistoryPageState extends State<HistoryPage> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
+            key: _keyPaginationInfo,
             children: [
               Container(
                 padding: const EdgeInsets.all(6),
@@ -385,5 +397,60 @@ class _HistoryPageState extends State<HistoryPage> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
     );
+  }
+
+  // ─── Coach Mark for HistoryPage ──────────────────
+  Future<void> _showHistoryCoachMark() async {
+    await Future.delayed(const Duration(milliseconds: 2000));
+    if (!mounted || _coachMarkShown) return;
+    _coachMarkShown = true;
+
+    final targets = <TargetFocus>[
+      TargetFocus(
+        identify: 'refresh_btn',
+        keyTarget: _keyRefreshBtn,
+        alignSkip: Alignment.bottomRight,
+        enableOverlayTab: true,
+        shape: ShapeLightFocus.RRect,
+        radius: 14,
+        contents: [
+          TargetContent(
+            align: ContentAlign.bottom,
+            builder: (context, controller) => CoachMarkHelper.buildTooltip(
+              icon: '🔄', title: 'Refresh Riwayat',
+              descriptions: [
+                'Tap tombol ini untuk memuat ulang data riwayat',
+                'Atau tarik ke bawah di daftar tugas',
+              ],
+              step: '1 / 2',
+            ),
+          ),
+        ],
+      ),
+      TargetFocus(
+        identify: 'pagination_info',
+        keyTarget: _keyPaginationInfo,
+        alignSkip: Alignment.bottomRight,
+        enableOverlayTab: true,
+        shape: ShapeLightFocus.RRect,
+        radius: 14,
+        contents: [
+          TargetContent(
+            align: ContentAlign.bottom,
+            builder: (context, controller) => CoachMarkHelper.buildTooltip(
+              icon: '📄', title: 'Info Halaman',
+              descriptions: [
+                'Menunjukkan total tugas yang sudah selesai',
+                'Scroll ke bawah untuk memuat lebih banyak',
+                '',
+                'Tap kartu untuk lihat detail riwayat',
+              ],
+              step: '2 / 2',
+            ),
+          ),
+        ],
+      ),
+    ];
+    CoachMarkHelper.show(context: context, targets: targets);
   }
 }
