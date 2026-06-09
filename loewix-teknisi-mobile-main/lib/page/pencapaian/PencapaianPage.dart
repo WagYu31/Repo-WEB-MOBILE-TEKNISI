@@ -151,6 +151,27 @@ class _PencapaianPageState extends State<PencapaianPage>
     }).join(' ');
   }
 
+  /// Calculate nice round intervals for chart Y-axis
+  double _calcNiceInterval(double maxY) {
+    if (maxY <= 0) return 1;
+    final raw = maxY / 4;
+    // Round to nearest nice number
+    if (raw >= 1000000) return (raw / 1000000).ceil() * 1000000;
+    if (raw >= 100000) return (raw / 100000).ceil() * 100000;
+    if (raw >= 10000) return (raw / 10000).ceil() * 10000;
+    if (raw >= 1000) return (raw / 1000).ceil() * 1000;
+    if (raw >= 100) return (raw / 100).ceil() * 100;
+    if (raw >= 10) return (raw / 10).ceil() * 10;
+    return raw.ceilToDouble().clamp(1, double.infinity);
+  }
+
+  /// Format axis label (short form)
+  String _formatAxisLabel(double value) {
+    if (value >= 1000000) return '${(value / 1000000).toStringAsFixed(1)}jt';
+    if (value >= 1000) return '${(value / 1000).toStringAsFixed(0)}rb';
+    return value.toInt().toString();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -788,6 +809,7 @@ class _PencapaianPageState extends State<PencapaianPage>
     double maxY = 0;
 
     for (int i = 0; i < data.length; i++) {
+      // Parse string values from API
       final p = double.tryParse(data[i].pendapatan) ?? 0;
       final t = double.tryParse(data[i].target) ?? 0;
       pendapatanSpots.add(FlSpot(i.toDouble(), p));
@@ -795,8 +817,12 @@ class _PencapaianPageState extends State<PencapaianPage>
       if (p > maxY) maxY = p;
       if (t > maxY) maxY = t;
     }
+    // Ensure reasonable scale
     maxY = maxY * 1.2;
-    if (maxY == 0) maxY = 1000000;
+    if (maxY < 100) maxY = 100;
+
+    // Smart interval for Y-axis
+    final interval = _calcNiceInterval(maxY);
 
     return SizedBox(
       height: 200,
@@ -823,7 +849,7 @@ class _PencapaianPageState extends State<PencapaianPage>
           ),
           gridData: FlGridData(
             show: true, drawVerticalLine: false,
-            horizontalInterval: maxY / 4,
+            horizontalInterval: interval,
             getDrawingHorizontalLine: (value) => FlLine(
               color: const Color(0xFFE5E7EB), strokeWidth: 1, dashArray: [5, 5],
             ),
@@ -835,18 +861,11 @@ class _PencapaianPageState extends State<PencapaianPage>
               sideTitles: SideTitles(
                 showTitles: true,
                 reservedSize: 46,
-                interval: maxY / 4,
+                interval: interval,
                 getTitlesWidget: (value, meta) {
                   if (value == 0) return const SizedBox();
-                  String label;
-                  if (value >= 1000000) {
-                    label = '${(value / 1000000).toStringAsFixed(1)}jt';
-                  } else if (value >= 1000) {
-                    label = '${(value / 1000).toStringAsFixed(0)}rb';
-                  } else {
-                    label = value.toInt().toString();
-                  }
-                  return Text(label,
+                  return Text(
+                    _formatAxisLabel(value),
                     style: const TextStyle(
                       fontFamily: 'Poppins', fontSize: 9, color: _textSecondary,
                     ),
