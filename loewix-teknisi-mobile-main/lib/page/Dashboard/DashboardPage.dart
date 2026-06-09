@@ -82,7 +82,22 @@ class _DashboardPageState extends State<DashboardPage> {
   Future<void> _onRefresh() async {
     setState(() => _isRefreshing = true);
     if (_teknisiId != null && _teknisiId!.isNotEmpty) {
-      await Provider.of<DetailTaskGetProvider>(context, listen: false).getTask(_teknisiId!);
+      final futures = <Future>[
+        Provider.of<DetailTaskGetProvider>(context, listen: false).getTask(_teknisiId!),
+      ];
+      // Also refresh stats
+      final teknisiIdInt = int.tryParse(_teknisiId!);
+      if (teknisiIdInt != null) {
+        final now = DateTime.now();
+        futures.add(
+          Provider.of<PencapaianProvider>(context, listen: false).loadAll(
+            teknisiId: teknisiIdInt,
+            bulan: now.month,
+            tahun: now.year,
+          ),
+        );
+      }
+      await Future.wait(futures);
     } else {
       await _loadInitialData();
     }
