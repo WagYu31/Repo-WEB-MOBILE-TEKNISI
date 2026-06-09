@@ -69,6 +69,16 @@ class _DashboardPageState extends State<DashboardPage> {
       _loadInitialData();
     });
     _checkFirstLaunch();
+
+    // ─── FORCED TEST: Show notification 3s after dashboard opens ───
+    Future.delayed(const Duration(seconds: 3), () {
+      debugPrint('🔔 FORCED TEST: attempting notification...');
+      NotificationService().showNow(
+        title: 'Laporan Belum Diupload',
+        body: 'Ada tugas menunggu laporan. Segera upload!',
+        id: 9999,
+      );
+    });
   }
 
   Future<void> _loadInitialData() async {
