@@ -365,6 +365,9 @@ class _DashboardPageState extends State<DashboardPage> {
                       return _buildEmptyState('Belum ada tugas untuk kamu');
                     }
 
+                    // ─── Sort by jadwal date (soonest first) ───
+                    filteredData.sort((a, b) => a.jadwal.compareTo(b.jadwal));
+
                     // Sync reorder state with fresh data
                     final newIds = filteredData.map((t) => t.id).toList();
                     if (!_listEquals(newIds, _lastDataIds)) {
