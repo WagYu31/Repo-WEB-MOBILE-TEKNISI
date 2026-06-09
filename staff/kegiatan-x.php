@@ -60,7 +60,7 @@ if (!function_exists('getStatusBadgeClass_x')) {
     )
     SELECT * FROM RankedKegiatan
     WHERE rn = 1
-      AND status IN ('berjalan', 'dijadwalkan', 'Lanjutan', 'Lanjut Nanti')
+      AND status IN ('berjalan', 'dijadwalkan', 'Lanjutan', 'Lanjut Nanti', 'menunggu laporan')
       AND DATE(jadwal) < '$current_date'
     ORDER BY COALESCE(jadwal, '9999-12-31') DESC";
     $result = mysqli_query($conn, $sql);

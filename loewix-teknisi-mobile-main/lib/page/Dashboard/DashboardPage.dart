@@ -97,8 +97,12 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   /// Check already-loaded tasks for pending reports and show notification
-  void _checkPendingAndNotify(DetailTaskGetProvider taskProvider) {
-    if (taskProvider.state != ResultState.hasData) return;
+  Future<void> _checkPendingAndNotify(DetailTaskGetProvider taskProvider) async {
+    debugPrint('🔔 _checkPendingAndNotify called, state: ${taskProvider.state}');
+    if (taskProvider.state != ResultState.hasData) {
+      debugPrint('🔔 No data loaded, skipping notification');
+      return;
+    }
 
     final tasks = taskProvider.response.data;
     int pendingCount = 0;
@@ -106,6 +110,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
     for (final task in tasks) {
       final status = task.status.toLowerCase();
+      debugPrint('🔔 Task: ${task.dataCustomer.nama}, status: "$status"');
       if (status == 'berjalan' ||
           status == 'menunggu laporan' ||
           status == 'dijadwalkan' ||
@@ -117,13 +122,16 @@ class _DashboardPageState extends State<DashboardPage> {
       }
     }
 
+    debugPrint('🔔 Pending count: $pendingCount');
+
     if (pendingCount > 0) {
       final nameStr = names.join(', ');
       final body = pendingCount == 1
           ? 'Ada 1 tugas belum selesai — $nameStr. Segera upload laporan!'
           : 'Ada $pendingCount tugas belum selesai — $nameStr. Segera upload laporan!';
 
-      NotificationService().showNow(
+      debugPrint('🔔 Showing notification: $body');
+      await NotificationService().showNow(
         title: '📋 Laporan Belum Diupload',
         body: body,
         id: 1001,

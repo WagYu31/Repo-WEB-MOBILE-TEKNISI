@@ -80,7 +80,7 @@
               SELECT COUNT(*) AS total_overdue
               FROM RankedKegiatan rk
               WHERE rk.rn = 1
-                AND rk.status IN ('berjalan', 'dijadwalkan', 'Lanjutan', 'Lanjut Nanti')
+                AND rk.status IN ('berjalan', 'dijadwalkan', 'Lanjutan', 'Lanjut Nanti', 'menunggu laporan')
                 AND DATE(rk.jadwal) < '$current_date'";
               $resultOverdue = mysqli_query($conn, $sqlOverdue);
               $num_rowsOverdue = 0;
