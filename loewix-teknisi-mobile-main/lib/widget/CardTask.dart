@@ -13,8 +13,9 @@ import '../service/provider/preferences/PreferencesIDProvider.dart';
 class CardTask extends StatefulWidget {
   final DataTask data;
   final bool history;
+  final GlobalKey? dragHandleKey;
 
-  const CardTask({super.key, required this.data, required this.history});
+  const CardTask({super.key, required this.data, required this.history, this.dragHandleKey});
 
   @override
   State<CardTask> createState() => _CardTaskState();
@@ -640,6 +641,7 @@ class _CardTaskState extends State<CardTask> with SingleTickerProviderStateMixin
                   // ─── Drag handle (non-history only) ──
                   if (!widget.history)
                     Padding(
+                      key: widget.dragHandleKey,
                       padding: const EdgeInsets.only(right: 6),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
