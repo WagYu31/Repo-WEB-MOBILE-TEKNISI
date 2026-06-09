@@ -418,9 +418,8 @@ class _HistoryPageState extends State<HistoryPage> {
             align: ContentAlign.bottom,
             builder: (context, controller) => CoachMarkHelper.buildTooltip(
               title: 'Refresh',
-              descriptions: [
-                'Muat ulang data riwayat',
-              ],
+              descriptions: ['Tap untuk muat ulang data riwayat'],
+              arrowUp: true,
               step: '1/2',
             ),
           ),
@@ -438,10 +437,8 @@ class _HistoryPageState extends State<HistoryPage> {
             align: ContentAlign.bottom,
             builder: (context, controller) => CoachMarkHelper.buildTooltip(
               title: 'Info Riwayat',
-              descriptions: [
-                'Total tugas selesai',
-                'Scroll ke bawah untuk muat lebih',
-              ],
+              descriptions: ['Total tugas selesai. Scroll ke bawah untuk muat lebih banyak'],
+              arrowUp: true,
               step: '2/2',
             ),
           ),

@@ -113,13 +113,8 @@ class _DashboardPageState extends State<DashboardPage> {
             align: ContentAlign.bottom,
             builder: (context, controller) => CoachMarkHelper.buildTooltip(
               title: 'Ringkasan Kinerja',
-              descriptions: [
-                'Kegiatan — total tugas ditugaskan',
-                'Pendapatan — fee + invoice',
-                'Bonus — 60% di atas target',
-                'Target — progress kuartal',
-              ],
-              note: 'Dihitung per kuartal (3 bulan)',
+              descriptions: ['Lihat kegiatan, pendapatan, bonus & target kamu di sini'],
+              arrowUp: true,
               step: '1/4',
             ),
           ),
@@ -137,10 +132,8 @@ class _DashboardPageState extends State<DashboardPage> {
             align: ContentAlign.bottom,
             builder: (context, controller) => CoachMarkHelper.buildTooltip(
               title: 'Tugas Aktif',
-              descriptions: [
-                'Semua tugas yang ditugaskan',
-                'Tarik ke bawah untuk refresh',
-              ],
+              descriptions: ['Daftar semua tugas yang ditugaskan. Tarik ke bawah untuk refresh'],
+              arrowUp: true,
               step: '2/4',
             ),
           ),
@@ -158,11 +151,8 @@ class _DashboardPageState extends State<DashboardPage> {
             align: ContentAlign.bottom,
             builder: (context, controller) => CoachMarkHelper.buildTooltip(
               title: 'Kartu Tugas',
-              descriptions: [
-                'Merah = hari ini, Biru = terjadwal',
-                'Hijau = berjalan, Kuning = perlu laporan',
-                'Tap untuk buka detail tugas',
-              ],
+              descriptions: ['Tap kartu untuk buka detail & mulai tugas'],
+              arrowUp: true,
               step: '3/4',
             ),
           ),
@@ -180,9 +170,8 @@ class _DashboardPageState extends State<DashboardPage> {
             align: ContentAlign.bottom,
             builder: (context, controller) => CoachMarkHelper.buildTooltip(
               title: 'Urutkan Tugas',
-              descriptions: [
-                'Tahan & geser untuk ubah urutan',
-              ],
+              descriptions: ['Tahan & geser titik ini untuk ubah urutan prioritas'],
+              arrowUp: true,
               step: '4/4',
             ),
           ),

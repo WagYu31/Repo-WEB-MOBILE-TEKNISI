@@ -1544,12 +1544,8 @@ class _TaskPageState extends State<TaskPage> {
             align: ContentAlign.bottom,
             builder: (context, controller) => CoachMarkHelper.buildTooltip(
               title: 'Peta Lokasi',
-              descriptions: [
-                'Merah = lokasi customer',
-                'Biru = posisi kamu',
-                'Hijau = radius clock in',
-              ],
-              note: 'Pastikan GPS aktif',
+              descriptions: ['Merah = customer, Biru = posisi kamu, Hijau = radius clock in. Pastikan GPS aktif'],
+              arrowUp: true,
               step: '1/3',
             ),
           ),
@@ -1567,10 +1563,7 @@ class _TaskPageState extends State<TaskPage> {
             align: ContentAlign.top,
             builder: (context, controller) => CoachMarkHelper.buildTooltip(
               title: 'Jadwal Kunjungan',
-              descriptions: [
-                'Tanggal & jam yang ditentukan admin',
-                'Tiba sebelum jadwal ini',
-              ],
+              descriptions: ['Tanggal & jam kunjungan yang ditentukan admin'],
               step: '2/3',
             ),
           ),
@@ -1588,12 +1581,7 @@ class _TaskPageState extends State<TaskPage> {
             align: ContentAlign.top,
             builder: (context, controller) => CoachMarkHelper.buildTooltip(
               title: 'Detail & Aksi',
-              descriptions: [
-                'Geser slider → Clock In / Out',
-                'Kirim Laporan setelah selesai',
-                'Claim Reimbursement',
-              ],
-              note: 'Clock in hanya di radius lokasi',
+              descriptions: ['Tap untuk Clock In, kirim laporan, atau claim reimbursement'],
               step: '3/3',
             ),
           ),
