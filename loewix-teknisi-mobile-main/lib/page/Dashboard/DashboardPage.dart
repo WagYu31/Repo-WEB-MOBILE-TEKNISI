@@ -11,6 +11,7 @@ import '../../service/model/task/TaskAllResponse.dart';
 import '../../utils/state.dart';
 import '../../widget/CardTask.dart';
 import '../../widget/CoachMarkHelper.dart';
+import '../../service/notification/NotificationService.dart';
 
 class DashboardPage extends StatefulWidget {
   final Function(int)? onNavigate;
@@ -86,6 +87,11 @@ class _DashboardPageState extends State<DashboardPage> {
           tahun: now.year,
         );
       }
+
+      // ─── Register push notification worker ───
+      NotificationService().registerPeriodicCheck(_teknisiId!);
+      // Check pending reports immediately
+      NotificationService().checkNow(_teknisiId!);
     }
   }
 
