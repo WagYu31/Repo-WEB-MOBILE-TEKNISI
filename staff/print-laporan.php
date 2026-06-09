@@ -148,7 +148,7 @@ $role = $jabatan;
                                 <td class="text-end">Rp <?= number_format($inc_val, 0, ',', '.'); ?></td>
                                 <td class="text-end pe-3">Rp <?= number_format($bns_val, 0, ',', '.'); ?></td>
                             </tr>
-                            <?php endforeach; ?>
+                            <?php } ?>
                         </tbody>
                         <tfoot>
                             <tr class="total-row text-dark">
