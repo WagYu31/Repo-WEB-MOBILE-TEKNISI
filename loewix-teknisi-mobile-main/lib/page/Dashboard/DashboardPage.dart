@@ -76,7 +76,9 @@ class _DashboardPageState extends State<DashboardPage> {
     await idProvider.getUserRolePreferences();
     _teknisiId = idProvider.isUserRole;
     if (_teknisiId != null && _teknisiId!.isNotEmpty) {
-      Provider.of<DetailTaskGetProvider>(context, listen: false).getTask(_teknisiId!);
+      final taskProvider = Provider.of<DetailTaskGetProvider>(context, listen: false);
+      await taskProvider.getTask(_teknisiId!);
+      
       // Load statistik data
       final teknisiIdInt = int.tryParse(_teknisiId!);
       if (teknisiIdInt != null) {
@@ -88,10 +90,44 @@ class _DashboardPageState extends State<DashboardPage> {
         );
       }
 
-      // ─── Register push notification worker ───
+      // ─── Push Notification: check loaded tasks ───
       NotificationService().registerPeriodicCheck(_teknisiId!);
-      // Check pending reports immediately
-      NotificationService().checkNow(_teknisiId!);
+      _checkPendingAndNotify(taskProvider);
+    }
+  }
+
+  /// Check already-loaded tasks for pending reports and show notification
+  void _checkPendingAndNotify(DetailTaskGetProvider taskProvider) {
+    if (taskProvider.state != ResultState.hasData) return;
+
+    final tasks = taskProvider.response.data;
+    int pendingCount = 0;
+    List<String> names = [];
+
+    for (final task in tasks) {
+      final status = task.status.toLowerCase();
+      if (status == 'berjalan' ||
+          status == 'menunggu laporan' ||
+          status == 'dijadwalkan' ||
+          status == 'tidak') {
+        pendingCount++;
+        if (names.length < 3) {
+          names.add(task.dataCustomer.nama);
+        }
+      }
+    }
+
+    if (pendingCount > 0) {
+      final nameStr = names.join(', ');
+      final body = pendingCount == 1
+          ? 'Ada 1 tugas belum selesai — $nameStr. Segera upload laporan!'
+          : 'Ada $pendingCount tugas belum selesai — $nameStr. Segera upload laporan!';
+
+      NotificationService().showNow(
+        title: '📋 Laporan Belum Diupload',
+        body: body,
+        id: 1001,
+      );
     }
   }
 
