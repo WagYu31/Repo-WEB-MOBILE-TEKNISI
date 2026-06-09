@@ -77,11 +77,12 @@ class PencapaianProvider extends ChangeNotifier {
 
     try {
       // PHP file on jadwal.id-giti.com/staff/
-      final url = 'https://jadwal.id-giti.com/staff/api_teknisi_stats.php?teknisi_id=$teknisiId&bulan=$bulan&tahun=$tahun';
+      final ts = DateTime.now().millisecondsSinceEpoch;
+      final url = 'https://jadwal.id-giti.com/staff/api_teknisi_stats.php?teknisi_id=$teknisiId&bulan=$bulan&tahun=$tahun&_t=$ts';
 
       final response = await http.get(
         Uri.parse(url),
-        headers: {'Accept': 'application/json'},
+        headers: {'Accept': 'application/json', 'Cache-Control': 'no-cache'},
       ).timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 200) {
