@@ -8,6 +8,7 @@ import '../service/provider/preferences/PreferencesIDProvider.dart';
 import '../service/provider/Profile/ProfileProvider.dart';
 import '../service/model/profile/ProfileTeknisi.dart';
 import '../page/Auth/LoginPage.dart';
+import '../page/Garansi/CekGaransiPage.dart';
 
 class AppDrawer extends StatefulWidget {
   final int currentIndex;
@@ -150,6 +151,22 @@ class _AppDrawerState extends State<AppDrawer> {
                       subtitle: 'Panduan penggunaan',
                       color: _rose,
                       badge: 'Baru',
+                    ),
+                    _buildMenuItemCustom(
+                      icon: Iconsax.shield_tick,
+                      title: 'Cek Garansi',
+                      subtitle: 'Cek garansi produk',
+                      color: _teal,
+                      badge: 'Baru',
+                      onTap: () {
+                        Navigator.pop(context); // close drawer
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const CekGaransiPage(),
+                          ),
+                        );
+                      },
                     ),
                     _buildMenuItem(
                       index: 5,
@@ -403,6 +420,94 @@ class _AppDrawerState extends State<AppDrawer> {
             ),
           ),
         ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMenuItemCustom({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required Color color,
+    required VoidCallback onTap,
+    String? badge,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(14),
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(14),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 42,
+                    height: 42,
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Center(
+                      child: Icon(icon, size: 22, color: color),
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                            color: _textPrimary,
+                          ),
+                        ),
+                        Text(
+                          subtitle,
+                          style: const TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 11,
+                            color: _textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (badge != null)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: _warmOrange.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        badge,
+                        style: const TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: _warmOrange,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );
