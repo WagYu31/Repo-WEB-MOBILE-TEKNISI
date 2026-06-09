@@ -48,6 +48,8 @@ class _PencapaianPageState extends State<PencapaianPage>
   // Coach Mark Keys
   final GlobalKey _keyMonthSelector = GlobalKey();
   final GlobalKey _keySummaryCards = GlobalKey();
+  final GlobalKey _keyBarChart = GlobalKey();
+  final GlobalKey _keyTargetProgress = GlobalKey();
   bool _coachMarkShown = false;
 
   static const List<String> _monthNames = [
@@ -202,6 +204,7 @@ class _PencapaianPageState extends State<PencapaianPage>
                       // ─── BAR CHART — Rincian Kegiatan ──
                       SliverToBoxAdapter(
                         child: Padding(
+                          key: _keyBarChart,
                           padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
                           child: _buildBarChartSection(provider),
                         ),
@@ -220,6 +223,7 @@ class _PencapaianPageState extends State<PencapaianPage>
                           provider.pendapatanData != null)
                         SliverToBoxAdapter(
                           child: Padding(
+                            key: _keyTargetProgress,
                             padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
                             child: _buildTargetProgress(provider.pendapatanData!),
                           ),
@@ -1438,6 +1442,7 @@ class _PencapaianPageState extends State<PencapaianPage>
     _coachMarkShown = true;
 
     final targets = <TargetFocus>[
+      // Step 1: Period selector
       TargetFocus(
         identify: 'month_selector',
         keyTarget: _keyMonthSelector,
@@ -1453,11 +1458,12 @@ class _PencapaianPageState extends State<PencapaianPage>
               title: 'Pilih Periode',
               descriptions: ['Tap untuk ganti bulan & tahun statistik'],
               arrowUp: true,
-              step: '1/2',
+              step: '1/4',
             ),
           ),
         ],
       ),
+      // Step 2: Summary cards
       TargetFocus(
         identify: 'summary_cards',
         keyTarget: _keySummaryCards,
@@ -1470,10 +1476,50 @@ class _PencapaianPageState extends State<PencapaianPage>
             align: ContentAlign.bottom,
             builder: (context, controller) => CoachMarkHelper.buildTooltip(
               onClose: () => controller.skip(),
-              title: 'Statistik Bulan Ini',
-              descriptions: ['Lihat kegiatan, pendapatan, bonus & target. Scroll untuk grafik detail'],
+              title: 'Ringkasan Kinerja',
+              descriptions: ['Kegiatan, pendapatan, bonus & progress target bulan ini'],
               arrowUp: true,
-              step: '2/2',
+              step: '2/4',
+            ),
+          ),
+        ],
+      ),
+      // Step 3: Bar chart breakdown
+      TargetFocus(
+        identify: 'bar_chart',
+        keyTarget: _keyBarChart,
+        alignSkip: Alignment.bottomRight,
+        enableOverlayTab: true,
+        shape: ShapeLightFocus.RRect,
+        radius: 18,
+        contents: [
+          TargetContent(
+            align: ContentAlign.top,
+            builder: (context, controller) => CoachMarkHelper.buildTooltip(
+              onClose: () => controller.skip(),
+              title: 'Rincian Kegiatan',
+              descriptions: ['Grafik breakdown kegiatan selesai per kategori'],
+              step: '3/4',
+            ),
+          ),
+        ],
+      ),
+      // Step 4: Target progress
+      TargetFocus(
+        identify: 'target_progress',
+        keyTarget: _keyTargetProgress,
+        alignSkip: Alignment.topRight,
+        enableOverlayTab: true,
+        shape: ShapeLightFocus.RRect,
+        radius: 18,
+        contents: [
+          TargetContent(
+            align: ContentAlign.top,
+            builder: (context, controller) => CoachMarkHelper.buildTooltip(
+              onClose: () => controller.skip(),
+              title: 'Progress Target',
+              descriptions: ['Perbandingan pendapatan vs target bulanan kamu'],
+              step: '4/4',
             ),
           ),
         ],
