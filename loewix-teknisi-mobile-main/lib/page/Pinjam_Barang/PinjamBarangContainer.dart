@@ -170,6 +170,7 @@ class _ContainerPinjamBarangState extends State<ContainerPinjamBarang> {
           TargetContent(
             align: ContentAlign.bottom,
             builder: (context, controller) => CoachMarkHelper.buildTooltip(
+              onClose: () => controller.skip(),
               title: 'Tab Peminjaman',
               descriptions: ['Aktif = sedang dipinjam. Riwayat = sudah dikembalikan'],
               arrowUp: true,
@@ -189,6 +190,7 @@ class _ContainerPinjamBarangState extends State<ContainerPinjamBarang> {
           TargetContent(
             align: ContentAlign.top,
             builder: (context, controller) => CoachMarkHelper.buildTooltip(
+              onClose: () => controller.skip(),
               title: 'Ajukan Peminjaman',
               descriptions: ['Tap untuk ajukan peminjaman barang baru'],
               step: '2/2',

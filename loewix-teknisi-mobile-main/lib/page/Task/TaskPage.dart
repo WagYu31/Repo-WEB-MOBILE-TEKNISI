@@ -1559,6 +1559,7 @@ class _TaskPageState extends State<TaskPage> {
           TargetContent(
             align: ContentAlign.bottom,
             builder: (context, controller) => CoachMarkHelper.buildTooltip(
+              onClose: () => controller.skip(),
               title: 'Peta Lokasi',
               descriptions: ['Merah = customer, Biru = posisi kamu, Hijau = radius clock in. Pastikan GPS aktif'],
               arrowUp: true,
@@ -1578,6 +1579,7 @@ class _TaskPageState extends State<TaskPage> {
           TargetContent(
             align: ContentAlign.top,
             builder: (context, controller) => CoachMarkHelper.buildTooltip(
+              onClose: () => controller.skip(),
               title: 'Jadwal Kunjungan',
               descriptions: ['Tanggal & jam kunjungan yang ditentukan admin'],
               step: '2/3',
@@ -1596,6 +1598,7 @@ class _TaskPageState extends State<TaskPage> {
           TargetContent(
             align: ContentAlign.top,
             builder: (context, controller) => CoachMarkHelper.buildTooltip(
+              onClose: () => controller.skip(),
               title: 'Detail & Aksi',
               descriptions: ['Tap untuk Clock In, kirim laporan, atau claim reimbursement'],
               step: '3/3',
@@ -1621,6 +1624,7 @@ class _TaskPageState extends State<TaskPage> {
           TargetContent(
             align: ContentAlign.bottom,
             builder: (context, controller) => CoachMarkHelper.buildTooltip(
+              onClose: () => controller.skip(),
               title: 'Status Tugas',
               descriptions: ['Menunjukkan status terkini tugas ini'],
               arrowUp: true,
@@ -1641,6 +1645,7 @@ class _TaskPageState extends State<TaskPage> {
             TargetContent(
               align: ContentAlign.top,
               builder: (context, controller) => CoachMarkHelper.buildTooltip(
+              onClose: () => controller.skip(),
                 title: 'Geser untuk Mulai',
                 descriptions: ['Geser slider ke kanan untuk clock in / clock out'],
                 step: '2/3',
@@ -1659,6 +1664,7 @@ class _TaskPageState extends State<TaskPage> {
           TargetContent(
             align: ContentAlign.top,
             builder: (context, controller) => CoachMarkHelper.buildTooltip(
+              onClose: () => controller.skip(),
               title: 'Aksi Lainnya',
               descriptions: ['Kirim laporan, claim reimbursement, atau batalkan tugas'],
               step: '3/3',

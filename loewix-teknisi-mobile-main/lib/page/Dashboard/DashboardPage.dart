@@ -112,6 +112,7 @@ class _DashboardPageState extends State<DashboardPage> {
           TargetContent(
             align: ContentAlign.bottom,
             builder: (context, controller) => CoachMarkHelper.buildTooltip(
+              onClose: () => controller.skip(),
               title: 'Ringkasan Kinerja',
               descriptions: ['Lihat kegiatan, pendapatan, bonus & target kamu di sini'],
               arrowUp: true,
@@ -131,6 +132,7 @@ class _DashboardPageState extends State<DashboardPage> {
           TargetContent(
             align: ContentAlign.bottom,
             builder: (context, controller) => CoachMarkHelper.buildTooltip(
+              onClose: () => controller.skip(),
               title: 'Tugas Aktif',
               descriptions: ['Daftar semua tugas yang ditugaskan. Tarik ke bawah untuk refresh'],
               arrowUp: true,
@@ -150,6 +152,7 @@ class _DashboardPageState extends State<DashboardPage> {
           TargetContent(
             align: ContentAlign.bottom,
             builder: (context, controller) => CoachMarkHelper.buildTooltip(
+              onClose: () => controller.skip(),
               title: 'Kartu Tugas',
               descriptions: ['Tap kartu untuk buka detail & mulai tugas'],
               arrowUp: true,
@@ -169,6 +172,7 @@ class _DashboardPageState extends State<DashboardPage> {
           TargetContent(
             align: ContentAlign.bottom,
             builder: (context, controller) => CoachMarkHelper.buildTooltip(
+              onClose: () => controller.skip(),
               title: 'Urutkan Tugas',
               descriptions: ['Tahan & geser titik ini untuk ubah urutan prioritas'],
               arrowUp: true,

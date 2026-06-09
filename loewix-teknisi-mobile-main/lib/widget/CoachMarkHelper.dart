@@ -11,6 +11,7 @@ class CoachMarkHelper {
     String? note,
     String? icon, // backward compat
     bool arrowUp = false,
+    VoidCallback? onClose,
   }) {
     // Combine descriptions into one paragraph
     final text = descriptions.where((d) => d.isNotEmpty).join('. ');
@@ -90,7 +91,7 @@ class CoachMarkHelper {
               const SizedBox(width: 8),
               // Close (X) button
               GestureDetector(
-                onTap: () {}, // handled by enableOverlayTab
+                onTap: onClose,
                 child: Container(
                   padding: const EdgeInsets.all(4),
                   child: const Icon(
