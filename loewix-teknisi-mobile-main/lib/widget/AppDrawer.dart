@@ -9,6 +9,7 @@ import '../service/provider/Profile/ProfileProvider.dart';
 import '../service/model/profile/ProfileTeknisi.dart';
 import '../page/Auth/LoginPage.dart';
 import '../page/Garansi/CekGaransiPage.dart';
+import '../constants/app_constants.dart';
 
 class AppDrawer extends StatefulWidget {
   final int currentIndex;
@@ -27,13 +28,16 @@ class AppDrawer extends StatefulWidget {
 class _AppDrawerState extends State<AppDrawer> {
   // ─── Premium Color Palette ─────────────────────
   static const Color _navy = Color(0xFF0F172A);
+  static const Color _darkSlate = Color(0xFF1E293B);
   static const Color _skyBlue = Color(0xFF0EA5E9);
   static const Color _teal = Color(0xFF14B8A6);
   static const Color _warmOrange = Color(0xFFF97316);
   static const Color _rose = Color(0xFFF43F5E);
   static const Color _indigo = Color(0xFF6366F1);
+  static const Color _emerald = Color(0xFF10B981);
   static const Color _textPrimary = Color(0xFF0F172A);
-  static const Color _textSecondary = Color(0xFF64748B);
+  static const Color _textSecondary = Color(0xFF94A3B8);
+  static const Color _divider = Color(0xFFF1F5F9);
 
   Future<ProfileTeknisiResponse>? _profileFuture;
 
@@ -50,7 +54,6 @@ class _AppDrawerState extends State<AppDrawer> {
   }
 
   void _showLogoutConfirmation() {
-    // Don't pop drawer here — it invalidates context for QuickAlert
     QuickAlert.show(
       context: context,
       type: QuickAlertType.confirm,
@@ -71,7 +74,6 @@ class _AppDrawerState extends State<AppDrawer> {
   }
 
   Future<void> _performLogout() async {
-    // Get providers before async gap
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final prefsProvider = Provider.of<PreferencesIDProvider>(context, listen: false);
 
@@ -94,20 +96,23 @@ class _AppDrawerState extends State<AppDrawer> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.horizontal(right: Radius.circular(24)),
       ),
-      child: Column(
+      child: SafeArea(
+        top: false,
+        child: Column(
           children: [
-            // Header (di luar SafeArea agar warna biru sampai ke status bar)
+            // ─── Header ───
             _buildHeader(),
-            const SizedBox(height: 8),
-            // Menu items
+
+            // ─── Menu Items (scrollable) ───
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(14, 16, 14, 8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildSectionTitle('Menu Utama'),
-                    const SizedBox(height: 8),
+                    _buildSectionTitle('MENU UTAMA'),
+                    const SizedBox(height: 6),
                     _buildMenuItem(
                       index: 0,
                       icon: Iconsax.task_square,
@@ -132,9 +137,13 @@ class _AppDrawerState extends State<AppDrawer> {
                       subtitle: 'Kelola peminjaman barang',
                       color: _indigo,
                     ),
-                    const SizedBox(height: 16),
-                    _buildSectionTitle('Lainnya'),
+
                     const SizedBox(height: 8),
+                    _buildDivider(),
+                    const SizedBox(height: 8),
+
+                    _buildSectionTitle('LAINNYA'),
+                    const SizedBox(height: 6),
                     _buildMenuItem(
                       index: 3,
                       icon: Iconsax.chart_1,
@@ -156,10 +165,10 @@ class _AppDrawerState extends State<AppDrawer> {
                       icon: Iconsax.shield_tick,
                       title: 'Cek Garansi',
                       subtitle: 'Cek garansi produk',
-                      color: _teal,
+                      color: _emerald,
                       badge: 'Baru',
                       onTap: () {
-                        Navigator.pop(context); // close drawer
+                        Navigator.pop(context);
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -176,32 +185,52 @@ class _AppDrawerState extends State<AppDrawer> {
                       subtitle: 'Informasi akun',
                       color: _skyBlue,
                     ),
+
+                    const SizedBox(height: 8),
+                    _buildDivider(),
+                    const SizedBox(height: 12),
+
+                    // ─── Logout (langsung di bawah menu, bukan di bawah screen) ───
+                    _buildLogoutButton(),
+                    const SizedBox(height: 16),
+
+                    // ─── Version ───
+                    Center(
+                      child: Text(
+                        'Teknisi Loewix v${AppConstants.appVersion}',
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 11,
+                          color: _textSecondary.withValues(alpha: 0.6),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
                   ],
                 ),
               ),
             ),
-            // Logout button
-            _buildLogoutButton(),
-            const SizedBox(height: 16),
           ],
         ),
+      ),
     );
   }
 
+  // ─── Header ─────────────────────────────────
   Widget _buildHeader() {
     final topPadding = MediaQuery.of(context).padding.top;
     return Container(
       width: double.infinity,
       padding: EdgeInsets.fromLTRB(20, topPadding + 20, 20, 20),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xFF0F172A), Color(0xFF1E3A5F)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(24),
-          bottomRight: Radius.circular(24),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(28),
+          bottomRight: Radius.circular(28),
         ),
       ),
       child: FutureBuilder<ProfileTeknisiResponse>(
@@ -215,84 +244,97 @@ class _AppDrawerState extends State<AppDrawer> {
             telp = snapshot.data!.data.telp;
           }
 
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          return Row(
             children: [
-              Row(
-                children: [
-                  Container(
-                    width: 60,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white.withValues(alpha: 0.2),
-                      border: Border.all(color: Colors.white, width: 2),
-                    ),
-                    child: const Icon(
-                      Iconsax.user,
-                      size: 30,
-                      color: Colors.white,
-                    ),
+              // Avatar
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: [
+                      _skyBlue.withValues(alpha: 0.3),
+                      _teal.withValues(alpha: 0.3),
+                    ],
                   ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.4),
+                    width: 2,
+                  ),
+                ),
+                child: const Icon(
+                  Iconsax.user,
+                  size: 26,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(width: 14),
+              // Info
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      nama,
+                      style: const TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Row(
                       children: [
-                        Text(
-                          nama,
-                          style: const TextStyle(
-                            fontFamily: 'Poppins',
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                        Icon(
+                          Iconsax.call,
+                          size: 12,
+                          color: Colors.white.withValues(alpha: 0.7),
                         ),
-                        const SizedBox(height: 2),
-                        Row(
-                          children: [
-                            Icon(
-                              Iconsax.call,
-                              size: 14,
-                              color: Colors.white.withValues(alpha: 0.8),
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              telp,
-                              style: TextStyle(
-                                fontFamily: 'Poppins',
-                                fontSize: 13,
-                                color: Colors.white.withValues(alpha: 0.8),
-                              ),
-                            ),
-                          ],
+                        const SizedBox(width: 5),
+                        Text(
+                          telp,
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 12,
+                            color: Colors.white.withValues(alpha: 0.7),
+                          ),
                         ),
                       ],
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Iconsax.verify5, size: 16, color: Colors.white),
-                    SizedBox(width: 6),
-                    Text(
-                      'Teknisi Aktif',
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.white,
+                    const SizedBox(height: 8),
+                    // Badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: _emerald.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: _emerald.withValues(alpha: 0.3),
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Iconsax.verify5, size: 13, color: _emerald),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Teknisi Aktif',
+                            style: TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: _emerald,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -305,22 +347,33 @@ class _AppDrawerState extends State<AppDrawer> {
     );
   }
 
+  // ─── Section Title ──────────────────────────
   Widget _buildSectionTitle(String title) {
     return Padding(
-      padding: const EdgeInsets.only(left: 8),
+      padding: const EdgeInsets.only(left: 10, bottom: 2),
       child: Text(
         title,
-        style: const TextStyle(
+        style: TextStyle(
           fontFamily: 'Poppins',
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          color: _textSecondary,
-          letterSpacing: 0.5,
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
+          color: _textSecondary.withValues(alpha: 0.7),
+          letterSpacing: 1.2,
         ),
       ),
     );
   }
 
+  // ─── Divider ────────────────────────────────
+  Widget _buildDivider() {
+    return Container(
+      height: 1,
+      margin: const EdgeInsets.symmetric(horizontal: 10),
+      color: _divider,
+    );
+  }
+
+  // ─── Menu Item (indexed - for tab switching) ─
   Widget _buildMenuItem({
     required int index,
     required IconData icon,
@@ -333,42 +386,36 @@ class _AppDrawerState extends State<AppDrawer> {
     final isActive = widget.currentIndex == index;
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
-      child: Container(
-        decoration: BoxDecoration(
-          color: isActive ? color.withValues(alpha: 0.1) : Colors.transparent,
+      padding: const EdgeInsets.only(bottom: 2),
+      child: Material(
+        color: isActive ? color.withValues(alpha: 0.08) : Colors.transparent,
+        borderRadius: BorderRadius.circular(14),
+        child: InkWell(
+          onTap: () {
+            Navigator.pop(context);
+            widget.onItemTapped(index);
+          },
           borderRadius: BorderRadius.circular(14),
-        ),
-        child: Material(
-          color: Colors.transparent,
-          borderRadius: BorderRadius.circular(14),
-          child: InkWell(
-            onTap: () {
-              Navigator.pop(context); // Close drawer
-              widget.onItemTapped(index);
-            },
-            borderRadius: BorderRadius.circular(14),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Container(
-                  width: 42,
-                  height: 42,
+                  width: 40,
+                  height: 40,
                   decoration: BoxDecoration(
                     color: isActive ? color : color.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(11),
                   ),
                   child: Center(
                     child: Icon(
                       isActive ? activeIcon : icon,
-                      size: 22,
+                      size: 20,
                       color: isActive ? Colors.white : color,
                     ),
                   ),
                 ),
-                const SizedBox(width: 14),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -377,7 +424,7 @@ class _AppDrawerState extends State<AppDrawer> {
                         title,
                         style: TextStyle(
                           fontFamily: 'Poppins',
-                          fontSize: 15,
+                          fontSize: 14,
                           fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
                           color: isActive ? color : _textPrimary,
                         ),
@@ -386,7 +433,7 @@ class _AppDrawerState extends State<AppDrawer> {
                         subtitle,
                         style: const TextStyle(
                           fontFamily: 'Poppins',
-                          fontSize: 11,
+                          fontSize: 10,
                           color: _textSecondary,
                         ),
                       ),
@@ -395,17 +442,17 @@ class _AppDrawerState extends State<AppDrawer> {
                 ),
                 if (badge != null)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                     decoration: BoxDecoration(
-                      color: _warmOrange.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
+                      color: _warmOrange.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
                       badge,
                       style: const TextStyle(
                         fontFamily: 'Poppins',
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
+                        fontSize: 9,
+                        fontWeight: FontWeight.w700,
                         color: _warmOrange,
                       ),
                     ),
@@ -413,18 +460,18 @@ class _AppDrawerState extends State<AppDrawer> {
                 if (isActive && badge == null)
                   Icon(
                     Iconsax.arrow_right_3,
-                    size: 16,
+                    size: 14,
                     color: color.withValues(alpha: 0.5),
                   ),
               ],
             ),
           ),
         ),
-        ),
       ),
     );
   }
 
+  // ─── Menu Item Custom (non-indexed - for navigator push) ─
   Widget _buildMenuItemCustom({
     required IconData icon,
     required String title,
@@ -434,78 +481,71 @@ class _AppDrawerState extends State<AppDrawer> {
     String? badge,
   }) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.transparent,
+      padding: const EdgeInsets.only(bottom: 2),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(14),
+        child: InkWell(
+          onTap: onTap,
           borderRadius: BorderRadius.circular(14),
-        ),
-        child: Material(
-          color: Colors.transparent,
-          borderRadius: BorderRadius.circular(14),
-          child: InkWell(
-            onTap: onTap,
-            borderRadius: BorderRadius.circular(14),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 42,
-                    height: 42,
-                    decoration: BoxDecoration(
-                      color: color.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Center(
-                      child: Icon(icon, size: 22, color: color),
-                    ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(11),
                   ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          title,
-                          style: TextStyle(
-                            fontFamily: 'Poppins',
-                            fontSize: 15,
-                            fontWeight: FontWeight.w500,
-                            color: _textPrimary,
-                          ),
-                        ),
-                        Text(
-                          subtitle,
-                          style: const TextStyle(
-                            fontFamily: 'Poppins',
-                            fontSize: 11,
-                            color: _textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
+                  child: Center(
+                    child: Icon(icon, size: 20, color: color),
                   ),
-                  if (badge != null)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: _warmOrange.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: _textPrimary,
+                        ),
                       ),
-                      child: Text(
-                        badge,
+                      Text(
+                        subtitle,
                         style: const TextStyle(
                           fontFamily: 'Poppins',
                           fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                          color: _warmOrange,
+                          color: _textSecondary,
                         ),
                       ),
+                    ],
+                  ),
+                ),
+                if (badge != null)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: _warmOrange.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(6),
                     ),
-                ],
-              ),
+                    child: Text(
+                      badge,
+                      style: const TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 9,
+                        fontWeight: FontWeight.w700,
+                        color: _warmOrange,
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
         ),
@@ -513,36 +553,34 @@ class _AppDrawerState extends State<AppDrawer> {
     );
   }
 
+  // ─── Logout Button ──────────────────────────
   Widget _buildLogoutButton() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: SizedBox(
-        width: double.infinity,
-        child: ElevatedButton(
-          onPressed: _showLogoutConfirmation,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: _rose.withValues(alpha: 0.1),
-            foregroundColor: _rose,
-            elevation: 0,
-            padding: const EdgeInsets.symmetric(vertical: 14),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
-            ),
-          ),
-          child: const Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Iconsax.logout, size: 20),
-              SizedBox(width: 10),
-              Text(
-                'Keluar',
-                style: TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
+    return SizedBox(
+      width: double.infinity,
+      child: Material(
+        color: _rose.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(14),
+        child: InkWell(
+          onTap: _showLogoutConfirmation,
+          borderRadius: BorderRadius.circular(14),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Iconsax.logout, size: 18, color: _rose),
+                const SizedBox(width: 8),
+                Text(
+                  'Keluar',
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: _rose,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
