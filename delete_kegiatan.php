@@ -1,20 +1,33 @@
 <?php
+session_start();
+
+// ── Auth check ──
+if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
+    http_response_code(403);
+    echo "Unauthorized";
+    exit;
+}
+
 include "conn.php";
 
-if (isset($_GET['id_kegiatan'])) {
-    $id_kegiatan = $_GET['id_kegiatan'];
+if (isset($_GET['id_kegiatan']) && is_numeric($_GET['id_kegiatan'])) {
+    $id_kegiatan = intval($_GET['id_kegiatan']);
 
-    // Query DELETE untuk menghapus kegiatan berdasarkan id_kegiatan
-    $deleteQuery = "DELETE FROM kegiatan WHERE id_kegiatan = $id_kegiatan";
+    // Prepared statement — aman dari SQL Injection
+    $stmt = mysqli_prepare($conn, "DELETE FROM kegiatan WHERE id_kegiatan = ?");
+    mysqli_stmt_bind_param($stmt, "i", $id_kegiatan);
 
-    if (mysqli_query($conn, $deleteQuery)) {
-        // Kegiatan berhasil dihapus, redirect kembali ke halaman sebelumnya
-        header("Location: index-sa.php"); // Ganti 'previous_page.php' dengan halaman yang sesuai
+    if (mysqli_stmt_execute($stmt)) {
+        mysqli_stmt_close($stmt);
+        header("Location: index-sa.php");
         exit;
     } else {
-        echo "Error: " . mysqli_error($conn);
+        mysqli_stmt_close($stmt);
+        echo "Terjadi kesalahan. Silakan coba lagi.";
     }
 } else {
-    echo "Parameter id_kegiatan tidak valid.";
+    echo "Parameter tidak valid.";
 }
+
+mysqli_close($conn);
 ?>

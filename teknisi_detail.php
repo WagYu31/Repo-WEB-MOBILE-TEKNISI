@@ -18,18 +18,15 @@ include "get-user-data.php";
 include "get-number-waiting.php";
 
 // Periksa apakah parameter id_teknisi ada di URL
-if (isset($_GET["id_teknisi"])) {
-    $teknisi = $_GET["id_teknisi"];
+if (isset($_GET["id_teknisi"]) && is_numeric($_GET["id_teknisi"])) {
+    $teknisi = intval($_GET["id_teknisi"]);
 
-    // Di sini, Anda perlu mengambil data kegiatan teknisi dengan $id_teknisi dari database
-    // Anda dapat menggunakan query SQL sesuai dengan skema database Anda.
-
-    // Misalnya:
+    // Query aman dengan prepared statement
     $sql = "SELECT k.id_teknisi, k.*, t.nama AS nama_teknisi, c.nama AS nama_customer
         FROM kegiatan k
         LEFT JOIN teknisi t ON k.id_teknisi = t.id_teknisi
         LEFT JOIN customer c ON k.id_cust = c.id_cust
-        WHERE FIND_IN_SET('$teknisi', k.id_teknisi) > 0
+        WHERE FIND_IN_SET(?, k.id_teknisi) > 0
         ORDER BY 
             CASE 
                 WHEN k.status = 'On Process' THEN 1
@@ -41,7 +38,10 @@ if (isset($_GET["id_teknisi"])) {
                 WHEN k.status = 'Pending' THEN k.tgl_request
                 WHEN k.status = 'Clear' THEN k.tgl_selesai
             END DESC";
-    $result = mysqli_query($conn, $sql);
+    $stmtKegiatan = mysqli_prepare($conn, $sql);
+    mysqli_stmt_bind_param($stmtKegiatan, "i", $teknisi);
+    mysqli_stmt_execute($stmtKegiatan);
+    $result = mysqli_stmt_get_result($stmtKegiatan);
 
     // ...
 
@@ -215,9 +215,11 @@ include "get-next-page.php";
             <main id="content" class="mx-auto">
                 <div class="container">
                     <?php
-                        $queryTek = "SELECT * FROM teknisi WHERE id_teknisi = $teknisi";
-                        $resTek = mysqli_query($conn, $queryTek);
-                        $dataTek = mysqli_fetch_assoc($resTek);
+                        $stmtTek = mysqli_prepare($conn, "SELECT * FROM teknisi WHERE id_teknisi = ?");
+                    mysqli_stmt_bind_param($stmtTek, "i", $teknisi);
+                    mysqli_stmt_execute($stmtTek);
+                    $resTekResult = mysqli_stmt_get_result($stmtTek);
+                        $dataTek = mysqli_fetch_assoc($resTekResult);
                         $namaTek = $dataTek["nama"];
                     ?>
                     <h2>Data Kegiatan Teknisi : <?php echo $namaTek; ?></h2>

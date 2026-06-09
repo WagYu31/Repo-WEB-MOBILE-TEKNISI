@@ -1,1 +1,41 @@
- 
+# ════════════════════════════════════════════════════════
+# SECURITY CONFIGURATION - Loewix Web Admin
+# ════════════════════════════════════════════════════════
+
+# ── Blokir akses ke file sensitif ──
+<FilesMatch "\.(sql|log|ini|env|bak|sh|git|gitignore)$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+
+# ── Blokir akses ke conn.php langsung ──
+<Files "conn.php">
+    Order Allow,Deny
+    Deny from all
+</Files>
+
+# ── Sembunyikan listing direktori ──
+Options -Indexes
+
+# ── Security Headers ──
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+    Header set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+</IfModule>
+
+# ── Blokir eksekusi PHP di folder uploads ──
+<Directory "uploads">
+    <FilesMatch "\.php$">
+        Order Allow,Deny
+        Deny from all
+    </FilesMatch>
+</Directory>
+
+# ── Blokir akses ke backup files ──
+<FilesMatch "(backup|back-up|bc-).*\.php$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>

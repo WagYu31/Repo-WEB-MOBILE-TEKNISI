@@ -57,11 +57,11 @@ $nama = $rowSesi['nama'];
                                 <div class="text-center">
                                     <?php if (isset($_GET['error'])) : ?>
                                         <div class="alert alert-danger" role="alert">
-                                            <?php echo $_GET['error']; ?>
+                                            <?php echo htmlspecialchars($_GET['error'] ?? '', ENT_QUOTES, 'UTF-8'); ?>
                                         </div>
                                     <?php elseif (isset($_GET['success'])) : ?>
                                         <div class="alert alert-success" role="alert">
-                                            <?php echo $_GET['success']; ?>
+                                            <?php echo htmlspecialchars($_GET['success'] ?? '', ENT_QUOTES, 'UTF-8'); ?>
                                         </div>
                                     <?php endif; ?>
                                     <button type="submit" class="btn btn-primary">Ganti Password</button>
