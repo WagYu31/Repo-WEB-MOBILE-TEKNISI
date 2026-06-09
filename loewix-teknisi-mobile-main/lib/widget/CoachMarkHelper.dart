@@ -1,27 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
-/// Shared helper for building consistent coach mark tooltips across all pages.
+/// Sleek, minimal coach mark helper — professional & compact.
 class CoachMarkHelper {
-  /// Build a styled tooltip widget for coach marks
+  // Design tokens
+  static const _bg = Color(0xFF1E293B);
+  static const _accent = Color(0xFF38BDF8);
+  static const _textWhite = Color(0xFFF1F5F9);
+  static const _textMuted = Color(0xFF94A3B8);
+
+  /// Compact tooltip — icon + title + bullet list
   static Widget buildTooltip({
-    required String icon,
     required String title,
     required List<String> descriptions,
-    String? note,
     String? step,
+    String? note,
+    String? icon, // kept for backward compat, ignored in new design
   }) {
     return Container(
-      margin: const EdgeInsets.only(top: 16),
-      padding: const EdgeInsets.all(20),
+      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
+      constraints: const BoxConstraints(maxWidth: 300),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        color: _bg,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: _accent.withValues(alpha: 0.25), width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.15),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
+            color: Colors.black.withValues(alpha: 0.35),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
@@ -29,103 +37,98 @@ class CoachMarkHelper {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
+          // Header: title + step badge
           Row(
             children: [
-              Text(icon, style: const TextStyle(fontSize: 24)),
-              const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   title,
                   style: const TextStyle(
                     fontFamily: 'Poppins',
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF1E293B),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: _textWhite,
+                    height: 1.3,
                   ),
                 ),
               ),
-              if (step != null)
+              if (step != null) ...[
+                const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF0EA5E9).withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
+                    color: _accent.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
                     step,
                     style: const TextStyle(
                       fontFamily: 'Poppins',
-                      fontSize: 11,
+                      fontSize: 10,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF0EA5E9),
+                      color: _accent,
                     ),
                   ),
                 ),
+              ],
             ],
           ),
-          const SizedBox(height: 12),
-          ...descriptions.map((desc) => Padding(
-            padding: const EdgeInsets.only(bottom: 4),
-            child: Text(
-              desc,
-              style: const TextStyle(
-                fontFamily: 'Poppins',
-                fontSize: 13,
-                fontWeight: FontWeight.w400,
-                color: Color(0xFF475569),
-                height: 1.5,
-              ),
+          const SizedBox(height: 8),
+          // Description bullets
+          ...descriptions.where((d) => d.isNotEmpty).map((desc) => Padding(
+            padding: const EdgeInsets.only(bottom: 3),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 4, height: 4,
+                  margin: const EdgeInsets.only(top: 6, right: 8),
+                  decoration: BoxDecoration(
+                    color: _accent,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    desc,
+                    style: const TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400,
+                      color: _textMuted,
+                      height: 1.4,
+                    ),
+                  ),
+                ),
+              ],
             ),
           )),
           if (note != null) ...[
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFF7ED),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFFF97316).withValues(alpha: 0.2)),
-              ),
-              child: Row(
-                children: [
-                  const Text('\u{1F4A1}', style: TextStyle(fontSize: 14)),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      note,
-                      style: const TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                        color: Color(0xFFF97316),
-                      ),
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                Icon(Icons.info_outline_rounded, size: 12, color: _accent.withValues(alpha: 0.7)),
+                const SizedBox(width: 5),
+                Expanded(
+                  child: Text(
+                    note,
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 10,
+                      fontWeight: FontWeight.w500,
+                      color: _accent.withValues(alpha: 0.7),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ],
-          const SizedBox(height: 12),
-          const Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'Tap di mana saja untuk lanjut \u2192',
-                style: TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                  color: Color(0xFF94A3B8),
-                ),
-              ),
-            ],
-          ),
         ],
       ),
     );
   }
 
-  /// Show a coach mark with consistent styling
+  /// Show coach mark with dark pro styling
   static void show({
     required BuildContext context,
     required List<TargetFocus> targets,
@@ -133,15 +136,16 @@ class CoachMarkHelper {
     TutorialCoachMark(
       targets: targets,
       colorShadow: const Color(0xFF0F172A),
-      opacityShadow: 0.85,
+      opacityShadow: 0.82,
       textSkip: 'LEWATI',
       textStyleSkip: const TextStyle(
         fontFamily: 'Poppins',
-        fontSize: 14,
+        fontSize: 13,
         fontWeight: FontWeight.w600,
-        color: Colors.white70,
+        color: _accent,
+        letterSpacing: 0.5,
       ),
-      paddingFocus: 8,
+      paddingFocus: 6,
     ).show(context: context);
   }
 }

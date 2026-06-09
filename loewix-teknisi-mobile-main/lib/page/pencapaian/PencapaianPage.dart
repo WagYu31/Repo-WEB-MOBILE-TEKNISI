@@ -1449,14 +1449,11 @@ class _PencapaianPageState extends State<PencapaianPage>
           TargetContent(
             align: ContentAlign.bottom,
             builder: (context, controller) => CoachMarkHelper.buildTooltip(
-              icon: '📅', title: 'Pilih Periode',
+              title: 'Pilih Periode',
               descriptions: [
-                'Tap untuk memilih bulan & tahun',
-                'Melihat statistik bulan sebelumnya',
-                '',
-                'Data berubah sesuai periode yang dipilih',
+                'Tap untuk ganti bulan & tahun',
               ],
-              step: '1 / 2',
+              step: '1/2',
             ),
           ),
         ],
@@ -1472,16 +1469,12 @@ class _PencapaianPageState extends State<PencapaianPage>
           TargetContent(
             align: ContentAlign.bottom,
             builder: (context, controller) => CoachMarkHelper.buildTooltip(
-              icon: '📊', title: 'Ringkasan Statistik',
+              title: 'Statistik Bulan Ini',
               descriptions: [
-                '📋 Kegiatan — Jumlah tugas selesai bulan ini',
-                '💰 Pendapatan — Total fee + invoice',
-                '⭐ Bonus — 60% dari selisih di atas target',
-                '🎯 Target — Progress pencapaian',
-                '',
-                'Scroll ke bawah untuk lihat grafik detail',
+                'Kegiatan, pendapatan, bonus & target',
+                'Scroll ke bawah untuk grafik detail',
               ],
-              step: '2 / 2',
+              step: '2/2',
             ),
           ),
         ],

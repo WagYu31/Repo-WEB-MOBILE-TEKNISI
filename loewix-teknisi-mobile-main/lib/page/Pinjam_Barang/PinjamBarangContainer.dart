@@ -170,12 +170,12 @@ class _ContainerPinjamBarangState extends State<ContainerPinjamBarang> {
           TargetContent(
             align: ContentAlign.bottom,
             builder: (context, controller) => CoachMarkHelper.buildTooltip(
-              icon: '📦', title: 'Tab Peminjaman',
+              title: 'Tab Peminjaman',
               descriptions: [
-                '✅ Pinjaman Aktif — Barang yang sedang dipinjam',
-                '📜 Riwayat — Barang yang sudah dikembalikan',
+                'Aktif = sedang dipinjam',
+                'Riwayat = sudah dikembalikan',
               ],
-              step: '1 / 2',
+              step: '1/2',
             ),
           ),
         ],
@@ -191,13 +191,11 @@ class _ContainerPinjamBarangState extends State<ContainerPinjamBarang> {
           TargetContent(
             align: ContentAlign.top,
             builder: (context, controller) => CoachMarkHelper.buildTooltip(
-              icon: '➕', title: 'Tambah Peminjaman',
+              title: 'Ajukan Peminjaman',
               descriptions: [
-                'Tap tombol ini untuk mengajukan peminjaman baru',
-                'Pilih barang, isi jumlah, lalu submit',
+                'Pilih barang & jumlah, lalu submit',
               ],
-              note: 'Pastikan kembalikan barang tepat waktu!',
-              step: '2 / 2',
+              step: '2/2',
             ),
           ),
         ],

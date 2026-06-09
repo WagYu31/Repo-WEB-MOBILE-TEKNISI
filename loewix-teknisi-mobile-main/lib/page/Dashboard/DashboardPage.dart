@@ -112,14 +112,15 @@ class _DashboardPageState extends State<DashboardPage> {
           TargetContent(
             align: ContentAlign.bottom,
             builder: (context, controller) => CoachMarkHelper.buildTooltip(
-              icon: '📊', title: 'Ringkasan Kinerja',
+              title: 'Ringkasan Kinerja',
               descriptions: [
-                '📋 Kegiatan — Total tugas yang ditugaskan',
-                '💰 Pendapatan — Fee + Invoice yang kamu terima',
-                '⭐ Bonus — 60% dari selisih pendapatan di atas target',
-                '🎯 Target — Persentase pencapaian target kuartal',
+                'Kegiatan — total tugas ditugaskan',
+                'Pendapatan — fee + invoice',
+                'Bonus — 60% di atas target',
+                'Target — progress kuartal',
               ],
-              note: 'Data dihitung per kuartal (3 bulan)', step: '1 / 4',
+              note: 'Dihitung per kuartal (3 bulan)',
+              step: '1/4',
             ),
           ),
         ],
@@ -135,13 +136,12 @@ class _DashboardPageState extends State<DashboardPage> {
           TargetContent(
             align: ContentAlign.bottom,
             builder: (context, controller) => CoachMarkHelper.buildTooltip(
-              icon: '📝', title: 'Tugas Aktif',
+              title: 'Tugas Aktif',
               descriptions: [
-                'Daftar semua tugas yang ditugaskan kepada kamu',
-                'Badge angka menunjukkan jumlah tugas aktif',
-                'Tarik ke bawah untuk refresh data terbaru',
+                'Semua tugas yang ditugaskan',
+                'Tarik ke bawah untuk refresh',
               ],
-              step: '2 / 4',
+              step: '2/4',
             ),
           ),
         ],
@@ -157,16 +157,13 @@ class _DashboardPageState extends State<DashboardPage> {
           TargetContent(
             align: ContentAlign.bottom,
             builder: (context, controller) => CoachMarkHelper.buildTooltip(
-              icon: '📌', title: 'Detail Kartu Tugas',
+              title: 'Kartu Tugas',
               descriptions: [
-                '🔴 Hari Ini — Tugas dijadwalkan hari ini',
-                '🔵 Terjadwal — Tugas di hari mendatang',
-                '🟢 Berjalan — Sudah clock in',
-                '🟡 Perlu Laporan — Belum upload laporan',
-                '',
-                'Tap kartu untuk buka detail & mulai tugas',
+                'Merah = hari ini, Biru = terjadwal',
+                'Hijau = berjalan, Kuning = perlu laporan',
+                'Tap untuk buka detail tugas',
               ],
-              step: '3 / 4',
+              step: '3/4',
             ),
           ),
         ],
@@ -182,12 +179,11 @@ class _DashboardPageState extends State<DashboardPage> {
           TargetContent(
             align: ContentAlign.bottom,
             builder: (context, controller) => CoachMarkHelper.buildTooltip(
-              icon: '↕️', title: 'Urutkan Tugas',
+              title: 'Urutkan Tugas',
               descriptions: [
-                'Tahan & geser titik-titik ini untuk mengubah urutan',
-                'Prioritaskan tugas paling penting di atas',
+                'Tahan & geser untuk ubah urutan',
               ],
-              note: 'Urutan hanya berlaku di perangkat ini', step: '4 / 4',
+              step: '4/4',
             ),
           ),
         ],
