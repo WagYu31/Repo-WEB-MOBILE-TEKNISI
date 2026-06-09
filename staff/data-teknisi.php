@@ -624,7 +624,7 @@ $pageNow = "Data Teknisi";
 
         function updateStats(data, prevData) {
             const totalTeknisi = data.length;
-            const totalPendapatan = data.reduce((s, r) => s + parseFloat(r.total_pendapatan) + parseFloat(r.total_fee), 0);
+            const totalPendapatan = data.reduce((s, r) => s + parseFloat(r.total_pendapatan), 0);
             const totalBonus = data.reduce((s, r) => s + parseFloat(r.bonus), 0);
             let achieveCount = 0;
             data.forEach(r => { if (parseFloat(r.target) > 0 && (parseFloat(r.total_pendapatan) + parseFloat(r.total_fee)) >= parseFloat(r.target)) achieveCount++; });
@@ -637,7 +637,7 @@ $pageNow = "Data Teknisi";
 
             // Compare diff
             if (prevData) {
-                const prevPendapatan = prevData.reduce((s, r) => s + parseFloat(r.total_pendapatan) + parseFloat(r.total_fee), 0);
+                const prevPendapatan = prevData.reduce((s, r) => s + parseFloat(r.total_pendapatan), 0);
                 const prevBonus = prevData.reduce((s, r) => s + parseFloat(r.bonus), 0);
                 const diffP = totalPendapatan - prevPendapatan;
                 const diffB = totalBonus - prevBonus;
