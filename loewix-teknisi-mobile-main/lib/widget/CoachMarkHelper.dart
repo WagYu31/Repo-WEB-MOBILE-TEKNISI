@@ -3,27 +3,27 @@ import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
 /// Professional speech-bubble coach mark — standardized UI/UX.
 ///
-/// Design standards followed:
-/// - Dark tooltip (#2D2D2D) with rounded corners (16px)
-/// - Arrow pointing toward the highlighted target
+/// Design standards:
+/// - Dark tooltip (#2D2D2D), rounded 16px, box shadow
+/// - Arrow pointing toward highlighted target
 /// - Bold title + single-line description
-/// - Accessible X close button (44px touch target)
-/// - Step indicator (e.g. "1/4") in muted gray
-/// - Max width constrained to avoid stretching
+/// - Accessible X close button (36px touch target)
+/// - Step indicator in muted gray
+/// - Global lock: only ONE coach mark active at a time (no stacking)
 class CoachMarkHelper {
+  /// Global lock — prevents multiple coach marks from stacking.
+  static bool _isActive = false;
+
+  /// Check if a coach mark is currently showing.
+  static bool get isActive => _isActive;
+
   /// Builds a speech bubble tooltip widget.
-  ///
-  /// [title] — Bold headline (e.g. "Ringkasan Kinerja")
-  /// [descriptions] — Joined into a single sentence
-  /// [arrowUp] — Arrow pointing up (tooltip below target) or down
-  /// [onClose] — Called when X is tapped (typically controller.skip())
-  /// [step] — Step indicator (e.g. "1/4")
   static Widget buildTooltip({
     required String title,
     required List<String> descriptions,
     String? step,
     String? note,
-    String? icon, // backward compat
+    String? icon,
     bool arrowUp = false,
     VoidCallback? onClose,
   }) {
@@ -62,13 +62,11 @@ class CoachMarkHelper {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Content
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Title
                     Text(
                       title,
                       style: const TextStyle(
@@ -81,7 +79,6 @@ class CoachMarkHelper {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    // Description
                     Text(
                       fullText,
                       style: const TextStyle(
@@ -93,7 +90,6 @@ class CoachMarkHelper {
                         decoration: TextDecoration.none,
                       ),
                     ),
-                    // Step
                     if (step != null) ...[
                       const SizedBox(height: 6),
                       Text(
@@ -110,7 +106,6 @@ class CoachMarkHelper {
                   ],
                 ),
               ),
-              // Close (X) — 44px min touch target (a11y standard)
               GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onTap: onClose,
@@ -141,11 +136,16 @@ class CoachMarkHelper {
     );
   }
 
-  /// Shows the coach mark overlay.
-  static void show({
+  /// Shows the coach mark overlay with global lock.
+  /// Returns false if another coach mark is already active.
+  static bool show({
     required BuildContext context,
     required List<TargetFocus> targets,
   }) {
+    // Prevent stacking — only one at a time
+    if (_isActive) return false;
+    _isActive = true;
+
     TutorialCoachMark(
       targets: targets,
       colorShadow: const Color(0xFF000000),
@@ -153,7 +153,16 @@ class CoachMarkHelper {
       textSkip: '',
       hideSkip: true,
       paddingFocus: 6,
+      onFinish: () => _isActive = false,
+      onSkip: () {
+        _isActive = false;
+        return true;
+      },
+      onClickOverlay: (target) {
+        // Allow advancing by tapping overlay
+      },
     ).show(context: context);
+    return true;
   }
 }
 

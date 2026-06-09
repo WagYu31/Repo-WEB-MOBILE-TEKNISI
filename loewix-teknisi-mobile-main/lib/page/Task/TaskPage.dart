@@ -383,7 +383,7 @@ class _TaskPageState extends State<TaskPage> {
         // Trigger coach mark after sheet animation
         WidgetsBinding.instance.addPostFrameCallback((_) {
           Future.delayed(const Duration(milliseconds: 800), () {
-            if (!mounted || _sheetCoachShown) return;
+            if (!mounted || _sheetCoachShown || CoachMarkHelper.isActive) return;
             _sheetCoachShown = true;
             _showSheetCoachMark(sheetCtx);
           });
@@ -1544,7 +1544,7 @@ class _TaskPageState extends State<TaskPage> {
   // ─── Coach Mark for TaskPage ─────────────────────
   Future<void> _showTaskCoachMark() async {
     await Future.delayed(const Duration(milliseconds: 1500));
-    if (!mounted || _coachMarkShown) return;
+    if (!mounted || _coachMarkShown || CoachMarkHelper.isActive) return;
     _coachMarkShown = true;
 
     final targets = <TargetFocus>[

@@ -155,7 +155,7 @@ class _ContainerPinjamBarangState extends State<ContainerPinjamBarang> {
   // ─── Coach Mark for PinjamBarang ──────────────────
   Future<void> _showPinjamCoachMark() async {
     await Future.delayed(const Duration(milliseconds: 2000));
-    if (!mounted || _coachMarkShown) return;
+    if (!mounted || _coachMarkShown || CoachMarkHelper.isActive) return;
     _coachMarkShown = true;
 
     final targets = <TargetFocus>[

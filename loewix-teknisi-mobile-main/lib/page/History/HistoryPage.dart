@@ -402,7 +402,7 @@ class _HistoryPageState extends State<HistoryPage> {
   // ─── Coach Mark for HistoryPage ──────────────────
   Future<void> _showHistoryCoachMark() async {
     await Future.delayed(const Duration(milliseconds: 2000));
-    if (!mounted || _coachMarkShown) return;
+    if (!mounted || _coachMarkShown || CoachMarkHelper.isActive) return;
     _coachMarkShown = true;
 
     final targets = <TargetFocus>[

@@ -1457,7 +1457,7 @@ class _PencapaianPageState extends State<PencapaianPage>
   // ─── Coach Mark for PencapaianPage ────────────────
   Future<void> _showStatistikCoachMark() async {
     await Future.delayed(const Duration(milliseconds: 2000));
-    if (!mounted || _coachMarkShown) return;
+    if (!mounted || _coachMarkShown || CoachMarkHelper.isActive) return;
     _coachMarkShown = true;
 
     final targets = <TargetFocus>[

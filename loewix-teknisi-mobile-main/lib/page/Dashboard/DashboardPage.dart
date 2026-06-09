@@ -91,9 +91,8 @@ class _DashboardPageState extends State<DashboardPage> {
 
   // ─── Coach Mark (Always Show on Open) ───────────
   Future<void> _checkFirstLaunch() async {
-    // Wait for data to load and widgets to build
     await Future.delayed(const Duration(milliseconds: 2500));
-    if (mounted && !_coachMarkShown) {
+    if (mounted && !_coachMarkShown && !CoachMarkHelper.isActive) {
       _coachMarkShown = true;
       _showCoachMark();
     }
