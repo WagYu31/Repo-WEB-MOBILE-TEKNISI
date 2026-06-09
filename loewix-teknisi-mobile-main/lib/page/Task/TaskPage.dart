@@ -54,6 +54,12 @@ class _TaskPageState extends State<TaskPage> {
   final GlobalKey _keyActionButton = GlobalKey();
   bool _coachMarkShown = false;
 
+  // Bottom sheet coach mark keys
+  final GlobalKey _keySheetStatus = GlobalKey();
+  final GlobalKey _keySheetSlider = GlobalKey();
+  final GlobalKey _keySheetActions = GlobalKey();
+  bool _sheetCoachShown = false;
+
   // Modern color scheme - consistent with app theme
   static const Color primaryColor = Color(0xFF2563EB);
   static const Color secondaryColor = Color(0xFF0EA5E9);
@@ -373,45 +379,55 @@ class _TaskPageState extends State<TaskPage> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => Container(
-        decoration: const BoxDecoration(
-          color: cardColor,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-        ),
-        child: DraggableScrollableSheet(
-          initialChildSize: _shouldShowSlider() ? 0.75 : 0.65,
-          minChildSize: 0.5,
-          maxChildSize: 0.95,
-          expand: false,
-          builder: (context, scrollController) {
-            return SingleChildScrollView(
-              controller: scrollController,
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(24, 16, 24, 32 + bottomPadding),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildBottomSheetHeader(),
-                    const SizedBox(height: 24),
-                    _buildTaskStatusCard(),
-                    const SizedBox(height: 20),
-                    _buildTaskDetails(),
-                    if (_shouldShowSlider()) ...[
-                      const SizedBox(height: 28),
-                      _buildSlideAction(),
-                    ] else ...[
+      builder: (sheetCtx) {
+        // Trigger coach mark after sheet animation
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          Future.delayed(const Duration(milliseconds: 800), () {
+            if (!mounted || _sheetCoachShown) return;
+            _sheetCoachShown = true;
+            _showSheetCoachMark(sheetCtx);
+          });
+        });
+        return Container(
+          decoration: const BoxDecoration(
+            color: cardColor,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          child: DraggableScrollableSheet(
+            initialChildSize: _shouldShowSlider() ? 0.75 : 0.65,
+            minChildSize: 0.5,
+            maxChildSize: 0.95,
+            expand: false,
+            builder: (context, scrollController) {
+              return SingleChildScrollView(
+                controller: scrollController,
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(24, 16, 24, 32 + bottomPadding),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildBottomSheetHeader(),
+                      const SizedBox(height: 24),
+                      Container(key: _keySheetStatus, child: _buildTaskStatusCard()),
                       const SizedBox(height: 20),
-                      _buildStatusMessage(),
+                      _buildTaskDetails(),
+                      if (_shouldShowSlider()) ...[
+                        const SizedBox(height: 28),
+                        Container(key: _keySheetSlider, child: _buildSlideAction()),
+                      ] else ...[
+                        const SizedBox(height: 20),
+                        _buildStatusMessage(),
+                      ],
+                      const SizedBox(height: 24),
+                      Container(key: _keySheetActions, child: _buildActionButtons()),
                     ],
-                    const SizedBox(height: 24),
-                    _buildActionButtons(),
-                  ],
+                  ),
                 ),
-              ),
-            );
-          },
-        ),
-      ),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 
@@ -1591,5 +1607,67 @@ class _TaskPageState extends State<TaskPage> {
     CoachMarkHelper.show(context: context, targets: targets);
   }
 
+  // ─── Coach Mark for Bottom Sheet ─────────────────
+  void _showSheetCoachMark(BuildContext sheetCtx) {
+    final targets = <TargetFocus>[
+      TargetFocus(
+        identify: 'sheet_status',
+        keyTarget: _keySheetStatus,
+        alignSkip: Alignment.bottomRight,
+        enableOverlayTab: true,
+        shape: ShapeLightFocus.RRect,
+        radius: 16,
+        contents: [
+          TargetContent(
+            align: ContentAlign.bottom,
+            builder: (context, controller) => CoachMarkHelper.buildTooltip(
+              title: 'Status Tugas',
+              descriptions: ['Menunjukkan status terkini tugas ini'],
+              arrowUp: true,
+              step: '1/3',
+            ),
+          ),
+        ],
+      ),
+      if (_shouldShowSlider())
+        TargetFocus(
+          identify: 'sheet_slider',
+          keyTarget: _keySheetSlider,
+          alignSkip: Alignment.bottomRight,
+          enableOverlayTab: true,
+          shape: ShapeLightFocus.RRect,
+          radius: 16,
+          contents: [
+            TargetContent(
+              align: ContentAlign.top,
+              builder: (context, controller) => CoachMarkHelper.buildTooltip(
+                title: 'Geser untuk Mulai',
+                descriptions: ['Geser slider ke kanan untuk clock in / clock out'],
+                step: '2/3',
+              ),
+            ),
+          ],
+        ),
+      TargetFocus(
+        identify: 'sheet_actions',
+        keyTarget: _keySheetActions,
+        alignSkip: Alignment.topRight,
+        enableOverlayTab: true,
+        shape: ShapeLightFocus.RRect,
+        radius: 16,
+        contents: [
+          TargetContent(
+            align: ContentAlign.top,
+            builder: (context, controller) => CoachMarkHelper.buildTooltip(
+              title: 'Aksi Lainnya',
+              descriptions: ['Kirim laporan, claim reimbursement, atau batalkan tugas'],
+              step: '3/3',
+            ),
+          ),
+        ],
+      ),
+    ];
+    CoachMarkHelper.show(context: sheetCtx, targets: targets);
+  }
 
 }
