@@ -9,7 +9,6 @@ import 'package:http/http.dart' as http;
 import '../../constants/app_constants.dart';
 
 /// ─── Background task handler (top-level) ───────────────
-/// Called by WorkManager even when app is killed.
 @pragma('vm:entry-point')
 void callbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
@@ -20,13 +19,11 @@ void callbackDispatcher() {
   });
 }
 
-/// Check API for pending reports and show notification
 Future<void> _checkAndNotify(Map<String, dynamic>? inputData) async {
   final teknisiId = inputData?['teknisiId'] as String?;
   if (teknisiId == null || teknisiId.isEmpty) return;
 
   try {
-    // Allow bad certificates (same as app's MyHttpOverrides)
     final httpClient = HttpClient()
       ..badCertificateCallback = (cert, host, port) => true;
     final request = await httpClient.getUrl(
@@ -41,19 +38,16 @@ Future<void> _checkAndNotify(Map<String, dynamic>? inputData) async {
       final body = json.decode(responseBody);
       final tasks = body['data'] as List? ?? [];
 
-      // Count tasks that need action from teknisi
       int pendingCount = 0;
       List<String> pendingNames = [];
 
       for (final task in tasks) {
         final status = (task['status'] ?? '').toString().toLowerCase();
-        // Match actual status values from API
         if (status == 'berjalan' ||
             status == 'menunggu laporan' ||
             status == 'dijadwalkan' ||
             status == 'tidak') {
           pendingCount++;
-          // Customer name is nested: task['customer']['nama']
           final customer = task['customer'];
           if (customer is Map && pendingNames.length < 3) {
             final nama = customer['nama']?.toString() ?? '';
@@ -67,16 +61,11 @@ Future<void> _checkAndNotify(Map<String, dynamic>? inputData) async {
       }
     }
     httpClient.close();
-  } catch (e) {
-    // Silent fail — don't crash background task
-    debugPrint('Notification check error: $e');
-  }
+  } catch (_) {}
 }
 
-/// Show system-level notification (appears in notification tray)
 Future<void> _showSystemNotification(int count, List<String> names) async {
   final plugin = FlutterLocalNotificationsPlugin();
-
   const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
   const initSettings = InitializationSettings(android: androidSettings);
   await plugin.initialize(initSettings);
@@ -90,18 +79,19 @@ Future<void> _showSystemNotification(int count, List<String> names) async {
     'pending_report_channel',
     'Laporan Pending',
     channelDescription: 'Pengingat upload laporan teknisi',
-    importance: Importance.high,
-    priority: Priority.high,
+    importance: Importance.max,
+    priority: Priority.max,
     icon: '@mipmap/ic_launcher',
-    largeIcon: const DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
     styleInformation: BigTextStyleInformation(body),
     autoCancel: true,
     showWhen: true,
+    playSound: true,
+    enableVibration: true,
   );
 
   await plugin.show(
     1001,
-    '📋 Laporan Belum Diupload',
+    'Laporan Belum Diupload',
     body,
     NotificationDetails(android: androidDetails),
   );
@@ -113,14 +103,17 @@ class NotificationService {
   factory NotificationService() => _instance;
   NotificationService._();
 
-  final FlutterLocalNotificationsPlugin _plugin = FlutterLocalNotificationsPlugin();
+  final FlutterLocalNotificationsPlugin _plugin =
+      FlutterLocalNotificationsPlugin();
   bool _initialized = false;
+  bool _permissionGranted = false;
 
-  /// Initialize notification system — call once in main()
+  /// Initialize — call once in main()
   Future<void> init() async {
     if (_initialized) return;
 
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidSettings =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
     const initSettings = InitializationSettings(android: androidSettings);
 
     await _plugin.initialize(
@@ -130,42 +123,38 @@ class NotificationService {
       },
     );
 
-    // Request notification permission on Android 13+
-    _plugin.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>()
-        ?.requestNotificationsPermission();
+    // Request permission on Android 13+
+    final android = _plugin.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
+    if (android != null) {
+      final granted = await android.requestNotificationsPermission();
+      _permissionGranted = granted ?? false;
+      debugPrint('🔔 Notification permission: $_permissionGranted');
+    } else {
+      _permissionGranted = true; // older Android, no permission needed
+    }
 
     _initialized = true;
+    debugPrint('🔔 NotificationService initialized');
   }
 
-  /// Register periodic background check (every ~3 hours)
+  /// Register periodic background check
   Future<void> registerPeriodicCheck(String teknisiId) async {
     if (teknisiId.isEmpty) return;
 
     await Workmanager().initialize(callbackDispatcher, isInDebugMode: false);
-
     await Workmanager().registerPeriodicTask(
       'pendingReportCheck',
       'checkPendingReports',
       inputData: {'teknisiId': teknisiId},
       frequency: const Duration(hours: 3),
       initialDelay: const Duration(minutes: 1),
-      constraints: Constraints(
-        networkType: NetworkType.connected,
-      ),
+      constraints: Constraints(networkType: NetworkType.connected),
       existingWorkPolicy: ExistingWorkPolicy.replace,
     );
-
-    debugPrint('📌 Periodic notification check registered for teknisi $teknisiId');
   }
 
-  /// Check immediately and show notification if needed
-  Future<void> checkNow(String teknisiId) async {
-    if (teknisiId.isEmpty) return;
-    await _checkAndNotify({'teknisiId': teknisiId});
-  }
-
-  /// Show instant notification
+  /// Show notification — the core method
   Future<void> showNow({
     required String title,
     required String body,
@@ -173,25 +162,37 @@ class NotificationService {
   }) async {
     if (!_initialized) await init();
 
-    const androidDetails = AndroidNotificationDetails(
-      'general_channel',
-      'Notifikasi Umum',
-      channelDescription: 'Notifikasi umum dari Teknisi Loewix',
-      importance: Importance.high,
-      priority: Priority.high,
-      icon: '@mipmap/ic_launcher',
-      autoCancel: true,
-    );
+    debugPrint('🔔 showNow called: "$title" / "$body"');
+    debugPrint('🔔 initialized=$_initialized, permission=$_permissionGranted');
 
-    await _plugin.show(
-      id,
-      title,
-      body,
-      const NotificationDetails(android: androidDetails),
-    );
+    try {
+      final androidDetails = AndroidNotificationDetails(
+        'pending_report_channel',
+        'Laporan Pending',
+        channelDescription: 'Pengingat upload laporan teknisi',
+        importance: Importance.max,
+        priority: Priority.max,
+        icon: '@mipmap/ic_launcher',
+        styleInformation: BigTextStyleInformation(body),
+        autoCancel: true,
+        showWhen: true,
+        playSound: true,
+        enableVibration: true,
+      );
+
+      await _plugin.show(
+        id,
+        title,
+        body,
+        NotificationDetails(android: androidDetails),
+      );
+      debugPrint('🔔 Notification shown successfully!');
+    } catch (e) {
+      debugPrint('🔔 ERROR showing notification: $e');
+    }
   }
 
-  /// Cancel all notifications
+  /// Cancel all
   Future<void> cancelAll() async {
     await _plugin.cancelAll();
   }
