@@ -69,16 +69,6 @@ class _DashboardPageState extends State<DashboardPage> {
       _loadInitialData();
     });
     _checkFirstLaunch();
-
-    // ─── FORCED TEST: Show notification 3s after dashboard opens ───
-    Future.delayed(const Duration(seconds: 3), () {
-      debugPrint('🔔 FORCED TEST: attempting notification...');
-      NotificationService().showNow(
-        title: 'Laporan Belum Diupload',
-        body: 'Ada tugas menunggu laporan. Segera upload!',
-        id: 9999,
-      );
-    });
   }
 
   Future<void> _loadInitialData() async {
@@ -87,65 +77,82 @@ class _DashboardPageState extends State<DashboardPage> {
     _teknisiId = idProvider.isUserRole;
     if (_teknisiId != null && _teknisiId!.isNotEmpty) {
       final taskProvider = Provider.of<DetailTaskGetProvider>(context, listen: false);
-      await taskProvider.getTask(_teknisiId!);
+      
+      // Load tasks with try-catch so notification still runs on error
+      try {
+        await taskProvider.getTask(_teknisiId!);
+      } catch (e) {
+        debugPrint('🔔 Task load error: $e');
+      }
       
       // Load statistik data
-      final teknisiIdInt = int.tryParse(_teknisiId!);
-      if (teknisiIdInt != null) {
-        final now = DateTime.now();
-        Provider.of<PencapaianProvider>(context, listen: false).loadAll(
-          teknisiId: teknisiIdInt,
-          bulan: now.month,
-          tahun: now.year,
-        );
+      try {
+        final teknisiIdInt = int.tryParse(_teknisiId!);
+        if (teknisiIdInt != null) {
+          final now = DateTime.now();
+          Provider.of<PencapaianProvider>(context, listen: false).loadAll(
+            teknisiId: teknisiIdInt,
+            bulan: now.month,
+            tahun: now.year,
+          );
+        }
+      } catch (e) {
+        debugPrint('🔔 Pencapaian load error: $e');
       }
 
       // ─── Push Notification: check loaded tasks ───
-      NotificationService().registerPeriodicCheck(_teknisiId!);
-      _checkPendingAndNotify(taskProvider);
+      try {
+        NotificationService().registerPeriodicCheck(_teknisiId!);
+      } catch (e) {
+        debugPrint('🔔 WorkManager register error: $e');
+      }
+
+      // Check pending with delay to ensure data is settled
+      Future.delayed(const Duration(seconds: 2), () {
+        _checkPendingAndNotify(taskProvider);
+      });
     }
   }
 
   /// Check already-loaded tasks for pending reports and show notification
   Future<void> _checkPendingAndNotify(DetailTaskGetProvider taskProvider) async {
-    debugPrint('🔔 _checkPendingAndNotify called, state: ${taskProvider.state}');
-    if (taskProvider.state != ResultState.hasData) {
-      debugPrint('🔔 No data loaded, skipping notification');
-      return;
-    }
+    try {
+      if (taskProvider.state != ResultState.hasData) {
+        debugPrint('🔔 No task data available (state: ${taskProvider.state})');
+        return;
+      }
 
-    final tasks = taskProvider.response.data;
-    int pendingCount = 0;
-    List<String> names = [];
+      final tasks = taskProvider.response.data;
+      int pendingCount = 0;
+      List<String> names = [];
 
-    for (final task in tasks) {
-      final status = task.status.toLowerCase();
-      debugPrint('🔔 Task: ${task.dataCustomer.nama}, status: "$status"');
-      if (status == 'berjalan' ||
-          status == 'menunggu laporan' ||
-          status == 'dijadwalkan' ||
-          status == 'tidak') {
-        pendingCount++;
-        if (names.length < 3) {
-          names.add(task.dataCustomer.nama);
+      for (final task in tasks) {
+        final status = task.status.toLowerCase();
+        if (status == 'berjalan' ||
+            status == 'menunggu laporan' ||
+            status == 'dijadwalkan' ||
+            status == 'tidak') {
+          pendingCount++;
+          if (names.length < 3) {
+            names.add(task.dataCustomer.nama);
+          }
         }
       }
-    }
 
-    debugPrint('🔔 Pending count: $pendingCount');
+      if (pendingCount > 0) {
+        final nameStr = names.join(', ');
+        final body = pendingCount == 1
+            ? 'Ada 1 tugas belum selesai — $nameStr. Segera upload laporan!'
+            : 'Ada $pendingCount tugas belum selesai — $nameStr. Segera upload laporan!';
 
-    if (pendingCount > 0) {
-      final nameStr = names.join(', ');
-      final body = pendingCount == 1
-          ? 'Ada 1 tugas belum selesai — $nameStr. Segera upload laporan!'
-          : 'Ada $pendingCount tugas belum selesai — $nameStr. Segera upload laporan!';
-
-      debugPrint('🔔 Showing notification: $body');
-      await NotificationService().showNow(
-        title: '📋 Laporan Belum Diupload',
-        body: body,
-        id: 1001,
-      );
+        await NotificationService().showNow(
+          title: 'Laporan Belum Diupload',
+          body: body,
+          id: 1001,
+        );
+      }
+    } catch (e) {
+      debugPrint('🔔 Notification check error: $e');
     }
   }
 
