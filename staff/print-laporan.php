@@ -71,51 +71,76 @@ $role = $jabatan;
                             $g_fee = $g_inc = $g_bns = 0;
                             $bulan_filter = date('m', strtotime($current_date));
                             $tahun_filter = date('Y', strtotime($current_date));
+                            $ym = $current_date;
+                            $monthStart = "$tahun_filter-$bulan_filter-01";
+                            $monthEnd = date('Y-m-t', strtotime($monthStart));
 
-                            $sql_tek = "SELECT id, nama FROM teknisi ORDER BY nama ASC";
-                            $res_tek = mysqli_query($conn, $sql_tek);
+                            // === Batch: all teknisi ===
+                            $teknisiList = [];
+                            $res_tek = mysqli_query($conn, "SELECT id, nama FROM teknisi ORDER BY nama ASC");
+                            while ($r = mysqli_fetch_assoc($res_tek)) $teknisiList[$r['id']] = $r['nama'];
+                            $allTekIds = array_keys($teknisiList);
 
-                            while ($row = mysqli_fetch_assoc($res_tek)) {
-                                $idT = $row['id'];
-                                
-                                $sql_k = "SELECT COUNT(DISTINCT k.kode) as total FROM kegiatan k JOIN team_kegiatan tk ON k.id = tk.kegiatan_id WHERE tk.teknisi_id = ? AND MONTH(k.created_at) = ? AND YEAR(k.created_at) = ? AND k.deleted_at IS NULL";
-                                $st = $conn->prepare($sql_k); $st->bind_param("isi", $idT, $bulan_filter, $tahun_filter); $st->execute();
-                                $total_k = $st->get_result()->fetch_assoc()['total'] ?? 0;
+                            if (!empty($allTekIds)) {
+                                $placeholders = implode(',', array_fill(0, count($allTekIds), '?'));
+                                $types = str_repeat('i', count($allTekIds));
 
-                                $sql_s = "SELECT COUNT(DISTINCT k.kode) as total FROM kegiatan k JOIN team_kegiatan tk ON k.id = tk.kegiatan_id WHERE tk.teknisi_id = ? AND MONTH(k.created_at) = ? AND YEAR(k.created_at) = ? AND k.status = 'selesai' AND k.deleted_at IS NULL";
-                                $st = $conn->prepare($sql_s); $st->bind_param("isi", $idT, $bulan_filter, $tahun_filter); $st->execute();
-                                $total_s = $st->get_result()->fetch_assoc()['total'] ?? 0;
+                                // === Kegiatan count ===
+                                $kegiatanCount = [];
+                                $sql = "SELECT tk.teknisi_id, COUNT(DISTINCT k.kode) as total FROM kegiatan k JOIN team_kegiatan tk ON k.id = tk.kegiatan_id WHERE tk.teknisi_id IN ($placeholders) AND k.created_at >= '$monthStart' AND k.created_at < DATE_ADD('$monthEnd', INTERVAL 1 DAY) AND k.deleted_at IS NULL AND tk.deleted_at IS NULL GROUP BY tk.teknisi_id";
+                                $stmt = $conn->prepare($sql); $stmt->bind_param($types, ...$allTekIds); $stmt->execute();
+                                $res = $stmt->get_result(); while ($r = $res->fetch_assoc()) $kegiatanCount[$r['teknisi_id']] = $r['total']; $stmt->close();
 
-                                $sql_i = "SELECT COUNT(DISTINCT kode) as cnt, SUM(pendapatan) as inc FROM pendapatan_kegiatan WHERE teknisi_id = ? AND DATE_FORMAT(tanggal, '%Y-%m') = ? AND deleted_at IS NULL";
-                                $st = $conn->prepare($sql_i); $st->bind_param("is", $idT, $current_date); $st->execute();
-                                $res_i = $st->get_result()->fetch_assoc();
-                                $total_i = $res_i['cnt'] ?? 0;
-                                $inc_val = $res_i['inc'] ?? 0;
+                                // === Selesai count ===
+                                $selesaiCount = [];
+                                $sql = "SELECT tk.teknisi_id, COUNT(DISTINCT k.kode) as total FROM kegiatan k JOIN team_kegiatan tk ON k.id = tk.kegiatan_id WHERE tk.teknisi_id IN ($placeholders) AND k.created_at >= '$monthStart' AND k.created_at < DATE_ADD('$monthEnd', INTERVAL 1 DAY) AND k.status = 'selesai' AND k.deleted_at IS NULL AND tk.deleted_at IS NULL GROUP BY tk.teknisi_id";
+                                $stmt = $conn->prepare($sql); $stmt->bind_param($types, ...$allTekIds); $stmt->execute();
+                                $res = $stmt->get_result(); while ($r = $res->fetch_assoc()) $selesaiCount[$r['teknisi_id']] = $r['total']; $stmt->close();
 
-                                $fee_val = 0;
-                                $sql_f = "SELECT k.kode FROM kegiatan k WHERE MONTH(k.created_at) = ? AND YEAR(k.created_at) = ? AND k.paid REGEXP '^[0-9]+$' AND k.deleted_at IS NULL AND NOT EXISTS (SELECT 1 FROM pendapatan_kegiatan pk WHERE pk.kode = k.kode) GROUP BY k.kode";
-                                $st_f = $conn->prepare($sql_f); $st_f->bind_param("si", $bulan_filter, $tahun_filter); $st_f->execute();
-                                $res_f = $st_f->get_result();
-                                while ($f = $res_f->fetch_assoc()) {
-                                    $kd = $f['kode'];
-                                    $sql_a = "SELECT COUNT(DISTINCT teknisi_id) as jml FROM pelaksanaan_kegiatan WHERE kode = ? AND waktu_mulai IS NOT NULL";
-                                    $st_a = $conn->prepare($sql_a); $st_a->bind_param("s", $kd); $st_a->execute();
-                                    $jml_a = $st_a->get_result()->fetch_assoc()['jml'] ?? 0;
-                                    if ($jml_a > 0) {
-                                        $sql_me = "SELECT 1 FROM pelaksanaan_kegiatan WHERE kode = ? AND teknisi_id = ? AND waktu_mulai IS NOT NULL LIMIT 1";
-                                        $st_me = $conn->prepare($sql_me); $st_me->bind_param("si", $kd, $idT); $st_me->execute();
-                                        if ($st_me->get_result()->num_rows > 0) { $fee_val += (30000 / $jml_a); }
-                                    }
+                                // === Invoice + Pendapatan (SAME as dashboard: nominal_invoice / tek_count) ===
+                                $invCount = []; $pendapatanSum = [];
+                                $sql = "SELECT pk.teknisi_id, COUNT(DISTINCT pk.kode) as cnt, SUM(ROUND(pk.nominal_invoice / counts.tek_count)) as total FROM pendapatan_kegiatan pk JOIN (SELECT kode, COUNT(*) as tek_count FROM pendapatan_kegiatan WHERE DATE_FORMAT(tanggal, '%Y-%m') = ? AND deleted_at IS NULL GROUP BY kode) counts ON pk.kode = counts.kode WHERE pk.teknisi_id IN ($placeholders) AND DATE_FORMAT(pk.tanggal, '%Y-%m') = ? AND pk.deleted_at IS NULL GROUP BY pk.teknisi_id";
+                                $stmt = $conn->prepare($sql); $paramTypes = 's' . $types . 's'; $paramVals = array_merge([$ym], $allTekIds, [$ym]);
+                                $stmt->bind_param($paramTypes, ...$paramVals); $stmt->execute();
+                                $res = $stmt->get_result(); while ($r = $res->fetch_assoc()) { $invCount[$r['teknisi_id']] = $r['cnt']; $pendapatanSum[$r['teknisi_id']] = $r['total']; } $stmt->close();
+
+                                // === Bonus ===
+                                $bonusSum = [];
+                                $sql = "SELECT teknisi_id, SUM(bonus) as total FROM pendapatan_fix WHERE teknisi_id IN ($placeholders) AND DATE_FORMAT(tanggal, '%Y-%m') = ? AND deleted_at IS NULL GROUP BY teknisi_id";
+                                $paramTypes = $types . 's'; $paramVals = array_merge($allTekIds, [$ym]);
+                                $stmt = $conn->prepare($sql); $stmt->bind_param($paramTypes, ...$paramVals); $stmt->execute();
+                                $res = $stmt->get_result(); while ($r = $res->fetch_assoc()) $bonusSum[$r['teknisi_id']] = $r['total']; $stmt->close();
+
+                                // === Fee 30k ===
+                                $feeKodes = [];
+                                $sql = "SELECT k.kode FROM kegiatan k WHERE k.created_at >= '$monthStart' AND k.created_at < DATE_ADD('$monthEnd', INTERVAL 1 DAY) AND k.paid REGEXP '^[0-9]+$' AND k.deleted_at IS NULL AND NOT EXISTS (SELECT 1 FROM pendapatan_kegiatan pk WHERE pk.kode = k.kode) GROUP BY k.kode";
+                                $res = mysqli_query($conn, $sql); while ($r = mysqli_fetch_assoc($res)) $feeKodes[] = $r['kode'];
+                                $feeMap = [];
+                                if (!empty($feeKodes)) {
+                                    $kodePlaceholders = implode(',', array_fill(0, count($feeKodes), '?'));
+                                    $kodeTypes = str_repeat('s', count($feeKodes));
+                                    $sql = "SELECT DISTINCT kode, teknisi_id FROM pelaksanaan_kegiatan WHERE kode IN ($kodePlaceholders) AND waktu_mulai IS NOT NULL";
+                                    $stmt = $conn->prepare($sql); $stmt->bind_param($kodeTypes, ...$feeKodes); $stmt->execute();
+                                    $res = $stmt->get_result(); $kodeTeknisi = [];
+                                    while ($r = $res->fetch_assoc()) $kodeTeknisi[$r['kode']][$r['teknisi_id']] = true;
+                                    $stmt->close();
+                                    foreach ($kodeTeknisi as $kd => $tekIds) { $jml = count($tekIds); if ($jml > 0) { $share = 30000 / $jml; foreach ($tekIds as $tid => $_) { if (!isset($feeMap[$tid])) $feeMap[$tid] = 0; $feeMap[$tid] += $share; } } }
                                 }
+                            }
 
-                                $sql_b = "SELECT SUM(bonus) as total FROM pendapatan_fix WHERE teknisi_id = ? AND DATE_FORMAT(tanggal, '%Y-%m') = ? AND deleted_at IS NULL";
-                                $st = $conn->prepare($sql_b); $st->bind_param("is", $idT, $current_date); $st->execute();
-                                $bns_val = $st->get_result()->fetch_assoc()['total'] ?? 0;
+                            // === Build rows ===
+                            foreach ($teknisiList as $idT => $namaT) {
+                                $total_k = $kegiatanCount[$idT] ?? 0;
+                                $total_s = $selesaiCount[$idT] ?? 0;
+                                $total_i = $invCount[$idT] ?? 0;
+                                $fee_val = $feeMap[$idT] ?? 0;
+                                $inc_val = $pendapatanSum[$idT] ?? 0;
+                                $bns_val = $bonusSum[$idT] ?? 0;
 
                                 $g_fee += $fee_val; $g_inc += $inc_val; $g_bns += $bns_val;
                             ?>
                             <tr>
-                                <td class="ps-3 font-weight-bold"><?= $row['nama']; ?></td>
+                                <td class="ps-3 font-weight-bold"><?= $namaT; ?></td>
                                 <td class="text-center"><?= $total_k; ?></td>
                                 <td class="text-center"><?= $total_s; ?></td>
                                 <td class="text-center"><?= $total_i; ?></td>
@@ -123,7 +148,7 @@ $role = $jabatan;
                                 <td class="text-end">Rp <?= number_format($inc_val, 0, ',', '.'); ?></td>
                                 <td class="text-end pe-3">Rp <?= number_format($bns_val, 0, ',', '.'); ?></td>
                             </tr>
-                            <?php } ?>
+                            <?php endforeach; ?>
                         </tbody>
                         <tfoot>
                             <tr class="total-row text-dark">
