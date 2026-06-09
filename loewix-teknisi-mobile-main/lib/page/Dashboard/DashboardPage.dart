@@ -89,17 +89,19 @@ class _DashboardPageState extends State<DashboardPage> {
     }
   }
 
-  // ─── Coach Mark (First Launch Onboarding) ─────
+  // ─── Coach Mark (Daily Reminder) ────────────────
   Future<void> _checkFirstLaunch() async {
     final prefs = await SharedPreferences.getInstance();
-    final shown = prefs.getBool('coach_mark_shown_v2') ?? false;
-    if (!shown) {
+    final today = DateTime.now();
+    final todayStr = '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
+    final lastShown = prefs.getString('coach_mark_last_date') ?? '';
+    if (lastShown != todayStr) {
       // Wait for data to load and widgets to build
       await Future.delayed(const Duration(milliseconds: 2500));
       if (mounted && !_coachMarkShown) {
         _coachMarkShown = true;
         _showCoachMark();
-        await prefs.setBool('coach_mark_shown_v2', true);
+        await prefs.setString('coach_mark_last_date', todayStr);
       }
     }
   }
