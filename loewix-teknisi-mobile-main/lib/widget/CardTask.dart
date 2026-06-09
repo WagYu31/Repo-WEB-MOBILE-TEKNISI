@@ -381,58 +381,63 @@ class _CardTaskState extends State<CardTask> with SingleTickerProviderStateMixin
         child: Container(
           decoration: BoxDecoration(
             color: _cardBg,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(18),
             boxShadow: [
               BoxShadow(
-                color: accentColors[0].withValues(alpha: 0.08),
-                blurRadius: 16,
-                offset: const Offset(0, 4),
+                color: accentColors[0].withValues(alpha: 0.1),
+                blurRadius: 20,
+                offset: const Offset(0, 6),
               ),
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.03),
-                blurRadius: 6,
-                offset: const Offset(0, 1),
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
               ),
             ],
           ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: IntrinsicHeight(
-              child: Row(
-                children: [
-                  // ─── Left accent strip ─────────────
-                  Container(
-                    width: 4,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: accentColors,
-                      ),
-                    ),
+          child: Column(
+            children: [
+              // ─── Top accent gradient bar ─────────────
+              Container(
+                height: 4,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(colors: accentColors),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(18),
                   ),
+                ),
+              ),
 
-                  // ─── Card content ──────────────────
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
+              // ─── Card body ───────────────────────────
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 14, 10, 14),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // ── Left content ──
+                    Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // ── Row 1: Status badge + Activity type
+                          // ── Row 1: Status + Activity ──
                           Row(
                             children: [
                               // Status badge
                               Container(
                                 padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
+                                  horizontal: 10,
+                                  vertical: 5,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: _statusBgColor,
-                                  borderRadius: BorderRadius.circular(8),
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      _statusColor.withValues(alpha: 0.12),
+                                      _statusColor.withValues(alpha: 0.06),
+                                    ],
+                                  ),
+                                  borderRadius: BorderRadius.circular(20),
                                   border: Border.all(
-                                    color: _statusColor.withValues(alpha: 0.15),
+                                    color: _statusColor.withValues(alpha: 0.2),
                                     width: 1,
                                   ),
                                 ),
@@ -441,40 +446,39 @@ class _CardTaskState extends State<CardTask> with SingleTickerProviderStateMixin
                                   children: [
                                     Icon(
                                       _statusIcon,
-                                      size: 12,
+                                      size: 13,
                                       color: _statusColor,
                                     ),
-                                    const SizedBox(width: 4),
+                                    const SizedBox(width: 5),
                                     Text(
                                       _statusLabel,
                                       style: TextStyle(
                                         fontFamily: 'Poppins',
                                         fontSize: 11,
-                                        fontWeight: FontWeight.w600,
+                                        fontWeight: FontWeight.w700,
                                         color: _statusColor,
-                                        letterSpacing: 0.2,
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
                               const Spacer(),
-                              // Activity type badge
+                              // Activity type pill
                               Container(
                                 padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
+                                  horizontal: 10,
+                                  vertical: 5,
                                 ),
                                 decoration: BoxDecoration(
                                   color: activityBg,
-                                  borderRadius: BorderRadius.circular(8),
+                                  borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     Icon(
                                       activityIcon,
-                                      size: 11,
+                                      size: 12,
                                       color: activityColor,
                                     ),
                                     const SizedBox(width: 4),
@@ -485,7 +489,6 @@ class _CardTaskState extends State<CardTask> with SingleTickerProviderStateMixin
                                         fontSize: 10,
                                         fontWeight: FontWeight.w600,
                                         color: activityColor,
-                                        letterSpacing: 0.3,
                                       ),
                                     ),
                                   ],
@@ -493,40 +496,43 @@ class _CardTaskState extends State<CardTask> with SingleTickerProviderStateMixin
                               ),
                             ],
                           ),
-                          const SizedBox(height: 10),
 
-                          // ── Row 2: Customer name
+                          const SizedBox(height: 12),
+
+                          // ── Customer name ──
                           Text(
                             data.dataCustomer.nama,
                             style: const TextStyle(
                               fontFamily: 'Poppins',
                               fontSize: 15,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.w700,
                               color: _textPrimary,
                               height: 1.3,
+                              letterSpacing: -0.2,
                             ),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
 
-                          // ── Execution status (if active)
+                          // ── Execution status (if active) ──
                           if (_pelaksanaanStatus != 'Dijadwalkan') ...[
                             const SizedBox(height: 6),
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 2,
+                                horizontal: 8,
+                                vertical: 3,
                               ),
                               decoration: BoxDecoration(
                                 color: _successGreen.withValues(alpha: 0.08),
-                                borderRadius: BorderRadius.circular(4),
+                                borderRadius: BorderRadius.circular(6),
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Icon(
-                                    _getStatusIconForPelaksanaan(_pelaksanaanStatus),
-                                    size: 11,
+                                    _getStatusIconForPelaksanaan(
+                                        _pelaksanaanStatus),
+                                    size: 12,
                                     color: _successGreen,
                                   ),
                                   const SizedBox(width: 4),
@@ -536,7 +542,8 @@ class _CardTaskState extends State<CardTask> with SingleTickerProviderStateMixin
                                       fontFamily: 'Poppins',
                                       fontSize: 10,
                                       fontWeight: FontWeight.w500,
-                                      color: _successGreen.withValues(alpha: 0.9),
+                                      color: _successGreen
+                                          .withValues(alpha: 0.9),
                                     ),
                                   ),
                                 ],
@@ -544,139 +551,147 @@ class _CardTaskState extends State<CardTask> with SingleTickerProviderStateMixin
                             ),
                           ],
 
-                          const SizedBox(height: 10),
+                          const SizedBox(height: 12),
 
-                          // ── Divider
+                          // ── Date & Time row ──
                           Container(
-                            height: 1,
-                            color: const Color(0xFFF1F5F9),
-                          ),
-                          const SizedBox(height: 10),
-
-                          // ── Row 3: Date, time, icons + chevron
-                          Row(
-                            children: [
-                              // Calendar icon
-                              Container(
-                                padding: const EdgeInsets.all(4),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFF8FAFC),
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: Icon(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 7,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF8FAFC),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
                                   Icons.calendar_today_rounded,
-                                  size: 12,
-                                  color: _textSecondary.withValues(alpha: 0.6),
+                                  size: 13,
+                                  color:
+                                      _textSecondary.withValues(alpha: 0.6),
                                 ),
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                _formatDate(data.jadwal),
-                                style: TextStyle(
-                                  fontFamily: 'Poppins',
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.w500,
-                                  color: _textSecondary.withValues(alpha: 0.8),
+                                const SizedBox(width: 6),
+                                Text(
+                                  _formatDate(data.jadwal),
+                                  style: TextStyle(
+                                    fontFamily: 'Poppins',
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w500,
+                                    color: _textSecondary
+                                        .withValues(alpha: 0.8),
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(width: 8),
-                              // Time
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 6,
-                                  vertical: 2,
+                                Container(
+                                  margin: const EdgeInsets.symmetric(
+                                      horizontal: 8),
+                                  width: 1,
+                                  height: 12,
+                                  color: const Color(0xFFE2E8F0),
                                 ),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFF1F5F9),
-                                  borderRadius: BorderRadius.circular(4),
+                                Icon(
+                                  Icons.access_time_rounded,
+                                  size: 13,
+                                  color:
+                                      _textSecondary.withValues(alpha: 0.6),
                                 ),
-                                child: Text(
+                                const SizedBox(width: 4),
+                                Text(
                                   _formatTime(data.jadwal),
                                   style: TextStyle(
                                     fontFamily: 'Poppins',
                                     fontSize: 11,
                                     fontWeight: FontWeight.w600,
-                                    color: _textSecondary.withValues(alpha: 0.7),
+                                    color: _textSecondary
+                                        .withValues(alpha: 0.8),
                                   ),
                                 ),
-                              ),
-                              const Spacer(),
-                              // Invoice icon
-                              if (data.paid != null)
-                                Padding(
-                                  padding: const EdgeInsets.only(right: 8),
-                                  child: Container(
-                                    padding: const EdgeInsets.all(4),
+                                if (data.paid != null) ...[
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.all(3),
                                     decoration: BoxDecoration(
-                                      color: _successGreen.withValues(alpha: 0.1),
-                                      borderRadius: BorderRadius.circular(6),
+                                      color: _successGreen
+                                          .withValues(alpha: 0.1),
+                                      borderRadius:
+                                          BorderRadius.circular(5),
                                     ),
                                     child: Icon(
                                       Icons.receipt_long_rounded,
-                                      size: 13,
-                                      color: _successGreen.withValues(alpha: 0.7),
+                                      size: 12,
+                                      color: _successGreen
+                                          .withValues(alpha: 0.7),
                                     ),
                                   ),
-                                ),
-                              // Chevron
-                              Container(
-                                padding: const EdgeInsets.all(4),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFF1F5F9),
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: Icon(
-                                  Icons.chevron_right_rounded,
-                                  size: 16,
-                                  color: _textSecondary.withValues(alpha: 0.5),
-                                ),
-                              ),
-                            ],
+                                ],
+                              ],
+                            ),
                           ),
                         ],
                       ),
                     ),
-                  ),
 
-                  // ─── Drag handle (non-history only) ──
-                  if (!widget.history)
-                    Padding(
-                      key: widget.dragHandleKey,
-                      padding: const EdgeInsets.only(right: 6),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          for (int i = 0; i < 3; i++) ...[
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
+                    // ── Right: drag handle + chevron ──
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (!widget.history) ...[
+                          Padding(
+                            key: widget.dragHandleKey,
+                            padding: const EdgeInsets.only(
+                                left: 4, top: 4, bottom: 8),
+                            child: Column(
                               children: [
-                                Container(
-                                  width: 3,
-                                  height: 3,
-                                  decoration: BoxDecoration(
-                                    color: _textSecondary.withValues(alpha: 0.2),
-                                    shape: BoxShape.circle,
+                                for (int i = 0; i < 3; i++) ...[
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Container(
+                                        width: 3,
+                                        height: 3,
+                                        decoration: BoxDecoration(
+                                          color: _textSecondary
+                                              .withValues(alpha: 0.2),
+                                          shape: BoxShape.circle,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 3),
+                                      Container(
+                                        width: 3,
+                                        height: 3,
+                                        decoration: BoxDecoration(
+                                          color: _textSecondary
+                                              .withValues(alpha: 0.2),
+                                          shape: BoxShape.circle,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ),
-                                const SizedBox(width: 3),
-                                Container(
-                                  width: 3,
-                                  height: 3,
-                                  decoration: BoxDecoration(
-                                    color: _textSecondary.withValues(alpha: 0.2),
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
+                                  if (i < 2) const SizedBox(height: 3),
+                                ],
                               ],
                             ),
-                            if (i < 2) const SizedBox(height: 3),
-                          ],
+                          ),
                         ],
-                      ),
+                        Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: accentColors[0].withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(
+                            Icons.chevron_right_rounded,
+                            size: 18,
+                            color: accentColors[0].withValues(alpha: 0.6),
+                          ),
+                        ),
+                      ],
                     ),
-                ],
+                  ],
+                ),
               ),
-            ),
+            ],
           ),
         ),
       ),
