@@ -49,6 +49,8 @@ if (isset($_GET['error'])) {
         .btn-no-inv:hover { background: #d97706; color: #fff; border-color: #d97706; }
         .btn-tidak-valid { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
         .btn-tidak-valid:hover { background: #dc2626; color: #fff; border-color: #dc2626; }
+        .btn-catatan { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; }
+        .btn-catatan:hover { background: #2563eb; color: #fff; border-color: #2563eb; }
         .modal-xl { max-width: 80%; }
         @media (max-width: 767px) { .modal-xl { max-width: 95%; } }
         <?php include "css/floating-menu2.css"; ?>
@@ -241,9 +243,12 @@ if (isset($_GET['error'])) {
                                                         <a href="proses_set_no_invoice.php?kode=<?= $kodeTransaksi; ?>" class="btn-aksi btn-no-inv me-1" onclick="return confirm('Tandai kegiatan ini Tidak memiliki Invoice?')">
                                                             No Invoice
                                                         </a>
-                                                        <a href="proses_set_tidak_valid.php?kode=<?= $kodeTransaksi; ?>" class="btn-aksi btn-tidak-valid" onclick="return confirm('Tandai kegiatan ini sebagai Tidak Valid?')">
+                                                        <a href="proses_set_tidak_valid.php?kode=<?= $kodeTransaksi; ?>" class="btn-aksi btn-tidak-valid me-1" onclick="return confirm('Tandai kegiatan ini sebagai Tidak Valid?')">
                                                             Tidak Valid
                                                         </a>
+                                                        <button class="btn-aksi btn-catatan catatanBtn" data-kode="<?= $kodeTransaksi; ?>" data-catatan="<?= htmlspecialchars($row_main['keterangan'] ?? '', ENT_QUOTES); ?>">
+                                                            <i class="material-icons" style="font-size:12px;vertical-align:middle;margin-right:2px;">edit_note</i> Catatan
+                                                        </button>
                                                     </td>
                                                 </tr>
                                         <?php
@@ -351,9 +356,31 @@ endif; // Akhir dari blok if ($show_modal)
         </div>
     </div>
 
+    <!-- Modal Catatan -->
+    <div class="modal fade" id="catatanModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius:14px;border:none;box-shadow:0 8px 32px rgba(0,0,0,0.15);">
+                <div class="modal-header" style="background:linear-gradient(135deg,#1e40af,#3b82f6);border-radius:14px 14px 0 0;padding:16px 20px;">
+                    <h5 class="modal-title" style="color:#fff;font-size:15px;font-weight:700;"><i class="material-icons" style="font-size:18px;vertical-align:middle;margin-right:6px;">edit_note</i>Tambah / Edit Catatan</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" style="font-size:10px;"></button>
+                </div>
+                <div class="modal-body" style="padding:20px;">
+                    <input type="hidden" id="catatan_kode">
+                    <label style="font-size:12px;font-weight:700;color:#475569;margin-bottom:6px;display:block;">Catatan Admin</label>
+                    <textarea id="catatan_text" rows="4" style="width:100%;border:1.5px solid #e5e7eb;border-radius:10px;padding:12px 14px;font-size:13px;color:#1e293b;background:#f8fafc;transition:all 0.2s;font-family:inherit;resize:vertical;" placeholder="Tulis catatan untuk kegiatan ini..."></textarea>
+                    <div style="display:flex;gap:8px;margin-top:16px;">
+                        <button type="button" class="ep-btn-cancel" data-bs-dismiss="modal" style="flex:1;padding:10px;border:1.5px solid #e5e7eb;border-radius:10px;background:#fff;color:#64748b;font-size:13px;font-weight:600;cursor:pointer;">Batal</button>
+                        <button type="button" id="btnSimpanCatatan" style="flex:2;padding:10px;border:none;border-radius:10px;background:linear-gradient(135deg,#2563eb,#3b82f6);color:#fff;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(37,99,235,0.25);">Simpan Catatan</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <?php include "js-include.php"; ?>
     <script>
     $(document).ready(function() {
+        // Invoice detail modal
         $('.detailBtn').click(function() {
             var kode_transaksi = $(this).data('kode');
             var modalBody = $('#dataDetailTek');
@@ -370,6 +397,45 @@ endif; // Akhir dari blok if ($show_modal)
                 error: function(xhr, status, error) {
                     modalBody.html('<div class="alert alert-danger text-white">Gagal memuat detail pekerjaan. Silakan coba lagi.</div>');
                     console.error("AJAX Error: " + status + " - " + error);
+                }
+            });
+        });
+
+        // Catatan modal
+        $('.catatanBtn').click(function() {
+            var kode = $(this).data('kode');
+            var catatan = $(this).data('catatan');
+            $('#catatan_kode').val(kode);
+            $('#catatan_text').val(catatan);
+            var modal = new bootstrap.Modal(document.getElementById('catatanModal'));
+            modal.show();
+        });
+
+        // Simpan catatan
+        $('#btnSimpanCatatan').click(function() {
+            var btn = $(this);
+            var kode = $('#catatan_kode').val();
+            var catatan = $('#catatan_text').val();
+            btn.prop('disabled', true).text('Menyimpan...');
+
+            $.ajax({
+                url: 'proses_update_catatan.php',
+                type: 'POST',
+                data: { kode: kode, keterangan: catatan },
+                dataType: 'json',
+                success: function(res) {
+                    if (res.success) {
+                        alert('Catatan berhasil disimpan!');
+                        location.reload();
+                    } else {
+                        alert('Gagal: ' + (res.message || 'Terjadi kesalahan'));
+                    }
+                },
+                error: function() {
+                    alert('Terjadi kesalahan koneksi.');
+                },
+                complete: function() {
+                    btn.prop('disabled', false).text('Simpan Catatan');
                 }
             });
         });
