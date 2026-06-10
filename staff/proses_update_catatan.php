@@ -17,7 +17,7 @@ if (empty($kode)) {
     exit;
 }
 
-$stmt = $conn->prepare("UPDATE kegiatan SET keterangan = ? WHERE kode = ? AND deleted_at IS NULL");
+$stmt = $conn->prepare("UPDATE kegiatan SET catatan_admin = ? WHERE kode = ? AND deleted_at IS NULL");
 $stmt->bind_param("ss", $keterangan, $kode);
 
 if ($stmt->execute()) {

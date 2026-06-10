@@ -112,7 +112,7 @@ if (isset($_GET['error'])) {
                                         $filterTahun = $_GET['tahun'] ?? '';
                                         $filterBulan = $_GET['bulan'] ?? '';
                                         
-                                        $sql_main = "SELECT k.id, k.kode AS kode_transaksi, k.keterangan, k.kegiatan, k.created_at, k.status AS status_kegiatan, c.id AS id_cust, c.nama AS nama_cust
+                                        $sql_main = "SELECT k.id, k.kode AS kode_transaksi, k.keterangan, k.catatan_admin, k.kegiatan, k.created_at, k.status AS status_kegiatan, c.id AS id_cust, c.nama AS nama_cust
                                                      FROM kegiatan k
                                                      LEFT JOIN customer c ON k.customer_id = c.id
                                                      WHERE k.status != 'waiting' AND (k.paid IS NULL OR k.paid = '')
@@ -246,9 +246,14 @@ if (isset($_GET['error'])) {
                                                         <a href="proses_set_tidak_valid.php?kode=<?= $kodeTransaksi; ?>" class="btn-aksi btn-tidak-valid me-1" onclick="return confirm('Tandai kegiatan ini sebagai Tidak Valid?')">
                                                             Tidak Valid
                                                         </a>
-                                                        <button class="btn-aksi btn-catatan catatanBtn" data-kode="<?= $kodeTransaksi; ?>" data-catatan="<?= htmlspecialchars($row_main['keterangan'] ?? '', ENT_QUOTES); ?>">
+                                                        <button class="btn-aksi btn-catatan catatanBtn" data-kode="<?= $kodeTransaksi; ?>" data-catatan="<?= htmlspecialchars($row_main['catatan_admin'] ?? '', ENT_QUOTES); ?>">
                                                             <i class="material-icons" style="font-size:12px;vertical-align:middle;margin-right:2px;">edit_note</i> Catatan
                                                         </button>
+                                                        <?php if (!empty($row_main['catatan_admin'])): ?>
+                                                        <div style="margin-top:8px;padding:8px 12px;background:#f8fafc;border-left:3px solid #3b82f6;border-radius:0 6px 6px 0;font-size:11px;color:#475569;font-style:italic;text-align:left;">
+                                                            📝 <?= htmlspecialchars($row_main['catatan_admin']); ?>
+                                                        </div>
+                                                        <?php endif; ?>
                                                     </td>
                                                 </tr>
                                         <?php
