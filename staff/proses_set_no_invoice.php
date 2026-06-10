@@ -47,6 +47,21 @@ if ($stmt_count) {
     exit();
 }
 
+// Fallback: cek dari pelaksanaan_kegiatan jika team_kegiatan kosong/dihapus
+if ($jumlah_teknisi == 0) {
+    $query_fallback = "SELECT COUNT(DISTINCT teknisi_id) FROM pelaksanaan_kegiatan WHERE kode = ? AND deleted_at IS NULL";
+    $stmt_fb = $conn->prepare($query_fallback);
+    if ($stmt_fb) {
+        $stmt_fb->bind_param("s", $kode_kegiatan);
+        $stmt_fb->execute();
+        $stmt_fb->bind_result($fb_count);
+        if ($stmt_fb->fetch()) {
+            $jumlah_teknisi = $fb_count;
+        }
+        $stmt_fb->close();
+    }
+}
+
 if ($jumlah_teknisi == 0) {
     header("Location: lap-kegiatan.php?error=no_technicians");
     exit();
