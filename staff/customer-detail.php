@@ -20,7 +20,7 @@ $sql = "SELECT
             t.nama AS teknisi_name
         FROM kegiatan k
         LEFT JOIN customer c ON k.customer_id = c.id
-        LEFT JOIN pelaksanaan_kegiatan p ON k.id = p.kegiatan_id
+        LEFT JOIN pelaksanaan_kegiatan p ON k.kode = p.kode AND p.deleted_at IS NULL
         LEFT JOIN teknisi t ON p.teknisi_id = t.id
         WHERE k.customer_id = ? AND k.deleted_at IS NULL
         ORDER BY k.jadwal DESC, p.waktu_mulai ASC";
