@@ -114,6 +114,7 @@ if (isset($_GET['error'])) {
                                         
                                         $sql_main = "SELECT k.id, k.kode AS kode_transaksi, k.keterangan, k.catatan_admin, k.kegiatan, k.created_at, k.status AS status_kegiatan, c.id AS id_cust, c.nama AS nama_cust
                                                      FROM kegiatan k
+                                                     INNER JOIN (SELECT kode, MAX(id) AS max_id FROM kegiatan WHERE deleted_at IS NULL GROUP BY kode) latest ON k.id = latest.max_id
                                                      LEFT JOIN customer c ON k.customer_id = c.id
                                                      WHERE k.status != 'waiting' AND (k.paid IS NULL OR k.paid = '')
                                                      AND k.deleted_at IS NULL
