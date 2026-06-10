@@ -419,14 +419,78 @@ class GoogleMapSampleState extends State<GoogleMapSample>
         return;
       }
 
-      Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.best,
-      ).timeout(
-        const Duration(seconds: 12),
-        onTimeout: () => Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.medium,
-        ),
-      );
+      // Strategy: try multiple accuracy levels with fallback
+      Position? position;
+      
+      // 1. Try last known position first (instant)
+      try {
+        position = await Geolocator.getLastKnownPosition();
+        debugPrint('📍 Last known position: ${position?.latitude}, ${position?.longitude}');
+      } catch (_) {}
+
+      // 2. Try best accuracy (15 seconds timeout)
+      if (position == null) {
+        try {
+          position = await Geolocator.getCurrentPosition(
+            desiredAccuracy: LocationAccuracy.best,
+          ).timeout(const Duration(seconds: 15));
+          debugPrint('📍 Best accuracy position obtained');
+        } catch (e) {
+          debugPrint('⚠️ Best accuracy failed: $e');
+        }
+      } else {
+        // We have last known, but still try to get fresh position in parallel
+        // Use the last known for now, upgrade later if fresh comes
+        try {
+          final freshPosition = await Geolocator.getCurrentPosition(
+            desiredAccuracy: LocationAccuracy.high,
+          ).timeout(const Duration(seconds: 10));
+          position = freshPosition;
+          debugPrint('📍 Fresh high accuracy position obtained');
+        } catch (_) {
+          debugPrint('📍 Using last known position (fresh fetch timed out)');
+        }
+      }
+
+      // 3. Fallback: high accuracy
+      if (position == null) {
+        try {
+          position = await Geolocator.getCurrentPosition(
+            desiredAccuracy: LocationAccuracy.high,
+          ).timeout(const Duration(seconds: 10));
+          debugPrint('📍 High accuracy position obtained');
+        } catch (e) {
+          debugPrint('⚠️ High accuracy failed: $e');
+        }
+      }
+
+      // 4. Fallback: medium accuracy
+      if (position == null) {
+        try {
+          position = await Geolocator.getCurrentPosition(
+            desiredAccuracy: LocationAccuracy.medium,
+          ).timeout(const Duration(seconds: 8));
+          debugPrint('📍 Medium accuracy position obtained');
+        } catch (e) {
+          debugPrint('⚠️ Medium accuracy failed: $e');
+        }
+      }
+
+      // 5. Last resort: low accuracy
+      if (position == null) {
+        try {
+          position = await Geolocator.getCurrentPosition(
+            desiredAccuracy: LocationAccuracy.low,
+          ).timeout(const Duration(seconds: 5));
+          debugPrint('📍 Low accuracy position obtained');
+        } catch (e) {
+          debugPrint('⚠️ Low accuracy also failed: $e');
+        }
+      }
+
+      if (position == null) {
+        throw Exception('Semua metode lokasi gagal');
+      }
 
       if (!mounted) return;
 
@@ -446,6 +510,7 @@ class GoogleMapSampleState extends State<GoogleMapSample>
 
       _getAddressFromLatLng(position);
     } catch (e) {
+      debugPrint('❌ Location error: $e');
       if (!mounted) return;
       setState(() {
         _isLoading = false;

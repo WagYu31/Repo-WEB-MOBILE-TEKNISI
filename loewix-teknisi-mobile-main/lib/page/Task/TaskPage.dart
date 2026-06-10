@@ -1549,26 +1549,6 @@ class _TaskPageState extends State<TaskPage> {
 
     final targets = <TargetFocus>[
       TargetFocus(
-        identify: 'map',
-        keyTarget: _keyMap,
-        alignSkip: Alignment.bottomRight,
-        enableOverlayTab: true,
-        shape: ShapeLightFocus.RRect,
-        radius: 0,
-        contents: [
-          TargetContent(
-            align: ContentAlign.bottom,
-            builder: (context, controller) => CoachMarkHelper.buildTooltip(
-              onClose: () => controller.skip(),
-              title: 'Peta Lokasi',
-              descriptions: ['Merah = customer, Biru = posisi kamu, Hijau = radius clock in. Pastikan GPS aktif'],
-              arrowUp: true,
-              step: '1/3',
-            ),
-          ),
-        ],
-      ),
-      TargetFocus(
         identify: 'info_chips',
         keyTarget: _keyInfoChips,
         alignSkip: Alignment.bottomRight,
@@ -1582,7 +1562,7 @@ class _TaskPageState extends State<TaskPage> {
               onClose: () => controller.skip(),
               title: 'Jadwal Kunjungan',
               descriptions: ['Tanggal & jam kunjungan yang ditentukan admin'],
-              step: '2/3',
+              step: '1/2',
             ),
           ),
         ],
@@ -1601,7 +1581,7 @@ class _TaskPageState extends State<TaskPage> {
               onClose: () => controller.skip(),
               title: 'Detail & Aksi',
               descriptions: ['Tap untuk Clock In, kirim laporan, atau claim reimbursement'],
-              step: '3/3',
+              step: '2/2',
             ),
           ),
         ],

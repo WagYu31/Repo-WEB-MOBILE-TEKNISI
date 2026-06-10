@@ -321,11 +321,19 @@ class _CardTaskState extends State<CardTask> with SingleTickerProviderStateMixin
       }
 
       Position? position = await Geolocator.getLastKnownPosition();
-      position ??= await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.medium,
-      );
+      if (position == null) {
+        try {
+          position = await Geolocator.getCurrentPosition(
+            desiredAccuracy: LocationAccuracy.high,
+          ).timeout(const Duration(seconds: 10));
+        } catch (_) {
+          position = await Geolocator.getCurrentPosition(
+            desiredAccuracy: LocationAccuracy.medium,
+          ).timeout(const Duration(seconds: 8));
+        }
+      }
 
-      if (position.isMocked) {
+      if (position != null && position.isMocked) {
         if (!mounted) return;
         Navigator.pop(context);
         QuickAlert.show(
