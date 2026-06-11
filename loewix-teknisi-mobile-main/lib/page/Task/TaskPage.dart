@@ -669,7 +669,7 @@ class _TaskPageState extends State<TaskPage> {
         _buildDetailCard(
           Icons.location_on_outlined,
           'Alamat',
-          data.dataCustomer.alamat,
+          data.dataCustomer.alamat?.toString() ?? 'Alamat tidak tersedia',
           Colors.red[400]!,
         ),
         _buildDetailCard(
@@ -681,7 +681,7 @@ class _TaskPageState extends State<TaskPage> {
         _buildDetailCard(
           Icons.note_outlined,
           'Catatan',
-          (data.keterangan != null && data.keterangan!.isNotEmpty) ? data.keterangan! : 'Tidak ada catatan',
+          (data.keterangan != null && data.keterangan.toString().trim().isNotEmpty) ? data.keterangan.toString() : 'Tidak ada catatan',
           Colors.purple[400]!,
         ),
         if (data.dataTeknisi.length > 1) ...[

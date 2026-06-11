@@ -175,7 +175,7 @@ class DetailTaskPage extends StatelessWidget {
                           }
                         },
                         child: Text(
-                          data.dataCustomer.telp,
+                          data.dataCustomer.telp?.toString() ?? '-',
                           overflow: TextOverflow.ellipsis,
                           maxLines: 5,
                           textAlign: TextAlign.left,
@@ -216,7 +216,7 @@ class DetailTaskPage extends StatelessWidget {
                       InkWell(
                         onTap:() async => _openMap(context, data.dataCustomer.alamat,),
                         child: Text(
-                          data.dataCustomer.alamat,
+                          data.dataCustomer.alamat?.toString() ?? 'Alamat tidak tersedia',
                           overflow: TextOverflow.ellipsis,
                           maxLines: 5,
                           textAlign: TextAlign.left,
@@ -253,7 +253,7 @@ class DetailTaskPage extends StatelessWidget {
                       style: TextStyle(fontFamily: 'Poppins',fontSize: 14),
                     ),
                     Text(
-                      data.keterangan,
+                      data.keterangan?.toString() ?? '-',
                       textAlign: TextAlign.left,
                       style: TextStyle(fontFamily: 'Poppins',
                           fontSize: 18,),
