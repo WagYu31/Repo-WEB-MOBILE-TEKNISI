@@ -913,7 +913,7 @@ class _TaskPageState extends State<TaskPage> {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: (_needsReport ? const Color(0xFF2563EB) : start ? successColor : primaryColor).withValues(alpha:
+                    color: (_needsReport ? const Color(0xFF2563EB) : start ? const Color(0xFFEA580C) : primaryColor).withValues(alpha:
                       0.3,
                     ),
                     blurRadius: 12,
@@ -924,7 +924,7 @@ class _TaskPageState extends State<TaskPage> {
               child: _needsReport
                 ? _buildLengkapiLaporanButton()
                 : SlideAction(
-                    outerColor: start ? successColor : primaryColor,
+                    outerColor: start ? const Color(0xFFEA580C) : primaryColor,
                     elevation: 0,
                     innerColor: Colors.white,
                     borderRadius: 16,
@@ -936,12 +936,52 @@ class _TaskPageState extends State<TaskPage> {
                     ),
                     sliderButtonIcon: Icon(
                       start ? Icons.stop_rounded : Icons.play_arrow,
-                      color: start ? successColor : primaryColor,
+                      color: start ? const Color(0xFFEA580C) : primaryColor,
                       size: 24,
                     ),
                     onSubmit: () => _handleSlideAction(isWithinRadius),
                   ),
             ),
+            // Tombol Lanjut Nanti besar (hanya saat tugas berjalan)
+            if (start) ...[
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    final position = GoogleMapSample.currentPosition;
+                    if (position == null) return;
+                    Navigator.pushNamed(
+                      context,
+                      LanjutNantiPage.routeName,
+                      arguments: [
+                        int.parse(id),
+                        data.id,
+                        position.latitude,
+                        position.longitude,
+                      ],
+                    );
+                  },
+                  icon: const Icon(Icons.pause_circle_rounded, size: 22),
+                  label: const Text('Lanjut Nanti',
+                    style: TextStyle(fontFamily: 'Poppins', fontSize: 16, fontWeight: FontWeight.w600)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF2563EB),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    elevation: 2,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 4),
+              Center(
+                child: Text(
+                  'Belum selesai? Klik tombol di atas',
+                  style: TextStyle(fontFamily: 'Poppins', fontSize: 12, color: Colors.grey[500], fontStyle: FontStyle.italic),
+                ),
+              ),
+            ],
           ],
         );
       },
@@ -990,9 +1030,232 @@ class _TaskPageState extends State<TaskPage> {
     if (!start) {
       await _startTask();
     } else {
-      // Clock-out: rekam waktu selesai teknisi
+      // Tampilkan dialog konfirmasi checklist sebelum selesai
+      await _showFinishConfirmation();
+    }
+  }
+
+  Future<void> _showFinishConfirmation() async {
+    final List<bool> checks = [false, false, false];
+    final noteController = TextEditingController();
+    
+    final confirmed = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setModalState) {
+            final allChecked = checks.every((c) => c);
+            final hasNote = noteController.text.trim().isNotEmpty;
+            final canSubmit = allChecked && hasNote;
+            
+            return Container(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(ctx).viewInsets.bottom,
+              ),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Handle bar
+                    Center(
+                      child: Container(
+                        width: 40, height: 4,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[300],
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    
+                    // Header
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: warningColor.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(Icons.checklist_rounded, color: warningColor, size: 24),
+                        ),
+                        const SizedBox(width: 12),
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Konfirmasi Selesai',
+                                style: TextStyle(fontFamily: 'Poppins', fontSize: 18, fontWeight: FontWeight.w700)),
+                              Text('Pastikan semua sudah selesai',
+                                style: TextStyle(fontFamily: 'Poppins', fontSize: 13, color: Color(0xFF64748B))),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    
+                    // Warning banner
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFF7ED),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: warningColor.withValues(alpha: 0.3)),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.warning_amber_rounded, color: warningColor, size: 20),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Jika pekerjaan belum selesai, gunakan tombol "Lanjut Nanti"',
+                              style: TextStyle(fontFamily: 'Poppins', fontSize: 12, color: warningColor, fontWeight: FontWeight.w500),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    
+                    // Checklist items
+                    _buildCheckItem(
+                      'Pekerjaan sudah selesai sepenuhnya',
+                      Icons.build_circle_outlined,
+                      checks[0],
+                      (v) => setModalState(() => checks[0] = v ?? false),
+                    ),
+                    _buildCheckItem(
+                      'Peralatan sudah dicek & beres',
+                      Icons.handyman_outlined,
+                      checks[1],
+                      (v) => setModalState(() => checks[1] = v ?? false),
+                    ),
+                    _buildCheckItem(
+                      'Customer sudah konfirmasi hasil kerja',
+                      Icons.person_pin_circle_outlined,
+                      checks[2],
+                      (v) => setModalState(() => checks[2] = v ?? false),
+                    ),
+                    const SizedBox(height: 16),
+                    
+                    // Note field (wajib)
+                    Text('Catatan Pekerjaan *',
+                      style: TextStyle(fontFamily: 'Poppins', fontSize: 13, fontWeight: FontWeight.w600, color: textPrimary)),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: noteController,
+                      maxLines: 3,
+                      onChanged: (_) => setModalState(() {}),
+                      decoration: InputDecoration(
+                        hintText: 'Jelaskan pekerjaan yang sudah dilakukan...',
+                        hintStyle: TextStyle(fontFamily: 'Poppins', fontSize: 13, color: Colors.grey[400]),
+                        filled: true,
+                        fillColor: const Color(0xFFF8FAFC),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.grey[300]!),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.grey[300]!),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: primaryColor, width: 2),
+                        ),
+                        contentPadding: const EdgeInsets.all(14),
+                      ),
+                      style: const TextStyle(fontFamily: 'Poppins', fontSize: 14),
+                    ),
+                    const SizedBox(height: 20),
+                    
+                    // Buttons
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => Navigator.pop(ctx, false),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              side: BorderSide(color: Colors.grey[300]!),
+                            ),
+                            child: const Text('Batal', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600)),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          flex: 2,
+                          child: ElevatedButton.icon(
+                            onPressed: canSubmit ? () => Navigator.pop(ctx, true) : null,
+                            icon: const Icon(Icons.check_circle, size: 20),
+                            label: const Text('Selesaikan Tugas',
+                              style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600)),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: canSubmit ? successColor : Colors.grey[300],
+                              foregroundColor: Colors.white,
+                              disabledBackgroundColor: Colors.grey[300],
+                              disabledForegroundColor: Colors.grey[500],
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              elevation: canSubmit ? 2 : 0,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+    
+    noteController.dispose();
+    
+    if (confirmed == true) {
       await _finishTask();
     }
+  }
+
+  Widget _buildCheckItem(String label, IconData icon, bool value, Function(bool?) onChanged) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: value ? successColor.withValues(alpha: 0.05) : const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: value ? successColor.withValues(alpha: 0.3) : Colors.grey[200]!,
+        ),
+      ),
+      child: CheckboxListTile(
+        value: value,
+        onChanged: onChanged,
+        title: Text(label,
+          style: TextStyle(
+            fontFamily: 'Poppins', fontSize: 13, fontWeight: FontWeight.w500,
+            color: value ? successColor : textPrimary,
+          )),
+        secondary: Icon(icon, color: value ? successColor : Colors.grey[400], size: 22),
+        activeColor: successColor,
+        checkboxShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+        controlAffinity: ListTileControlAffinity.trailing,
+        dense: true,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+      ),
+    );
   }
 
   Future<void> _startTask() async {
