@@ -102,7 +102,7 @@ if ($resultKC && $resultKC->num_rows > 0) {
             $tanggal_display = $tanggal_pertama_formatted . " - " . $tanggal_terakhir_formatted;
         }
 
-        $relasi_options_data[] = ['kode' => $rowkc['kode'], 'teks' => $tanggal_terakhir_formatted . " - " . htmlspecialchars(ucfirst($rowkc['kegiatan']))];
+        $relasi_options_data[] = ['kode' => $rowkc['kode'], 'teks' => $tanggal_terakhir_formatted . " - " . htmlspecialchars(ucfirst($rowkc['kegiatan'])) . " (" . $rowkc['kode'] . ")"];
         $jenis_kegiatan = htmlspecialchars(ucfirst($rowkc['kegiatan']));
         $status_display = htmlspecialchars($status_terubah);
         $theCode = htmlspecialchars(ucfirst($rowkc['kode']));

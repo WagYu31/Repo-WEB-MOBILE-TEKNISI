@@ -68,7 +68,7 @@ if ($resultKC && mysqli_num_rows($resultKC) > 0) {
         // Kumpulkan data untuk dropdown relasi
         $option_text = 'Tidak Diketahui';
         if ($isJadwalValid) {
-             $option_text = strftime('%d %b %Y', $jadwal_timestamp) . " - " . ucfirst($rowkc['kegiatan']);
+             $option_text = strftime('%d %b %Y', $jadwal_timestamp) . " - " . ucfirst($rowkc['kegiatan']) . " (" . $rowkc['kode'] . ")";
         }
         $response_data['relasiOptions'][] = ['kode' => $rowkc['kode'], 'teks' => $option_text];
     }

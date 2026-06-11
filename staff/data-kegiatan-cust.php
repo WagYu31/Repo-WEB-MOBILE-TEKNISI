@@ -61,7 +61,7 @@ if ($result && $result->num_rows > 0) {
 
         $response_data['relasiOptions'][] = [
             'kode' => $kode_trans,
-            'teks' => $tgl . " - " . $jenis_kegiatan
+            'teks' => $tgl . " - " . $jenis_kegiatan . " (" . $kode_trans . ")"
         ];
 
         $html .= "
