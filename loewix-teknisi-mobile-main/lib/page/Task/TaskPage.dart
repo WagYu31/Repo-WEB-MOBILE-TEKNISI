@@ -1412,22 +1412,7 @@ class _TaskPageState extends State<TaskPage> {
                 errorColor,
                 () => _rescheduleOrCancel(false),
               ),
-            if (start && selisih == 0)
-              _buildActionButton(
-                'Lanjut Nanti',
-                Icons.schedule_outlined,
-                warningColor,
-                () => Navigator.pushNamed(
-                  context,
-                  LanjutNantiPage.routeName,
-                  arguments: [
-                    int.parse(id),
-                    data.id,
-                    GoogleMapSample.currentPosition!.latitude,
-                    GoogleMapSample.currentPosition!.longitude,
-                  ],
-                ),
-              ),
+            
             if (history)
               _buildActionButton(
                 'Lihat Invoice',
