@@ -38,33 +38,52 @@ Future<void> _checkAndNotify(Map<String, dynamic>? inputData) async {
       final body = json.decode(responseBody);
       final tasks = body['data'] as List? ?? [];
 
-      int pendingCount = 0;
-      List<String> pendingNames = [];
+      // ─── Tugas Aktif (dijadwalkan / berjalan) ───
+      int activeCount = 0;
+      List<String> activeNames = [];
+
+      // ─── Laporan Pending (menunggu laporan) ───
+      int reportCount = 0;
+      List<String> reportNames = [];
 
       for (final task in tasks) {
-        final status = (task['status'] ?? '').toString().toLowerCase();
-        if (status == 'berjalan' ||
-            status == 'menunggu laporan' ||
-            status == 'dijadwalkan' ||
-            status == 'tidak') {
-          pendingCount++;
-          final customer = task['customer'];
-          if (customer is Map && pendingNames.length < 3) {
-            final nama = customer['nama']?.toString() ?? '';
-            if (nama.isNotEmpty) pendingNames.add(nama);
+        final pelaksanaan = task['pelaksanaan'] as List? ?? [];
+        // Cari status teknisi ini
+        String pelStatus = 'tidak';
+        for (final p in pelaksanaan) {
+          if (p['teknisi_id']?.toString() == teknisiId) {
+            pelStatus = (p['status'] ?? 'tidak').toString().toLowerCase();
+            break;
           }
+        }
+
+        final customer = task['customer'];
+        final nama = (customer is Map) ? (customer['nama']?.toString() ?? '') : '';
+
+        if (pelStatus == 'dijadwalkan' || pelStatus == 'tidak' || pelStatus == 'berjalan') {
+          activeCount++;
+          if (nama.isNotEmpty && activeNames.length < 3) activeNames.add(nama);
+        } else if (pelStatus == 'menunggu laporan') {
+          reportCount++;
+          if (nama.isNotEmpty && reportNames.length < 3) reportNames.add(nama);
         }
       }
 
-      if (pendingCount > 0) {
-        await _showSystemNotification(pendingCount, pendingNames);
+      // Notifikasi Tugas Aktif
+      if (activeCount > 0) {
+        await _showActiveTaskNotification(activeCount, activeNames);
+      }
+
+      // Notifikasi Laporan Pending
+      if (reportCount > 0) {
+        await _showReportNotification(reportCount, reportNames);
       }
     }
     httpClient.close();
   } catch (_) {}
 }
 
-Future<void> _showSystemNotification(int count, List<String> names) async {
+Future<void> _showActiveTaskNotification(int count, List<String> names) async {
   final plugin = FlutterLocalNotificationsPlugin();
   const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
   const initSettings = InitializationSettings(android: androidSettings);
@@ -72,8 +91,41 @@ Future<void> _showSystemNotification(int count, List<String> names) async {
 
   final nameStr = names.isNotEmpty ? names.join(', ') : '';
   final body = count == 1
-      ? 'Ada 1 tugas belum selesai${nameStr.isNotEmpty ? " — $nameStr" : ""}. Segera upload laporan!'
-      : 'Ada $count tugas belum selesai${nameStr.isNotEmpty ? " — $nameStr" : ""}. Segera upload laporan!';
+      ? 'Ada 1 tugas aktif hari ini${nameStr.isNotEmpty ? " — $nameStr" : ""}. Segera kerjakan!'
+      : 'Ada $count tugas aktif hari ini${nameStr.isNotEmpty ? " — $nameStr" : ""}. Segera kerjakan!';
+
+  final androidDetails = AndroidNotificationDetails(
+    'active_task_channel',
+    'Tugas Aktif',
+    channelDescription: 'Pengingat tugas aktif teknisi',
+    importance: Importance.max,
+    priority: Priority.max,
+    icon: '@mipmap/ic_launcher',
+    styleInformation: BigTextStyleInformation(body),
+    autoCancel: true,
+    showWhen: true,
+    playSound: true,
+    enableVibration: true,
+  );
+
+  await plugin.show(
+    1002,
+    '📋 Tugas Aktif',
+    body,
+    NotificationDetails(android: androidDetails),
+  );
+}
+
+Future<void> _showReportNotification(int count, List<String> names) async {
+  final plugin = FlutterLocalNotificationsPlugin();
+  const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+  const initSettings = InitializationSettings(android: androidSettings);
+  await plugin.initialize(initSettings);
+
+  final nameStr = names.isNotEmpty ? names.join(', ') : '';
+  final body = count == 1
+      ? 'Ada 1 laporan belum diupload${nameStr.isNotEmpty ? " — $nameStr" : ""}. Segera upload!'
+      : 'Ada $count laporan belum diupload${nameStr.isNotEmpty ? " — $nameStr" : ""}. Segera upload!';
 
   final androidDetails = AndroidNotificationDetails(
     'pending_report_channel',
@@ -91,7 +143,7 @@ Future<void> _showSystemNotification(int count, List<String> names) async {
 
   await plugin.show(
     1001,
-    'Laporan Belum Diupload',
+    '📝 Laporan Belum Diupload',
     body,
     NotificationDetails(android: androidDetails),
   );
