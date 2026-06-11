@@ -314,10 +314,13 @@ class _TaskPageState extends State<TaskPage> {
   String get _pelaksanaanStatus {
     final filtered = data.pelaksanaan.where(
       (a) => a.kegiatanId == data.id && a.teknisiId == _idTeknisi,
-    );
-    final status = filtered.isNotEmpty ? filtered.first.status : 'tidak';
-    // Override: reschedule task → abaikan pelaksanaan lama
+    ).toList();
+    final status = filtered.isNotEmpty ? filtered.last.status : 'tidak';
+    // Override: reschedule task → abaikan pelaksanaan lama (hanya jika belum mulai baru)
     if (data.status.toLowerCase() == 'dijadwalkan' && (status == 'selesai' || status == 'menunggu laporan')) {
+      // Cek apakah ada pelaksanaan baru (berjalan) — jika ada, gunakan itu
+      final activePel = filtered.where((p) => p.status == 'berjalan');
+      if (activePel.isNotEmpty) return 'berjalan';
       return 'tidak';
     }
     return status;
