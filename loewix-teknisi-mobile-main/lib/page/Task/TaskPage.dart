@@ -908,6 +908,29 @@ class _TaskPageState extends State<TaskPage> {
                   ],
                 ),
               ),
+            // Warning: pastikan customer ada sebelum mulai
+            if (!start && !_needsReport)
+              Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFEF2F2),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: errorColor.withValues(alpha: 0.3)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.warning_amber_rounded, color: errorColor, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Pastikan customer ada di lokasi. Jika tidak ada, gunakan tombol Batalkan di bawah.',
+                        style: TextStyle(fontFamily: 'Poppins', fontSize: 12, color: errorColor, fontWeight: FontWeight.w500),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
@@ -1405,13 +1428,53 @@ class _TaskPageState extends State<TaskPage> {
                   );
                 },
               ),
-            if (!history && data.status != 'dibatalkan')
-              _buildActionButton(
-                'Batalkan',
-                Icons.cancel_outlined,
-                errorColor,
-                () => _rescheduleOrCancel(false),
+            if (!history && data.status != 'dibatalkan') ...[
+              SizedBox(
+                width: double.infinity,
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: errorColor.withValues(alpha: 0.4), width: 1.5),
+                    color: errorColor.withValues(alpha: 0.05),
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(14),
+                      onTap: () => _rescheduleOrCancel(false),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: errorColor.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Icon(Icons.cancel_rounded, color: errorColor, size: 22),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Batalkan Tugas',
+                                    style: TextStyle(fontFamily: 'Poppins', fontSize: 14, fontWeight: FontWeight.w700, color: errorColor)),
+                                  Text('Customer tidak ada? Batalkan tugas ini',
+                                    style: TextStyle(fontFamily: 'Poppins', fontSize: 11, color: errorColor.withValues(alpha: 0.7))),
+                                ],
+                              ),
+                            ),
+                            Icon(Icons.arrow_forward_ios_rounded, color: errorColor.withValues(alpha: 0.5), size: 16),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               ),
+            ],
             
             if (history)
               _buildActionButton(
