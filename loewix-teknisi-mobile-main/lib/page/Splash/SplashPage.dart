@@ -1,6 +1,7 @@
 import '../../page/container/HomePage.dart';
 import '../../service/provider/Auth/AuthProvider.dart';
 import '../../service/provider/preferences/PreferencesIDProvider.dart';
+import '../../service/update/ForceUpdateService.dart';
 import '../../utils/auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -75,6 +76,15 @@ class _SplashScreenState extends State<SplashScreen> {
       AuthApp.setID(Provider.of<PreferencesIDProvider>(context, listen: false).isUserRole);
 
       await Provider.of<AuthProvider>(context, listen: false).checkLoginStatus();
+
+      // ═══ CEK VERSI SEBELUM LANJUT ═══
+      if (mounted) {
+        final canProceed = await ForceUpdateService().checkVersion(context);
+        if (!canProceed) {
+          // App diblokir, dialog force update sudah tampil
+          return;
+        }
+      }
 
       bool hasLocationPermission = await checkLocationPermission();
 

@@ -316,7 +316,9 @@ class _DashboardPageState extends State<DashboardPage> {
                   } else if (state.state == ResultState.noData) {
                     return _buildEmptyState('Tidak ada tugas');
                   } else if (state.state == ResultState.hasData) {
-                    final filteredData = state.response.data.expand((task) {
+                    List<DataTask> filteredData;
+                    try {
+                      filteredData = state.response.data.expand((task) {
                       if (teknisiIdParsed == null) return [task];
 
                       // Cek apakah teknisi ini ditugaskan ke task ini (via dataTeknisi / team_kegiatan)
@@ -324,6 +326,10 @@ class _DashboardPageState extends State<DashboardPage> {
                       // Fallback: jika ada pelaksanaan milik teknisi ini, berarti pasti ditugaskan
                       final hasPelaksanaan = task.pelaksanaan.any((p) => p.teknisiId == teknisiIdParsed);
                       if (!isAssigned && !hasPelaksanaan) return <DataTask>[]; // Bukan tugasnya
+
+                      // Jika status kegiatan 'dijadwalkan' (admin re-schedule), 
+                      // langsung tampilkan tanpa cek pelaksanaan lama
+                      if (task.status.toLowerCase() == 'dijadwalkan') return [task];
 
                       // Teknisi ditugaskan. Cek pelaksanaan:
                       if (task.pelaksanaan.isEmpty) {
@@ -360,13 +366,19 @@ class _DashboardPageState extends State<DashboardPage> {
 
                       return myActivePelaksanaan.isNotEmpty ? [task] : <DataTask>[];
                     }).toList();
+                    } catch (e) {
+                      debugPrint('⚠️ Filter error: $e');
+                      filteredData = List<DataTask>.from(state.response.data);
+                    }
 
                     if (filteredData.isEmpty) {
                       return _buildEmptyState('Belum ada tugas untuk kamu');
                     }
 
                     // ─── Sort by jadwal date (soonest first) ───
-                    filteredData.sort((a, b) => a.jadwal.compareTo(b.jadwal));
+                    try {
+                      filteredData.sort((a, b) => a.jadwal.compareTo(b.jadwal));
+                    } catch (_) {}
 
                     // Sync reorder state with fresh data
                     final newIds = filteredData.map((t) => t.id).toList();
