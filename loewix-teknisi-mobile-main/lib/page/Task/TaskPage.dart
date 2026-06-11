@@ -82,13 +82,13 @@ class _TaskPageState extends State<TaskPage> {
       (e) => e.teknisiId == _idTeknisi && e.status == 'berjalan',
     );
 
-    // Cek apakah tugas selesai tapi belum upload laporan
-    _computeNeedsReport();
-
-    // Determine ketua status
+    // Determine ketua status (HARUS sebelum _computeNeedsReport!)
     _isSoloTeknisi = data.dataTeknisi.length == 1;
     final myTeknisiData = data.dataTeknisi.where((t) => t.teknisiId == _idTeknisi);
     _isKetua = _isSoloTeknisi || (myTeknisiData.isNotEmpty && myTeknisiData.first.isKetua == 1);
+
+    // Cek apakah tugas selesai tapi belum upload laporan
+    _computeNeedsReport();
 
     // Pre-compute status values
     _computeStatusValues();
@@ -127,6 +127,29 @@ class _TaskPageState extends State<TaskPage> {
   }
 
   void _computeStatusValues() {
+    // Jika kegiatan di-reschedule (status utama 'dijadwalkan'),
+    // abaikan pelaksanaan lama dan tampilkan sebagai tugas baru
+    if (data.status.toLowerCase() == 'dijadwalkan') {
+      // Cek apakah ada pelaksanaan BARU (bukan dari jadwal lama)
+      final activePel = data.pelaksanaan.where(
+        (a) => a.kegiatanId == data.id && a.teknisiId == _idTeknisi && a.status == 'berjalan',
+      );
+      if (activePel.isNotEmpty) {
+        _cachedStatus = 'Sedang Berjalan';
+        _cachedStatusColor = successColor;
+        _cachedStatusIcon = Icons.play_circle_filled;
+      } else if (_isSchedulePassed()) {
+        _cachedStatus = 'Terlambat';
+        _cachedStatusColor = errorColor;
+        _cachedStatusIcon = Icons.warning;
+      } else {
+        _cachedStatus = 'Belum Dimulai';
+        _cachedStatusColor = warningColor;
+        _cachedStatusIcon = Icons.schedule;
+      }
+      return;
+    }
+
     final filtered = data.pelaksanaan.where(
       (a) => a.kegiatanId == data.id && a.teknisiId == _idTeknisi,
     );
@@ -175,6 +198,12 @@ class _TaskPageState extends State<TaskPage> {
   }
 
   void _computeNeedsReport() {
+    // Task yang di-reschedule tidak perlu laporan dari pelaksanaan lama
+    if (data.status.toLowerCase() == 'dijadwalkan') {
+      _needsReport = false;
+      return;
+    }
+
     final myPel = data.pelaksanaan.where(
       (e) => e.teknisiId == _idTeknisi && e.status == 'selesai',
     );
