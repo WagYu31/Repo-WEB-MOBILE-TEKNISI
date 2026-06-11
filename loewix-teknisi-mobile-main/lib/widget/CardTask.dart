@@ -107,13 +107,19 @@ class _CardTaskState extends State<CardTask> with SingleTickerProviderStateMixin
 
     final isSelesai = pelaksanaanList.any((e) => e.status == 'selesai');
 
+    // Override: jika task di-reschedule (dijadwalkan), abaikan pelaksanaan lama
+    final bool isReschedule = data.status.toLowerCase() == 'dijadwalkan' && isSelesai;
+    if (isReschedule) {
+      _pelaksanaanStatus = 'Dijadwalkan';
+    }
+
     // Cek apakah user ini adalah Ketua
     final myTeknisiData = data.dataTeknisi.where((t) => t.teknisiId == _teknisiId);
     final bool isKetua = data.dataTeknisi.length == 1 || 
         (myTeknisiData.isNotEmpty && myTeknisiData.first.isKetua == 1);
 
-    // Cek apakah selesai tapi belum upload laporan (hanya untuk Ketua)
-    final bool isNeedReport = isKetua && isSelesai && pelaksanaanList.isNotEmpty &&
+    // Cek apakah selesai tapi belum upload laporan (hanya untuk Ketua, BUKAN reschedule)
+    final bool isNeedReport = !isReschedule && isKetua && isSelesai && pelaksanaanList.isNotEmpty &&
         (pelaksanaanList.first.permasalahan == null ||
          pelaksanaanList.first.permasalahan.toString().trim().isEmpty) &&
         pelaksanaanList.first.image1 == null;

@@ -475,6 +475,11 @@ class _TaskPageState extends State<TaskPage> {
 
     String status = filtered.isNotEmpty ? filtered.first.status : 'tidak';
 
+    // Override: jika task di-reschedule, abaikan pelaksanaan lama
+    if (data.status.toLowerCase() == 'dijadwalkan' && (status == 'selesai' || status == 'menunggu laporan')) {
+      status = 'tidak';
+    }
+
     if (status == 'selesai') {
       message = 'Tugas telah selesai dikerjakan';
       messageColor = successColor;
