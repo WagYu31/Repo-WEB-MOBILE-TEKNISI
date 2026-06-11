@@ -16,7 +16,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_kegiatan'])) {
     $status = 'waiting';
     date_default_timezone_set('Asia/Jakarta');
     $now = date('Y-m-d H:i:s');
-    $kode = substr(str_shuffle('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'), 0, 6);
+    // Jika ada relasi (Terkait), pakai kode yang sama. Jika tidak, buat kode baru.
+    $kode = !empty($kegiatan_relasi) ? $kegiatan_relasi : substr(str_shuffle('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'), 0, 6);
 
     $save_location = isset($_POST['save_location']) && $_POST['save_location'] == 'on';
     $location_alias = !empty($_POST['location_alias']) ? $_POST['location_alias'] : NULL;
