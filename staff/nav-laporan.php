@@ -10,7 +10,7 @@
 $tabs = [
     ['url' => 'lap-kegiatan.php', 'label' => 'Belum Input Invoice', 'icon' => 'edit_note'],
     ['url' => 'lap-kegiatan-selesai.php', 'label' => 'Selesai', 'icon' => 'check_circle'],
-    ['url' => 'lap-noinv.php', 'label' => 'No Invoice', 'icon' => 'receipt_long'],
+    ['url' => 'lap-noinv.php', 'label' => 'No Payment', 'icon' => 'receipt_long'],
     ['url' => 'lap-loss.php', 'label' => 'Tidak Selesai', 'icon' => 'cancel'],
 ];
 

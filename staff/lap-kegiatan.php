@@ -241,8 +241,8 @@ if (isset($_GET['error'])) {
                                                         <button class="btn-aksi btn-input-inv me-1 detailBtn" data-bs-toggle="modal" data-bs-target="#detailModal" data-kode="<?= $kodeTransaksi; ?>">
                                                             Input Invoice
                                                         </button>
-                                                        <a href="proses_set_no_invoice.php?kode=<?= $kodeTransaksi; ?>" class="btn-aksi btn-no-inv me-1" onclick="return confirm('Tandai kegiatan ini Tidak memiliki Invoice?')">
-                                                            No Invoice
+                                                        <a href="proses_set_no_invoice.php?kode=<?= $kodeTransaksi; ?>" class="btn-aksi btn-no-inv me-1" onclick="return confirm('Tandai kegiatan ini Tidak memiliki Payment?')">
+                                                            No Payment
                                                         </a>
                                                         <a href="proses_set_tidak_valid.php?kode=<?= $kodeTransaksi; ?>" class="btn-aksi btn-tidak-valid me-1" onclick="return confirm('Tandai kegiatan ini sebagai Tidak Valid?')">
                                                             Tidak Valid
