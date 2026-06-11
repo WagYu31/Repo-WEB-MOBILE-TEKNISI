@@ -315,7 +315,12 @@ class _TaskPageState extends State<TaskPage> {
     final filtered = data.pelaksanaan.where(
       (a) => a.kegiatanId == data.id && a.teknisiId == _idTeknisi,
     );
-    return filtered.isNotEmpty ? filtered.first.status : 'tidak';
+    final status = filtered.isNotEmpty ? filtered.first.status : 'tidak';
+    // Override: reschedule task → abaikan pelaksanaan lama
+    if (data.status.toLowerCase() == 'dijadwalkan' && (status == 'selesai' || status == 'menunggu laporan')) {
+      return 'tidak';
+    }
+    return status;
   }
 
   bool _shouldShowSlider() {
