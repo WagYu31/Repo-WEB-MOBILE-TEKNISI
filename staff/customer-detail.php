@@ -19,8 +19,10 @@ $sql = "SELECT
             p.image_1, p.image_2, p.image_3, p.image_4, p.image_5,
             t.nama AS teknisi_name
         FROM kegiatan k
+        INNER JOIN (SELECT kode, MAX(id) AS max_id FROM kegiatan WHERE deleted_at IS NULL GROUP BY kode) latest ON k.id = latest.max_id
         LEFT JOIN customer c ON k.customer_id = c.id
         LEFT JOIN pelaksanaan_kegiatan p ON k.kode = p.kode AND p.deleted_at IS NULL
+            AND p.status NOT IN ('Lanjut Nanti', 'Lanjutan')
         LEFT JOIN teknisi t ON p.teknisi_id = t.id
         WHERE k.customer_id = ? AND k.deleted_at IS NULL
         ORDER BY k.jadwal DESC, p.waktu_mulai ASC";
