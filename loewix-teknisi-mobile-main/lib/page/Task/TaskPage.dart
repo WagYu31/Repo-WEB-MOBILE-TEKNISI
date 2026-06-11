@@ -1392,33 +1392,46 @@ class _TaskPageState extends State<TaskPage> {
           runSpacing: 12,
           children: [
             if (status == 'menunggu laporan' && selisih < 2 && _isKetua)
-              _buildActionButton('Kirim Laporan', Icons.task, successColor, () {
-                final anggotaIds = data.dataTeknisi
-                    .where((t) => t.teknisiId != _idTeknisi)
-                    .map((t) => t.teknisiId)
-                    .toList();
-                Navigator.pushNamed(
-                  context,
-                  ReportDonePage.routeName,
-                  arguments: [int.parse(id), data.id, anggotaIds],
-                );
-              }),
+              _buildPremiumActionCard(
+                title: 'Kirim Laporan',
+                subtitle: 'Lengkapi dan kirim laporan kegiatan',
+                icon: Icons.assignment_turned_in_rounded,
+                color: successColor,
+                onTap: () {
+                  final anggotaIds = data.dataTeknisi
+                      .where((t) => t.teknisiId != _idTeknisi)
+                      .map((t) => t.teknisiId)
+                      .toList();
+                  Navigator.pushNamed(
+                    context,
+                    ReportDonePage.routeName,
+                    arguments: [int.parse(id), data.id, anggotaIds],
+                  );
+                },
+              ),
             if (status == 'menunggu laporan' && selisih < 2 && !_isKetua)
-              _buildActionButton('Menunggu Ketua', Icons.hourglass_top, secondaryColor, () {
-                QuickAlert.show(
-                  context: context,
-                  type: QuickAlertType.info,
-                  title: 'Hanya Ketua Tim',
-                  text: 'Hanya Ketua Tim yang dapat mengirim laporan. Status Anda akan otomatis terupdate setelah Ketua menyelesaikan laporan.',
-                );
-              }),
+              _buildPremiumActionCard(
+                title: 'Menunggu Ketua',
+                subtitle: 'Ketua Tim akan menyelesaikan laporan',
+                icon: Icons.hourglass_top_rounded,
+                color: secondaryColor,
+                onTap: () {
+                  QuickAlert.show(
+                    context: context,
+                    type: QuickAlertType.info,
+                    title: 'Hanya Ketua Tim',
+                    text: 'Hanya Ketua Tim yang dapat mengirim laporan. Status Anda akan otomatis terupdate setelah Ketua menyelesaikan laporan.',
+                  );
+                },
+              ),
             if ((status == 'menunggu laporan' || status == 'selesai') &&
                 selisih < 2)
-              _buildActionButton(
-                'Claim Reimbursement',
-                Icons.task,
-                successColor,
-                () {
+              _buildPremiumActionCard(
+                title: 'Claim Reimbursement',
+                subtitle: 'Ajukan penggantian biaya operasional',
+                icon: Icons.receipt_long_rounded,
+                color: const Color(0xFF7C3AED),
+                onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -1491,6 +1504,60 @@ class _TaskPageState extends State<TaskPage> {
           ],
         ),
       ],
+    );
+  }
+
+  Widget _buildPremiumActionCard({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return SizedBox(
+      width: double.infinity,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: color.withValues(alpha: 0.3), width: 1.5),
+          color: color.withValues(alpha: 0.05),
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(14),
+            onTap: onTap,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(icon, color: color, size: 22),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(title,
+                          style: TextStyle(fontFamily: 'Poppins', fontSize: 14, fontWeight: FontWeight.w700, color: color)),
+                        Text(subtitle,
+                          style: TextStyle(fontFamily: 'Poppins', fontSize: 11, color: color.withValues(alpha: 0.7))),
+                      ],
+                    ),
+                  ),
+                  Icon(Icons.arrow_forward_ios_rounded, color: color.withValues(alpha: 0.5), size: 16),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 
