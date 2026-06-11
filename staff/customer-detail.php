@@ -22,7 +22,6 @@ $sql = "SELECT
         INNER JOIN (SELECT kode, MAX(id) AS max_id FROM kegiatan WHERE deleted_at IS NULL GROUP BY kode) latest ON k.id = latest.max_id
         LEFT JOIN customer c ON k.customer_id = c.id
         LEFT JOIN pelaksanaan_kegiatan p ON k.kode = p.kode AND p.deleted_at IS NULL
-            AND p.status NOT IN ('Lanjut Nanti', 'Lanjutan')
         LEFT JOIN teknisi t ON p.teknisi_id = t.id
         WHERE k.customer_id = ? AND k.deleted_at IS NULL
         ORDER BY k.jadwal DESC, p.waktu_mulai ASC";
