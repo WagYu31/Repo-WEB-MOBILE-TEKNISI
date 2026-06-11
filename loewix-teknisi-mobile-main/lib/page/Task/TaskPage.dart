@@ -153,7 +153,14 @@ class _TaskPageState extends State<TaskPage> {
     final filtered = data.pelaksanaan.where(
       (a) => a.kegiatanId == data.id && a.teknisiId == _idTeknisi,
     );
-    final status = filtered.isNotEmpty ? filtered.first.status : 'tidak';
+    // Gunakan record TERBARU (.last), bukan .first, untuk status yang benar
+    // Jika start == true (ada pelaksanaan berjalan), paksa status 'berjalan'
+    String status;
+    if (start) {
+      status = 'berjalan';
+    } else {
+      status = filtered.isNotEmpty ? filtered.last.status : 'tidak';
+    }
     final now = DateTime.now();
     final selisih = now.difference(data.jadwal).inDays;
 
@@ -1374,7 +1381,12 @@ class _TaskPageState extends State<TaskPage> {
       (a) => a.kegiatanId == data.id && a.teknisiId == idTeknisi,
     );
 
-    String status = filtered.isNotEmpty ? filtered.first.status : 'tidak';
+    String status;
+    if (start) {
+      status = 'berjalan';
+    } else {
+      status = filtered.isNotEmpty ? filtered.last.status : 'tidak';
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
