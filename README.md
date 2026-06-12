@@ -159,6 +159,187 @@ jadwal.id-giti.com/
 
 ---
 
+## 🎨 UI/UX — Aplikasi Mobile
+
+### Design System
+
+Aplikasi menggunakan **custom design system** berbasis Material Design dengan sentuhan modern:
+
+#### Color Palette
+| Warna | Hex | Penggunaan |
+|-------|-----|------------|
+| 🔵 Brand Blue | `#1E40AF` | Header, gradient utama, elemen primer |
+| 🔵 Brand Cyan | `#0891B2` | Aksen gradient, secondary actions |
+| 🔵 Sky Blue | `#0EA5E9` | Loading indicator, link aktif |
+| 🟢 Teal | `#14B8A6` | Status berhasil, indikator selesai |
+| 🟠 Warm Orange | `#F97316` | Warning, badge urgent, notifikasi |
+| 🟣 Indigo | `#6366F1` | Elemen dekoratif, chart accent |
+| ⬜ Background | `#F4F6F8` | Base background, clean & minimal |
+| ⬛ Text Primary | `#1E293B` | Judul, teks utama |
+| 🔘 Text Secondary | `#64748B` | Subtitle, keterangan |
+
+#### Typography
+- **Font**: `Poppins` — modern, clean, highly readable
+- **Heading**: 18-22px, `FontWeight.w700`
+- **Body**: 13-15px, `FontWeight.w500`
+- **Caption**: 11-12px, `FontWeight.w400`
+
+### Komponen UI Utama
+
+#### 📊 Dashboard
+- **Premium Gradient Header** — gradient 3 warna (`#1E40AF` → `#0369A1` → `#0891B2`) dengan rounded bottom corners
+- **Floating Stats Card** — glassmorphism card dengan overlap effect, menampilkan: Kegiatan, Pendapatan, Bonus, Target
+- **Progress Bar** — animasi progress target bulanan
+- **Motivational Messages** — pesan motivasi harian yang berganti otomatis
+- **Greeting Dynamic** — "Selamat Pagi/Siang/Sore/Malam 🔥" berdasarkan jam
+
+#### 📋 Card Task (Kartu Tugas)
+- **Gradient accent border** — garis kiri dengan warna sesuai status
+- **Status badge** — pill badge dengan warna dinamis:
+  - 🔵 Dijadwalkan — blue gradient
+  - 🟢 Berjalan — teal/green
+  - 🟠 Menunggu Laporan — orange
+  - ⚫ Tidak Selesai — dark gray
+- **Customer info** — nama, alamat, jenis kegiatan
+- **Reorderable** — drag & drop untuk ubah prioritas (handle titik 3)
+- **Smooth animation** — fade & slide transition saat data berubah
+
+#### 🗺️ Maps Integration
+- **Mapbox GL** — peta premium dengan style `streets-v12`
+- **Fallback OSM** — OpenStreetMap sebagai alternatif
+- **GPS tracking** — real-time lokasi teknisi
+- **Route navigation** — buka di Google Maps/Waze
+
+#### 🎓 Onboarding Coach Mark
+- **Tutorial overlay** — 4-step guided tour saat pertama buka
+- **Custom tooltip** — rounded card dengan arrow indicator
+- **Step counter** — "1/4", "2/4", dst
+- **Non-intrusive** — tap anywhere to skip
+
+### Halaman Utama
+
+| Halaman | Deskripsi UI |
+|---------|-------------|
+| **Splash Screen** | Logo Loewix + loading animation |
+| **Login** | Clean form, Poppins font, gradient button |
+| **Dashboard** | Header gradient + floating stats + task list |
+| **Detail Tugas** | Info customer, peta, slide-to-start, timer |
+| **Laporan** | 5 foto slots, text fields, voice recording |
+| **History** | Calendar view + scrollable list |
+| **Statistik** | FL Chart — bar & line charts, tabel |
+| **Profile** | Avatar, info teknisi, ganti password |
+| **Pinjam Barang** | List item + status tracking |
+| **Reimburse** | Form + upload bukti foto |
+
+### Navigasi
+
+```
+┌─────────────────────────────────────────┐
+│              ┌──────────┐               │
+│              │  Drawer  │               │
+│              │  Menu    │               │
+│              │          │               │
+│  ┌───┐       │ • Dashboard              │
+│  │ ≡ │◄──────│ • Tugas Saya             │
+│  └───┘       │ • Riwayat                │
+│              │ • Pinjam Barang           │
+│              │ • Statistik               │
+│              │ • Reimburse               │
+│              │ • Tutorial                │
+│              │ • Profile                 │
+│              │ • Logout                  │
+│              └──────────┘               │
+│                                         │
+│  ┌─────┬─────┬─────┬─────┐             │
+│  │ 🏠  │ 📋  │ 📊  │ 👤  │ Bottom Nav  │
+│  │Home │Task │Stats│Prof │             │
+│  └─────┴─────┴─────┴─────┘             │
+└─────────────────────────────────────────┘
+```
+
+### Special UI Features
+
+- **🔄 Pull-to-Refresh** — BouncingScrollPhysics dengan custom indicator (white on blue)
+- **📱 Slide to Act** — geser untuk mulai tugas (mencegah tap tidak sengaja)
+- **🔔 Dual Notification Channel** — kanal terpisah untuk Tugas Aktif & Laporan
+- **🎞️ Video Player** — preview video tutorial in-app (Chewie player)
+- **📸 Image Picker** — ambil foto dari kamera/galeri dengan kompresi
+- **🎤 Voice Recording** — rekam suara untuk catatan lapangan
+- **✨ Micro-animations** — smooth transitions, fade effects, gradient shifts
+
+---
+
+## 🎨 UI/UX — Web Admin Panel
+
+### Design Framework
+
+Web admin menggunakan **Material Dashboard 3.1** (Soft UI) dengan kustomisasi:
+
+#### Core Framework
+| Teknologi | Versi | Kegunaan |
+|-----------|-------|----------|
+| Bootstrap | 5.3 | Grid system, responsive layout |
+| Material Dashboard | 3.1.0 | Admin template, sidebar, cards |
+| Material Icons Round | - | Ikon navigasi & UI |
+| Font Awesome | 6.5.2 | Extended icon library |
+| Roboto | 400/500/700 | Typography utama |
+
+#### Theme & Styling
+- **Color scheme**: Dark navy sidebar (`#1a1a2e`) + light content area
+- **Card style**: White cards dengan soft shadow, rounded corners
+- **Gradient badges**: Status badge menggunakan `bg-gradient-*` classes
+- **Responsive**: Mobile-first, sidebar auto-hide di ≤991px
+
+### Layout Components
+
+#### 🔲 Sidebar Navigation
+```
+┌──────────────────┐
+│  🔷 Loewix Logo  │
+│──────────────────│
+│  OPERASIONAL     │
+│  📊 Dashboard    │
+│  ➕ Tambah       │
+│  ⏳ Waiting List │
+│──────────────────│
+│  LAPORAN         │
+│  📋 Kegiatan     │
+│  📑 Laporan      │
+│  💰 Pendapatan   │
+│  📈 Progress     │
+│──────────────────│
+│  MANAJEMEN ASET  │
+│  📦 Stok Barang  │
+│  🔄 Peminjaman   │
+│  📚 Tutorial     │
+│──────────────────│
+│  DATA MASTER     │
+│  👷 Teknisi      │
+│  👤 Customer     │
+└──────────────────┘
+```
+
+#### 📱 Mobile Responsive
+- **Bottom Navigation** — fixed bottom bar di mobile (radius 20px top)
+- **Sidebar hidden** — auto-hide di layar < 992px
+- **Samsung Fold support** — khusus breakpoint ≤400px
+- **PWA capable** — installable sebagai web app (manifest.json + service worker)
+
+### Web Admin Special Features
+
+| Fitur | Deskripsi |
+|-------|-----------|
+| **PWA** | Progressive Web App — bisa di-install di homescreen |
+| **Responsive** | Otomatis switch sidebar ↔ bottom nav |
+| **DataTable** | Server-side pagination, search, filter |
+| **Export Excel** | Download laporan dalam format `.xlsx` |
+| **Print View** | Halaman cetak laporan yang optimized |
+| **Map Integration** | Leaflet maps untuk lokasi customer |
+| **Rich Text Editor** | CKEditor 5 untuk konten tutorial |
+| **Chart Dashboard** | Chart.js — donut, bar, line charts |
+
+---
+
 ## 🛠️ Tech Stack
 
 ### Mobile App
@@ -167,33 +348,47 @@ jadwal.id-giti.com/
 | Flutter | 3.6+ | UI Framework |
 | Dart | ^3.6.0 | Programming Language |
 | Provider | 6.1.2 | State Management |
-| Mapbox | - | Maps & Navigation |
-| WorkManager | 0.5.2 | Background Notifications |
-| flutter_local_notifications | 18.0.1 | Push Notifications |
-| fl_chart | 0.64.0 | Charts & Graphs |
-| Geolocator | 10.0.1 | GPS Location |
-| image_picker | 1.0.7 | Camera & Gallery |
-| shared_preferences | 2.2.3 | Local Storage |
+| Mapbox GL | - | Premium Maps & Navigation |
+| WorkManager | 0.5.2 | Background Task Scheduling |
+| flutter_local_notifications | 18.0.1 | Push Notifications (Dual Channel) |
+| fl_chart | 0.64.0 | Charts & Graphs (Bar, Line, Pie) |
+| Geolocator | 10.0.1 | GPS Location Tracking |
+| image_picker | 1.0.7 | Camera & Gallery Access |
+| shared_preferences | 2.2.3 | Local Key-Value Storage |
+| slide_to_act | 2.0.2 | Swipe-to-Start Gesture |
+| table_calendar | 3.1.1 | Calendar Widget |
+| flutter_map | 6.1.0 | OpenStreetMap Fallback |
+| chewie | 1.7.5 | Video Player |
+| flutter_sound | 9.2.13 | Audio Recording |
+| tutorial_coach_mark | 1.2.11 | Onboarding Coach Mark |
+| iconsax | 0.0.8 | Modern Icon Pack |
+| quickalert | 1.1.0 | Alert Dialog |
+| webview_flutter | 4.0.0 | In-App Web Content |
+| intl | 0.19.0 | Indonesian Locale / Date Format |
 
 ### Web Admin
-| Teknologi | Kegunaan |
-|-----------|----------|
-| PHP 8.x | Backend & Server-side rendering |
-| MySQL | Relational Database |
-| Bootstrap + Soft UI | Admin Panel UI Framework |
-| jQuery | DOM Manipulation |
-| Chart.js | Dashboard Charts |
-| Leaflet / Mapbox GL | Maps Integration |
-| PhpSpreadsheet | Excel Export |
+| Teknologi | Versi | Kegunaan |
+|-----------|-------|----------|
+| PHP | 8.x | Backend & SSR |
+| MySQL | 5.7+ | Relational Database |
+| Bootstrap | 5.3 | CSS Framework |
+| Material Dashboard | 3.1.0 | Admin Template (Soft UI) |
+| jQuery | 3.6.0 | DOM Manipulation & AJAX |
+| Chart.js | - | Dashboard Analytics Charts |
+| Font Awesome | 6.5.2 | Extended Icon Library |
+| Roboto (Google Fonts) | - | Typography |
+| CKEditor 5 | - | Rich Text Editor (Tutorial) |
+| Leaflet.js | - | Interactive Maps |
+| PhpSpreadsheet | - | Excel Export (.xlsx) |
 
 ### Infrastructure
 | Layanan | Kegunaan |
 |---------|----------|
-| aaPanel | Server Management |
+| aaPanel | Server Management GUI |
 | Ubuntu 24.04 LTS | Production OS |
 | Apache/Nginx | Web Server |
-| Let's Encrypt | SSL Certificate |
-| GitHub | Version Control |
+| Let's Encrypt | SSL Certificate (Auto-renew) |
+| GitHub | Version Control & CI |
 
 ---
 
