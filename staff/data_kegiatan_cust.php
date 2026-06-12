@@ -51,7 +51,7 @@ if (mysqli_num_rows($resultKC) > 0) {
         // 1. Kumpulkan data untuk array relasiOptions
         $option_text = 'Tidak Diketahui';
         if (!empty($tglRec) && $tglRec !== '0000-00-00 00:00:00') {
-             $option_text = strftime('%d %b %Y', strtotime($tglRec)) . " - " . htmlspecialchars(ucfirst($rowkc['kegiatan']));
+             $option_text = formatTanggal('dd MMM yyyy', $tglRec) . " - " . htmlspecialchars(ucfirst($rowkc['kegiatan']));
         }
        
         $relasi_options_data[] = [
@@ -62,7 +62,7 @@ if (mysqli_num_rows($resultKC) > 0) {
         // 2. Susun string HTML untuk setiap item list
         $tanggal_html = "<h6 class='mb-1 text-dark font-weight-bold text-sm'>Belum Dijadwalkan</h6>";
         if (!empty($tglRec) && $tglRec !== '0000-00-00 00:00:00') {
-            $tanggal_html = "<h6 class='mb-1 text-dark font-weight-bold text-sm'>" . strftime('%d %b %Y', strtotime($tglRec)) . "</h6>" .
+            $tanggal_html = "<h6 class='mb-1 text-dark font-weight-bold text-sm'>" . formatTanggal('dd MMM yyyy', $tglRec) . "</h6>" .
                             "<span class='text-xs'>" . date('H:i', strtotime($tglRec)) . "</span>";
         }
 

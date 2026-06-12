@@ -135,8 +135,7 @@ $role = $jabatan;
     <!-- Navbar -->
     <?php
     include "nav-top.php";
-    setlocale(LC_TIME, 'id_ID'); // Set locale ke Indonesia
-    $todayDate = strftime('%d %B %Y');
+    $todayDate = formatTanggal('dd MMMM yyyy');
     ?>
     <!-- End Navbar -->
     <div class="container-fluid py-4">
@@ -201,8 +200,7 @@ $role = $jabatan;
                 <p class="text-dark">
                     Bulan
                     <?php
-                    setlocale(LC_TIME, 'id_ID');
-                    echo strftime('%B %Y', strtotime($current_date));
+                    echo formatTanggal('MMMM yyyy', $current_date);
                     ?>
                 </p>
             </div>

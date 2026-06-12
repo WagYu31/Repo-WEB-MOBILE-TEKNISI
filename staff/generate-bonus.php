@@ -12,8 +12,7 @@ $sql = "SELECT * FROM teknisi";
 $result = mysqli_query($conn, $sql);
 
 // Format bulan dan tahun
-setlocale(LC_TIME, 'id_ID.utf8');
-$bt = strftime('%B %Y', strtotime($current_date));
+$bt = formatTanggal('MMMM yyyy', $current_date);
 
 $bonus = 0;
 // Ambil bulan dan tahun dari $current_date dan buat tanggalnya jadi 25

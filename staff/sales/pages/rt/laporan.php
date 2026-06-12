@@ -37,7 +37,6 @@ $nama = $rowSesi['nama'];
         <!-- Navbar -->
         <?php
         include "nav-top.php";
-        setlocale(LC_TIME, 'id_ID.utf8');
         $getMonth = date("M Y");
         ?>
         <div class="col-lg-12 mt-4">

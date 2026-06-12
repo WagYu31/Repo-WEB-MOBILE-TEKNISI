@@ -8,8 +8,6 @@ if (!isset($_GET['bulan']) || !isset($_GET['tahun']) || !is_numeric($_GET['bulan
 
 $bulan = (int)$_GET['bulan'];
 $tahun = (int)$_GET['tahun'];
-
-setlocale(LC_TIME, 'id_ID.utf8');
 $daftar_bulan = [
     1 => 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
     'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'

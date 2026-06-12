@@ -73,8 +73,7 @@ if (isset($_GET['id_visits'])) {
     <main class="main-content position-relative border-radius-lg bg-white">
         <?php
         include "../nav-top.php";
-        setlocale(LC_TIME, 'id_ID');
-        $todayDate = strftime('%d %B %Y');
+        $todayDate = formatTanggal('dd MMMM yyyy');
         ?>
         <div class="container-fluid py-4 pt-0">
 

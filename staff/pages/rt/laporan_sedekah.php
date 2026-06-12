@@ -37,7 +37,6 @@ $nama = $rowSesi['nama'];
         <!-- Navbar -->
         <?php
         include "nav-top.php";
-        setlocale(LC_TIME, 'id_ID.utf8');
         $getMonth = date("M Y");
         ?>
         <div class="container-fluid py-4">
@@ -155,7 +154,7 @@ $nama = $rowSesi['nama'];
                                     $nik = $row['nik'];
                                     $namaWarga = $row['nama'];
                                     $noKK = $row['no_kk'];
-                                    $tglBayar = strftime("%d %B %Y", strtotime($row['tgl_bayar']));
+                                    $tglBayar = formatTanggal('dd MMMM yyyy', $row['tgl_bayar']);
 
                                     $namaTagihan = $row['nama_tagihan'];
                                     $totalJumlah = $row['jumlah'];

@@ -1,6 +1,5 @@
 <?php
 session_start();
-setlocale(LC_TIME, 'id_ID');
 date_default_timezone_set('Asia/Jakarta');
 
 if (!isset($_SESSION['id']) || empty($_SESSION['id'])) {

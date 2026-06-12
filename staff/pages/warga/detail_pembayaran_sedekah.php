@@ -49,8 +49,6 @@ $pageNow = "Detail Pembayaran";
                             <ul class="list-group">
                                 <?php
                                 $getKodePembayaran = $_GET['kode_pembayaran'];
-                                setlocale(LC_TIME, 'id_ID.utf8');
-
                                 $query = "SELECT sedekah.*,
                                 data_warga.nik,
                                 data_warga.nama AS nama_warga
@@ -71,7 +69,7 @@ $pageNow = "Detail Pembayaran";
                                     $nik = $row['nik'];
                                     $namaWarga = $row['nama_warga'];
                                     $keterangan = $row['keterangan'];
-                                    $tglBayar = strftime("%d %B %Y", strtotime($row['tgl_sedekah'])); // Format tanggal dalam bahasa Indonesia
+                                    $tglBayar = formatTanggal('dd MMMM yyyy', $row['tgl_sedekah']); // Format tanggal dalam bahasa Indonesia
                                     $buktiPembayaran = $row['bukti_pembayaran'];
                                     $pembayaranVia = $row['id_bank'];
                                     $jumlahSedekah = $row['jumlah'];

@@ -60,7 +60,6 @@
                     </div>
                 </li>
                 <?php
-                setlocale(LC_TIME, 'id_ID.utf8');
                 $groupedData = [];
 
                 if (mysqli_num_rows($result) > 0) {

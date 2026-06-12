@@ -119,8 +119,7 @@ while ($r = mysqli_fetch_assoc($res)) {
 
     <?php
     include "nav-top.php";
-    setlocale(LC_TIME, 'id_ID');
-    $todayDate = strftime('%d %B %Y');
+    $todayDate = formatTanggal('dd MMMM yyyy');
     ?>
 
 <div class="container-fluid py-4">

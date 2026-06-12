@@ -49,8 +49,6 @@ $pageNow = "Detail Pembayaran";
                             <ul class="list-group">
                                 <?php
                                 $getKodePembayaran = $_GET['kode_pembayaran'];
-                                setlocale(LC_TIME, 'id_ID.utf8');
-
                                 $query = "SELECT 
                                     pembayaran.*,
                                     data_warga.nik,
@@ -80,7 +78,7 @@ $pageNow = "Detail Pembayaran";
                                     $kodePembayaran = $row['kode_pembayaran'];
                                     $nik = $row['nik'];
                                     $namaWarga = $row['nama_warga'];
-                                    $tglBayar = strftime("%d %B %Y", strtotime($row['tgl_bayar'])); // Format tanggal dalam bahasa Indonesia
+                                    $tglBayar = formatTanggal('dd MMMM yyyy', $row['tgl_bayar']); // Format tanggal dalam bahasa Indonesia
 
                                     $namaTagihan = $row['nama_tagihan'];
                                     $buktiPembayaran = $row['bukti_pembayaran'];
@@ -196,7 +194,6 @@ $pageNow = "Detail Pembayaran";
                         <div class="card-body p-4 pb-0">
                             <ul class="list-group">
                                 <?php
-                                setlocale(LC_TIME, 'id_ID.utf8');
                                 $query = "SELECT 
                     pembayaran.kode_pembayaran,
                     data_warga.nik,
@@ -222,7 +219,7 @@ $pageNow = "Detail Pembayaran";
                                     $kodePembayaran = $row['kode_pembayaran'];
                                     $nik = $row['nik'];
                                     $namaWarga = $row['nama_warga'];
-                                    $tglBayar = strftime("%d %B %Y", strtotime($row['tgl_bayar'])); // Format tanggal dalam bahasa Indonesia
+                                    $tglBayar = formatTanggal('dd MMMM yyyy', $row['tgl_bayar']); // Format tanggal dalam bahasa Indonesia
 
                                     $namaTagihan = $row['nama_tagihan'];
                                     $totalJumlah = $row['total_jumlah'];

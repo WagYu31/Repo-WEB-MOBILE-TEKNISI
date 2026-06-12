@@ -38,7 +38,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $kodeTran = $rowSql['kode'];
     $nama_customer = $rowSql['nama_customer'];
     $jenis = $rowSql['kegiatan'];
-    $tglRequest = strftime('%d %B %Y Jam %H:%M', strtotime($tgl_request));
+    $tglRequest = formatTanggal('dd MMMM yyyy', $tgl_request) . ' Jam ' . date('H:i', strtotime($tgl_request));
     mysqli_stmt_close($stmt);
 
     foreach ($selectedTechnicians as $teknisiId) {

@@ -4,7 +4,7 @@ $current_date = isset($_GET['cariTgl']) && !empty($_GET['cariTgl']) ? $_GET['car
 $search = isset($_GET['cari']) ? trim($_GET['cari']) : '';
 
 // Set locale for Indonesian date format
-setlocale(LC_TIME, 'id_ID.utf8');
+// Locale handled by formatTanggal() helper
 ?>
 
 <div class="col-lg-12">
@@ -75,7 +75,7 @@ setlocale(LC_TIME, 'id_ID.utf8');
                     <?php while ($row = $result->fetch_assoc()): 
                         $jadwal = $row['jadwal'];
                         $formattedDate = ($jadwal && $jadwal != '0000-00-00 00:00:00') 
-                            ? strftime("%A, %d %B %Y", strtotime($jadwal)) 
+                            ? formatTanggal('EEEE, dd MMMM yyyy', $jadwal) 
                             : '-';
                         $formattedTime = ($jadwal && $jadwal != '0000-00-00 00:00:00') 
                             ? date("H:i", strtotime($jadwal)) 

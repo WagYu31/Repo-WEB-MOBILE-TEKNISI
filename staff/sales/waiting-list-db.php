@@ -69,8 +69,6 @@ $sql = "SELECT k.*, t.nama AS nama_teknisi
                     </div>
                 </li>
                 <?php
-                setlocale(LC_TIME, 'id_ID.utf8');
-
                 if (mysqli_num_rows($result) > 0) {
                     while ($row = mysqli_fetch_assoc($result)) {
                 ?>

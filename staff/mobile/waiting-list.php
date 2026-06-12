@@ -4,7 +4,6 @@ include "../session.php";
 include "../get-user-data.php";
 $pageNow = "Waiting List";
 // Set locale ke bahasa Indonesia untuk format tanggal
-setlocale(LC_TIME, 'id_ID.utf8');
 ?>
 <!DOCTYPE html>
 <html lang="id">

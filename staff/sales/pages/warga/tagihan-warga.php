@@ -271,7 +271,6 @@ $pageNow = "Tagihan";
                                     <h6 class="mb-0">Transaksi Anda</h6>
                                 </div>
                                 <?php
-                                setlocale(LC_TIME, 'id_ID.utf8');
                                 $getToday = date("d M Y");
                                 ?>
                                 <div class="col-md-6 d-flex justify-content-start justify-content-md-end align-items-center">

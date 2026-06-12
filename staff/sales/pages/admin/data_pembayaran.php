@@ -163,17 +163,14 @@ $pageNow = "Data Pembayaran";
                 </div>
                 <?php
                 // Atur locale ke bahasa Indonesia
-                setlocale(LC_TIME, 'id_ID');
-
-                // Dapatkan tanggal saat ini
                 $tanggalSaatIni = date('Y-m-d');
 
                 // Hitung hari pertama dari bulan ini
                 $hariPertamaBulanIni = date('Y-m-01');
 
                 // Format tanggal dengan nama bulan dalam bahasa Indonesia
-                $tanggalSaatIniFormat = strftime('%d %B %Y', strtotime($tanggalSaatIni));
-                $hariPertamaBulanIniFormat = strftime('%d %B %Y', strtotime($hariPertamaBulanIni));
+                $tanggalSaatIniFormat = formatTanggal('dd MMMM yyyy', $tanggalSaatIni);
+                $hariPertamaBulanIniFormat = formatTanggal('dd MMMM yyyy', $hariPertamaBulanIni);
 
                 // Tampilkan rentang tanggal
                 echo '<div class="col-md-6 d-flex justify-content-start justify-content-md-end align-items-center">';
@@ -239,7 +236,7 @@ $pageNow = "Data Pembayaran";
                           }
                           ?>
                         </h6>
-                        <span class="text-xs"><?php echo strftime('%d %B %Y', strtotime($tgl)); ?></span>
+                        <span class="text-xs"><?php echo formatTanggal('dd MMMM yyyy', $tgl); ?></span>
                       </div>
                     </div>
                     <div class="d-flex align-items-center text-<?php echo $outlineColor; ?> text-gradient text-sm font-weight-bold">

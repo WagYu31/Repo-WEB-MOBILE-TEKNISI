@@ -8,11 +8,9 @@ if (!isset($_GET['bulan']) || !isset($_GET['tahun']) || !is_numeric($_GET['bulan
 
 $bulan = (int)$_GET['bulan'];
 $tahun = (int)$_GET['tahun'];
-
-setlocale(LC_TIME, 'id_ID');
     $daftar_bulan = [1 => 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
     $todayDate = date('d') . ' ' . $daftar_bulan[(int)date('m')] . ' ' . date('Y');
-$nama_bulan = strftime('%B', mktime(0, 0, 0, $bulan, 1));
+$nama_bulan = formatTanggal('MMMM', date('Y-m-d', mktime(0, 0, 0, $bulan, 1)));
 $filename = "Laporan Kegiatan - " . $nama_bulan . " " . $tahun . ".xls";
 
 header("Content-Type: application/vnd.ms-excel");

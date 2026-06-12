@@ -2,8 +2,6 @@
 header('Content-Type: application/json');
 include 'conn.php';
 include 'session.php';
-setlocale(LC_TIME, 'id_ID.utf8');
-
 function translateActivityStatus(string $status): string {
     $statusMap = [ 'waiting' => 'Dalam Antrian', 'dijadwalkan' => 'Dijadwalkan', 'berjalan' => 'Dalam Proses', 'selesai' => 'Selesai', 'selesai by admin' => 'Diselesaikan Admin', 'Lanjut Nanti' => 'Berlanjut', 'Lanjutan' => 'Dilanjutkan' ];
     return $statusMap[$status] ?? ucfirst($status);
@@ -93,8 +91,8 @@ if ($resultKC && $resultKC->num_rows > 0) {
         $status_terubah = translateActivityStatus($rowkc['status_terakhir']);
         $namaTeknisi = !empty($rowkc['nama_semua_teknisi']) ? htmlspecialchars($rowkc['nama_semua_teknisi']) : "Belum ada teknisi";
         
-        $tanggal_pertama_formatted = strftime('%d %b %Y', strtotime($rowkc['tanggal_pertama']));
-        $tanggal_terakhir_formatted = strftime('%d %b %Y', strtotime($rowkc['tanggal_terakhir']));
+        $tanggal_pertama_formatted = formatTanggal('dd MMM yyyy', $rowkc['tanggal_pertama']);
+        $tanggal_terakhir_formatted = formatTanggal('dd MMM yyyy', $rowkc['tanggal_terakhir']);
         
         if ($tanggal_pertama_formatted == $tanggal_terakhir_formatted) {
             $tanggal_display = $tanggal_terakhir_formatted;

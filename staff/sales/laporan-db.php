@@ -38,7 +38,7 @@
                 <p class="text-dark ms-4">
                 Bulan 
                 <?php
-                    $bt = strftime('%B %Y', strtotime($current_date));
+                    $bt = formatTanggal('MMMM yyyy', $current_date);
                     echo $bt;
                 ?>
                 </p>
@@ -78,7 +78,6 @@
                     </li>
 
                 <?php
-                setlocale(LC_TIME, 'id_ID.utf8');
                 while ($row = mysqli_fetch_assoc($result)) {
                     $idT = $row['id_teknisi'];
                     $namaT = $row['nama'];

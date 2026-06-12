@@ -68,7 +68,7 @@ if (isset($_POST['idTagihan'])) {
             $nik = $row['nik'];
             $namaWarga = $row['nama'];
             $noKK = $row['no_kk'];
-            $tglBayar = strftime("%d %B %Y", strtotime($row['tgl_bayar']));
+            $tglBayar = formatTanggal('dd MMMM yyyy', $row['tgl_bayar']);
 
             $namaTagihan = $row['nama_tagihan'];
             $totalJumlah = $row['jumlah'];

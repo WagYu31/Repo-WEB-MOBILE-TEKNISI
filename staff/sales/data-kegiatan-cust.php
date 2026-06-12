@@ -37,7 +37,7 @@ if (isset($_GET['customer_id'])) {
             $resultKC = mysqli_query($conn, $sqlKC);
             while ($rowkc = mysqli_fetch_assoc($resultKC)) {
                 $tglRec = $rowkc['tgl_visits'];
-                $tanggal_bulan_indonesia = strftime('%d %B %Y', strtotime($tglRec));
+                $tanggal_bulan_indonesia = formatTanggal('dd MMMM yyyy', $tglRec);
                 $waktu = date('H:i', strtotime($tglRec));
                 $status = $rowkc['status'];
                 $status_terubah = '';

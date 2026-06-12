@@ -23,8 +23,7 @@ $pageNow = "Dashboard";
     <!-- Navbar -->
     <?php
     include "nav-top.php";
-    setlocale(LC_TIME, 'id_ID'); // Set locale ke Indonesia
-    $todayDate = strftime('%d %B %Y');
+    $todayDate = formatTanggal('dd MMMM yyyy');
     ?>
     <!-- End Navbar -->
     <div class="container-fluid py-4">
@@ -311,7 +310,6 @@ $pageNow = "Dashboard";
             <div class="card-body p-4 pb-0">
               <ul class="list-group">
                 <?php
-                setlocale(LC_TIME, 'id_ID.utf8');
                 $query = "SELECT 
                     pembayaran.kode_pembayaran,
                     data_warga.nik,
@@ -342,7 +340,7 @@ $pageNow = "Dashboard";
                   $kodePembayaran = $row['kode_pembayaran'];
                   $nik = $row['nik'];
                   $namaWarga = $row['nama_warga'];
-                  $tglBayar = strftime("%d %B %Y", strtotime($row['tgl_bayar'])); // Format tanggal dalam bahasa Indonesia
+                  $tglBayar = formatTanggal('dd MMMM yyyy', $row['tgl_bayar']); // Format tanggal dalam bahasa Indonesia
 
                   $namaTagihan = $row['nama_tagihan'];
                   $totalJumlah = $row['total_jumlah'];
@@ -426,7 +424,6 @@ $pageNow = "Dashboard";
             <div class="card-body p-4 pb-0">
               <ul class="list-group">
                 <?php
-                setlocale(LC_TIME, 'id_ID.utf8');
                 $query = "SELECT 
                     sedekah.kode_pembayaran,
                     data_warga.nik,
@@ -455,7 +452,7 @@ $pageNow = "Dashboard";
                   $kodePembayaran = $row['kode_pembayaran'];
                   $nik = $row['nik'];
                   $namaWarga = $row['nama_warga'];
-                  $tglBayar = strftime("%d %B %Y", strtotime($row['tgl_bayar'])); // Format tanggal dalam bahasa Indonesia
+                  $tglBayar = formatTanggal('dd MMMM yyyy', $row['tgl_bayar']); // Format tanggal dalam bahasa Indonesia
 
                   $namaTagihan = $row['nama_tagihan'];
                   $totalJumlah = $row['total_jumlah'];

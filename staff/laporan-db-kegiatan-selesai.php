@@ -77,10 +77,10 @@ if (isset($_GET['cariTgl']) && !empty($_GET['cariTgl'])) {
             $formatted_date = date("d - M - Y", strtotime($current_date));
 
             // Mendapatkan nama hari dalam bahasa Indonesia
-            $day_in_indonesian = strftime("%A", strtotime($current_date));
+            $day_in_indonesian = formatTanggal('EEEE', $current_date);
 
             // Mendapatkan nama bulan dalam bahasa Indonesia
-            $month_in_indonesian = strftime("%B", strtotime($current_date));
+            $month_in_indonesian = formatTanggal('MMMM', $current_date);
 
             ?>
             <!--<p class="ms-4 mt-2 text-dark font-weight-bold"><?php echo $day_in_indonesian . ", " . $tanggal . " " . $month_in_indonesian . " " . $tahun; ?></p>-->
@@ -89,7 +89,6 @@ if (isset($_GET['cariTgl']) && !empty($_GET['cariTgl'])) {
 
 
                 <?php
-                setlocale(LC_TIME, 'id_ID.utf8');
                 $groupedData = [];
                 while ($row = mysqli_fetch_assoc($result)) {
                     $idC = $row['id_cust'];

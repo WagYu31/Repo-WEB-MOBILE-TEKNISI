@@ -11,8 +11,7 @@ $pageNow = "Pengeluaran";
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <?php
     include "head.php";
-    setlocale(LC_TIME, 'id_ID'); // Set locale ke Indonesia
-    $todayDate = strftime('%B %Y');
+    $todayDate = formatTanggal('MMMM yyyy');
     ?>
     <style>
         .aktif {
@@ -142,8 +141,7 @@ $pageNow = "Pengeluaran";
                                     $idPengeluaran = $rowPengeluaran['id_pengeluaran'];
                                     $namaPengeluaran = $rowPengeluaran['keterangan'];
                                     $tglPengeluaran = $rowPengeluaran['tgl_pengeluaran'];
-                                    setlocale(LC_TIME, 'id_ID');
-                                    $tanggalFormatted = strftime('%d %b %Y', strtotime($tglPengeluaran));
+                                    $tanggalFormatted = formatTanggal('dd MMM yyyy', $tglPengeluaran);
                                     $jumlahPengeluaran = $rowPengeluaran['jumlah'];
                                     $jumlahPengeluaranRupiah = "Rp " . number_format($jumlahPengeluaran, 0, ',', '.') . ",00";
                                     $counter++;

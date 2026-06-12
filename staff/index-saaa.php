@@ -66,7 +66,6 @@ $currentPage = "Today";
 
     <?php
     include "nav-top.php";
-    setlocale(LC_TIME, 'id_ID');
     $daftar_bulan = [
     1 => 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
     'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'

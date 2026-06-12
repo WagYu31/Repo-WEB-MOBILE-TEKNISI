@@ -44,8 +44,7 @@ $role = $jabatan;
     <main class="main-content position-relative max-height-vh-100 h-100">
         <!-- Navbar -->
         <?php
-        setlocale(LC_TIME, 'id_ID'); // Set locale ke Indonesia
-        $todayDate = strftime('%d %B %Y');
+        $todayDate = formatTanggal('dd MMMM yyyy');
         ?>
         <!-- End Navbar -->
         <div class="container-fluid py-4">

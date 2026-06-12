@@ -60,7 +60,7 @@ if ($resultKC && mysqli_num_rows($resultKC) > 0) {
         $response_data['kegiatanHistory'][] = [
             'status' => translateActivityStatus($rowkc['status']),
             'teknisi' => !empty($rowkc['nama_semua_teknisi']) ? $rowkc['nama_semua_teknisi'] : "Belum ada teknisi",
-            'jadwal_display' => $isJadwalValid ? strftime('%d %b %Y', $jadwal_timestamp) : 'Belum Dijadwalkan',
+            'jadwal_display' => $isJadwalValid ? formatTanggal('dd MMM yyyy', $jadwal_timestamp) : 'Belum Dijadwalkan',
             'waktu_display' => $isJadwalValid ? date('H:i', $jadwal_timestamp) : '',
             'jenis' => ucfirst($rowkc['kegiatan'])
         ];
@@ -68,7 +68,7 @@ if ($resultKC && mysqli_num_rows($resultKC) > 0) {
         // Kumpulkan data untuk dropdown relasi
         $option_text = 'Tidak Diketahui';
         if ($isJadwalValid) {
-             $option_text = strftime('%d %b %Y', $jadwal_timestamp) . " - " . ucfirst($rowkc['kegiatan']) . " (" . $rowkc['kode'] . ")";
+             $option_text = formatTanggal('dd MMM yyyy', $jadwal_timestamp) . " - " . ucfirst($rowkc['kegiatan']) . " (" . $rowkc['kode'] . ")";
         }
         $response_data['relasiOptions'][] = ['kode' => $rowkc['kode'], 'teks' => $option_text];
     }

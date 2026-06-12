@@ -30,8 +30,7 @@ $idt = $rwt['id_teknisi'];
     <!-- Navbar -->
     <?php
     include "../nav-top.php";
-    setlocale(LC_TIME, 'id_ID');
-    $todayDate = strftime('%d %B %Y');
+    $todayDate = formatTanggal('dd MMMM yyyy');
     ?>
     <!-- End Navbar -->
     <div class="container-fluid py-4 pb-6">

@@ -36,8 +36,7 @@ $currentPage = "NotClear";
     <!-- Navbar -->
     <?php
     include "nav-top.php";
-    setlocale(LC_TIME, 'id_ID'); // Set locale ke Indonesia
-    $todayDate = strftime('%d %B %Y');
+    $todayDate = formatTanggal('dd MMMM yyyy');
     ?>
 
     <?php

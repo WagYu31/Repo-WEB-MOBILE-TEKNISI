@@ -81,8 +81,7 @@ $salesData = mysqli_query($conn, "SELECT * FROM sales WHERE deleted_at IS NULL O
 <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg ">
   <?php
     include "nav-top.php";
-    setlocale(LC_TIME, 'id_ID');
-    $todayDate = strftime('%d %B %Y');
+    $todayDate = formatTanggal('dd MMMM yyyy');
   ?>
   <div class="container-fluid py-4">
     <div class="card p-4 mb-4 shadow-sm">

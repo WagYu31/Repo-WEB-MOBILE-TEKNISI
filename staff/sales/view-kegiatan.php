@@ -45,8 +45,7 @@ include "../get-user-data.php"
     <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg ">
         <?php
         include "nav-top.php";
-        setlocale(LC_TIME, 'id_ID');
-        $todayDate = strftime('%d %B %Y');
+        $todayDate = formatTanggal('dd MMMM yyyy');
         ?>
         <div class="container-fluid pe-4 py-4">
             <div class="row">

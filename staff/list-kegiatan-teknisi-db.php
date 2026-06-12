@@ -137,11 +137,10 @@ if (isset($idTeknis) && $idTeknis !== null && $conn) {
                     Detail Kegiatan Periode:
                     <strong class="ms-1">
                     <?php
-                    setlocale(LC_TIME, 'id_ID.utf8');
-                    // Format tanggal agar lebih mudah dibaca
-                    $periode_mulai_formatted = strftime('%d %B %Y', strtotime($start_date));
-                    $periode_selesai_formatted = strftime('%d %B %Y', strtotime($end_date));
+                    $periode_mulai_formatted = formatTanggal('dd MMMM yyyy', $start_date);
+                    $periode_selesai_formatted = formatTanggal('dd MMMM yyyy', $end_date);
                     echo htmlspecialchars($periode_mulai_formatted) . " - " . htmlspecialchars($periode_selesai_formatted);
+
                     ?>
                     </strong>
                 </p>

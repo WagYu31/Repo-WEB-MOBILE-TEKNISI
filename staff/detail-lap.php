@@ -46,7 +46,6 @@ $role = $jabatan;
   <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg">
     <?php
     include "nav-top.php";
-    setlocale(LC_TIME, 'id_ID');
     $daftar_bulan = [1 => 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
     $todayDate = date('d') . ' ' . $daftar_bulan[(int)date('m')] . ' ' . date('Y');
     ?>
