@@ -126,6 +126,94 @@ if (isset($_GET['error'])) {
         .modal-xl { max-width: 80%; }
         @media (max-width: 992px) { .lk-summary { flex-direction: column; } .lk-item { min-width: 300px; } }
         @media (max-width: 767px) { .modal-xl { max-width: 95%; } .lk-item { min-width: 280px; max-width: 320px; } .lk-scroll-nav { display: none; } }
+
+        /* ═══ PREMIUM FILTER BUTTON STYLING ═══ */
+        .btn-filter {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px !important;
+            font-size: 12px !important;
+            font-weight: 700 !important;
+            border-radius: 10px !important;
+            transition: all 0.2s ease-in-out !important;
+            cursor: pointer;
+            border: 2px solid #6366f1 !important;
+            background: #ffffff !important;
+            color: #6366f1 !important;
+            box-shadow: 0 2px 4px rgba(99, 102, 241, 0.08) !important;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+        .btn-filter:hover {
+            background: #6366f1 !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25) !important;
+            transform: translateY(-1px);
+        }
+        .btn-filter i {
+            font-size: 16px !important;
+            vertical-align: middle;
+            transition: transform 0.2s ease-in-out;
+        }
+        .btn-filter:hover i {
+            transform: scale(1.15) rotate(15deg);
+        }
+        .btn-filter.active {
+            background: linear-gradient(135deg, #4f46e5, #6366f1) !important;
+            color: #ffffff !important;
+            border: 2px solid #4f46e5 !important;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3) !important;
+        }
+        .btn-filter.active:hover {
+            background: linear-gradient(135deg, #3730a3, #4f46e5) !important;
+            box-shadow: 0 6px 16px rgba(79, 70, 229, 0.4) !important;
+        }
+        .btn-filter-badge {
+            background: #ffffff !important;
+            color: #6366f1 !important;
+            font-size: 10px !important;
+            font-weight: 800 !important;
+            border-radius: 50% !important;
+            width: 18px !important;
+            height: 18px !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            margin-left: 6px !important;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.15) !important;
+        }
+        .btn-filter.active .btn-filter-badge {
+            color: #4f46e5 !important;
+        }
+        .btn-filter-reset {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 14px !important;
+            font-size: 12px !important;
+            font-weight: 700 !important;
+            border-radius: 10px !important;
+            background: #fef2f2 !important;
+            color: #dc2626 !important;
+            border: 1.5px solid #fecaca !important;
+            text-decoration: none;
+            transition: all 0.2s ease-in-out !important;
+            box-shadow: 0 1px 2px rgba(220, 38, 38, 0.05) !important;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+        .btn-filter-reset:hover {
+            background: #dc2626 !important;
+            color: #ffffff !important;
+            border-color: #dc2626 !important;
+            box-shadow: 0 4px 10px rgba(220, 38, 38, 0.2) !important;
+            transform: translateY(-1px);
+        }
+        .btn-filter-reset i {
+            font-size: 16px !important;
+            vertical-align: middle;
+        }
         <?php include "css/floating-menu2.css"; ?>
     </style>
 </head>
@@ -181,22 +269,24 @@ if (isset($_GET['error'])) {
                                     <span style="font-size:11px;font-weight:700;color:#6366f1;background:#eef2ff;padding:3px 12px;border-radius:20px;margin-left:10px;"><?= $totalItems ?> kegiatan</span>
                                 </div>
                                 <div class="d-flex gap-2 align-items-center">
-                                    <button type="button" class="btn btn-sm mb-0" id="toggleFilterBtn" onclick="toggleFilters()" style="background:#f1f5f9;color:#475569;border:1px solid #e2e8f0;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;">
-                                        <i class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:2px;">filter_list</i> Filter
-                                        <?php 
-                                        $activeFilters = 0;
-                                        if (!empty($_GET['tahun'])) $activeFilters++;
-                                        if (!empty($_GET['bulan'])) $activeFilters++;
-                                        if (!empty($_GET['cari'])) $activeFilters++;
-                                        if (!empty($_GET['jenis'])) $activeFilters++;
-                                        if (!empty($_GET['teknisi'])) $activeFilters++;
-                                        if (!empty($_GET['status_pelaksanaan'])) $activeFilters++;
-                                        if ($activeFilters > 0) echo "<span style='background:#6366f1;color:#fff;border-radius:50%;padding:1px 6px;font-size:10px;margin-left:4px;'>$activeFilters</span>";
-                                        ?>
+                                    <?php 
+                                    $activeFilters = 0;
+                                    if (!empty($_GET['tahun'])) $activeFilters++;
+                                    if (!empty($_GET['bulan'])) $activeFilters++;
+                                    if (!empty($_GET['cari'])) $activeFilters++;
+                                    if (!empty($_GET['jenis'])) $activeFilters++;
+                                    if (!empty($_GET['teknisi'])) $activeFilters++;
+                                    if (!empty($_GET['status_pelaksanaan'])) $activeFilters++;
+                                    ?>
+                                    <button type="button" class="btn btn-sm mb-0 btn-filter <?= $activeFilters > 0 ? 'active' : '' ?>" id="toggleFilterBtn" onclick="toggleFilters()">
+                                        <i class="material-icons">filter_list</i> Filter
+                                        <?php if ($activeFilters > 0): ?>
+                                            <span class="btn-filter-badge"><?= $activeFilters ?></span>
+                                        <?php endif; ?>
                                     </button>
                                     <?php if ($activeFilters > 0): ?>
-                                    <a href="lap-kegiatan.php" class="btn btn-sm mb-0" style="background:#fef2f2;color:#dc2626;border:1px solid #fecaca;border-radius:8px;padding:7px 12px;font-size:11px;font-weight:600;text-decoration:none;">
-                                        <i class="material-icons" style="font-size:13px;vertical-align:middle;">close</i> Reset
+                                    <a href="lap-kegiatan.php" class="btn btn-sm mb-0 btn-filter-reset">
+                                        <i class="material-icons">close</i> Reset
                                     </a>
                                     <?php endif; ?>
                                 </div>
