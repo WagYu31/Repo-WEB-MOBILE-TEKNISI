@@ -75,26 +75,131 @@ if (isset($_GET['error'])) {
                         <div class="card-header p-3 px-4">
                             <div class="d-flex flex-column flex-md-row justify-content-between align-items-center">
                                 <h5 class="mb-3 mb-md-0 text-uppercase font-weight-bold">Laporan Kegiatan</h5>
-                                <form method="GET" action="" class="d-flex gap-2 flex-wrap justify-content-end" style="max-width:600px;width:100%;">
-                                    <select name="tahun" class="search-box" style="width:90px;padding:8px 10px;" onchange="this.form.submit()">
-                                        <option value="">Tahun</option>
-                                        <?php for($y=date('Y'); $y>=2025; $y--): ?>
-                                        <option value="<?=$y?>" <?= ($_GET['tahun'] ?? '')==$y ? 'selected' : '' ?>><?=$y?></option>
-                                        <?php endfor; ?>
-                                    </select>
-                                    <select name="bulan" class="search-box" style="width:110px;padding:8px 10px;" onchange="this.form.submit()">
-                                        <option value="">Bulan</option>
-                                        <?php
-                                        $namaBulan = ['','Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
-                                        for($m=1; $m<=12; $m++): ?>
-                                        <option value="<?=$m?>" <?= ($_GET['bulan'] ?? '')==$m ? 'selected' : '' ?>><?=$namaBulan[$m]?></option>
-                                        <?php endfor; ?>
-                                    </select>
-                                    <input type="text" name="cari" class="search-box flex-grow-1" placeholder="Cari customer / kode..." value="<?= htmlspecialchars($_GET['cari'] ?? '') ?>" style="min-width:150px;">
-                                    <button class="btn btn-search mb-0 text-white" type="submit"><i class="material-icons" style="font-size:16px;vertical-align:middle;">search</i></button>
+                                <div class="d-flex gap-2 align-items-center">
+                                    <button type="button" class="btn btn-sm mb-0" id="toggleFilterBtn" onclick="toggleFilters()" style="background:#f1f5f9;color:#475569;border:1px solid #e2e8f0;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;">
+                                        <i class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:2px;">filter_list</i> Filter
+                                        <?php 
+                                        $activeFilters = 0;
+                                        if (!empty($_GET['tahun'])) $activeFilters++;
+                                        if (!empty($_GET['bulan'])) $activeFilters++;
+                                        if (!empty($_GET['cari'])) $activeFilters++;
+                                        if (!empty($_GET['jenis'])) $activeFilters++;
+                                        if (!empty($_GET['teknisi'])) $activeFilters++;
+                                        if (!empty($_GET['status_pelaksanaan'])) $activeFilters++;
+                                        if ($activeFilters > 0) echo "<span style='background:#3b82f6;color:#fff;border-radius:50%;padding:1px 6px;font-size:10px;margin-left:4px;'>$activeFilters</span>";
+                                        ?>
+                                    </button>
+                                    <?php if ($activeFilters > 0): ?>
+                                    <a href="lap-kegiatan.php" class="btn btn-sm mb-0" style="background:#fef2f2;color:#dc2626;border:1px solid #fecaca;border-radius:8px;padding:7px 12px;font-size:11px;font-weight:600;text-decoration:none;">
+                                        <i class="material-icons" style="font-size:13px;vertical-align:middle;">close</i> Reset
+                                    </a>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+
+                            <!-- Filter Panel (Collapsible) -->
+                            <div id="filterPanel" style="display:<?= $activeFilters > 0 ? 'block' : 'none' ?>;margin-top:16px;padding:16px;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0;">
+                                <form method="GET" action="">
+                                    <div class="row g-2 align-items-end">
+                                        <!-- Row 1: Tahun, Bulan, Jenis Kegiatan -->
+                                        <div class="col-6 col-md-2">
+                                            <label style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;display:block;">Tahun</label>
+                                            <select name="tahun" class="search-box w-100" style="padding:8px 10px;" onchange="this.form.submit()">
+                                                <option value="">Semua</option>
+                                                <?php for($y=date('Y'); $y>=2025; $y--): ?>
+                                                <option value="<?=$y?>" <?= ($_GET['tahun'] ?? '')==$y ? 'selected' : '' ?>><?=$y?></option>
+                                                <?php endfor; ?>
+                                            </select>
+                                        </div>
+                                        <div class="col-6 col-md-2">
+                                            <label style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;display:block;">Bulan</label>
+                                            <select name="bulan" class="search-box w-100" style="padding:8px 10px;" onchange="this.form.submit()">
+                                                <option value="">Semua</option>
+                                                <?php
+                                                $namaBulan = ['','Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+                                                for($m=1; $m<=12; $m++): ?>
+                                                <option value="<?=$m?>" <?= ($_GET['bulan'] ?? '')==$m ? 'selected' : '' ?>><?=$namaBulan[$m]?></option>
+                                                <?php endfor; ?>
+                                            </select>
+                                        </div>
+                                        <div class="col-6 col-md-2">
+                                            <label style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;display:block;">Jenis</label>
+                                            <select name="jenis" class="search-box w-100" style="padding:8px 10px;" onchange="this.form.submit()">
+                                                <option value="">Semua Jenis</option>
+                                                <?php
+                                                $sqlJenis = "SELECT DISTINCT kegiatan FROM kegiatan WHERE deleted_at IS NULL AND kegiatan IS NOT NULL AND kegiatan != '' ORDER BY kegiatan ASC";
+                                                $resJenis = $conn->query($sqlJenis);
+                                                while ($rj = $resJenis->fetch_assoc()):
+                                                ?>
+                                                <option value="<?= htmlspecialchars($rj['kegiatan']) ?>" <?= ($_GET['jenis'] ?? '') == $rj['kegiatan'] ? 'selected' : '' ?>><?= ucwords(htmlspecialchars($rj['kegiatan'])) ?></option>
+                                                <?php endwhile; ?>
+                                            </select>
+                                        </div>
+                                        <div class="col-6 col-md-2">
+                                            <label style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;display:block;">Teknisi</label>
+                                            <select name="teknisi" class="search-box w-100" style="padding:8px 10px;" onchange="this.form.submit()">
+                                                <option value="">Semua Teknisi</option>
+                                                <?php
+                                                $sqlTeknisi = "SELECT id, nama FROM teknisi WHERE deleted_at IS NULL ORDER BY nama ASC";
+                                                $resTeknisi = $conn->query($sqlTeknisi);
+                                                while ($rt = $resTeknisi->fetch_assoc()):
+                                                ?>
+                                                <option value="<?= $rt['id'] ?>" <?= ($_GET['teknisi'] ?? '') == $rt['id'] ? 'selected' : '' ?>><?= htmlspecialchars($rt['nama']) ?></option>
+                                                <?php endwhile; ?>
+                                            </select>
+                                        </div>
+                                        <div class="col-6 col-md-2">
+                                            <label style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;display:block;">Pelaksanaan</label>
+                                            <select name="status_pelaksanaan" class="search-box w-100" style="padding:8px 10px;" onchange="this.form.submit()">
+                                                <option value="">Semua</option>
+                                                <option value="lengkap" <?= ($_GET['status_pelaksanaan'] ?? '') == 'lengkap' ? 'selected' : '' ?>>✅ Lengkap</option>
+                                                <option value="tidak_lengkap" <?= ($_GET['status_pelaksanaan'] ?? '') == 'tidak_lengkap' ? 'selected' : '' ?>>⚠️ Tidak Lengkap</option>
+                                            </select>
+                                        </div>
+                                        <!-- Row 2: Search -->
+                                        <div class="col-12 col-md-2">
+                                            <label style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;display:block;">Cari</label>
+                                            <div class="d-flex gap-1">
+                                                <input type="text" name="cari" class="search-box flex-grow-1" placeholder="Customer / kode..." value="<?= htmlspecialchars($_GET['cari'] ?? '') ?>" style="padding:8px 10px;">
+                                                <button class="btn btn-search mb-0 text-white" type="submit" style="padding:8px 12px;"><i class="material-icons" style="font-size:16px;vertical-align:middle;">search</i></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <?php if ($activeFilters > 0): ?>
+                                    <div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:6px;">
+                                        <?php if (!empty($_GET['tahun'])): ?>
+                                        <span style="font-size:11px;background:#e0e7ff;color:#3730a3;padding:4px 10px;border-radius:20px;font-weight:600;">Tahun: <?= htmlspecialchars($_GET['tahun']) ?></span>
+                                        <?php endif; ?>
+                                        <?php if (!empty($_GET['bulan'])): ?>
+                                        <span style="font-size:11px;background:#e0e7ff;color:#3730a3;padding:4px 10px;border-radius:20px;font-weight:600;">Bulan: <?= $namaBulan[intval($_GET['bulan'])] ?></span>
+                                        <?php endif; ?>
+                                        <?php if (!empty($_GET['jenis'])): ?>
+                                        <span style="font-size:11px;background:#fef3c7;color:#92400e;padding:4px 10px;border-radius:20px;font-weight:600;">Jenis: <?= ucwords(htmlspecialchars($_GET['jenis'])) ?></span>
+                                        <?php endif; ?>
+                                        <?php if (!empty($_GET['teknisi'])): ?>
+                                        <?php 
+                                        $selTeknisi = $conn->query("SELECT nama FROM teknisi WHERE id = " . intval($_GET['teknisi']))->fetch_assoc();
+                                        ?>
+                                        <span style="font-size:11px;background:#d1fae5;color:#065f46;padding:4px 10px;border-radius:20px;font-weight:600;">Teknisi: <?= htmlspecialchars($selTeknisi['nama'] ?? '') ?></span>
+                                        <?php endif; ?>
+                                        <?php if (!empty($_GET['status_pelaksanaan'])): ?>
+                                        <span style="font-size:11px;background:#fce7f3;color:#9d174d;padding:4px 10px;border-radius:20px;font-weight:600;">Pelaksanaan: <?= $_GET['status_pelaksanaan'] == 'lengkap' ? 'Lengkap' : 'Tidak Lengkap' ?></span>
+                                        <?php endif; ?>
+                                        <?php if (!empty($_GET['cari'])): ?>
+                                        <span style="font-size:11px;background:#f1f5f9;color:#475569;padding:4px 10px;border-radius:20px;font-weight:600;">Cari: "<?= htmlspecialchars($_GET['cari']) ?>"</span>
+                                        <?php endif; ?>
+                                    </div>
+                                    <?php endif; ?>
                                 </form>
                             </div>
+                            <script>
+                            function toggleFilters() {
+                                var panel = document.getElementById('filterPanel');
+                                panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+                            }
+                            </script>
                         </div>
+
                         <div class="card-body p-0">
                             <div class="table-responsive">
                                 <table class="table table-hover align-middle mb-0" style="table-layout:fixed;">
@@ -110,6 +215,9 @@ if (isset($_GET['error'])) {
                                         $search = $_GET['cari'] ?? '';
                                         $filterTahun = $_GET['tahun'] ?? '';
                                         $filterBulan = $_GET['bulan'] ?? '';
+                                        $filterJenis = $_GET['jenis'] ?? '';
+                                        $filterTeknisi = $_GET['teknisi'] ?? '';
+                                        $filterPelaksanaan = $_GET['status_pelaksanaan'] ?? '';
                                         
                                         $sql_main = "SELECT k.id, k.kode AS kode_transaksi, k.keterangan, k.catatan_admin, k.kegiatan, k.created_at, k.status AS status_kegiatan, c.id AS id_cust, c.nama AS nama_cust
                                                      FROM kegiatan k
@@ -137,6 +245,37 @@ if (isset($_GET['error'])) {
                                             $bindValues[] = intval($filterBulan);
                                         }
 
+                                        // Filter: Jenis Kegiatan
+                                        if (!empty($filterJenis)) {
+                                            $sql_main .= " AND k.kegiatan = ?";
+                                            $bindTypes .= 's';
+                                            $bindValues[] = $filterJenis;
+                                        }
+
+                                        // Filter: Teknisi
+                                        if (!empty($filterTeknisi)) {
+                                            $sql_main .= " AND EXISTS (SELECT 1 FROM team_kegiatan tk WHERE tk.kegiatan_id = k.id AND tk.teknisi_id = ?)";
+                                            $bindTypes .= 'i';
+                                            $bindValues[] = intval($filterTeknisi);
+                                        }
+
+                                        // Filter: Status Pelaksanaan (lengkap / tidak lengkap)
+                                        if ($filterPelaksanaan === 'lengkap') {
+                                            // Semua pelaksanaan punya waktu_mulai DAN waktu_selesai
+                                            $sql_main .= " AND NOT EXISTS (
+                                                SELECT 1 FROM pelaksanaan_kegiatan px2
+                                                WHERE px2.kode = k.kode AND px2.deleted_at IS NULL
+                                                AND (px2.waktu_mulai IS NULL OR px2.waktu_selesai IS NULL)
+                                            )";
+                                        } elseif ($filterPelaksanaan === 'tidak_lengkap') {
+                                            // Ada pelaksanaan yang waktu_mulai atau waktu_selesai NULL
+                                            $sql_main .= " AND EXISTS (
+                                                SELECT 1 FROM pelaksanaan_kegiatan px2
+                                                WHERE px2.kode = k.kode AND px2.deleted_at IS NULL
+                                                AND (px2.waktu_mulai IS NULL OR px2.waktu_selesai IS NULL)
+                                            )";
+                                        }
+
                                         if (!empty($search)) {
                                             $sql_main .= " AND (c.nama LIKE ? OR k.kode LIKE ? OR k.kegiatan LIKE ? OR k.keterangan LIKE ?)";
                                             $bindTypes .= 'ssss';
@@ -148,6 +287,7 @@ if (isset($_GET['error'])) {
                                         }
 
                                         $sql_main .= " ORDER BY k.created_at DESC";
+
 
                                         $stmt_main = $conn->prepare($sql_main);
 
