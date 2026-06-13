@@ -379,10 +379,10 @@ if (isset($_GET['error'])) {
                                                      LEFT JOIN customer c ON k.customer_id = c.id
                                                      WHERE k.status != 'waiting' AND (k.paid IS NULL OR k.paid = '')
                                                      AND k.deleted_at IS NULL
-                                                     AND EXISTS (
+                                                     AND NOT EXISTS (
                                                          SELECT 1 FROM pelaksanaan_kegiatan px
                                                          WHERE px.kode = k.kode AND px.deleted_at IS NULL
-                                                         AND px.status NOT IN ('Lanjut Nanti', 'Lanjutan', 'berjalan', 'dijadwalkan')
+                                                         AND px.status IN ('Lanjut Nanti', 'Lanjutan', 'berjalan', 'dijadwalkan')
                                                      )";
 
                                         $bindTypes = '';
