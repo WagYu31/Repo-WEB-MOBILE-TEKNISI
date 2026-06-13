@@ -20,8 +20,8 @@ $query = "
             k.jadwal, 
             k.invoice, 
             k.garansi, 
-            k.keterangan_garansi, -- [PERBAIKAN] Tanda '=' yang salah telah dihapus dari sini
-            ROW_NUMBER() OVER(PARTITION BY pk.teknisi_id, DATE(pk.waktu_mulai) ORDER BY pk.waktu_mulai ASC) as rn
+            k.keterangan_garansi,
+            ROW_NUMBER() OVER(PARTITION BY pk.teknisi_id, COALESCE(DATE(pk.waktu_mulai), '1970-01-01') ORDER BY pk.waktu_mulai ASC) as rn
         FROM 
             pelaksanaan_kegiatan pk
         JOIN 
@@ -30,6 +30,7 @@ $query = "
             kegiatan k ON pk.kegiatan_id = k.id
         WHERE 
             pk.kode = ?
+            AND pk.deleted_at IS NULL
     )
     SELECT 
         id, 
@@ -49,15 +50,21 @@ $query = "
         nama_teknisi ASC, waktu_mulai ASC";
 
 $stmt = mysqli_prepare($conn, $query);
-mysqli_stmt_bind_param($stmt, "s", $kode_transaksi);
-mysqli_stmt_execute($stmt);
-$result = mysqli_stmt_get_result($stmt);
+
+if (!$stmt) {
+    echo "<div class='alert alert-danger'>Query Error: " . htmlspecialchars(mysqli_error($conn)) . "</div>";
+} else {
+    mysqli_stmt_bind_param($stmt, "s", $kode_transaksi);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
 
     if (!$result) {
-        die("Query Error: " . mysqli_error($conn));
+        echo "<div class='alert alert-danger'>Query Error: " . htmlspecialchars(mysqli_error($conn)) . "</div>";
     }
 }
+}
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
