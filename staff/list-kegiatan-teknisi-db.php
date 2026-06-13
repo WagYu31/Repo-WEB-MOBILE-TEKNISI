@@ -14,6 +14,14 @@ if (isset($_GET['end_date']) && !empty($_GET['end_date'])) {
     $end_date = $_GET['end_date'];
 }
 
+// Fallback: parse cariBulanTahun if start_date & end_date not explicitly set in $_GET
+if (empty($_GET['start_date']) && empty($_GET['end_date']) && isset($_GET['cariBulanTahun']) && !empty($_GET['cariBulanTahun'])) {
+    $cariBulanTahun = $_GET['cariBulanTahun'];
+    $start_date = date("Y-m-01", strtotime($cariBulanTahun . "-01"));
+    $end_date = date("Y-m-t", strtotime($cariBulanTahun . "-01"));
+}
+
+
 // Logika untuk periode cepat (jika ada tombolnya nanti)
 if (isset($_GET['periode'])) {
     if ($_GET['periode'] == 'last_7_days') {
@@ -86,7 +94,120 @@ if (isset($idTeknis) && $idTeknis !== null && $conn) {
         </div>
         <?php
         $result = null; // Initialize result
+        $totalKegiatan = 0;
+        $target = 0;
+        $totalFee = 0;
+        $totalPendapatan = 0;
+        $totalEarning = 0;
+        $bonus = 0;
+        $achievePct = 0;
+        $achieveClass = 'below';
+        $nik = '';
+        $bt = '';
+
+        if (!function_exists('formatRupiah')) {
+            function formatRupiah($angka) {
+                return 'Rp ' . number_format($angka, 0, ',', '.');
+            }
+        }
+
         if (isset($idTeknis) && $idTeknis !== null && $teknisiInfoFound) {
+            // --- 1. Base query for target & NIK ---
+            $sqlTarget = "SELECT target, nik, nama FROM teknisi WHERE id = '" . mysqli_real_escape_string($conn, $idTeknis) . "' LIMIT 1";
+            $resTarget = mysqli_query($conn, $sqlTarget);
+            $rowTarget = mysqli_fetch_assoc($resTarget);
+            $baseTarget = floatval($rowTarget['target'] ?? 0);
+            $nik = htmlspecialchars($rowTarget['nik'] ?? '');
+
+            // Calculate months in range
+            $ts1 = strtotime($start_date);
+            $ts2 = strtotime($end_date);
+            $year1 = date('Y', $ts1);
+            $year2 = date('Y', $ts2);
+            $month1 = date('m', $ts1);
+            $month2 = date('m', $ts2);
+            $monthCount = (($year2 - $year1) * 12) + ($month2 - $month1) + 1;
+            $target = $baseTarget * $monthCount;
+
+            // --- 2. Calculate Pendapatan ---
+            $months = [];
+            $cur = date('Y-m', $ts1);
+            $curEnd = date('Y-m', $ts2);
+            while ($cur <= $curEnd) {
+                $months[] = $cur;
+                $cur = date('Y-m', strtotime($cur . '-01 +1 month'));
+            }
+            $monthConditions = implode(',', array_map(function($m) { return "'$m'"; }, $months));
+
+            $sqlPend = "SELECT COALESCE(SUM(ROUND(pk.nominal_invoice / (
+                SELECT COUNT(*) FROM pendapatan_kegiatan pk2 
+                WHERE pk2.kode = pk.kode AND DATE_FORMAT(pk2.tanggal, '%Y-%m') IN ($monthConditions) AND pk2.deleted_at IS NULL
+            ))), 0) AS total 
+            FROM pendapatan_kegiatan pk 
+            WHERE pk.teknisi_id = '" . mysqli_real_escape_string($conn, $idTeknis) . "' 
+              AND DATE_FORMAT(pk.tanggal, '%Y-%m') IN ($monthConditions) 
+              AND pk.deleted_at IS NULL";
+            $resPend = mysqli_query($conn, $sqlPend);
+            if ($resPend) {
+                $rowPend = mysqli_fetch_assoc($resPend);
+                $totalPendapatan = floatval($rowPend['total'] ?? 0);
+            }
+
+            // --- 3. Calculate Fee ---
+            $feeKodes = [];
+            $sqlFeeList = "SELECT k.kode FROM kegiatan k 
+                    WHERE k.created_at >= '" . mysqli_real_escape_string($conn, $start_date) . " 00:00:00' 
+                      AND k.created_at <= '" . mysqli_real_escape_string($conn, $end_date) . " 23:59:59'
+                      AND k.paid REGEXP '^[0-9]+$' AND k.deleted_at IS NULL
+                      AND NOT EXISTS (SELECT 1 FROM pendapatan_kegiatan pk WHERE pk.kode = k.kode)
+                    GROUP BY k.kode";
+            $resFeeList = mysqli_query($conn, $sqlFeeList);
+            if ($resFeeList) {
+                while ($r = mysqli_fetch_assoc($resFeeList)) $feeKodes[] = $r['kode'];
+            }
+
+            if (!empty($feeKodes)) {
+                $kodePlaceholders = implode(',', array_map(function($k) use ($conn) { return "'" . mysqli_real_escape_string($conn, $k) . "'"; }, $feeKodes));
+                $sqlFeeShare = "SELECT DISTINCT kode, teknisi_id
+                                FROM pelaksanaan_kegiatan 
+                                WHERE kode IN ($kodePlaceholders) AND waktu_mulai IS NOT NULL";
+                $resFS = mysqli_query($conn, $sqlFeeShare);
+                if ($resFS) {
+                    $kodeTeknisi = [];
+                    while ($r = mysqli_fetch_assoc($resFS)) {
+                        $kodeTeknisi[$r['kode']][$r['teknisi_id']] = true;
+                    }
+                    
+                    foreach ($kodeTeknisi as $kd => $tekIds) {
+                        $jml = count($tekIds);
+                        if ($jml > 0 && isset($tekIds[$idTeknis])) {
+                            $totalFee += 30000 / $jml;
+                        }
+                    }
+                }
+            }
+
+            $totalEarning = $totalPendapatan + $totalFee;
+            $bonus = 0;
+            if ($totalEarning > $target && $target > 0) {
+                $bonus = ($totalEarning - $target) * 0.60;
+            }
+
+            // --- 4. Count kegiatan ---
+            $sqlKeg = "SELECT COUNT(DISTINCT k.kode) AS total FROM team_kegiatan tk JOIN kegiatan k ON tk.kegiatan_id = k.id 
+                       WHERE tk.teknisi_id = '" . mysqli_real_escape_string($conn, $idTeknis) . "' 
+                         AND DATE_FORMAT(k.jadwal, '%Y-%m') IN ($monthConditions) 
+                         AND tk.deleted_at IS NULL";
+            $resKeg = mysqli_query($conn, $sqlKeg);
+            if ($resKeg) {
+                $rowKeg = mysqli_fetch_assoc($resKeg);
+                $totalKegiatan = intval($rowKeg['total'] ?? 0);
+            }
+
+            $achievePct = $target > 0 ? round(($totalEarning / $target) * 100) : 0;
+            $achieveClass = ($totalEarning >= $target && $target > 0) ? 'above' : 'below';
+
+            // Original Query for Kegiatan details
             $sql = "SELECT
                 pk.id AS pelaksanaan_id,
                 pk.waktu_mulai,
@@ -118,8 +239,8 @@ if (isset($idTeknis) && $idTeknis !== null && $conn) {
             WHERE
                 pk.deleted_at IS NULL
                 AND t.id = '" . mysqli_real_escape_string($conn, $idTeknis) . "'
-                AND DATE(pk.waktu_mulai) >= '" . mysqli_real_escape_string($conn, $start_date) . "'  -- MODIFIKASI DI SINI
-                AND DATE(pk.waktu_mulai) <= '" . mysqli_real_escape_string($conn, $end_date) . "'    -- MODIFIKASI DI SINI
+                AND DATE(pk.waktu_mulai) >= '" . mysqli_real_escape_string($conn, $start_date) . "'
+                AND DATE(pk.waktu_mulai) <= '" . mysqli_real_escape_string($conn, $end_date) . "'
                 AND k.deleted_at IS NULL
             ORDER BY
                 pk.waktu_mulai DESC";
@@ -132,6 +253,76 @@ if (isset($idTeknis) && $idTeknis !== null && $conn) {
         }
         ?>
         <div class="card-body pt-2 pb-0 p-0">
+            <!-- Profile Info & KPI Row -->
+            <?php if (isset($idTeknis) && $idTeknis !== null && $teknisiInfoFound): ?>
+                <div class="px-3 pt-2">
+                    <div class="tek-profile-header no-print">
+                        <div class="tek-profile-left">
+                            <div class="tek-avatar">
+                                <i class="fa-solid fa-user-gear"></i>
+                            </div>
+                            <div class="tek-profile-info">
+                                <h4><?= $namaTeknisiUntukJudul; ?></h4>
+                                <p>NIK: <?= $nik; ?> | Periode Analisa Kinerja</p>
+                            </div>
+                        </div>
+                        <div class="tek-profile-right">
+                            <span class="tek-badge-status <?= $achieveClass; ?>">
+                                <?= $achieveClass === 'above' ? '🎯 Target Tercapai' : '⚠️ Perlu Perhatian' ?>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="kpi-row no-print">
+                        <div class="kpi-col">
+                            <div class="kpi-card kpi-blue">
+                                <div class="kpi-icon"><i class="fa-solid fa-briefcase"></i></div>
+                                <div class="kpi-content">
+                                    <span class="kpi-label">Total Kegiatan</span>
+                                    <span class="kpi-value"><?= $totalKegiatan; ?></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="kpi-col">
+                            <div class="kpi-card kpi-orange">
+                                <div class="kpi-icon"><i class="fa-solid fa-money-bill-trend-up"></i></div>
+                                <div class="kpi-content">
+                                    <span class="kpi-label">Total Pendapatan</span>
+                                    <span class="kpi-value"><?= formatRupiah($totalEarning); ?></span>
+                                    <span class="kpi-sub-label" title="Fee: <?= formatRupiah($totalFee); ?> | Invoice: <?= formatRupiah($totalPendapatan); ?>">
+                                        Fee: <?= formatRupiah($totalFee); ?> | Inv: <?= formatRupiah($totalPendapatan); ?>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="kpi-col">
+                            <div class="kpi-card kpi-green">
+                                <div class="kpi-icon"><i class="fa-solid fa-bullseye"></i></div>
+                                <div class="kpi-content">
+                                    <span class="kpi-label">Target Achievement</span>
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <span class="kpi-value"><?= $achievePct; ?>%</span>
+                                        <span style="font-size:10px; font-weight:700; color:#64748b;">Target: <?= formatRupiah($target); ?></span>
+                                    </div>
+                                    <div class="progress mt-1" style="height: 5px; background: #e2e8f0; border-radius: 3px; overflow:hidden;">
+                                        <div class="progress-bar <?= $achieveClass === 'above' ? 'bg-success' : 'bg-warning' ?>" role="progressbar" style="width: <?= min(100, $achievePct); ?>%;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="kpi-col">
+                            <div class="kpi-card kpi-purple">
+                                <div class="kpi-icon"><i class="fa-solid fa-gift"></i></div>
+                                <div class="kpi-content">
+                                    <span class="kpi-label">Total Bonus (60%)</span>
+                                    <span class="kpi-value"><?= formatRupiah($bonus); ?></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <?php endif; ?>
+
             <div class="col-12 px-3 py-2">
                 <p class="text-dark text-sm">
                     Detail Kegiatan Periode:
@@ -140,7 +331,7 @@ if (isset($idTeknis) && $idTeknis !== null && $conn) {
                     $periode_mulai_formatted = formatTanggal('dd MMMM yyyy', $start_date);
                     $periode_selesai_formatted = formatTanggal('dd MMMM yyyy', $end_date);
                     echo htmlspecialchars($periode_mulai_formatted) . " - " . htmlspecialchars($periode_selesai_formatted);
-
+                    $bt = htmlspecialchars($periode_mulai_formatted) . " - " . htmlspecialchars($periode_selesai_formatted);
                     ?>
                     </strong>
                 </p>

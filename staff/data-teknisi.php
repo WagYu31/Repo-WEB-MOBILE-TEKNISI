@@ -557,6 +557,7 @@ $pageNow = "Data Teknisi";
     <script src="assets/js/material-dashboard.min.js?v=3.1.0"></script>
     <script>
         let technicianChart, donutChart, currentTechnicianData = [], prevMonthData = null, compareMode = false, currentPerfFilter = 'all', grandTotalPendapatan = 0, prevGrandTotalPendapatan = 0;
+        let currentDateStart = '', currentDateEnd = '';
         let rangeMonths = 1;
         const bulanNames = ['','Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 
@@ -645,6 +646,9 @@ $pageNow = "Data Teknisi";
                 dateStart = selectedDate;
                 dateEnd = selectedDate;
             }
+
+            currentDateStart = dateStart;
+            currentDateEnd = dateEnd;
 
             // Update period badge
             if (rangeMonths > 1) {
@@ -822,6 +826,11 @@ $pageNow = "Data Teknisi";
 
             if (filtered.length === 0) { tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:60px; color:#94a3b8;"><i class="fa-solid fa-user-slash" style="font-size:32px; display:block; margin-bottom:8px;"></i>Tidak ada data untuk filter ini.</td></tr>'; return; }
             let totalPendapatan = 0, totalBonus = 0, totalFee = 0;
+            const [eY, eM] = currentDateEnd.split('-').map(Number);
+            const lastDay = new Date(eY, eM, 0).getDate();
+            const start_date = `${currentDateStart}-01`;
+            const end_date = `${currentDateEnd}-${String(lastDay).padStart(2,'0')}`;
+
             filtered.forEach(row => {
                 totalPendapatan += parseFloat(row.total_pendapatan);
                 totalBonus += parseFloat(row.bonus);
@@ -833,7 +842,7 @@ $pageNow = "Data Teknisi";
                 const barW = Math.min(100, achievePct);
                 tableBody.innerHTML += `<tr>
                     <td style="padding-left:24px;">
-                        <a class="tek-name-link" href="list-kegiatan-teknisi.php?cariBulanTahun=${document.getElementById('filterMonth').value}&idTek=${row.id}">${row.nama}</a>
+                        <a class="tek-name-link" href="list-kegiatan-teknisi.php?start_date=${start_date}&end_date=${end_date}&idTek=${row.id}">${row.nama}</a>
                         <div class="tek-nik">NIK: ${row.nik}</div>
                     </td>
                     <td style="text-align:center;"><span class="tek-val v-count">${row.jumlah_kegiatan}</span></td>
