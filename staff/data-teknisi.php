@@ -527,7 +527,7 @@ $pageNow = "Data Teknisi";
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="assets/js/material-dashboard.min.js?v=3.1.0"></script>
     <script>
-        let technicianChart, donutChart, currentTechnicianData = [], prevMonthData = null, compareMode = false, currentPerfFilter = 'all';
+        let technicianChart, donutChart, currentTechnicianData = [], prevMonthData = null, compareMode = false, currentPerfFilter = 'all', grandTotalPendapatan = 0, prevGrandTotalPendapatan = 0;
         const formatRupiah = angka => 'Rp ' + (angka ? parseInt(angka).toLocaleString('id-ID') : '0');
         const shortRupiah = angka => {
             if (!angka) return 'Rp 0';
@@ -595,6 +595,8 @@ $pageNow = "Data Teknisi";
                 const data = await response.json();
                 prevMonthData = prevResponse ? await prevResponse.json() : null;
                 currentTechnicianData = data.tableData;
+                grandTotalPendapatan = data.grandTotalPendapatan || 0;
+                prevGrandTotalPendapatan = prevMonthData?.grandTotalPendapatan || 0;
                 updateStats(data.tableData, prevMonthData?.tableData);
                 updateTable(data.tableData);
                 updateChart(data.chartData);
@@ -624,22 +626,20 @@ $pageNow = "Data Teknisi";
 
         function updateStats(data, prevData) {
             const totalTeknisi = data.length;
-            const totalPendapatan = data.reduce((s, r) => s + parseFloat(r.total_pendapatan), 0);
             const totalBonus = data.reduce((s, r) => s + parseFloat(r.bonus), 0);
             let achieveCount = 0;
             data.forEach(r => { if (parseFloat(r.target) > 0 && (parseFloat(r.total_pendapatan) + parseFloat(r.total_fee)) >= parseFloat(r.target)) achieveCount++; });
             const achieveRate = totalTeknisi > 0 ? Math.round((achieveCount / totalTeknisi) * 100) : 0;
 
             document.getElementById('statTeknisi').textContent = totalTeknisi;
-            document.getElementById('statPendapatan').textContent = shortRupiah(totalPendapatan);
+            document.getElementById('statPendapatan').textContent = shortRupiah(grandTotalPendapatan);
             document.getElementById('statBonus').textContent = shortRupiah(totalBonus);
             document.getElementById('statAchieve').textContent = achieveRate + '%';
 
             // Compare diff
             if (prevData) {
-                const prevPendapatan = prevData.reduce((s, r) => s + parseFloat(r.total_pendapatan), 0);
                 const prevBonus = prevData.reduce((s, r) => s + parseFloat(r.bonus), 0);
-                const diffP = totalPendapatan - prevPendapatan;
+                const diffP = grandTotalPendapatan - prevGrandTotalPendapatan;
                 const diffB = totalBonus - prevBonus;
                 document.getElementById('statPendapatanDiff').innerHTML = diffP >= 0
                     ? `<i class="fa-solid fa-arrow-up" style="font-size:9px;"></i> +${shortRupiah(diffP)} vs bulan lalu`
@@ -775,10 +775,12 @@ $pageNow = "Data Teknisi";
                     </td>
                 </tr>`;
             });
+            // Use grandTotalPendapatan for footer when showing all data, else sum filtered
+            const footerPendapatan = (currentPerfFilter === 'all') ? grandTotalPendapatan : totalPendapatan;
             tableFooter.innerHTML = `<tr>
                 <td style="text-align:right; padding-left:24px; font-weight:800;">Total</td><td></td><td></td>
                 <td style="text-align:center;"><span class="tek-val v-fee">${formatRupiah(totalFee)}</span></td>
-                <td style="text-align:center;"><span class="tek-val v-pendapatan">${formatRupiah(totalPendapatan)}</span></td>
+                <td style="text-align:center;"><span class="tek-val v-pendapatan">${formatRupiah(footerPendapatan)}</span></td>
                 <td style="text-align:center;"><span class="tek-val v-bonus">${formatRupiah(totalBonus)}</span></td>
                 <td></td><td class="no-print"></td>
             </tr>`;

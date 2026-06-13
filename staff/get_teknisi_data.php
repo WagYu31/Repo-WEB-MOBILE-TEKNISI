@@ -102,5 +102,24 @@ usort($tableData, function($a, $b) {
     return $totalB <=> $totalA;
 });
 
-echo json_encode(['tableData' => $tableData, 'chartData' => $chartData]);
+// ═══ GRAND TOTAL PENDAPATAN: Match Detail Invoice exactly ═══
+$sqlGrandPend = "SELECT COALESCE(SUM(sub.nominal), 0) as total FROM (
+    SELECT nominal_invoice as nominal
+    FROM pendapatan_kegiatan
+    WHERE DATE_FORMAT(tanggal, '%Y-%m') = ? AND deleted_at IS NULL
+    GROUP BY kode
+) sub";
+$stmtGP = $conn->prepare($sqlGrandPend);
+$stmtGP->bind_param('s', $date);
+$stmtGP->execute();
+$resGP = $stmtGP->get_result();
+$rowGP = $resGP->fetch_assoc();
+$grandTotalPendapatan = floatval($rowGP['total'] ?? 0);
+$stmtGP->close();
+
+echo json_encode([
+    'tableData' => $tableData,
+    'chartData' => $chartData,
+    'grandTotalPendapatan' => $grandTotalPendapatan
+]);
 ?>
