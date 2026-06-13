@@ -31,7 +31,14 @@ $sql_main = "SELECT
             LEFT JOIN team_kegiatan t ON k.id = t.kegiatan_id
             WHERE k.status != 'waiting' 
               AND k.deleted_at IS NULL 
-              AND (p.kode IS NULL OR k.paid = 'n/a')";
+              AND (
+                  p.kode IS NULL 
+                  OR (k.paid = 'n/a' AND NOT EXISTS (
+                      SELECT 1 FROM pelaksanaan_kegiatan px 
+                      WHERE px.kode = k.kode AND px.deleted_at IS NULL 
+                      AND px.waktu_mulai IS NOT NULL AND px.waktu_selesai IS NOT NULL
+                  ))
+              )";
 
 $params = [];
 $types = '';
@@ -69,7 +76,14 @@ FROM kegiatan k
 LEFT JOIN pelaksanaan_kegiatan p ON k.kode = p.kode
 WHERE k.status != 'waiting' 
   AND k.deleted_at IS NULL 
-  AND (p.kode IS NULL OR k.paid = 'n/a')
+  AND (
+      p.kode IS NULL 
+      OR (k.paid = 'n/a' AND NOT EXISTS (
+          SELECT 1 FROM pelaksanaan_kegiatan px 
+          WHERE px.kode = k.kode AND px.deleted_at IS NULL 
+          AND px.waktu_mulai IS NOT NULL AND px.waktu_selesai IS NOT NULL
+      ))
+  )
   AND k.created_at >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
 GROUP BY period
 ORDER BY period ASC";
@@ -89,7 +103,15 @@ $sql_top = "SELECT t.nama_teknisi, COUNT(DISTINCT k.kode) AS total
 FROM kegiatan k
 LEFT JOIN pelaksanaan_kegiatan p ON k.kode = p.kode
 LEFT JOIN team_kegiatan t ON k.id = t.kegiatan_id
-WHERE k.status != 'waiting' AND k.deleted_at IS NULL AND (p.kode IS NULL OR k.paid = 'n/a')
+WHERE k.status != 'waiting' AND k.deleted_at IS NULL 
+AND (
+    p.kode IS NULL 
+    OR (k.paid = 'n/a' AND NOT EXISTS (
+        SELECT 1 FROM pelaksanaan_kegiatan px 
+        WHERE px.kode = k.kode AND px.deleted_at IS NULL 
+        AND px.waktu_mulai IS NOT NULL AND px.waktu_selesai IS NOT NULL
+    ))
+)
 AND t.nama_teknisi IS NOT NULL
 GROUP BY t.nama_teknisi ORDER BY total DESC LIMIT 5";
 $res_top = $conn->query($sql_top);
