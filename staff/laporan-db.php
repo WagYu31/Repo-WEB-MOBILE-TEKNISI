@@ -151,6 +151,22 @@
     $grand_total_pendapatan = 0;
     $grand_total_bonus = 0;
 
+    // ═══ GRAND TOTAL PENDAPATAN: Match Detail Invoice exactly ═══
+    // Sum nominal_invoice per unique kode (same as detail-laporan-db.php)
+    $sqlGrandPend = "SELECT SUM(sub.nominal) as total FROM (
+        SELECT nominal_invoice as nominal
+        FROM pendapatan_kegiatan
+        WHERE DATE_FORMAT(tanggal, '%Y-%m') = ? AND deleted_at IS NULL
+        GROUP BY kode
+    ) sub";
+    $stmtGP = $conn->prepare($sqlGrandPend);
+    $stmtGP->bind_param('s', $ym);
+    $stmtGP->execute();
+    $resGP = $stmtGP->get_result();
+    $rowGP = $resGP->fetch_assoc();
+    $grand_total_pendapatan = $rowGP['total'] ?? 0;
+    $stmtGP->close();
+
     // Pre-calculate all rows
     $tableRows = [];
     foreach ($teknisiList as $idT => $namaT) {
@@ -163,7 +179,6 @@
         $total = $fee + $pend + $bon;
 
         $grand_total_fee += $fee;
-        $grand_total_pendapatan += $pend;
         $grand_total_bonus += $bon;
 
         $tableRows[] = compact('idT', 'namaT', 'keg', 'sel', 'inv', 'fee', 'pend', 'bon', 'total');
