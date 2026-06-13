@@ -1,67 +1,30 @@
 <?php
 include "conn.php";
 
-// Inisialisasi variabel agar tidak error jika tidak ada POST
 $kode_transaksi = '';
 $result = null;
 
 if (isset($_POST['kode_transaksi'])) {
     $kode_transaksi = $_POST['kode_transaksi'];
 
-    // [PENTING] Menggunakan Prepared Statements untuk mencegah SQL Injection
-$query = "
-    WITH RankedKegiatan AS (
-        SELECT 
-            pk.id, 
-            t.nama AS nama_teknisi, 
-            pk.waktu_mulai, 
-            pk.waktu_selesai, 
-            k.kegiatan, 
-            k.jadwal, 
-            k.invoice, 
-            k.garansi, 
-            k.keterangan_garansi,
-            ROW_NUMBER() OVER(PARTITION BY pk.teknisi_id, COALESCE(DATE(pk.waktu_mulai), '1970-01-01') ORDER BY pk.waktu_mulai ASC) as rn
-        FROM 
-            pelaksanaan_kegiatan pk
-        JOIN 
-            teknisi t ON pk.teknisi_id = t.id
-        JOIN 
-            kegiatan k ON pk.kegiatan_id = k.id
-        WHERE 
-            pk.kode = ?
-            AND pk.deleted_at IS NULL
-    )
-    SELECT 
-        id, 
-        nama_teknisi, 
-        waktu_mulai, 
-        waktu_selesai, 
-        kegiatan, 
-        jadwal, 
-        invoice, 
-        garansi, 
-        keterangan_garansi
-    FROM 
-        RankedKegiatan
-    WHERE 
-        rn = 1
-    ORDER BY 
-        nama_teknisi ASC, waktu_mulai ASC";
+    $query = "SELECT pk.id, t.nama AS nama_teknisi, pk.waktu_mulai, pk.waktu_selesai,
+                     k.kegiatan, k.jadwal, k.invoice, k.garansi, k.keterangan_garansi
+              FROM pelaksanaan_kegiatan pk
+              JOIN teknisi t ON pk.teknisi_id = t.id
+              JOIN kegiatan k ON pk.kegiatan_id = k.id
+              WHERE pk.kode = ? AND pk.deleted_at IS NULL
+              GROUP BY pk.teknisi_id, COALESCE(DATE(pk.waktu_mulai), '1970-01-01')
+              ORDER BY t.nama ASC, pk.waktu_mulai ASC";
 
-$stmt = mysqli_prepare($conn, $query);
+    $stmt = mysqli_prepare($conn, $query);
 
-if (!$stmt) {
-    echo "<div class='alert alert-danger'>Query Error: " . htmlspecialchars(mysqli_error($conn)) . "</div>";
-} else {
-    mysqli_stmt_bind_param($stmt, "s", $kode_transaksi);
-    mysqli_stmt_execute($stmt);
-    $result = mysqli_stmt_get_result($stmt);
-
-    if (!$result) {
-        echo "<div class='alert alert-danger'>Query Error: " . htmlspecialchars(mysqli_error($conn)) . "</div>";
+    if (!$stmt) {
+        echo "<div class='alert alert-danger'>Error: " . htmlspecialchars(mysqli_error($conn)) . "</div>";
+    } else {
+        mysqli_stmt_bind_param($stmt, "s", $kode_transaksi);
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
     }
-}
 }
 ?>
 
