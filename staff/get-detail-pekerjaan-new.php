@@ -1,4 +1,6 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 include "conn.php";
 
 $kode_transaksi = '';
@@ -13,17 +15,22 @@ if (isset($_POST['kode_transaksi'])) {
               JOIN teknisi t ON pk.teknisi_id = t.id
               JOIN kegiatan k ON pk.kegiatan_id = k.id
               WHERE pk.kode = ? AND pk.deleted_at IS NULL
-              GROUP BY pk.teknisi_id, COALESCE(DATE(pk.waktu_mulai), '1970-01-01')
               ORDER BY t.nama ASC, pk.waktu_mulai ASC";
 
     $stmt = mysqli_prepare($conn, $query);
 
     if (!$stmt) {
-        echo "<div class='alert alert-danger'>Error: " . htmlspecialchars(mysqli_error($conn)) . "</div>";
+        echo "<div class='alert alert-danger'>Prepare Error: " . htmlspecialchars(mysqli_error($conn)) . "</div>";
     } else {
         mysqli_stmt_bind_param($stmt, "s", $kode_transaksi);
-        mysqli_stmt_execute($stmt);
+        $exec = mysqli_stmt_execute($stmt);
+        if (!$exec) {
+            echo "<div class='alert alert-danger'>Execute Error: " . htmlspecialchars(mysqli_stmt_error($stmt)) . "</div>";
+        }
         $result = mysqli_stmt_get_result($stmt);
+        if ($result === false) {
+            echo "<div class='alert alert-danger'>Result Error: " . htmlspecialchars(mysqli_stmt_error($stmt)) . "</div>";
+        }
     }
 }
 ?>

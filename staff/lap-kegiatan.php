@@ -724,9 +724,14 @@ endif; // Akhir dari blok if ($show_modal)
 
     <?php include "js-include.php"; ?>
     <script>
-    $(document).ready(function() {
+    window.addEventListener('load', function() {
+        if (typeof jQuery === 'undefined') {
+            console.error('jQuery not loaded!');
+            return;
+        }
+
         // Invoice detail modal
-        $('.detailBtn').click(function() {
+        $(document).on('click', '.detailBtn', function() {
             var kode_transaksi = $(this).data('kode');
             var modalBody = $('#dataDetailTek');
             
@@ -736,18 +741,22 @@ endif; // Akhir dari blok if ($show_modal)
                 url: 'get-detail-pekerjaan-new.php',
                 type: 'POST',
                 data: { kode_transaksi: kode_transaksi },
+                timeout: 15000,
                 success: function(response) {
                     modalBody.html(response);
                 },
                 error: function(xhr, status, error) {
-                    modalBody.html('<div class="alert alert-danger text-white">Gagal memuat detail pekerjaan. Silakan coba lagi.</div>');
-                    console.error("AJAX Error: " + status + " - " + error);
+                    var msg = 'Gagal memuat detail pekerjaan.';
+                    if (status === 'timeout') msg = 'Request timeout - coba lagi.';
+                    else if (xhr.responseText) msg += '<br><small>' + xhr.responseText.substring(0, 200) + '</small>';
+                    modalBody.html('<div class="alert alert-danger">' + msg + '</div>');
+                    console.error("AJAX Error:", status, error, xhr.responseText);
                 }
             });
         });
 
         // Catatan modal
-        $('.catatanBtn').click(function() {
+        $(document).on('click', '.catatanBtn', function() {
             var kode = $(this).data('kode');
             var catatan = $(this).data('catatan');
             $('#catatan_kode').val(kode);
