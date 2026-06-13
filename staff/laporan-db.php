@@ -13,9 +13,11 @@
 
     // ═══ BATCH QUERY 1: All teknisi ═══
     $teknisiList = [];
-    $res_tek = mysqli_query($conn, "SELECT id, nama FROM teknisi WHERE deleted_at IS NULL ORDER BY nama ASC");
+    $teknisiTargets = [];
+    $res_tek = mysqli_query($conn, "SELECT id, nama, target FROM teknisi WHERE deleted_at IS NULL ORDER BY nama ASC");
     while ($r = mysqli_fetch_assoc($res_tek)) {
         $teknisiList[$r['id']] = $r['nama'];
+        $teknisiTargets[$r['id']] = floatval($r['target'] ?? 0);
     }
     $allTekIds = array_keys($teknisiList);
 
@@ -85,22 +87,9 @@
         }
         $stmt->close();
 
-        // Reset params for subsequent queries (QUERY 5 etc.)
+        // Reset params for subsequent queries
         $paramTypes = $types . 's';
         $paramVals = array_merge($allTekIds, [$ym]);
-
-        // ═══ BATCH QUERY 5: Bonus fix per teknisi ═══
-        $bonusSum = [];
-        $sql = "SELECT teknisi_id, SUM(bonus) as total 
-                FROM pendapatan_fix 
-                WHERE teknisi_id IN ($placeholders) AND DATE_FORMAT(tanggal, '%Y-%m') = ? AND deleted_at IS NULL
-                GROUP BY teknisi_id";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param($paramTypes, ...$paramVals);
-        $stmt->execute();
-        $res = $stmt->get_result();
-        while ($r = $res->fetch_assoc()) $bonusSum[$r['teknisi_id']] = $r['total'];
-        $stmt->close();
 
         // ═══ BATCH QUERY 6: Fee 30k calculation (2 queries instead of N*M) ═══
         // Step 1: Get all eligible kode for this month
@@ -167,7 +156,7 @@
     $grand_total_pendapatan = $rowGP['total'] ?? 0;
     $stmtGP->close();
 
-    // Pre-calculate all rows
+    // Pre-calculate all rows (bonus = dynamic, same as Daftar Teknisi)
     $tableRows = [];
     foreach ($teknisiList as $idT => $namaT) {
         $keg = $kegiatanCount[$idT] ?? 0;
@@ -175,7 +164,9 @@
         $inv = $invCount[$idT] ?? 0;
         $fee = $feeMap[$idT] ?? 0;
         $pend = $pendapatanSum[$idT] ?? 0;
-        $bon = $bonusSum[$idT] ?? 0;
+        $target = $teknisiTargets[$idT] ?? 0;
+        $totalEarning = $fee + $pend;
+        $bon = ($target > 0 && $totalEarning > $target) ? ($totalEarning - $target) * 0.60 : 0;
         $total = $fee + $pend + $bon;
 
         $grand_total_fee += $fee;
