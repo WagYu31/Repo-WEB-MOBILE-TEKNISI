@@ -28,31 +28,157 @@ if (isset($_GET['error'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <?php include "head.php"; ?>
     <style>
-        .table th, .table td { vertical-align: middle !important; }
-        .table .customer-info h6 { font-size: 0.9rem; color: #1e293b; }
-        .card { border: 1px solid #e2e8f0; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
-        .card-header { background: #fff; border-bottom: 1px solid #f1f5f9; border-radius: 10px 10px 0 0 !important; }
-        .card-header h5 { font-size: 0.95rem; color: #1e293b; letter-spacing: 0.02em; }
-        thead th { background: #f8fafc !important; color: #64748b !important; font-size: 10.5px !important; letter-spacing: 0.06em; padding: 10px 16px !important; border-bottom: 2px solid #e2e8f0 !important; }
-        tbody tr { transition: background 0.15s; border-bottom: 1px solid #f1f5f9 !important; }
-        tbody tr:hover { background: #f8fafc !important; }
-        .technician-item { border-bottom: 1px solid #f1f5f9; padding: 8px 0; }
-        .technician-item:last-child { border-bottom: none; }
-        .search-box { border-radius: 8px; border: 1px solid #e2e8f0; padding: 10px 14px; font-size: 13px; transition: border-color 0.2s, box-shadow 0.2s; background: #fff; }
-        .search-box:focus { border-color: #94a3b8; box-shadow: 0 0 0 3px rgba(148,163,184,0.1); outline: none; }
-        .btn-search { background: #1e293b; border: none; border-radius: 8px; padding: 10px 16px; }
+        /* ═══ PREMIUM LAP KEGIATAN REDESIGN ═══ */
+        
+        /* Card Container */
+        .lk-card {
+            background: #fff; border: 1px solid #e5e7eb; border-radius: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 6px 24px rgba(0,0,0,0.03);
+            overflow: hidden;
+        }
+        .lk-card-header {
+            padding: 20px 24px; border-bottom: 1px solid #f1f5f9;
+            background: #fff;
+        }
+        
+        /* Summary Bar */
+        .lk-summary {
+            display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;
+        }
+        .lk-summary-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 14px 18px; border-radius: 12px; flex: 1; min-width: 160px;
+            border: 1px solid #e5e7eb; background: #fff;
+        }
+        .lk-summary-icon {
+            width: 38px; height: 38px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .lk-summary-icon.si-total { background: linear-gradient(135deg, #6366f1, #818cf8); }
+        .lk-summary-icon.si-today { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
+        .lk-summary-icon i { color: #fff; font-size: 16px; }
+        .lk-summary-num { font-size: 22px; font-weight: 800; color: #1e293b; line-height: 1; }
+        .lk-summary-label { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.04em; margin-top: 2px; }
+
+        /* Filter Toggle */
+        .search-box { border-radius: 8px; border: 1px solid #e2e8f0; padding: 8px 12px; font-size: 13px; transition: border-color 0.2s, box-shadow 0.2s; background: #fff; }
+        .search-box:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); outline: none; }
+        .btn-search { background: #1e293b; border: none; border-radius: 8px; padding: 8px 14px; }
         .btn-search:hover { background: #334155; }
-        .btn-aksi { font-size: 11px; padding: 5px 12px; border-radius: 6px; font-weight: 600; border: 1px solid transparent; transition: all 0.2s; cursor: pointer; text-decoration: none; display: inline-block; }
-        .btn-input-inv { background: #f0fdf4; color: #16a34a; border-color: #bbf7d0; }
-        .btn-input-inv:hover { background: #16a34a; color: #fff; border-color: #16a34a; }
-        .btn-no-inv { background: #fef3c7; color: #d97706; border-color: #fde68a; }
-        .btn-no-inv:hover { background: #d97706; color: #fff; border-color: #d97706; }
-        .btn-tidak-valid { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
-        .btn-tidak-valid:hover { background: #dc2626; color: #fff; border-color: #dc2626; }
-        .btn-catatan { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; }
-        .btn-catatan:hover { background: #2563eb; color: #fff; border-color: #2563eb; }
+        
+        /* Table */
+        .lk-table-wrap { overflow-x: auto; }
+        .lk-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+        .lk-table thead th {
+            background: #f8fafc; border-bottom: 2px solid #e5e7eb;
+            padding: 12px 20px; font-size: 10px; font-weight: 800; color: #94a3b8;
+            text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap;
+            position: sticky; top: 0; z-index: 2;
+        }
+        .lk-table tbody tr { transition: all 0.15s; border-bottom: 1px solid #f1f5f9; }
+        .lk-table tbody tr:hover { background: #fafbfc; }
+        .lk-table tbody td { padding: 16px 20px; vertical-align: top; border-bottom: 1px solid #f1f5f9; }
+        
+        /* Customer Info */
+        .lk-cust-badges { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; flex-wrap: wrap; }
+        .lk-badge-jenis {
+            font-size: 9px; padding: 3px 10px; border-radius: 20px; font-weight: 800;
+            letter-spacing: 0.05em; text-transform: uppercase;
+        }
+        .lk-badge-jenis.jenis-survey { background: #fef3c7; color: #92400e; }
+        .lk-badge-jenis.jenis-service { background: #e0e7ff; color: #3730a3; }
+        .lk-badge-jenis.jenis-pasang { background: #d1fae5; color: #065f46; }
+        .lk-badge-jenis.jenis-default { background: #f1f5f9; color: #475569; }
+        .lk-badge-kode {
+            font-size: 10px; color: #818cf8; font-family: 'SF Mono', 'Consolas', monospace;
+            font-weight: 700; background: #eef2ff; padding: 2px 8px; border-radius: 4px;
+        }
+        .lk-cust-name {
+            font-size: 15px; font-weight: 700; color: #1e293b; text-decoration: none;
+            display: inline-block; margin-bottom: 4px; transition: color 0.15s;
+        }
+        .lk-cust-name:hover { color: #6366f1; }
+        .lk-cust-desc { font-size: 12px; color: #94a3b8; font-style: italic; margin-bottom: 3px; }
+        .lk-cust-date { font-size: 11px; color: #cbd5e1; display: flex; align-items: center; gap: 4px; }
+        
+        /* Technician Timeline */
+        .lk-tek-list { display: flex; flex-direction: column; gap: 0; }
+        .lk-tek-item {
+            display: flex; align-items: center; justify-content: space-between; gap: 12px;
+            padding: 8px 12px; border-radius: 8px; transition: background 0.15s;
+            position: relative;
+        }
+        .lk-tek-item:hover { background: #f8fafc; }
+        .lk-tek-item + .lk-tek-item { border-top: 1px dashed #f1f5f9; }
+        .lk-tek-avatar {
+            width: 30px; height: 30px; border-radius: 8px;
+            background: linear-gradient(135deg, #6366f1, #a78bfa);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; font-weight: 800; color: #fff; flex-shrink: 0;
+        }
+        .lk-tek-name { font-size: 13px; font-weight: 600; color: #1e293b; flex: 1; }
+        .lk-tek-time {
+            display: flex; gap: 10px; font-size: 11px; color: #64748b; white-space: nowrap;
+        }
+        .lk-tek-time .t-start { color: #16a34a; font-weight: 600; }
+        .lk-tek-time .t-end { color: #dc2626; font-weight: 600; }
+        .lk-tek-time i { font-size: 10px; vertical-align: middle; margin-right: 2px; }
+        .lk-tek-empty { font-size: 12px; color: #cbd5e1; padding: 8px 12px; }
+        
+        /* Status Pelaksanaan */
+        .lk-status-pill {
+            font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 20px;
+            display: inline-flex; align-items: center; gap: 4px; margin-top: 6px;
+        }
+        .lk-status-pill.st-ok { background: #d1fae5; color: #065f46; }
+        .lk-status-pill.st-warn { background: #fef3c7; color: #92400e; }
+        
+        /* Action Buttons */
+        .lk-actions { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+        .lk-act-row { display: flex; gap: 6px; flex-wrap: wrap; }
+        .lk-act-btn {
+            font-size: 11px; padding: 6px 14px; border-radius: 8px; font-weight: 700;
+            border: 1.5px solid transparent; transition: all 0.2s; cursor: pointer;
+            text-decoration: none; display: inline-flex; align-items: center; gap: 4px;
+            white-space: nowrap;
+        }
+        .lk-act-btn i { font-size: 13px; }
+        .lk-act-btn.act-invoice { background: #f0fdf4; color: #16a34a; border-color: #bbf7d0; }
+        .lk-act-btn.act-invoice:hover { background: #16a34a; color: #fff; border-color: #16a34a; box-shadow: 0 4px 12px rgba(22,163,74,0.2); }
+        .lk-act-btn.act-nopay { background: #fef3c7; color: #d97706; border-color: #fde68a; }
+        .lk-act-btn.act-nopay:hover { background: #d97706; color: #fff; border-color: #d97706; box-shadow: 0 4px 12px rgba(217,119,6,0.2); }
+        .lk-act-btn.act-invalid { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
+        .lk-act-btn.act-invalid:hover { background: #dc2626; color: #fff; border-color: #dc2626; box-shadow: 0 4px 12px rgba(220,38,38,0.2); }
+        .lk-act-btn.act-note { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; }
+        .lk-act-btn.act-note:hover { background: #2563eb; color: #fff; border-color: #2563eb; box-shadow: 0 4px 12px rgba(37,99,235,0.2); }
+        
+        /* Catatan Display */
+        .lk-catatan-box {
+            margin-top: 8px; padding: 8px 12px; background: #f8fafc;
+            border-left: 3px solid #6366f1; border-radius: 0 8px 8px 0;
+            font-size: 11px; color: #475569; font-style: italic;
+        }
+        
+        /* Empty State */
+        .lk-empty { text-align: center; padding: 60px 20px; }
+        .lk-empty-icon { font-size: 48px; color: #e2e8f0; margin-bottom: 16px; }
+        .lk-empty-text { font-size: 14px; color: #94a3b8; font-weight: 600; }
+        .lk-empty-sub { font-size: 12px; color: #cbd5e1; margin-top: 4px; }
+        
+        /* Modal */
         .modal-xl { max-width: 80%; }
-        @media (max-width: 767px) { .modal-xl { max-width: 95%; } }
+        @media (max-width: 992px) {
+            .lk-summary { flex-direction: column; }
+            .lk-tek-time { flex-direction: column; gap: 2px; }
+        }
+        @media (max-width: 767px) {
+            .modal-xl { max-width: 95%; }
+            .lk-table thead th { padding: 10px 12px; }
+            .lk-table tbody td { padding: 12px; }
+            .lk-act-row { flex-direction: column; }
+            .lk-cust-name { font-size: 13px; }
+        }
         <?php include "css/floating-menu2.css"; ?>
     </style>
 </head>
@@ -71,10 +197,42 @@ if (isset($_GET['error'])) {
 
             <div class="row mt-4">
                 <div class="col-12">
-                    <div class="card">
-                        <div class="card-header p-3 px-4">
+                    <!-- Summary Bar -->
+                    <?php
+                    // Count total and today's items (pre-compute before table)
+                    $totalItems = count($allRows ?? []);
+                    $todayCount = 0;
+                    $todayStr = date('Y-m-d');
+                    if (!empty($allRows)) {
+                        foreach ($allRows as $r) {
+                            if (date('Y-m-d', strtotime($r['created_at'])) === $todayStr) $todayCount++;
+                        }
+                    }
+                    ?>
+                    <div class="lk-summary">
+                        <div class="lk-summary-item">
+                            <div class="lk-summary-icon si-total"><i class="material-icons">assignment</i></div>
+                            <div>
+                                <div class="lk-summary-num"><?= $totalItems ?></div>
+                                <div class="lk-summary-label">Total Belum Invoice</div>
+                            </div>
+                        </div>
+                        <div class="lk-summary-item">
+                            <div class="lk-summary-icon si-today"><i class="material-icons">today</i></div>
+                            <div>
+                                <div class="lk-summary-num"><?= $todayCount ?></div>
+                                <div class="lk-summary-label">Masuk Hari Ini</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="lk-card">
+                        <div class="lk-card-header">
                             <div class="d-flex flex-column flex-md-row justify-content-between align-items-center">
-                                <h5 class="mb-3 mb-md-0 text-uppercase font-weight-bold">Laporan Kegiatan</h5>
+                                <div class="d-flex align-items-center gap-10 mb-3 mb-md-0">
+                                    <h5 style="margin:0;font-size:16px;font-weight:800;color:#1e293b;letter-spacing:0.02em;">Laporan Kegiatan</h5>
+                                    <span style="font-size:11px;font-weight:700;color:#6366f1;background:#eef2ff;padding:3px 12px;border-radius:20px;margin-left:10px;"><?= $totalItems ?> kegiatan</span>
+                                </div>
                                 <div class="d-flex gap-2 align-items-center">
                                     <button type="button" class="btn btn-sm mb-0" id="toggleFilterBtn" onclick="toggleFilters()" style="background:#f1f5f9;color:#475569;border:1px solid #e2e8f0;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;">
                                         <i class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:2px;">filter_list</i> Filter
@@ -86,7 +244,7 @@ if (isset($_GET['error'])) {
                                         if (!empty($_GET['jenis'])) $activeFilters++;
                                         if (!empty($_GET['teknisi'])) $activeFilters++;
                                         if (!empty($_GET['status_pelaksanaan'])) $activeFilters++;
-                                        if ($activeFilters > 0) echo "<span style='background:#3b82f6;color:#fff;border-radius:50%;padding:1px 6px;font-size:10px;margin-left:4px;'>$activeFilters</span>";
+                                        if ($activeFilters > 0) echo "<span style='background:#6366f1;color:#fff;border-radius:50%;padding:1px 6px;font-size:10px;margin-left:4px;'>$activeFilters</span>";
                                         ?>
                                     </button>
                                     <?php if ($activeFilters > 0): ?>
@@ -101,10 +259,9 @@ if (isset($_GET['error'])) {
                             <div id="filterPanel" style="display:<?= $activeFilters > 0 ? 'block' : 'none' ?>;margin-top:16px;padding:16px;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0;">
                                 <form method="GET" action="">
                                     <div class="row g-2 align-items-end">
-                                        <!-- Row 1: Tahun, Bulan, Jenis Kegiatan -->
                                         <div class="col-6 col-md-2">
                                             <label style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;display:block;">Tahun</label>
-                                            <select name="tahun" class="search-box w-100" style="padding:8px 10px;" onchange="this.form.submit()">
+                                            <select name="tahun" class="search-box w-100" onchange="this.form.submit()">
                                                 <option value="">Semua</option>
                                                 <?php for($y=date('Y'); $y>=2025; $y--): ?>
                                                 <option value="<?=$y?>" <?= ($_GET['tahun'] ?? '')==$y ? 'selected' : '' ?>><?=$y?></option>
@@ -113,7 +270,7 @@ if (isset($_GET['error'])) {
                                         </div>
                                         <div class="col-6 col-md-2">
                                             <label style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;display:block;">Bulan</label>
-                                            <select name="bulan" class="search-box w-100" style="padding:8px 10px;" onchange="this.form.submit()">
+                                            <select name="bulan" class="search-box w-100" onchange="this.form.submit()">
                                                 <option value="">Semua</option>
                                                 <?php
                                                 $namaBulan = ['','Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
@@ -124,7 +281,7 @@ if (isset($_GET['error'])) {
                                         </div>
                                         <div class="col-6 col-md-2">
                                             <label style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;display:block;">Jenis</label>
-                                            <select name="jenis" class="search-box w-100" style="padding:8px 10px;" onchange="this.form.submit()">
+                                            <select name="jenis" class="search-box w-100" onchange="this.form.submit()">
                                                 <option value="">Semua Jenis</option>
                                                 <?php
                                                 $sqlJenis = "SELECT DISTINCT kegiatan FROM kegiatan WHERE deleted_at IS NULL AND kegiatan IS NOT NULL AND kegiatan != '' ORDER BY kegiatan ASC";
@@ -137,7 +294,7 @@ if (isset($_GET['error'])) {
                                         </div>
                                         <div class="col-6 col-md-2">
                                             <label style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;display:block;">Teknisi</label>
-                                            <select name="teknisi" class="search-box w-100" style="padding:8px 10px;" onchange="this.form.submit()">
+                                            <select name="teknisi" class="search-box w-100" onchange="this.form.submit()">
                                                 <option value="">Semua Teknisi</option>
                                                 <?php
                                                 $sqlTeknisi = "SELECT id, nama FROM teknisi WHERE deleted_at IS NULL ORDER BY nama ASC";
@@ -150,18 +307,17 @@ if (isset($_GET['error'])) {
                                         </div>
                                         <div class="col-6 col-md-2">
                                             <label style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;display:block;">Pelaksanaan</label>
-                                            <select name="status_pelaksanaan" class="search-box w-100" style="padding:8px 10px;" onchange="this.form.submit()">
+                                            <select name="status_pelaksanaan" class="search-box w-100" onchange="this.form.submit()">
                                                 <option value="">Semua</option>
                                                 <option value="lengkap" <?= ($_GET['status_pelaksanaan'] ?? '') == 'lengkap' ? 'selected' : '' ?>>✅ Lengkap</option>
                                                 <option value="tidak_lengkap" <?= ($_GET['status_pelaksanaan'] ?? '') == 'tidak_lengkap' ? 'selected' : '' ?>>⚠️ Tidak Lengkap</option>
                                             </select>
                                         </div>
-                                        <!-- Row 2: Search -->
                                         <div class="col-12 col-md-2">
                                             <label style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;display:block;">Cari</label>
                                             <div class="d-flex gap-1">
-                                                <input type="text" name="cari" class="search-box flex-grow-1" placeholder="Customer / kode..." value="<?= htmlspecialchars($_GET['cari'] ?? '') ?>" style="padding:8px 10px;">
-                                                <button class="btn btn-search mb-0 text-white" type="submit" style="padding:8px 12px;"><i class="material-icons" style="font-size:16px;vertical-align:middle;">search</i></button>
+                                                <input type="text" name="cari" class="search-box flex-grow-1" placeholder="Customer / kode..." value="<?= htmlspecialchars($_GET['cari'] ?? '') ?>">
+                                                <button class="btn btn-search mb-0 text-white" type="submit"><i class="material-icons" style="font-size:16px;vertical-align:middle;">search</i></button>
                                             </div>
                                         </div>
                                     </div>
@@ -177,9 +333,7 @@ if (isset($_GET['error'])) {
                                         <span style="font-size:11px;background:#fef3c7;color:#92400e;padding:4px 10px;border-radius:20px;font-weight:600;">Jenis: <?= ucwords(htmlspecialchars($_GET['jenis'])) ?></span>
                                         <?php endif; ?>
                                         <?php if (!empty($_GET['teknisi'])): ?>
-                                        <?php 
-                                        $selTeknisi = $conn->query("SELECT nama FROM teknisi WHERE id = " . intval($_GET['teknisi']))->fetch_assoc();
-                                        ?>
+                                        <?php $selTeknisi = $conn->query("SELECT nama FROM teknisi WHERE id = " . intval($_GET['teknisi']))->fetch_assoc(); ?>
                                         <span style="font-size:11px;background:#d1fae5;color:#065f46;padding:4px 10px;border-radius:20px;font-weight:600;">Teknisi: <?= htmlspecialchars($selTeknisi['nama'] ?? '') ?></span>
                                         <?php endif; ?>
                                         <?php if (!empty($_GET['status_pelaksanaan'])): ?>
@@ -200,17 +354,17 @@ if (isset($_GET['error'])) {
                             </script>
                         </div>
 
-                        <div class="card-body p-0">
-                            <div class="table-responsive">
-                                <table class="table table-hover align-middle mb-0" style="table-layout:fixed;">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-4" style="width: 30%;">Customer</th>
-                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="width: 40%;">Teknisi & Absensi</th>
-                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 pe-4" style="width: 30%;">Aksi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
+                        <!-- Table -->
+                        <div class="lk-table-wrap">
+                            <table class="lk-table">
+                                <thead>
+                                    <tr>
+                                        <th style="padding-left:24px; width:30%;">Customer</th>
+                                        <th style="width:38%;">Teknisi & Absensi</th>
+                                        <th style="width:32%;">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
                                         <?php
                                         $search = $_GET['cari'] ?? '';
                                         $filterTahun = $_GET['tahun'] ?? '';
@@ -261,14 +415,12 @@ if (isset($_GET['error'])) {
 
                                         // Filter: Status Pelaksanaan (lengkap / tidak lengkap)
                                         if ($filterPelaksanaan === 'lengkap') {
-                                            // Semua pelaksanaan punya waktu_mulai DAN waktu_selesai
                                             $sql_main .= " AND NOT EXISTS (
                                                 SELECT 1 FROM pelaksanaan_kegiatan px2
                                                 WHERE px2.kode = k.kode AND px2.deleted_at IS NULL
                                                 AND (px2.waktu_mulai IS NULL OR px2.waktu_selesai IS NULL)
                                             )";
                                         } elseif ($filterPelaksanaan === 'tidak_lengkap') {
-                                            // Ada pelaksanaan yang waktu_mulai atau waktu_selesai NULL
                                             $sql_main .= " AND EXISTS (
                                                 SELECT 1 FROM pelaksanaan_kegiatan px2
                                                 WHERE px2.kode = k.kode AND px2.deleted_at IS NULL
@@ -333,78 +485,126 @@ if (isset($_GET['error'])) {
                                             }
                                         }
 
+                                        // Recompute summary after query
+                                        $totalItems = count($allRows);
+                                        $todayCount = 0;
+                                        $todayStr = date('Y-m-d');
+                                        foreach ($allRows as $r) {
+                                            if (date('Y-m-d', strtotime($r['created_at'])) === $todayStr) $todayCount++;
+                                        }
+
                                         if (!empty($allRows)) {
                                             foreach ($allRows as $row_main) {
                                                 $kodeTransaksi = $row_main['kode_transaksi'];
                                                 $idC = $row_main['id_cust'];
+                                                $jenisLower = strtolower($row_main['kegiatan']);
+                                                $jenisClass = 'jenis-default';
+                                                if (strpos($jenisLower, 'survey') !== false) $jenisClass = 'jenis-survey';
+                                                elseif (strpos($jenisLower, 'service') !== false) $jenisClass = 'jenis-service';
+                                                elseif (strpos($jenisLower, 'pasang') !== false || strpos($jenisLower, 'install') !== false) $jenisClass = 'jenis-pasang';
                                         ?>
                                                 <tr>
-                                                    <td class="ps-4 customer-info text-wrap">
-                                                        <div class="d-flex align-items-center gap-2 mb-1">
-                                                            <span style="font-size:9px;padding:3px 8px;border-radius:4px;font-weight:700;letter-spacing:0.04em;<?= (strtolower($row_main['kegiatan']) == 'survey') ? 'background:#fef3c7;color:#92400e;' : 'background:#e0e7ff;color:#3730a3;'; ?>">
-                                                                <?= strtoupper(htmlspecialchars($row_main['kegiatan']));?>
-                                                            </span>
-                                                            <span style="font-size:10px;color:#6366f1;font-family:monospace;font-weight:600;"><?= htmlspecialchars($kodeTransaksi); ?></span>
+                                                    <!-- Customer Column -->
+                                                    <td style="padding-left:24px;">
+                                                        <div class="lk-cust-badges">
+                                                            <span class="lk-badge-jenis <?= $jenisClass ?>"><?= strtoupper(htmlspecialchars($row_main['kegiatan'])); ?></span>
+                                                            <span class="lk-badge-kode"><?= htmlspecialchars($kodeTransaksi); ?></span>
                                                         </div>
-                                                        <a href="view-kegiatan.php?kode_transaksi=<?= $kodeTransaksi; ?>" target="_blank" style="text-decoration:none;color:#1e293b;">
-                                                            <h6 class="font-weight-bold mb-1" style="font-size:0.9rem;"><?= htmlspecialchars($row_main['nama_cust']); ?></h6>
+                                                        <a href="view-kegiatan.php?kode_transaksi=<?= $kodeTransaksi; ?>" target="_blank" class="lk-cust-name">
+                                                            <?= htmlspecialchars($row_main['nama_cust']); ?>
                                                         </a>
-                                                        <p class="mb-1" style="font-size:12px;color:#64748b;font-style:italic;">"<?= !empty($row_main['keterangan']) ? htmlspecialchars($row_main['keterangan']) : 'Tidak ada keterangan'; ?>"</p>
-                                                        <p class="mb-0" style="font-size:11px;color:#94a3b8;">Request dibuat: <?= date("d M Y, H:i", strtotime($row_main['created_at'])); ?></p>
+                                                        <div class="lk-cust-desc">"<?= !empty($row_main['keterangan']) ? htmlspecialchars($row_main['keterangan']) : 'Tidak ada keterangan'; ?>"</div>
+                                                        <div class="lk-cust-date">
+                                                            <i class="material-icons" style="font-size:12px;">schedule</i>
+                                                            <?= date("d M Y, H:i", strtotime($row_main['created_at'])); ?>
+                                                        </div>
                                                     </td>
 
-                                                    <td class="technician-list">
+                                                    <!-- Teknisi Column -->
+                                                    <td>
+                                                        <div class="lk-tek-list">
                                                         <?php
                                                         $tekList = $teknisiByKode[$kodeTransaksi] ?? [];
+                                                        $allComplete = true;
                                                         if (!empty($tekList)) {
                                                             foreach ($tekList as $row_teknisi) {
+                                                                $initials = strtoupper(substr($row_teknisi['nama_teknisi'], 0, 1));
+                                                                $hasStart = !empty($row_teknisi['waktu_mulai_pertama']);
+                                                                $hasEnd = !empty($row_teknisi['waktu_selesai_terakhir']);
+                                                                if (!$hasStart || !$hasEnd) $allComplete = false;
                                                         ?>
-                                                        <div class="d-flex justify-content-between align-items-center py-2 technician-item">
-                                                            <div>
-                                                                <p class="mb-0" style="font-size:13px;font-weight:600;color:#1e293b;"><?= htmlspecialchars($row_teknisi['nama_teknisi']); ?></p>
+                                                            <div class="lk-tek-item">
+                                                                <div class="lk-tek-avatar"><?= $initials ?></div>
+                                                                <span class="lk-tek-name"><?= htmlspecialchars($row_teknisi['nama_teknisi']); ?></span>
+                                                                <div class="lk-tek-time">
+                                                                    <span class="t-start">
+                                                                        <i class="material-icons">play_arrow</i>
+                                                                        <?= $hasStart ? date("d/m H:i", strtotime($row_teknisi['waktu_mulai_pertama'])) : '-'; ?>
+                                                                    </span>
+                                                                    <span class="t-end">
+                                                                        <i class="material-icons">stop</i>
+                                                                        <?= $hasEnd ? date("d/m H:i", strtotime($row_teknisi['waktu_selesai_terakhir'])) : '-'; ?>
+                                                                    </span>
+                                                                </div>
                                                             </div>
-                                                            <div class="text-end" style="font-size:11px;color:#64748b;">
-                                                                <p class="mb-0">Mulai: <?= $row_teknisi['waktu_mulai_pertama'] ? date("d/m H:i", strtotime($row_teknisi['waktu_mulai_pertama'])) : '-'; ?></p>
-                                                                <p class="mb-0">Selesai: <?= $row_teknisi['waktu_selesai_terakhir'] ? date("d/m H:i", strtotime($row_teknisi['waktu_selesai_terakhir'])) : '-'; ?></p>
-                                                            </div>
-                                                        </div>
                                                         <?php
                                                             }
+                                                            // Status pill
+                                                            if ($allComplete) {
+                                                                echo '<div class="lk-status-pill st-ok"><i class="material-icons" style="font-size:12px;">check_circle</i> Pelaksanaan Lengkap</div>';
+                                                            } else {
+                                                                echo '<div class="lk-status-pill st-warn"><i class="material-icons" style="font-size:12px;">warning</i> Pelaksanaan Belum Lengkap</div>';
+                                                            }
                                                         } else {
-                                                            echo "<p style='font-size:11px;color:#94a3b8;margin:0;'>Data teknisi tidak ditemukan.</p>";
+                                                            echo '<div class="lk-tek-empty"><i class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:4px;">person_off</i>Data teknisi tidak ditemukan</div>';
                                                         }
                                                         ?>
+                                                        </div>
                                                     </td>
 
-                                                    <td class="text-center pe-4">
-                                                        <button class="btn-aksi btn-input-inv me-1 detailBtn" data-bs-toggle="modal" data-bs-target="#detailModal" data-kode="<?= $kodeTransaksi; ?>">
-                                                            Input Invoice
-                                                        </button>
-                                                        <a href="proses_set_no_invoice.php?kode=<?= $kodeTransaksi; ?>" class="btn-aksi btn-no-inv me-1" onclick="return confirm('Tandai kegiatan ini Tidak memiliki Payment?')">
-                                                            No Payment
-                                                        </a>
-                                                        <a href="proses_set_tidak_valid.php?kode=<?= $kodeTransaksi; ?>" class="btn-aksi btn-tidak-valid me-1" onclick="return confirm('Tandai kegiatan ini sebagai Tidak Valid?')">
-                                                            Tidak Valid
-                                                        </a>
-                                                        <button class="btn-aksi btn-catatan catatanBtn" data-kode="<?= $kodeTransaksi; ?>" data-catatan="<?= htmlspecialchars($row_main['catatan_admin'] ?? '', ENT_QUOTES); ?>">
-                                                            <i class="material-icons" style="font-size:12px;vertical-align:middle;margin-right:2px;">edit_note</i> Catatan
-                                                        </button>
-                                                        <?php if (!empty($row_main['catatan_admin'])): ?>
-                                                        <div style="margin-top:8px;padding:8px 12px;background:#f8fafc;border-left:3px solid #3b82f6;border-radius:0 6px 6px 0;font-size:11px;color:#475569;font-style:italic;text-align:left;">
-                                                            📝 <?= htmlspecialchars($row_main['catatan_admin']); ?>
+                                                    <!-- Aksi Column -->
+                                                    <td>
+                                                        <div class="lk-actions">
+                                                            <div class="lk-act-row">
+                                                                <button class="lk-act-btn act-invoice detailBtn" data-bs-toggle="modal" data-bs-target="#detailModal" data-kode="<?= $kodeTransaksi; ?>">
+                                                                    <i class="material-icons">receipt</i> Input Invoice
+                                                                </button>
+                                                                <a href="proses_set_no_invoice.php?kode=<?= $kodeTransaksi; ?>" class="lk-act-btn act-nopay" onclick="return confirm('Tandai kegiatan ini Tidak memiliki Payment?')">
+                                                                    <i class="material-icons">money_off</i> No Payment
+                                                                </a>
+                                                            </div>
+                                                            <div class="lk-act-row">
+                                                                <a href="proses_set_tidak_valid.php?kode=<?= $kodeTransaksi; ?>" class="lk-act-btn act-invalid" onclick="return confirm('Tandai kegiatan ini sebagai Tidak Valid?')">
+                                                                    <i class="material-icons">block</i> Tidak Valid
+                                                                </a>
+                                                                <button class="lk-act-btn act-note catatanBtn" data-kode="<?= $kodeTransaksi; ?>" data-catatan="<?= htmlspecialchars($row_main['catatan_admin'] ?? '', ENT_QUOTES); ?>">
+                                                                    <i class="material-icons">edit_note</i> Catatan
+                                                                </button>
+                                                            </div>
+                                                            <?php if (!empty($row_main['catatan_admin'])): ?>
+                                                            <div class="lk-catatan-box">
+                                                                📝 <?= htmlspecialchars($row_main['catatan_admin']); ?>
+                                                            </div>
+                                                            <?php endif; ?>
                                                         </div>
-                                                        <?php endif; ?>
                                                     </td>
                                                 </tr>
                                         <?php
                                             }
                                         } else {
-                                            echo "<tr><td colspan='4' class='text-center py-5'>Tidak ada data laporan yang ditemukan.</td></tr>";
-                                        }
                                         ?>
-                                    </tbody>
-                                </table>
-                            </div>
+                                            <tr>
+                                                <td colspan="3">
+                                                    <div class="lk-empty">
+                                                        <div class="lk-empty-icon"><i class="material-icons" style="font-size:48px;">inbox</i></div>
+                                                        <div class="lk-empty-text">Tidak ada data laporan yang ditemukan</div>
+                                                        <div class="lk-empty-sub">Coba ubah filter atau kata pencarian</div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        <?php } ?>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
