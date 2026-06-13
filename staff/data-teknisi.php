@@ -77,6 +77,30 @@ $pageNow = "Data Teknisi";
         }
         .tek-compare-toggle.active { background: #eef2ff; color: #6366f1; border-color: #c7d2fe; }
 
+        /* Range pills */
+        .tek-range-pills {
+            display: flex; gap: 0; border-radius: 10px; overflow: hidden;
+            border: 1.5px solid #e5e7eb;
+        }
+        .tek-range-pill {
+            padding: 8px 16px; font-size: 12px; font-weight: 700;
+            border: none; background: #fff; color: #64748b;
+            cursor: pointer; transition: all 0.2s; white-space: nowrap;
+            border-right: 1px solid #e5e7eb;
+        }
+        .tek-range-pill:last-child { border-right: none; }
+        .tek-range-pill:hover { background: #f8fafc; }
+        .tek-range-pill.active {
+            background: linear-gradient(135deg, #f59e0b, #ea580c);
+            color: #fff;
+        }
+        .tek-range-info {
+            font-size: 11px; font-weight: 600; color: #64748b;
+            background: #f1f5f9; padding: 6px 12px; border-radius: 8px;
+            display: none; align-items: center; gap: 4px;
+        }
+        .tek-range-info.show { display: inline-flex; }
+
         /* Stat cards */
         .tek-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
         .tek-stat-card {
@@ -325,7 +349,12 @@ $pageNow = "Data Teknisi";
             <div class="tek-filter-card no-print">
                 <div class="tek-filter-label"><i class="fa-solid fa-calendar-days" style="margin-right:6px;"></i>Periode</div>
                 <input type="month" id="filterMonth" class="tek-month-input" value="<?= date('Y-m'); ?>">
+                <div class="tek-range-pills">
+                    <button type="button" class="tek-range-pill active" data-range="1" onclick="setRange(1, this)">1 Bulan</button>
+                    <button type="button" class="tek-range-pill" data-range="3" onclick="setRange(3, this)">3 Bulan</button>
+                </div>
                 <button id="filterBtn" class="tek-filter-btn"><i class="fa-solid fa-filter"></i> Terapkan</button>
+                <span class="tek-range-info" id="rangeInfo"></span>
                 <span class="tek-compare-label">Bandingkan bulan lalu</span>
                 <button type="button" id="compareToggle" class="tek-compare-toggle" onclick="toggleCompare()"><i class="fa-solid fa-code-compare"></i> Compare</button>
             </div>
@@ -528,6 +557,28 @@ $pageNow = "Data Teknisi";
     <script src="assets/js/material-dashboard.min.js?v=3.1.0"></script>
     <script>
         let technicianChart, donutChart, currentTechnicianData = [], prevMonthData = null, compareMode = false, currentPerfFilter = 'all', grandTotalPendapatan = 0, prevGrandTotalPendapatan = 0;
+        let rangeMonths = 1;
+        const bulanNames = ['','Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+
+        function setRange(months, btn) {
+            rangeMonths = months;
+            document.querySelectorAll('.tek-range-pill').forEach(p => p.classList.remove('active'));
+            btn.classList.add('active');
+            updateRangeInfo();
+        }
+
+        function updateRangeInfo() {
+            const info = document.getElementById('rangeInfo');
+            if (rangeMonths <= 1) { info.classList.remove('show'); return; }
+            const sel = document.getElementById('filterMonth').value;
+            const [y, m] = sel.split('-').map(Number);
+            // Calculate start month (go back rangeMonths-1)
+            const startDate = new Date(y, m - rangeMonths, 1);
+            const startM = startDate.getMonth() + 1;
+            const startY = startDate.getFullYear();
+            info.textContent = `📅 ${bulanNames[startM]} ${startY} — ${bulanNames[m]} ${y}`;
+            info.classList.add('show');
+        }
         const formatRupiah = angka => 'Rp ' + (angka ? parseInt(angka).toLocaleString('id-ID') : '0');
         const shortRupiah = angka => {
             if (!angka) return 'Rp 0';
@@ -582,15 +633,42 @@ $pageNow = "Data Teknisi";
             const tableBody = document.getElementById('teknisiTableBody');
             const tableFooter = document.getElementById('teknisiTableFooter');
             const selectedDate = document.getElementById('filterMonth').value;
-            const date = new Date(selectedDate + '-02');
-            document.getElementById('report-period').textContent = date.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+            const [selY, selM] = selectedDate.split('-').map(Number);
+
+            // Calculate date range based on rangeMonths
+            let dateStart, dateEnd;
+            if (rangeMonths > 1) {
+                const startDate = new Date(selY, selM - rangeMonths, 1);
+                dateStart = startDate.getFullYear() + '-' + String(startDate.getMonth() + 1).padStart(2, '0');
+                dateEnd = selectedDate;
+            } else {
+                dateStart = selectedDate;
+                dateEnd = selectedDate;
+            }
+
+            // Update period badge
+            if (rangeMonths > 1) {
+                const [sY, sM] = dateStart.split('-').map(Number);
+                document.getElementById('report-period').textContent = `${bulanNames[sM]} ${sY} — ${bulanNames[selM]} ${selY} (${rangeMonths} Bulan)`;
+            } else {
+                document.getElementById('report-period').textContent = `${bulanNames[selM]} ${selY}`;
+            }
+            updateRangeInfo();
+
             tableBody.innerHTML = '<tr><td colspan="8"><div class="spinner-box"><div class="spinner-ring"></div></div></td></tr>';
             tableFooter.innerHTML = '';
 
             try {
+                const fetchUrl = `get_teknisi_data.php?date=${dateStart}&date_end=${dateEnd}`;
+                const prevUrl = compareMode
+                    ? (rangeMonths > 1
+                        ? (() => { const ps = new Date(selY, selM - rangeMonths * 2, 1); const pe = new Date(selY, selM - rangeMonths, 0); return `get_teknisi_data.php?date=${ps.getFullYear()}-${String(ps.getMonth()+1).padStart(2,'0')}&date_end=${pe.getFullYear()}-${String(pe.getMonth()+1).padStart(2,'0')}`; })()
+                        : `get_teknisi_data.php?date=${getPrevMonth(selectedDate)}`)
+                    : null;
+
                 const [response, prevResponse] = await Promise.all([
-                    fetch(`get_teknisi_data.php?date=${selectedDate}`),
-                    compareMode ? fetch(`get_teknisi_data.php?date=${getPrevMonth(selectedDate)}`) : Promise.resolve(null)
+                    fetch(fetchUrl),
+                    prevUrl ? fetch(prevUrl) : Promise.resolve(null)
                 ]);
                 const data = await response.json();
                 prevMonthData = prevResponse ? await prevResponse.json() : null;

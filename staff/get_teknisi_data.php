@@ -4,29 +4,53 @@ include 'conn.php';
 include 'session.php';
 
 $date = $_GET['date'] ?? date('Y-m');
-$monthStart = $date . '-01';
-$monthEnd = date('Y-m-t', strtotime($monthStart));
+$dateEnd = $_GET['date_end'] ?? $date; // Optional: for multi-month range
 
-// === Main query: teknisi + kegiatan count + pendapatan (same as dashboard) ===
+// Build list of months in range
+$months = [];
+$cur = $date;
+while ($cur <= $dateEnd) {
+    $months[] = $cur;
+    $cur = date('Y-m', strtotime($cur . '-01 +1 month'));
+}
+
+// Calculate absolute date range
+$rangeStart = $months[0] . '-01';
+$rangeEnd = date('Y-m-t', strtotime(end($months) . '-01'));
+$monthCount = count($months);
+
+// Build IN clause for months
+$monthPlaceholders = implode(',', array_fill(0, $monthCount, '?'));
+$monthTypes = str_repeat('s', $monthCount);
+
+// === Main query: teknisi + kegiatan count + pendapatan across range ===
 $sql = "SELECT 
             t.id, t.nik, t.nama, t.telp, t.target,
-            (SELECT COUNT(DISTINCT k.kode) FROM team_kegiatan tk JOIN kegiatan k ON tk.kegiatan_id = k.id WHERE tk.teknisi_id = t.id AND DATE_FORMAT(k.jadwal, '%Y-%m') = ? AND tk.deleted_at IS NULL) AS jumlah_kegiatan,
-            (SELECT COALESCE(SUM(ROUND(pk.nominal_invoice / (SELECT COUNT(*) FROM pendapatan_kegiatan pk2 WHERE pk2.kode = pk.kode AND DATE_FORMAT(pk2.tanggal, '%Y-%m') = ? AND pk2.deleted_at IS NULL))), 0) FROM pendapatan_kegiatan pk WHERE pk.teknisi_id = t.id AND DATE_FORMAT(pk.tanggal, '%Y-%m') = ? AND pk.deleted_at IS NULL) AS total_pendapatan
+            (SELECT COUNT(DISTINCT k.kode) FROM team_kegiatan tk JOIN kegiatan k ON tk.kegiatan_id = k.id 
+             WHERE tk.teknisi_id = t.id AND DATE_FORMAT(k.jadwal, '%Y-%m') IN ($monthPlaceholders) AND tk.deleted_at IS NULL) AS jumlah_kegiatan,
+            (SELECT COALESCE(SUM(ROUND(pk.nominal_invoice / (
+                SELECT COUNT(*) FROM pendapatan_kegiatan pk2 
+                WHERE pk2.kode = pk.kode AND DATE_FORMAT(pk2.tanggal, '%Y-%m') IN ($monthPlaceholders) AND pk2.deleted_at IS NULL
+            ))), 0) FROM pendapatan_kegiatan pk 
+             WHERE pk.teknisi_id = t.id AND DATE_FORMAT(pk.tanggal, '%Y-%m') IN ($monthPlaceholders) AND pk.deleted_at IS NULL) AS total_pendapatan
         FROM teknisi t
         WHERE t.deleted_at IS NULL
         ORDER BY t.nama ASC";
 
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("sss", $date, $date, $date);
+// Bind months 3 times (kegiatan, pendapatan subquery count, pendapatan main)
+$allMonthParams = array_merge($months, $months, $months);
+$allMonthTypes = str_repeat('s', count($allMonthParams));
+$stmt->bind_param($allMonthTypes, ...$allMonthParams);
 $stmt->execute();
 $result = $stmt->get_result();
 $technicians = $result->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
 
-// === Fee 30k calculation (SAME as dashboard laporan-db.php) ===
+// === Fee 30k calculation across range ===
 $feeKodes = [];
 $sql = "SELECT k.kode FROM kegiatan k 
-        WHERE k.created_at >= '$monthStart' AND k.created_at < DATE_ADD('$monthEnd', INTERVAL 1 DAY)
+        WHERE k.created_at >= '$rangeStart' AND k.created_at < DATE_ADD('$rangeEnd', INTERVAL 1 DAY)
         AND k.paid REGEXP '^[0-9]+$' AND k.deleted_at IS NULL
         AND NOT EXISTS (SELECT 1 FROM pendapatan_kegiatan pk WHERE pk.kode = k.kode)
         GROUP BY k.kode";
@@ -72,7 +96,8 @@ foreach ($technicians as $row) {
     $pendapatan = floatval($row['total_pendapatan'] ?? 0);
     $fee = floatval($feeMap[$row['id']] ?? 0);
     $total_penghasilan = $pendapatan + $fee;
-    $target = floatval($row['target'] ?? 0);
+    // For multi-month, multiply target by number of months
+    $target = floatval($row['target'] ?? 0) * $monthCount;
     $bonus = 0;
 
     if ($total_penghasilan > $target) {
@@ -103,14 +128,16 @@ usort($tableData, function($a, $b) {
 });
 
 // ═══ GRAND TOTAL PENDAPATAN: Match Detail Invoice exactly ═══
+$grandMonthPlaceholders = implode(',', array_fill(0, $monthCount, '?'));
 $sqlGrandPend = "SELECT COALESCE(SUM(sub.nominal), 0) as total FROM (
     SELECT nominal_invoice as nominal
     FROM pendapatan_kegiatan
-    WHERE DATE_FORMAT(tanggal, '%Y-%m') = ? AND deleted_at IS NULL
+    WHERE DATE_FORMAT(tanggal, '%Y-%m') IN ($grandMonthPlaceholders) AND deleted_at IS NULL
     GROUP BY kode
 ) sub";
 $stmtGP = $conn->prepare($sqlGrandPend);
-$stmtGP->bind_param('s', $date);
+$gpTypes = str_repeat('s', $monthCount);
+$stmtGP->bind_param($gpTypes, ...$months);
 $stmtGP->execute();
 $resGP = $stmtGP->get_result();
 $rowGP = $resGP->fetch_assoc();
@@ -120,6 +147,9 @@ $stmtGP->close();
 echo json_encode([
     'tableData' => $tableData,
     'chartData' => $chartData,
-    'grandTotalPendapatan' => $grandTotalPendapatan
+    'grandTotalPendapatan' => $grandTotalPendapatan,
+    'monthCount' => $monthCount,
+    'dateStart' => $date,
+    'dateEnd' => $dateEnd
 ]);
 ?>
