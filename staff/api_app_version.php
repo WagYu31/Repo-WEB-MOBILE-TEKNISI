@@ -19,8 +19,8 @@ header('Access-Control-Allow-Methods: GET');
 // KONFIGURASI VERSI - UBAH DI SINI UNTUK FORCE UPDATE
 // ═══════════════════════════════════════════════
 $response = [
-    'min_version'     => '4.0.10',   // Versi minimum yang dibolehkan
-    'latest_version'  => '4.0.10',   // Versi terbaru yang tersedia
+    'min_version'     => '4.0.18',   // Versi minimum yang dibolehkan
+    'latest_version'  => '4.0.18',   // Versi terbaru yang tersedia
     'update_url'      => 'https://jadwal.id-giti.com/staff/download/teknisi-latest.apk', // URL download APK
     'update_message'  => 'Versi terbaru tersedia! Silakan update untuk mendapatkan fitur dan perbaikan terbaru.',
     'force_message'   => 'Versi aplikasi Anda sudah tidak didukung. Silakan update ke versi terbaru untuk melanjutkan.',

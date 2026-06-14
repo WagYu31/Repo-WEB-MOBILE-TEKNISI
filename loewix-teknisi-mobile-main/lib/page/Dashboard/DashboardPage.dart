@@ -12,6 +12,7 @@ import '../../utils/state.dart';
 import '../../widget/CardTask.dart';
 import '../../widget/CoachMarkHelper.dart';
 import '../../service/notification/NotificationService.dart';
+import '../../service/provider/Profile/ProfileProvider.dart';
 
 class DashboardPage extends StatefulWidget {
   final Function(int)? onNavigate;
@@ -85,6 +86,13 @@ class _DashboardPageState extends State<DashboardPage> {
         debugPrint('🔔 Task load error: $e');
       }
       
+      // Load profile data
+      try {
+        Provider.of<ProfileProvider>(context, listen: false).getUser(_teknisiId!);
+      } catch (e) {
+        debugPrint('🔔 Profile load error: $e');
+      }
+
       // Load statistik data
       try {
         final teknisiIdInt = int.tryParse(_teknisiId!);
@@ -257,6 +265,7 @@ class _DashboardPageState extends State<DashboardPage> {
     if (_teknisiId != null && _teknisiId!.isNotEmpty) {
       final futures = <Future>[
         Provider.of<DetailTaskGetProvider>(context, listen: false).getTask(_teknisiId!),
+        Provider.of<ProfileProvider>(context, listen: false).getUser(_teknisiId!),
       ];
       // Also refresh stats
       final teknisiIdInt = int.tryParse(_teknisiId!);
@@ -790,13 +799,21 @@ class _DashboardPageState extends State<DashboardPage> {
                       children: [
                         Row(
                           children: [
-                            Text(
-                              '${_getGreeting()} 🔥',
-                              style: TextStyle(
-                                fontFamily: 'Poppins',
-                                fontSize: 12,
-                                color: Colors.white.withValues(alpha: 0.65),
-                              ),
+                            Consumer<ProfileProvider>(
+                              builder: (context, profileProvider, child) {
+                                String nameText = '';
+                                if (profileProvider.state == ResultState.hasData) {
+                                  nameText = ', ${profileProvider.response.data.nama}';
+                                }
+                                return Text(
+                                  '${_getGreeting()}$nameText 🔥',
+                                  style: TextStyle(
+                                    fontFamily: 'Poppins',
+                                    fontSize: 12,
+                                    color: Colors.white.withValues(alpha: 0.65),
+                                  ),
+                                );
+                              },
                             ),
                           ],
                         ),
