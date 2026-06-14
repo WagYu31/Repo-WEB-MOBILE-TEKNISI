@@ -59,7 +59,7 @@ function getStatusInfo($status)
     <div class="card h-100 py-3" style="border-top-left-radius:0;">
         <?php
         $current_date = date("Y-m-d");
-        $sql_today = "SELECT k.*, c.nama AS nama_customer, c.telp AS cust_nomor, c.alamat FROM kegiatan k LEFT JOIN customer c ON k.customer_id = c.id WHERE k.status != 'waiting' AND DATE(k.jadwal) = ? AND k.deleted_at IS NULL ORDER BY k.jadwal ASC";
+        $sql_today = "SELECT k.*, c.nama AS nama_customer, c.telp AS cust_nomor, c.alamat FROM kegiatan k LEFT JOIN customer c ON k.customer_id = c.id WHERE k.status != 'waiting' AND (k.status != 'Clear' OR DATE(k.tgl_selesai) = '$current_date') AND DATE(k.jadwal) = ? AND k.deleted_at IS NULL ORDER BY k.jadwal ASC";
         $stmt_today = $conn->prepare($sql_today);
         $stmt_today->bind_param("s", $current_date);
         $stmt_today->execute();
