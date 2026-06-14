@@ -18,7 +18,7 @@ if (isset($_GET['export'])) {
 
     if ($export_type === 'hari_ini' || $export_type === 'akan_datang') {
         if ($export_type === 'hari_ini') {
-            $sql = "SELECT k.*, c.nama AS nama_customer, c.telp AS cust_nomor FROM kegiatan k LEFT JOIN customer c ON k.customer_id = c.id WHERE k.status NOT IN ('waiting', 'selesai by admin') AND (k.status != 'Clear' OR DATE(k.tgl_selesai) = '$current_date') AND DATE(k.jadwal) = ? AND k.deleted_at IS NULL ORDER BY k.jadwal ASC";
+            $sql = "SELECT k.*, c.nama AS nama_customer, c.telp AS cust_nomor FROM kegiatan k LEFT JOIN customer c ON k.customer_id = c.id WHERE k.status NOT IN ('waiting', 'selesai by admin', 'selesai', 'Clear') AND DATE(k.jadwal) = ? AND k.deleted_at IS NULL ORDER BY k.jadwal ASC";
         } else {
             $sql = "SELECT k.*, c.nama AS nama_customer, c.telp AS cust_nomor FROM kegiatan k LEFT JOIN customer c ON k.customer_id = c.id WHERE k.status != 'waiting' AND DATE(k.jadwal) > ? AND k.deleted_at IS NULL ORDER BY k.jadwal ASC";
         }
@@ -518,7 +518,7 @@ if (isset($_GET['export'])) {
             
             
 
-            $sql_today = "SELECT k.*, c.nama AS nama_customer, c.telp AS cust_nomor, c.alamat, c.id AS customer_id FROM kegiatan k LEFT JOIN customer c ON k.customer_id = c.id WHERE k.status NOT IN ('waiting', 'selesai by admin') AND (k.status != 'Clear' OR DATE(k.tgl_selesai) = '$current_date') AND DATE(k.jadwal) = ? AND k.deleted_at IS NULL ORDER BY k.jadwal ASC";
+            $sql_today = "SELECT k.*, c.nama AS nama_customer, c.telp AS cust_nomor, c.alamat, c.id AS customer_id FROM kegiatan k LEFT JOIN customer c ON k.customer_id = c.id WHERE k.status NOT IN ('waiting', 'selesai by admin', 'selesai', 'Clear') AND DATE(k.jadwal) = ? AND k.deleted_at IS NULL ORDER BY k.jadwal ASC";
 
             $stmt_today = $conn->prepare($sql_today);
             $stmt_today->bind_param("s", $current_date);
