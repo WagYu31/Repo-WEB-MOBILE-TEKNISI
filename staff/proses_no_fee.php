@@ -10,11 +10,11 @@ if (!isset($_GET['kode_transaksi']) || empty($_GET['kode_transaksi'])) {
 $kode_kegiatan = $_GET['kode_transaksi'];
 $paid_value = null;
 
-$query_update_kegiatan = "UPDATE kegiatan SET invoice = 'no', paid = ? WHERE kode = ?";
+$query_update_kegiatan = "UPDATE kegiatan SET invoice = 'no', paid = NULL WHERE kode = ?";
 $stmt_update = $conn->prepare($query_update_kegiatan);
 
 if ($stmt_update) {
-    $stmt_update->bind_param("ss", $paid_value, $kode_kegiatan);
+    $stmt_update->bind_param("s", $kode_kegiatan);
     
     if ($stmt_update->execute()) {
         header("Location: lap-noinv.php?success=na_updated");

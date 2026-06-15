@@ -4,6 +4,25 @@ include 'conn.php';
 
 echo "=== DIAGNOSTICS FOR CODES: Orn4Fg (SHIO PAN PIK 2) AND 6cEiKS (Melvin) ===\n\n";
 
+// --- DATABASE PATCHES ---
+echo "--- EXECUTING DATABASE PATCHES ---\n";
+// 1. Fix Melvin: set paid = NULL where invoice = 'no' and kode = '6cEiKS'
+$patch1 = $conn->query("UPDATE kegiatan SET paid = NULL WHERE kode = '6cEiKS' AND invoice = 'no'");
+if ($patch1) {
+    echo "Patch Melvin: SUCCESS (set paid = NULL for active 'no invoice' rows)\n";
+} else {
+    echo "Patch Melvin: FAILED (" . $conn->error . ")\n";
+}
+
+// 2. Fix SHIO PAN PIK 2: soft-delete Febry Setiawan's abandoned check-in log (id = 4866)
+$patch2 = $conn->query("UPDATE pelaksanaan_kegiatan SET deleted_at = NOW() WHERE id = 4866 AND status = 'berjalan' AND waktu_selesai IS NULL");
+if ($patch2) {
+    echo "Patch SHIO PAN PIK 2: SUCCESS (soft-deleted Febry's check-in log 4866)\n";
+} else {
+    echo "Patch SHIO PAN PIK 2: FAILED (" . $conn->error . ")\n";
+}
+echo "\n";
+
 echo "--- ALL HIDDEN ROWS (invoice = 'no' and paid is numeric) ---\n";
 $res_hidden = $conn->query("SELECT id, kode, paid, invoice, status, created_at FROM kegiatan WHERE invoice = 'no' AND paid REGEXP '^[0-9]+$' AND deleted_at IS NULL");
 if ($res_hidden) {

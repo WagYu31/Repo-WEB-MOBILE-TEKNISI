@@ -482,6 +482,9 @@ $stmt_pelaksanaan->close();
                                                         <button type="button" class="btn-edit-pelaksanaan" title="Edit Pelaksanaan" onclick="openEditPelaksanaan(<?= $task['id'] ?>, '<?= addslashes($task['status']) ?>', '<?= $mulaiValid ? $task['waktu_mulai'] : '' ?>', '<?= $selesaiValid ? $task['waktu_selesai'] : '' ?>', '<?= addslashes($task['permasalahan'] ?? '') ?>', '<?= addslashes($task['solusi'] ?? '') ?>', '<?= addslashes($task['keterangan'] ?? '') ?>')">
                                                             <i class="material-icons" style="font-size:13px;">edit</i> Edit
                                                         </button>
+                                                        <button type="button" class="btn-edit-pelaksanaan" title="Hapus Pelaksanaan" onclick="deletePelaksanaan(<?= $task['id'] ?>)" style="background:#fef2f2;color:#dc2626;border:1px solid #fecaca;margin-left:4px;">
+                                                            <i class="material-icons" style="font-size:13px;">delete</i> Hapus
+                                                        </button>
                                                     </div>
                                                     <div class="tl-body">
                                                         <div class="tl-time-section">
@@ -660,8 +663,33 @@ $stmt_pelaksanaan->close();
                 alert('Gagal: ' + res.message);
             }
         })
-        .catch(() => alert('Terjadi kesalahan koneksi.'));
+        .catch(err => {
+            alert('Terjadi kesalahan koneksi.');
+        });
     });
+
+    function deletePelaksanaan(id) {
+        if (confirm('Apakah Anda yakin ingin menghapus data pelaksanaan ini?')) {
+            var formData = new FormData();
+            formData.append('id', id);
+            fetch('delete_pelaksanaan.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(r => r.json())
+            .then(res => {
+                if (res.success) {
+                    alert('Berhasil dihapus!');
+                    location.reload();
+                } else {
+                    alert('Gagal: ' + res.message);
+                }
+            })
+            .catch(err => {
+                alert('Terjadi kesalahan koneksi.');
+            });
+        }
+    }
     </script>
 </body>
 </html>
