@@ -255,9 +255,16 @@
                             </span>
                         </td>
                         <td class="text-center">
-                            <span class="money-val <?= $tr['pend'] > 0 ? 'money-positive' : 'money-zero' ?>">
-                                Rp <?= number_format($tr['pend'], 0, ',', '.') ?>
-                            </span>
+                            <?php if ($tr['pend'] > 0): ?>
+                                <span class="money-val money-positive money-clickable" 
+                                      onclick="showRevenueDetail(<?= $tr['idT'] ?>, '<?= htmlspecialchars($tr['namaT'], ENT_QUOTES) ?>', '<?= $ym ?>')">
+                                    Rp <?= number_format($tr['pend'], 0, ',', '.') ?>
+                                </span>
+                            <?php else: ?>
+                                <span class="money-val money-zero">
+                                    Rp <?= number_format($tr['pend'], 0, ',', '.') ?>
+                                </span>
+                            <?php endif; ?>
                         </td>
                         <td class="text-center pe-4">
                             <span class="money-val <?= $tr['bon'] > 0 ? 'money-positive' : 'money-zero' ?>">
@@ -474,4 +481,192 @@
     .no-print { display: none !important; }
     .rekap-card { box-shadow: none !important; border: 1px solid #ddd !important; }
 }
+
+/* Clickable revenue styles */
+.money-clickable {
+    cursor: pointer;
+    text-decoration: underline dashed #16a34a;
+    transition: all 0.2s;
+    display: inline-block;
+}
+.money-clickable:hover {
+    color: #15803d !important;
+    text-decoration: underline solid #15803d;
+    transform: scale(1.05);
+}
+
+/* Light styling for modal success badges */
+.bg-success-light {
+    background-color: #dcfce7 !important;
+    color: #166534 !important;
+}
+
+/* Spinner helper */
+.modal-spinner-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 0;
+}
+.modal-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #6366f1;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 12px;
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
 </style>
+
+<!-- Modal Detail Rincian Pendapatan -->
+<div class="modal fade" id="revenueDetailModal" tabindex="-1" aria-labelledby="revenueDetailModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content" style="border-radius: 16px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.15); overflow: hidden;">
+      <div class="modal-header bg-light" style="border-bottom: 1px solid #f1f5f9; padding: 20px 24px;">
+        <h5 class="modal-title" id="revenueDetailModalLabel" style="font-weight: 800; color: #1e293b; display: flex; align-items: center;">
+          <i class="fa-solid fa-file-invoice-dollar me-2 text-primary"></i> Rincian Pendapatan: <span id="modal-tech-name" class="ms-1" style="color: #6366f1;"></span>
+        </h5>
+        <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close" style="background-color: transparent; border: none; font-size: 24px; font-weight: bold; line-height: 1; padding: 0; margin: 0; opacity: 0.5; cursor: pointer;">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 24px;">
+        <!-- Period & Total Info -->
+        <div class="mb-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+          <span class="badge bg-light text-dark p-2" style="font-size: 13px; font-weight: 600; border-radius: 8px;">
+            <i class="fa-regular fa-calendar-days me-1 text-primary"></i> Periode: <span id="modal-period"></span>
+          </span>
+          <span class="badge bg-success-light text-success p-2" style="font-size: 13px; font-weight: 700; border-radius: 8px;">
+            Total Terhitung: <span id="modal-total-amount">Rp 0</span>
+          </span>
+        </div>
+        
+        <!-- Table Detail -->
+        <div class="table-responsive" style="border-radius: 12px; border: 1px solid #e5e7eb; max-height: 400px; overflow-y: auto;">
+          <table class="table align-middle mb-0" id="modal-detail-table">
+            <thead class="table-light" style="position: sticky; top: 0; z-index: 1;">
+              <tr style="font-size: 10px; font-weight: 800; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.05em; background-color: #f8fafc;">
+                <th class="ps-3" style="width: 50px;">#</th>
+                <th style="width: 110px;">Tanggal</th>
+                <th>No Invoice</th>
+                <th>Customer</th>
+                <th class="text-end" style="width: 130px;">Nominal Invoice</th>
+                <th class="text-center" style="width: 100px;">Bagi</th>
+                <th class="text-end pe-3" style="width: 130px;">Diterima</th>
+              </tr>
+            </thead>
+            <tbody id="modal-detail-tbody" style="font-size: 13px; color: #334155;">
+              <!-- Content loaded dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function showRevenueDetail(techId, techName, period) {
+    // Populate simple headers
+    document.getElementById('modal-tech-name').textContent = techName;
+    
+    // Format period for display, e.g. "2026-06" to "Juni 2026"
+    const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    const parts = period.split('-');
+    let periodFormatted = period;
+    if (parts.length === 2) {
+        const mIdx = parseInt(parts[1], 10) - 1;
+        if (mIdx >= 0 && mIdx < 12) {
+            periodFormatted = months[mIdx] + ' ' + parts[0];
+        }
+    }
+    document.getElementById('modal-period').textContent = periodFormatted;
+    
+    const tbody = document.getElementById('modal-detail-tbody');
+    const totalEl = document.getElementById('modal-total-amount');
+    
+    // Set loading state
+    tbody.innerHTML = `
+        <tr>
+            <td colspan="7" class="text-center" style="padding: 40px 0;">
+                <div class="modal-spinner-wrap">
+                    <div class="modal-spinner"></div>
+                    <span style="font-size: 13px; font-weight: 500; color: #64748b;">Memuat rincian invoice...</span>
+                </div>
+            </td>
+        </tr>
+    `;
+    totalEl.textContent = 'Rp 0';
+    
+    // Show Modal
+    const modalEl = document.getElementById('revenueDetailModal');
+    const myModal = new bootstrap.Modal(modalEl);
+    myModal.show();
+    
+    // Fetch data
+    fetch('get-pendapatan-detail.php?tech_id=' + techId + '&period=' + period)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Gagal mengambil data detail');
+            }
+            return response.json();
+        })
+        .then(res => {
+            if (res.success && res.data.length > 0) {
+                totalEl.textContent = res.formatted_total_share;
+                
+                let html = '';
+                res.data.forEach((item, index) => {
+                    const nomFormatted = 'Rp ' + numberFormat(item.nominal_invoice);
+                    const shareFormatted = 'Rp ' + numberFormat(item.share_amount);
+                    
+                    // Detail of shared technicians
+                    let infoBagi = item.tek_count + ' Orang';
+                    if (item.nama_teknisi_group) {
+                        infoBagi = `<span class="badge bg-light text-dark text-wrap" style="cursor: help; max-width: 150px; font-size: 11px;" title="${item.nama_teknisi_group}">${item.tek_count} orang</span>`;
+                    }
+                    
+                    html += `
+                        <tr style="border-bottom: 1px solid #f1f5f9;">
+                            <td class="ps-3"><span style="font-weight: 600; color: #64748b;">${index + 1}</span></td>
+                            <td style="white-space: nowrap;">${item.formatted_date}</td>
+                            <td style="font-weight: 600; color: #2563eb;">${item.no_invoice}</td>
+                            <td style="word-break: break-word;">${item.nama_cust}</td>
+                            <td class="text-end" style="color: #475569;">${nomFormatted}</td>
+                            <td class="text-center">${infoBagi}</td>
+                            <td class="text-end pe-3" style="font-weight: 700; color: #16a34a;">${shareFormatted}</td>
+                        </tr>
+                    `;
+                });
+                tbody.innerHTML = html;
+            } else {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center" style="padding: 40px; color: #94a3b8;">
+                            <div style="font-size: 48px; margin-bottom: 8px;">📭</div>
+                            <div style="font-size: 14px; font-weight: 500;">Tidak ditemukan invoice untuk bulan ini</div>
+                        </td>
+                    </tr>
+                `;
+            }
+        })
+        .catch(err => {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="text-center text-danger" style="padding: 40px;">
+                        <i class="fa-solid fa-triangle-exclamation" style="font-size: 32px; margin-bottom: 8px;"></i>
+                        <div style="font-size: 14px; font-weight: 600;">Terjadi kesalahan: ${err.message}</div>
+                    </td>
+                </tr>
+            `;
+        });
+}
+
+function numberFormat(val) {
+    return Math.round(val).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+}
+</script>
