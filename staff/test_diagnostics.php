@@ -2,62 +2,73 @@
 header('Content-Type: text/plain');
 include 'conn.php';
 
-echo "=== DIAGNOSTICS FOR CODES: Orn4Fg (SHIO PAN PIK 2) AND 6cEiKS (Melvin) ===\n\n";
+echo "=== DIAGNOSTICS FOR CUSTOMER: Okta ===\n\n";
 
-// --- DATABASE PATCHES ---
-echo "--- EXECUTING DATABASE PATCHES ---\n";
-// 1. Fix Melvin: set paid = NULL where invoice = 'no' and kode = '6cEiKS'
-$patch1 = $conn->query("UPDATE kegiatan SET paid = NULL WHERE kode = '6cEiKS' AND invoice = 'no'");
-if ($patch1) {
-    echo "Patch Melvin: SUCCESS (set paid = NULL for active 'no invoice' rows)\n";
-} else {
-    echo "Patch Melvin: FAILED (" . $conn->error . ")\n";
-}
-
-// 2. Fix SHIO PAN PIK 2: soft-delete Febry Setiawan's abandoned check-in log (id = 4866)
-$patch2 = $conn->query("UPDATE pelaksanaan_kegiatan SET deleted_at = NOW() WHERE id = 4866 AND status = 'berjalan' AND waktu_selesai IS NULL");
-if ($patch2) {
-    echo "Patch SHIO PAN PIK 2: SUCCESS (soft-deleted Febry's check-in log 4866)\n";
-} else {
-    echo "Patch SHIO PAN PIK 2: FAILED (" . $conn->error . ")\n";
-}
-echo "\n";
-
-echo "--- EXACT QUERY TEST WITH SEARCH = 'Melvin' ---\n";
-$search = 'Melvin';
-$sql_main = "SELECT k.id, k.kode AS kode_transaksi, k.keterangan, k.catatan_admin, k.kegiatan, k.created_at, k.status AS status_kegiatan, c.id AS id_cust, c.nama AS nama_cust
-             FROM kegiatan k
-             INNER JOIN (SELECT kode, MAX(id) AS max_id FROM kegiatan WHERE deleted_at IS NULL GROUP BY kode) latest ON k.id = latest.max_id
-             LEFT JOIN customer c ON k.customer_id = c.id
-             WHERE k.status != 'waiting' AND (k.paid IS NULL OR k.paid = '')
-             AND k.deleted_at IS NULL
-             AND NOT EXISTS (
-                 SELECT 1 FROM pelaksanaan_kegiatan px
-                 WHERE px.kegiatan_id = k.id AND px.deleted_at IS NULL
-                 AND px.status IN ('Lanjut Nanti', 'Lanjutan', 'berjalan', 'dijadwalkan')
-             )";
-
-if (!empty($search)) {
-    $sql_main .= " AND (c.nama LIKE ? OR k.kode LIKE ? OR k.keterangan LIKE ?)";
-}
-
-$sql_main .= " ORDER BY k.created_at DESC";
-
-$stmtMain = $conn->prepare($sql_main);
-if ($stmtMain) {
-    if (!empty($search)) {
-        $searchParam = "%$search%";
-        $stmtMain->bind_param("sss", $searchParam, $searchParam, $searchParam);
+// 1. Find the customer
+$q_cust = $conn->query("SELECT id, nama, telp FROM customer WHERE nama LIKE '%Okta%'");
+if ($q_cust && $q_cust->num_rows > 0) {
+    while ($cust = $q_cust->fetch_assoc()) {
+        echo "Customer Found:\n";
+        print_r($cust);
+        $cust_id = $cust['id'];
+        
+        // 2. Query all kegiatan for this customer
+        echo "\n--- ALL KEGIATAN ROWS (including deleted) ---\n";
+        $q_keg = $conn->query("SELECT id, kode, kegiatan, status, paid, invoice, deleted_at, created_at, customer_id, jadwal FROM kegiatan WHERE customer_id = $cust_id ORDER BY id ASC");
+        if ($q_keg) {
+            while ($keg = $q_keg->fetch_assoc()) {
+                print_r($keg);
+                
+                // For each kegiatan, check if there are pelaksanaan_kegiatan
+                $kode = $keg['kode'];
+                $q_pel = $conn->query("SELECT id, kegiatan_id, kode, status, deleted_at, waktu_mulai, waktu_selesai, teknisi_id FROM pelaksanaan_kegiatan WHERE kode = '$kode'");
+                if ($q_pel && $q_pel->num_rows > 0) {
+                    echo "  -> Pelaksanaan Kegiatan for kode '$kode':\n";
+                    while ($pel = $q_pel->fetch_assoc()) {
+                        echo "     ";
+                        print_r($pel);
+                    }
+                } else {
+                    echo "  -> No Pelaksanaan Kegiatan for kode '$kode'\n";
+                }
+            }
+        }
+        
+        // 3. Test the exact query from customer-detail.php
+        echo "\n--- EXACT QUERY FROM customer-detail.php ---\n";
+        $sql = "SELECT
+                    k.id AS kegiatan_id, k.kode AS kegiatan_kode, k.kegiatan AS jenis_kegiatan, 
+                    k.jadwal AS jadwal_kegiatan, k.keterangan AS keterangan_kegiatan, k.lunas,
+                    c.nama AS customer_name,
+                    p.teknisi_id, p.status, p.waktu_mulai, p.waktu_selesai,
+                    t.nama AS teknisi_name
+                FROM kegiatan k
+                INNER JOIN (SELECT kode, MAX(id) AS max_id FROM kegiatan WHERE deleted_at IS NULL GROUP BY kode) latest ON k.id = latest.max_id
+                LEFT JOIN customer c ON k.customer_id = c.id
+                LEFT JOIN (
+                    SELECT p1.* FROM pelaksanaan_kegiatan p1
+                    INNER JOIN (
+                        SELECT kode, teknisi_id, waktu_mulai, MAX(id) AS max_id
+                        FROM pelaksanaan_kegiatan
+                        WHERE deleted_at IS NULL
+                        GROUP BY kode, teknisi_id, waktu_mulai
+                    ) p2 ON p1.id = p2.max_id
+                ) p ON k.kode = p.kode
+                LEFT JOIN teknisi t ON p.teknisi_id = t.id
+                WHERE k.customer_id = ? AND k.deleted_at IS NULL
+                ORDER BY k.jadwal DESC, p.waktu_mulai ASC";
+        
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("i", $cust_id);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        echo "Exact query returned " . $res->num_rows . " rows:\n";
+        while ($row = $res->fetch_assoc()) {
+            print_r($row);
+        }
+        $stmt->close();
     }
-    $stmtMain->execute();
-    $res = $stmtMain->get_result();
-    echo "Num rows returned: " . $res->num_rows . "\n";
-    while ($row = $res->fetch_assoc()) {
-        print_r($row);
-    }
-    $stmtMain->close();
 } else {
-    echo "Prepare failed: " . $conn->error . "\n";
+    echo "No customer found with name matching 'Okta'\n";
 }
-echo "\n";
 ?>
