@@ -19,6 +19,117 @@ if (isset($_GET['error'])) {
 } elseif (isset($_GET['success'])) {
     echo "<script>alert('Berhasil melakukan perubahan invoice.');</script>";
 }
+
+// --- Query & Data Prep (Moved to top to fix summary bar counts) ---
+$search = $_GET['cari'] ?? '';
+$filterTahun = $_GET['tahun'] ?? '';
+$filterBulan = $_GET['bulan'] ?? '';
+$filterJenis = $_GET['jenis'] ?? '';
+$filterTeknisi = $_GET['teknisi'] ?? '';
+$filterPelaksanaan = $_GET['status_pelaksanaan'] ?? '';
+
+$sql_main = "SELECT k.id, k.kode AS kode_transaksi, k.keterangan, k.catatan_admin, k.kegiatan, k.created_at, k.status AS status_kegiatan, c.id AS id_cust, c.nama AS nama_cust
+             FROM kegiatan k
+             INNER JOIN (SELECT kode, MAX(id) AS max_id FROM kegiatan WHERE deleted_at IS NULL GROUP BY kode) latest ON k.id = latest.max_id
+             LEFT JOIN customer c ON k.customer_id = c.id
+             WHERE k.status != 'waiting' AND (k.paid IS NULL OR k.paid = '')
+             AND k.deleted_at IS NULL
+             AND NOT EXISTS (
+                 SELECT 1 FROM pelaksanaan_kegiatan px
+                 WHERE px.kegiatan_id = k.id AND px.deleted_at IS NULL
+                 AND px.status IN ('Lanjut Nanti', 'Lanjutan', 'berjalan', 'dijadwalkan')
+             )";
+
+$bindTypes = '';
+$bindValues = [];
+
+if (!empty($filterTahun)) {
+    $sql_main .= " AND YEAR(k.created_at) = ?";
+    $bindTypes .= 'i';
+    $bindValues[] = intval($filterTahun);
+}
+if (!empty($filterBulan)) {
+    $sql_main .= " AND MONTH(k.created_at) = ?";
+    $bindTypes .= 'i';
+    $bindValues[] = intval($filterBulan);
+}
+if (!empty($filterJenis)) {
+    $sql_main .= " AND k.kegiatan = ?";
+    $bindTypes .= 's';
+    $bindValues[] = $filterJenis;
+}
+if (!empty($filterTeknisi)) {
+    $sql_main .= " AND EXISTS (SELECT 1 FROM team_kegiatan tk WHERE tk.kegiatan_id = k.id AND tk.teknisi_id = ?)";
+    $bindTypes .= 'i';
+    $bindValues[] = intval($filterTeknisi);
+}
+if ($filterPelaksanaan === 'lengkap') {
+    $sql_main .= " AND NOT EXISTS (
+        SELECT 1 FROM pelaksanaan_kegiatan px2
+        WHERE px2.kode = k.kode AND px2.deleted_at IS NULL
+        AND (px2.waktu_mulai IS NULL OR px2.waktu_selesai IS NULL)
+    ) AND EXISTS (SELECT 1 FROM pelaksanaan_kegiatan px3 WHERE px3.kode = k.kode AND px3.deleted_at IS NULL)";
+} elseif ($filterPelaksanaan === 'tidak_lengkap') {
+    $sql_main .= " AND EXISTS (
+        SELECT 1 FROM pelaksanaan_kegiatan px2
+        WHERE px2.kode = k.kode AND px2.deleted_at IS NULL
+        AND (px2.waktu_mulai IS NULL OR px2.waktu_selesai IS NULL)
+    )";
+}
+if (!empty($search)) {
+    $sql_main .= " AND (c.nama LIKE ? OR k.kode LIKE ? OR k.keterangan LIKE ?)";
+    $bindTypes .= 'sss';
+    $searchParam = "%$search%";
+    $bindValues[] = $searchParam;
+    $bindValues[] = $searchParam;
+    $bindValues[] = $searchParam;
+}
+
+$sql_main .= " ORDER BY k.created_at DESC";
+
+$stmtMain = mysqli_prepare($conn, $sql_main);
+$allRows = [];
+if ($stmtMain) {
+    if (!empty($bindTypes)) {
+        mysqli_stmt_bind_param($stmtMain, $bindTypes, ...$bindValues);
+    }
+    mysqli_stmt_execute($stmtMain);
+    $result_main = mysqli_stmt_get_result($stmtMain);
+    if ($result_main) {
+        while ($row = mysqli_fetch_assoc($result_main)) {
+            $allRows[] = $row;
+        }
+    }
+    mysqli_stmt_close($stmtMain);
+}
+
+// Batch load all teknisi+absensi in 1 query
+$teknisiByKode = [];
+if (!empty($allRows)) {
+    $allKodes = array_unique(array_column($allRows, 'kode_transaksi'));
+    $placeholders = implode(',', array_fill(0, count($allKodes), '?'));
+    $typesStr = str_repeat('s', count($allKodes));
+    
+    $sqlBatch = "SELECT pk.kode, t.nama AS nama_teknisi, MIN(pk.waktu_mulai) AS waktu_mulai_pertama, MAX(pk.waktu_selesai) AS waktu_selesai_terakhir
+                 FROM pelaksanaan_kegiatan pk
+                 JOIN teknisi t ON pk.teknisi_id = t.id
+                 WHERE pk.kode IN ($placeholders) AND pk.deleted_at IS NULL
+                 GROUP BY pk.kode, pk.teknisi_id
+                 ORDER BY pk.kode, t.nama ASC";
+    
+    $stmtBatch = mysqli_prepare($conn, $sqlBatch);
+    if ($stmtBatch) {
+        mysqli_stmt_bind_param($stmtBatch, $typesStr, ...$allKodes);
+        mysqli_stmt_execute($stmtBatch);
+        $resBatch = mysqli_stmt_get_result($stmtBatch);
+        if ($resBatch) {
+            while ($r = mysqli_fetch_assoc($resBatch)) {
+                $teknisiByKode[$r['kode']][] = $r;
+            }
+        }
+        mysqli_stmt_close($stmtBatch);
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -401,104 +512,8 @@ if (isset($_GET['error'])) {
                             </div>
                             <div class="lk-scroll-container" id="scrollContainer">
                                         <?php
-                                        $search = $_GET['cari'] ?? '';
-                                        $filterTahun = $_GET['tahun'] ?? '';
-                                        $filterBulan = $_GET['bulan'] ?? '';
-                                        $filterJenis = $_GET['jenis'] ?? '';
-                                        $filterTeknisi = $_GET['teknisi'] ?? '';
-                                        $filterPelaksanaan = $_GET['status_pelaksanaan'] ?? '';
-                                        
-                                        $sql_main = "SELECT k.id, k.kode AS kode_transaksi, k.keterangan, k.catatan_admin, k.kegiatan, k.created_at, k.status AS status_kegiatan, c.id AS id_cust, c.nama AS nama_cust
-                                                     FROM kegiatan k
-                                                     INNER JOIN (SELECT kode, MAX(id) AS max_id FROM kegiatan WHERE deleted_at IS NULL GROUP BY kode) latest ON k.id = latest.max_id
-                                                     LEFT JOIN customer c ON k.customer_id = c.id
-                                                     WHERE k.status != 'waiting' AND (k.paid IS NULL OR k.paid = '')
-                                                     AND k.deleted_at IS NULL
-                                                     AND NOT EXISTS (
-                                                         SELECT 1 FROM pelaksanaan_kegiatan px
-                                                         WHERE px.kegiatan_id = k.id AND px.deleted_at IS NULL
-                                                         AND px.status IN ('Lanjut Nanti', 'Lanjutan', 'berjalan', 'dijadwalkan')
-                                                     )";
-
-                                        $bindTypes = '';
-                                        $bindValues = [];
-
-                                        if (!empty($filterTahun)) {
-                                            $sql_main .= " AND YEAR(k.created_at) = ?";
-                                            $bindTypes .= 'i';
-                                            $bindValues[] = intval($filterTahun);
-                                        }
-                                        if (!empty($filterBulan)) {
-                                            $sql_main .= " AND MONTH(k.created_at) = ?";
-                                            $bindTypes .= 'i';
-                                            $bindValues[] = intval($filterBulan);
-                                        }
-
-                                        // Filter: Jenis Kegiatan
-                                        if (!empty($filterJenis)) {
-                                            $sql_main .= " AND k.kegiatan = ?";
-                                            $bindTypes .= 's';
-                                            $bindValues[] = $filterJenis;
-                                        }
-
-                                        // Filter: Teknisi
-                                        if (!empty($filterTeknisi)) {
-                                            $sql_main .= " AND EXISTS (SELECT 1 FROM team_kegiatan tk WHERE tk.kegiatan_id = k.id AND tk.teknisi_id = ?)";
-                                            $bindTypes .= 'i';
-                                            $bindValues[] = intval($filterTeknisi);
-                                        }
-
-                                        // Filter: Status Pelaksanaan (lengkap / tidak lengkap)
-                                        if ($filterPelaksanaan === 'lengkap') {
-                                            $sql_main .= " AND NOT EXISTS (
-                                                SELECT 1 FROM pelaksanaan_kegiatan px2
-                                                WHERE px2.kode = k.kode AND px2.deleted_at IS NULL
-                                                AND (px2.waktu_mulai IS NULL OR px2.waktu_selesai IS NULL)
-                                            ) AND EXISTS (SELECT 1 FROM pelaksanaan_kegiatan px3 WHERE px3.kode = k.kode AND px3.deleted_at IS NULL)";
-                                        } elseif ($filterPelaksanaan === 'tidak_lengkap') {
-                                            $sql_main .= " AND EXISTS (
-                                                SELECT 1 FROM pelaksanaan_kegiatan px2
-                                                WHERE px2.kode = k.kode AND px2.deleted_at IS NULL
-                                                AND (px2.waktu_mulai IS NULL OR px2.waktu_selesai IS NULL)
-                                            )";
-                                        }
-
-                                        // Filter: Search
-                                        if (!empty($search)) {
-                                            $sql_main .= " AND (c.nama LIKE ? OR k.kode LIKE ? OR k.keterangan LIKE ?)";
-                                            $bindTypes .= 'sss';
-                                            $searchParam = "%$search%";
-                                            $bindValues[] = $searchParam;
-                                            $bindValues[] = $searchParam;
-                                            $bindValues[] = $searchParam;
-                                        }
-
-                                        $sql_main .= " ORDER BY k.created_at DESC";
-
-                                        // Get teknisi data
-                                        $sqlTek = "SELECT pk.kode, t.nama AS nama_teknisi, MIN(pk.waktu_mulai) AS waktu_mulai_pertama, MAX(pk.waktu_selesai) AS waktu_selesai_terakhir
-                                                   FROM pelaksanaan_kegiatan pk
-                                                   JOIN teknisi t ON pk.teknisi_id = t.id
-                                                   WHERE pk.deleted_at IS NULL
-                                                   GROUP BY pk.kode, pk.teknisi_id
-                                                   ORDER BY pk.kode, t.nama ASC";
-                                        $resTek = mysqli_query($conn, $sqlTek);
-                                        $teknisiByKode = [];
-                                        while ($rowT = mysqli_fetch_assoc($resTek)) {
-                                            $teknisiByKode[$rowT['kode']][] = $rowT;
-                                        }
-
-                                        $stmtMain = mysqli_prepare($conn, $sql_main);
-                                        if (!empty($bindTypes)) {
-                                            mysqli_stmt_bind_param($stmtMain, $bindTypes, ...$bindValues);
-                                        }
-                                        mysqli_stmt_execute($stmtMain);
-                                        $result_main = mysqli_stmt_get_result($stmtMain);
-                                        $rowCount = 0;
-
-                                        if ($result_main && mysqli_num_rows($result_main) > 0) {
-                                            while ($row_main = mysqli_fetch_assoc($result_main)) {
-                                                $rowCount++;
+                                        if (!empty($allRows)) {
+                                            foreach ($allRows as $row_main) {
                                                 $kodeTransaksi = $row_main['kode_transaksi'];
                                                 $jenisLower = strtolower($row_main['kegiatan']);
                                                 $jenisClass = 'jenis-default';
