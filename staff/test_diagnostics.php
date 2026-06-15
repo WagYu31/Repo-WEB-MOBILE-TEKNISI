@@ -4,6 +4,18 @@ include 'conn.php';
 
 echo "=== DIAGNOSTICS FOR CODES: Orn4Fg (SHIO PAN PIK 2) AND 6cEiKS (Melvin) ===\n\n";
 
+echo "--- SCHEMA FOR paid COLUMN ---\n";
+$res_schema1 = $conn->query("SHOW COLUMNS FROM kegiatan LIKE 'paid'");
+if ($res_schema1) {
+    print_r($res_schema1->fetch_assoc());
+}
+echo "--- SCHEMA FOR invoice COLUMN ---\n";
+$res_schema2 = $conn->query("SHOW COLUMNS FROM kegiatan LIKE 'invoice'");
+if ($res_schema2) {
+    print_r($res_schema2->fetch_assoc());
+}
+echo "\n";
+
 $codes = ['Orn4Fg', '6cEiKS'];
 
 foreach ($codes as $code) {
