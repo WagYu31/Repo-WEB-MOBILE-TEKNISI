@@ -4,6 +4,15 @@ include 'conn.php';
 
 echo "=== DIAGNOSTICS FOR CODES: Orn4Fg (SHIO PAN PIK 2) AND 6cEiKS (Melvin) ===\n\n";
 
+echo "--- ALL HIDDEN ROWS (invoice = 'no' and paid is numeric) ---\n";
+$res_hidden = $conn->query("SELECT id, kode, paid, invoice, status, created_at FROM kegiatan WHERE invoice = 'no' AND paid REGEXP '^[0-9]+$' AND deleted_at IS NULL");
+if ($res_hidden) {
+    while ($row = $res_hidden->fetch_assoc()) {
+        print_r($row);
+    }
+}
+echo "\n";
+
 echo "--- SCHEMA FOR paid COLUMN ---\n";
 $res_schema1 = $conn->query("SHOW COLUMNS FROM kegiatan LIKE 'paid'");
 if ($res_schema1) {
