@@ -13,7 +13,7 @@ foreach ($codes as $code) {
 
     // 1. Query kegiatan
     echo "--- KEGIATAN ROWS ---\n";
-    $q1 = $conn->query("SELECT id, status, paid, deleted_at, customer_id, created_at, jadwal FROM kegiatan WHERE kode = '$code'");
+    $q1 = $conn->query("SELECT id, status, paid, invoice, deleted_at, customer_id, created_at, jadwal FROM kegiatan WHERE kode = '$code'");
     if ($q1) {
         while ($row = $q1->fetch_assoc()) {
             print_r($row);
@@ -35,7 +35,7 @@ foreach ($codes as $code) {
 
     // 3. Test Query inside lap-kegiatan.php
     echo "\n--- TEST QUERY LAP-KEGIATAN.PHP (Is it selected?) ---\n";
-    $sql = "SELECT k.id, k.kode, k.status, k.paid, k.deleted_at, c.nama AS nama_cust
+    $sql = "SELECT k.id, k.kode, k.status, k.paid, k.invoice, k.deleted_at, c.nama AS nama_cust
             FROM kegiatan k
             INNER JOIN (SELECT kode, MAX(id) AS max_id FROM kegiatan WHERE deleted_at IS NULL GROUP BY kode) latest ON k.id = latest.max_id
             LEFT JOIN customer c ON k.customer_id = c.id
