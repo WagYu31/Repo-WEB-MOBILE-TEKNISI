@@ -4,7 +4,7 @@ include "conn.php";
 include "session.php";
 
 // Check authentication
-if (!isset($_SESSION['username'])) {
+if (!isset($_SESSION['id'])) {
     http_response_code(401);
     echo json_encode(['success' => false, 'message' => 'Unauthorized']);
     exit;
