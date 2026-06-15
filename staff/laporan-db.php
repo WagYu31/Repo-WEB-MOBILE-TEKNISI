@@ -540,9 +540,14 @@
           <span class="badge bg-light text-dark p-2" style="font-size: 13px; font-weight: 600; border-radius: 8px;">
             <i class="fa-regular fa-calendar-days me-1 text-primary"></i> Periode: <span id="modal-period"></span>
           </span>
-          <span class="badge bg-success-light text-success p-2" style="font-size: 13px; font-weight: 700; border-radius: 8px;">
-            Total Terhitung: <span id="modal-total-amount">Rp 0</span>
-          </span>
+          <div class="d-flex align-items-center gap-2">
+            <button id="modal-export-btn" class="btn btn-sm btn-success d-inline-flex align-items-center gap-1" style="font-size: 12px; font-weight: 700; border-radius: 8px; padding: 6px 12px; margin: 0; box-shadow: 0 4px 12px rgba(34,197,94,0.15); border: none; color: #fff; cursor: pointer;">
+              <i class="fa-solid fa-file-excel"></i> Ekspor Excel
+            </button>
+            <span class="badge bg-success-light text-success p-2" style="font-size: 13px; font-weight: 700; border-radius: 8px; margin: 0; display: inline-flex; align-items: center; height: 32px;">
+              Total Terhitung: <span id="modal-total-amount" class="ms-1">Rp 0</span>
+            </span>
+          </div>
         </div>
         
         <!-- Table Detail -->
@@ -669,4 +674,104 @@ function showRevenueDetail(techId, techName, period) {
 function numberFormat(val) {
     return Math.round(val).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 }
+</script>
+
+<!-- SheetJS library for client-side Excel export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const exportBtn = document.getElementById('modal-export-btn');
+    if (exportBtn) {
+        exportBtn.addEventListener('click', function () {
+            const techName = document.getElementById('modal-tech-name').textContent.trim();
+            const periodText = document.getElementById('modal-period').textContent.trim();
+            const tbody = document.getElementById('modal-detail-tbody');
+            const rows = tbody.querySelectorAll('tr');
+            
+            if (rows.length === 0 || (rows.length === 1 && rows[0].querySelector('td[colspan]'))) {
+                alert('Tidak ada data untuk diekspor');
+                return;
+            }
+            
+            let data = [
+                ["Rincian Pendapatan Teknisi"],
+                ["Nama Teknisi:", techName],
+                ["Periode:", periodText],
+                [], // Empty row
+                ["No", "Tanggal", "No Invoice", "Customer", "Nominal Invoice", "Bagi", "Porsi Diterima"]
+            ];
+            
+            let totalNominal = 0;
+            let totalDiterima = 0;
+            
+            rows.forEach((row, index) => {
+                const cells = row.querySelectorAll('td');
+                if (cells.length < 7) return;
+                
+                const no = index + 1;
+                const tanggal = cells[1].textContent.trim();
+                const noInvoice = cells[2].textContent.trim();
+                const customer = cells[3].textContent.trim();
+                
+                // Extract original nominal invoice (removing Rp, dots, etc)
+                const nominalStr = cells[4].textContent.trim().replace(/[^\d]/g, '');
+                const nominal = parseInt(nominalStr, 10) || 0;
+                totalNominal += nominal;
+                
+                // Extract bagi text
+                const bagi = cells[5].textContent.trim();
+                
+                // Extract received portion
+                const diterimaStr = cells[6].textContent.trim().replace(/[^\d]/g, '');
+                const diterima = parseInt(diterimaStr, 10) || 0;
+                totalDiterima += diterima;
+                
+                data.push([no, tanggal, noInvoice, customer, nominal, bagi, diterima]);
+            });
+            
+            // Total row
+            data.push([]);
+            data.push(["", "", "", "TOTAL", totalNominal, "", totalDiterima]);
+            
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            
+            // Auto-format column widths
+            ws['!cols'] = [
+                { wch: 6 },  // No
+                { wch: 15 }, // Tanggal
+                { wch: 25 }, // No Invoice
+                { wch: 30 }, // Customer
+                { wch: 18 }, // Nominal Invoice
+                { wch: 15 }, // Bagi
+                { wch: 18 }  // Porsi Diterima
+            ];
+            
+            // Format numeric columns for currency
+            const range = XLSX.utils.decode_range(ws['!ref']);
+            for (let R = 5; R <= range.e.r; R++) {
+                // Column E: Nominal Invoice (index 4)
+                const cellE = ws[XLSX.utils.encode_cell({r: R, c: 4})];
+                if (cellE && typeof cellE.v === 'number') {
+                    cellE.t = 'n';
+                    cellE.z = '"Rp" #,##0';
+                }
+                
+                // Column G: Porsi Diterima (index 6)
+                const cellG = ws[XLSX.utils.encode_cell({r: R, c: 6})];
+                if (cellG && typeof cellG.v === 'number') {
+                    cellG.t = 'n';
+                    cellG.z = '"Rp" #,##0';
+                }
+            }
+            
+            const wb = XLSX.utils.book_new();
+            const sheetName = ("Rincian_" + techName).substring(0, 31).replace(/[\\\?\*\/\[\]]/g, ""); // SheetJS limit is 31 chars
+            XLSX.utils.book_append_sheet(wb, ws, sheetName);
+            
+            const safeTechName = techName.toLowerCase().replace(/[^a-z0-9]/g, "_");
+            const safePeriod = periodText.toLowerCase().replace(/[^a-z0-9]/g, "_");
+            XLSX.writeFile(wb, `Rincian_Pendapatan_${safeTechName}_${safePeriod}.xlsx`);
+        });
+    }
+});
 </script>
