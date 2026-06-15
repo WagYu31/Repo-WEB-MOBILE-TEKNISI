@@ -52,6 +52,7 @@ $sql = "SELECT pk.kode,
         WHERE pk.teknisi_id = ? 
           AND DATE_FORMAT(pk.tanggal, '%Y-%m') = ? 
           AND pk.deleted_at IS NULL
+        GROUP BY pk.kode
         ORDER BY pk.tanggal ASC";
 
 $stmt = $conn->prepare($sql);
