@@ -418,6 +418,7 @@ if (isset($_GET['error'])) {
                                                          SELECT 1 FROM pelaksanaan_kegiatan px
                                                          WHERE px.kode = k.kode AND px.deleted_at IS NULL
                                                          AND px.status IN ('Lanjut Nanti', 'Lanjutan', 'berjalan', 'dijadwalkan')
+                                                         AND k.status != 'dibatalkan'
                                                      )";
 
                                         $bindTypes = '';
