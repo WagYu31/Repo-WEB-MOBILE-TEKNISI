@@ -9,8 +9,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $teknisi = mysqli_fetch_assoc($resultTek);
     $idTek = $teknisi['id'];
 
-    // Lakukan query DELETE untuk menghapus data sales berdasarkan ID
-    $queryHapusSales = "DELETE FROM user_teknisi WHERE id = '$idTek'"; // Ganti 'nama_tabel_sales' dengan nama tabel yang sesuai
+    // Lakukan query DELETE untuk menghapus data login teknisi berdasarkan teknisi_id
+    $queryHapusSales = "DELETE FROM user_teknisi WHERE teknisi_id = '$idTek'";
 
     if (mysqli_query($conn, $queryHapusSales)) {
         $query = "DELETE FROM teknisi WHERE nik = '$nik'";

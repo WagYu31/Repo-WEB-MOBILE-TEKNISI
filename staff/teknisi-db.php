@@ -56,6 +56,29 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       $reactivate = $conn->prepare("UPDATE teknisi SET nama = ?, telp = ?, ktp = ?, deleted_at = NULL, created_at = ? WHERE id = ?");
       $reactivate->bind_param("ssssi", $nama, $no_tlp, $niKTP, $now, $existing['id']);
       if ($reactivate->execute()) {
+        // Cek dan reactivate atau buat baru di user_teknisi
+        $tek_id = $existing['id'];
+        $userCheck = $conn->prepare("SELECT id FROM user_teknisi WHERE teknisi_id = ?");
+        $userCheck->bind_param("i", $tek_id);
+        $userCheck->execute();
+        $userCheckResult = $userCheck->get_result();
+        
+        if ($userCheckResult->num_rows > 0) {
+          // Reactivate user_teknisi
+          $userReactivate = $conn->prepare("UPDATE user_teknisi SET username = ?, nama = ?, deleted_at = NULL, updated_at = ? WHERE teknisi_id = ?");
+          $userReactivate->bind_param("sssi", $nik, $nama, $now, $tek_id);
+          $userReactivate->execute();
+          $userReactivate->close();
+        } else {
+          // Create new user_teknisi
+          $default_pass = password_hash($nik, PASSWORD_BCRYPT);
+          $userInsert = $conn->prepare("INSERT INTO user_teknisi (username, password, teknisi_id, nama, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)");
+          $userInsert->bind_param("ssisss", $nik, $default_pass, $tek_id, $nama, $now, $now);
+          $userInsert->execute();
+          $userInsert->close();
+        }
+        $userCheck->close();
+
         echo '<script>window.location.href = "data-teknisi.php";</script>';
         exit();
       } else {
@@ -72,6 +95,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $sql = "INSERT INTO teknisi (nik, nama, telp, ktp, created_at) VALUES ('$nik', '$nama', '$no_tlp', '$niKTP', '$now')";
 
     if (mysqli_query($conn, $sql)) {
+      $new_id = mysqli_insert_id($conn);
+      // Buat akun di user_teknisi
+      $default_pass = password_hash($nik, PASSWORD_BCRYPT);
+      $userInsert = $conn->prepare("INSERT INTO user_teknisi (username, password, teknisi_id, nama, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)");
+      $userInsert->bind_param("ssisss", $nik, $default_pass, $new_id, $nama, $now, $now);
+      $userInsert->execute();
+      $userInsert->close();
+
       echo '<script>window.location.href = "data-teknisi.php";</script>';
       exit();
     } else {

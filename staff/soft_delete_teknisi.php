@@ -14,6 +14,12 @@ $stmt = $conn->prepare("UPDATE teknisi SET deleted_at = NOW() WHERE id = ? AND d
 $stmt->bind_param("i", $teknisi_id);
 
 if ($stmt->execute() && $stmt->affected_rows > 0) {
+    // Soft-delete user_teknisi as well
+    $stmtUser = $conn->prepare("UPDATE user_teknisi SET deleted_at = NOW() WHERE teknisi_id = ? AND deleted_at IS NULL");
+    $stmtUser->bind_param("i", $teknisi_id);
+    $stmtUser->execute();
+    $stmtUser->close();
+
     echo "success";
 } else {
     http_response_code(500);
