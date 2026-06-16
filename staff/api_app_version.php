@@ -21,7 +21,7 @@ header('Access-Control-Allow-Methods: GET');
 $response = [
     'min_version'     => '4.0.20',   // Versi minimum yang dibolehkan
     'latest_version'  => '4.0.20',   // Versi terbaru yang tersedia
-    'update_url'      => 'https://jadwal.id-giti.com/staff/download/teknisi-latest.apk?v=4.0.20', // URL download APK
+    'update_url'      => 'https://jadwal.id-giti.com/staff/download/teknisi-v4.0.20.apk', // URL download APK
     'update_message'  => 'Versi terbaru tersedia! Silakan update untuk mendapatkan fitur dan perbaikan terbaru.',
     'force_message'   => 'Versi aplikasi Anda sudah tidak didukung. Silakan update ke versi terbaru untuk melanjutkan.',
 ];
