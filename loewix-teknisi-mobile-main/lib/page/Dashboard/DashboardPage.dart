@@ -256,7 +256,7 @@ class _DashboardPageState extends State<DashboardPage> {
         ],
       ),
     ];
-    CoachMarkHelper.show(context: context, targets: targets);
+    CoachMarkHelper.show(context: context, targets: targets, key: 'dashboard');
   }
 
 

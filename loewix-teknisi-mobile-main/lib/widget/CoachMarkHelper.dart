@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 
 /// Professional speech-bubble coach mark — standardized UI/UX.
@@ -136,14 +137,32 @@ class CoachMarkHelper {
     );
   }
 
-  /// Shows the coach mark overlay with global lock.
-  /// Returns false if another coach mark is already active.
-  static bool show({
+  /// Shows the coach mark overlay with global lock and daily throttling.
+  /// Returns false if another coach mark is already active or shown today.
+  static Future<bool> show({
     required BuildContext context,
     required List<TargetFocus> targets,
-  }) {
+    required String key,
+  }) async {
     // Prevent stacking — only one at a time
     if (_isActive) return false;
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final todayStr = DateTime.now().toIso8601String().substring(0, 10); // YYYY-MM-DD
+      final lastShownKey = 'last_shown_coachmark_$key';
+      final lastShown = prefs.getString(lastShownKey);
+
+      if (lastShown == todayStr) {
+        return false;
+      }
+
+      // Mark as shown today immediately
+      await prefs.setString(lastShownKey, todayStr);
+    } catch (e) {
+      debugPrint('⚠️ SharedPreferences error in CoachMarkHelper: $e');
+    }
+
     _isActive = true;
 
     TutorialCoachMark(

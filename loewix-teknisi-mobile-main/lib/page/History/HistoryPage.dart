@@ -447,6 +447,6 @@ class _HistoryPageState extends State<HistoryPage> {
         ],
       ),
     ];
-    CoachMarkHelper.show(context: context, targets: targets);
+    CoachMarkHelper.show(context: context, targets: targets, key: 'history');
   }
 }

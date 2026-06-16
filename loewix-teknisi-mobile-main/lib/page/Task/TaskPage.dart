@@ -2019,7 +2019,7 @@ class _TaskPageState extends State<TaskPage> {
         ],
       ),
     ];
-    CoachMarkHelper.show(context: context, targets: targets);
+    CoachMarkHelper.show(context: context, targets: targets, key: 'task_detail');
   }
 
   // ─── Coach Mark for Bottom Sheet ─────────────────
@@ -2085,7 +2085,7 @@ class _TaskPageState extends State<TaskPage> {
         ],
       ),
     ];
-    CoachMarkHelper.show(context: sheetCtx, targets: targets);
+    CoachMarkHelper.show(context: sheetCtx, targets: targets, key: 'task_sheet');
   }
 
 }

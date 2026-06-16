@@ -1544,6 +1544,6 @@ class _PencapaianPageState extends State<PencapaianPage>
         ],
       ),
     ];
-    CoachMarkHelper.show(context: context, targets: targets);
+    CoachMarkHelper.show(context: context, targets: targets, key: 'pencapaian');
   }
 }

@@ -199,6 +199,6 @@ class _ContainerPinjamBarangState extends State<ContainerPinjamBarang> {
         ],
       ),
     ];
-    CoachMarkHelper.show(context: context, targets: targets);
+    CoachMarkHelper.show(context: context, targets: targets, key: 'pinjam_barang');
   }
 }
