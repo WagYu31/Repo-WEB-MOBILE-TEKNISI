@@ -27,8 +27,9 @@ class ForceUpdateService {
   /// Returns true jika app boleh lanjut, false jika harus update.
   Future<bool> checkVersion(BuildContext context) async {
     try {
+      final cacheBusterUrl = '$_versionCheckUrl?t=${DateTime.now().millisecondsSinceEpoch}';
       final response = await http.get(
-        Uri.parse(_versionCheckUrl),
+        Uri.parse(cacheBusterUrl),
         headers: {'Accept': 'application/json'},
       ).timeout(const Duration(seconds: 10));
 
