@@ -68,13 +68,13 @@ $success = false;
 if ($resCheck->num_rows === 0) {
     // Belum ada record di user_teknisi. Buat baru!
     $stmtInsert = $conn->prepare("INSERT INTO user_teknisi (username, password, teknisi_id, nama, created_at, updated_at, deleted_at) VALUES (?, ?, ?, ?, ?, ?, ?)");
-    $stmtInsert->bind_param("ssissss", $nik, $hashed, $teknisi_id, $nama, $now, $now, $tek_deleted_at);
+    $stmtInsert->bind_param("ssissss", $nama, $hashed, $teknisi_id, $nama, $now, $now, $tek_deleted_at);
     $success = $stmtInsert->execute();
     $stmtInsert->close();
 } else {
     // Sudah ada record di user_teknisi. Update password & pastikan deleted_at sinkron
-    $stmtUpdate = $conn->prepare("UPDATE user_teknisi SET password = ?, deleted_at = ?, updated_at = ? WHERE teknisi_id = ?");
-    $stmtUpdate->bind_param("sssi", $hashed, $tek_deleted_at, $now, $teknisi_id);
+    $stmtUpdate = $conn->prepare("UPDATE user_teknisi SET password = ?, username = ?, deleted_at = ?, updated_at = ? WHERE teknisi_id = ?");
+    $stmtUpdate->bind_param("ssssi", $hashed, $nama, $tek_deleted_at, $now, $teknisi_id);
     $success = $stmtUpdate->execute();
     $stmtUpdate->close();
 }

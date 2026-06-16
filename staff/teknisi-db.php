@@ -66,14 +66,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($userCheckResult->num_rows > 0) {
           // Reactivate user_teknisi
           $userReactivate = $conn->prepare("UPDATE user_teknisi SET username = ?, nama = ?, deleted_at = NULL, updated_at = ? WHERE teknisi_id = ?");
-          $userReactivate->bind_param("sssi", $nik, $nama, $now, $tek_id);
+          $userReactivate->bind_param("sssi", $nama, $nama, $now, $tek_id);
           $userReactivate->execute();
           $userReactivate->close();
         } else {
           // Create new user_teknisi
           $default_pass = password_hash($nik, PASSWORD_BCRYPT);
           $userInsert = $conn->prepare("INSERT INTO user_teknisi (username, password, teknisi_id, nama, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)");
-          $userInsert->bind_param("ssisss", $nik, $default_pass, $tek_id, $nama, $now, $now);
+          $userInsert->bind_param("ssisss", $nama, $default_pass, $tek_id, $nama, $now, $now);
           $userInsert->execute();
           $userInsert->close();
         }
@@ -99,7 +99,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       // Buat akun di user_teknisi
       $default_pass = password_hash($nik, PASSWORD_BCRYPT);
       $userInsert = $conn->prepare("INSERT INTO user_teknisi (username, password, teknisi_id, nama, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)");
-      $userInsert->bind_param("ssisss", $nik, $default_pass, $new_id, $nama, $now, $now);
+      $userInsert->bind_param("ssisss", $nama, $default_pass, $new_id, $nama, $now, $now);
       $userInsert->execute();
       $userInsert->close();
 
