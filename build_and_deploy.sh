@@ -16,7 +16,8 @@ if [ $? -eq 0 ]; then
   echo "=== 3. Menyalin APK ke folder server lokal ==="
   cd ..
   cp loewix-teknisi-mobile-main/build/app/outputs/flutter-apk/app-release.apk staff/download/teknisi-latest.apk
-  echo "✓ APK berhasil disalin ke staff/download/teknisi-latest.apk"
+  cp loewix-teknisi-mobile-main/build/app/outputs/flutter-apk/app-release.apk staff/apk/teknisi.apk
+  echo "✓ APK berhasil disalin ke server lokal (staff/download/teknisi-latest.apk & staff/apk/teknisi.apk)"
   
   echo "=== 4. Menyalin APK ke Desktop Anda ==="
   cp loewix-teknisi-mobile-main/build/app/outputs/flutter-apk/app-release.apk ~/Desktop/teknisi-v4.0.20.apk
@@ -24,8 +25,8 @@ if [ $? -eq 0 ]; then
   
   echo "=== 5. Silakan push commit terbaru Anda ke GitHub ==="
   echo "Jalankan perintah berikut di terminal lokal Anda:"
-  echo "git add staff/download/teknisi-latest.apk"
-  echo "git commit -m 'chore: update APK file to v4.0.20'"
+  echo "git add staff/download/teknisi-latest.apk staff/apk/teknisi.apk"
+  echo "git commit -m 'chore: update APK files to v4.0.20'"
   echo "git push origin main"
 else
   echo "✗ Gagal melakukan build APK. Silakan periksa error Gradle di atas."
