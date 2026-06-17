@@ -62,18 +62,18 @@ if (!$teknisiInfo) {
     exit;
 }
 
-// Jumlah kegiatan (across quarter months)
-$sql = "SELECT COUNT(DISTINCT k.kode) AS jumlah FROM team_kegiatan tk JOIN kegiatan k ON tk.kegiatan_id = k.id WHERE tk.teknisi_id = ? AND DATE_FORMAT(k.jadwal, '%Y-%m') IN ($monthConditions) AND tk.deleted_at IS NULL";
+// Jumlah kegiatan (across quarter months, consistent with Laporan Detail)
+$sql = "SELECT COUNT(DISTINCT pk.kode) AS jumlah FROM pelaksanaan_kegiatan pk JOIN kegiatan k ON k.id = pk.kegiatan_id WHERE pk.teknisi_id = ? AND pk.deleted_at IS NULL AND k.deleted_at IS NULL AND DATE(pk.waktu_mulai) >= ? AND DATE(pk.waktu_mulai) <= ?";
 $stmtKegiatan = $conn->prepare($sql);
-$stmtKegiatan->bind_param("i", $teknisiId);
+$stmtKegiatan->bind_param("iss", $teknisiId, $quarterStart, $quarterEnd);
 $stmtKegiatan->execute();
 $jumlahKegiatan = $stmtKegiatan->get_result()->fetch_assoc()['jumlah'] ?? 0;
 $stmtKegiatan->close();
 
-// Selesai count
-$sql = "SELECT COUNT(DISTINCT k.kode) AS jumlah FROM team_kegiatan tk JOIN kegiatan k ON tk.kegiatan_id = k.id WHERE tk.teknisi_id = ? AND DATE_FORMAT(k.jadwal, '%Y-%m') IN ($monthConditions) AND tk.deleted_at IS NULL AND k.status = 'selesai'";
+// Selesai count (consistent with Laporan Detail: pelaksanaan with status selesai)
+$sql = "SELECT COUNT(DISTINCT pk.kode) AS jumlah FROM pelaksanaan_kegiatan pk JOIN kegiatan k ON k.id = pk.kegiatan_id WHERE pk.teknisi_id = ? AND pk.deleted_at IS NULL AND k.deleted_at IS NULL AND DATE(pk.waktu_mulai) >= ? AND DATE(pk.waktu_mulai) <= ? AND k.status IN ('selesai', 'selesai by admin')";
 $stmtSelesai = $conn->prepare($sql);
-$stmtSelesai->bind_param("i", $teknisiId);
+$stmtSelesai->bind_param("iss", $teknisiId, $quarterStart, $quarterEnd);
 $stmtSelesai->execute();
 $selesai = $stmtSelesai->get_result()->fetch_assoc()['jumlah'] ?? 0;
 $stmtSelesai->close();

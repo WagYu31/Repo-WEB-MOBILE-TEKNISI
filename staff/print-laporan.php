@@ -89,15 +89,15 @@ $role = $jabatan;
                                 $placeholders = implode(',', array_fill(0, count($allTekIds), '?'));
                                 $types = str_repeat('i', count($allTekIds));
 
-                                // === Kegiatan count ===
+                                // === Kegiatan count (consistent with Laporan Detail) ===
                                 $kegiatanCount = [];
-                                $sql = "SELECT tk.teknisi_id, COUNT(DISTINCT k.kode) as total FROM kegiatan k JOIN team_kegiatan tk ON k.id = tk.kegiatan_id WHERE tk.teknisi_id IN ($placeholders) AND k.created_at >= '$monthStart' AND k.created_at < DATE_ADD('$monthEnd', INTERVAL 1 DAY) AND k.deleted_at IS NULL AND tk.deleted_at IS NULL GROUP BY tk.teknisi_id";
+                                $sql = "SELECT pk.teknisi_id, COUNT(DISTINCT pk.kode) as total FROM pelaksanaan_kegiatan pk JOIN kegiatan k ON k.id = pk.kegiatan_id WHERE pk.teknisi_id IN ($placeholders) AND pk.deleted_at IS NULL AND k.deleted_at IS NULL AND DATE(pk.waktu_mulai) >= '$monthStart' AND DATE(pk.waktu_mulai) <= '$monthEnd' GROUP BY pk.teknisi_id";
                                 $stmt = $conn->prepare($sql); $stmt->bind_param($types, ...$allTekIds); $stmt->execute();
                                 $res = $stmt->get_result(); while ($r = $res->fetch_assoc()) $kegiatanCount[$r['teknisi_id']] = $r['total']; $stmt->close();
 
-                                // === Selesai count ===
+                                // === Selesai count (consistent with Laporan Detail) ===
                                 $selesaiCount = [];
-                                $sql = "SELECT tk.teknisi_id, COUNT(DISTINCT k.kode) as total FROM kegiatan k JOIN team_kegiatan tk ON k.id = tk.kegiatan_id WHERE tk.teknisi_id IN ($placeholders) AND k.created_at >= '$monthStart' AND k.created_at < DATE_ADD('$monthEnd', INTERVAL 1 DAY) AND k.status = 'selesai' AND k.deleted_at IS NULL AND tk.deleted_at IS NULL GROUP BY tk.teknisi_id";
+                                $sql = "SELECT pk.teknisi_id, COUNT(DISTINCT pk.kode) as total FROM pelaksanaan_kegiatan pk JOIN kegiatan k ON k.id = pk.kegiatan_id WHERE pk.teknisi_id IN ($placeholders) AND pk.deleted_at IS NULL AND k.deleted_at IS NULL AND DATE(pk.waktu_mulai) >= '$monthStart' AND DATE(pk.waktu_mulai) <= '$monthEnd' AND k.status IN ('selesai', 'selesai by admin') GROUP BY pk.teknisi_id";
                                 $stmt = $conn->prepare($sql); $stmt->bind_param($types, ...$allTekIds); $stmt->execute();
                                 $res = $stmt->get_result(); while ($r = $res->fetch_assoc()) $selesaiCount[$r['teknisi_id']] = $r['total']; $stmt->close();
 
