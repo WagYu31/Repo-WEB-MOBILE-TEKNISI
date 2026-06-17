@@ -193,11 +193,15 @@ if (isset($idTeknis) && $idTeknis !== null && $conn) {
                 $bonus = ($totalEarning - $target) * 0.60;
             }
 
-            // --- 4. Count kegiatan ---
-            $sqlKeg = "SELECT COUNT(DISTINCT k.kode) AS total FROM team_kegiatan tk JOIN kegiatan k ON tk.kegiatan_id = k.id 
-                       WHERE tk.teknisi_id = '" . mysqli_real_escape_string($conn, $idTeknis) . "' 
-                         AND DATE_FORMAT(k.jadwal, '%Y-%m') IN ($monthConditions) 
-                         AND tk.deleted_at IS NULL";
+            // --- 4. Count kegiatan (selaras dengan tabel detail: dari pelaksanaan_kegiatan + waktu_mulai) ---
+            $sqlKeg = "SELECT COUNT(DISTINCT pk.kode) AS total 
+                       FROM pelaksanaan_kegiatan pk
+                       JOIN kegiatan k ON k.id = pk.kegiatan_id
+                       WHERE pk.teknisi_id = '" . mysqli_real_escape_string($conn, $idTeknis) . "' 
+                         AND pk.deleted_at IS NULL
+                         AND k.deleted_at IS NULL
+                         AND DATE(pk.waktu_mulai) >= '" . mysqli_real_escape_string($conn, $start_date) . "'
+                         AND DATE(pk.waktu_mulai) <= '" . mysqli_real_escape_string($conn, $end_date) . "'";
             $resKeg = mysqli_query($conn, $sqlKeg);
             if ($resKeg) {
                 $rowKeg = mysqli_fetch_assoc($resKeg);
