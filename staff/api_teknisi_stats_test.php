@@ -2,16 +2,12 @@
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET');
-header('Cache-Control: no-cache, no-store, must-revalidate');
-header('Pragma: no-cache');
-header('Expires: 0');
 
 include 'conn.php';
 
 $teknisiId = intval($_GET['teknisi_id'] ?? 0);
 $bulan = intval($_GET['bulan'] ?? date('n'));
 $tahun = intval($_GET['tahun'] ?? date('Y'));
-
 $filterType = $_GET['filter_type'] ?? 'month'; // 'month' or 'quarter'
 
 if ($teknisiId <= 0) {
@@ -114,17 +110,7 @@ if (!empty($feeKodes)) {
     }
 }
 
-// Ensure $target is calculated appropriately
-if ($filterType === 'quarter') {
-    // If target in DB is monthly, and we view quarter, target is 3x.
-    // Assuming target is monthly! If it's already quarterly in DB, we don't multiply.
-    // The previous code didn't multiply target by 3 for quarter. I'll stick to 1x to be safe.
-    $target = floatval($teknisiInfo['target'] ?? 0);
-    // Wait, earlier the user had 'target' = ~10jt for 3 months? Let's check web logic.
-    // For now, let's keep it exactly as it was.
-}
 $target = floatval($teknisiInfo['target'] ?? 0);
-
 $totalKeseluruhan = $totalPendapatan + $totalFee;
 $bonus = ($totalKeseluruhan > $target && $target > 0) ? ($totalKeseluruhan - $target) * 0.60 : 0;
 

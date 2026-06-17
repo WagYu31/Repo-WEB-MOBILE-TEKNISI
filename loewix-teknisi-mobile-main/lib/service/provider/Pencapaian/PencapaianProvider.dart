@@ -71,6 +71,7 @@ class PencapaianProvider extends ChangeNotifier {
     required int teknisiId,
     required int bulan,
     required int tahun,
+    String filterType = 'month',
   }) async {
     _pendapatanState = PencapaianState.loading;
     notifyListeners();
@@ -78,7 +79,7 @@ class PencapaianProvider extends ChangeNotifier {
     try {
       // PHP file on jadwal.id-giti.com/staff/
       final ts = DateTime.now().millisecondsSinceEpoch;
-      final url = 'https://jadwal.id-giti.com/staff/api_teknisi_stats.php?teknisi_id=$teknisiId&bulan=$bulan&tahun=$tahun&_t=$ts';
+      final url = 'https://jadwal.id-giti.com/staff/api_teknisi_stats.php?teknisi_id=$teknisiId&bulan=$bulan&tahun=$tahun&filter_type=$filterType&_t=$ts';
 
       final response = await http.get(
         Uri.parse(url),
@@ -108,10 +109,11 @@ class PencapaianProvider extends ChangeNotifier {
     required int teknisiId,
     required int bulan,
     required int tahun,
+    String filterType = 'month',
   }) async {
     await Future.wait([
       getPencapaian(teknisiId: teknisiId, bulan: bulan, tahun: tahun),
-      getPendapatan(teknisiId: teknisiId, bulan: bulan, tahun: tahun),
+      getPendapatan(teknisiId: teknisiId, bulan: bulan, tahun: tahun, filterType: filterType),
     ]);
   }
 

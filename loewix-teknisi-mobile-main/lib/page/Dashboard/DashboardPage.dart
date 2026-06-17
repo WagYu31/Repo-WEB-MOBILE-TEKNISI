@@ -54,6 +54,11 @@ class _DashboardPageState extends State<DashboardPage> {
   List<DataTask> _orderedTasks = [];
   List<int> _lastDataIds = [];
 
+  // Filter variables
+  int _selectedBulan = DateTime.now().month;
+  int _selectedTahun = DateTime.now().year;
+  String _filterType = 'month'; // 'month' or 'quarter'
+
   // ─── Coach Mark Keys ──────────────────────────
   final GlobalKey _keyStatCard = GlobalKey();
   final GlobalKey _keyTugasAktif = GlobalKey();
@@ -97,11 +102,11 @@ class _DashboardPageState extends State<DashboardPage> {
       try {
         final teknisiIdInt = int.tryParse(_teknisiId!);
         if (teknisiIdInt != null) {
-          final now = DateTime.now();
           Provider.of<PencapaianProvider>(context, listen: false).loadAll(
             teknisiId: teknisiIdInt,
-            bulan: now.month,
-            tahun: now.year,
+            bulan: _selectedBulan,
+            tahun: _selectedTahun,
+            filterType: _filterType,
           );
         }
       } catch (e) {
@@ -270,12 +275,12 @@ class _DashboardPageState extends State<DashboardPage> {
       // Also refresh stats
       final teknisiIdInt = int.tryParse(_teknisiId!);
       if (teknisiIdInt != null) {
-        final now = DateTime.now();
         futures.add(
           Provider.of<PencapaianProvider>(context, listen: false).loadAll(
             teknisiId: teknisiIdInt,
-            bulan: now.month,
-            tahun: now.year,
+            bulan: _selectedBulan,
+            tahun: _selectedTahun,
+            filterType: _filterType,
           ),
         );
       }
@@ -625,15 +630,17 @@ class _DashboardPageState extends State<DashboardPage> {
                               ),
                             ],
                           ),
-                          child: Container(
-                            margin: const EdgeInsets.all(2),
-                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 20),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(18),
-                            ),
-                            child: Row(
-                              children: [
+                          child: GestureDetector(
+                            onTap: _showFilterBottomSheet,
+                            child: Container(
+                              margin: const EdgeInsets.all(2),
+                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 20),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(18),
+                              ),
+                              child: Row(
+                                children: [
                                 _buildStatItem(
                                   emoji: '\uD83D\uDCCB',
                                   value: totalKegiatan.toString(),
@@ -659,6 +666,7 @@ class _DashboardPageState extends State<DashboardPage> {
                                 ),
                               ],
                             ),
+                          ),
                           ),
                         ),
                 ),
@@ -690,7 +698,7 @@ class _DashboardPageState extends State<DashboardPage> {
                         Row(
                           children: [
                             Text(
-                              'Target Bulan Ini',
+                              _getPeriodeLabel(),
                               style: TextStyle(
                                 fontFamily: 'Poppins',
                                 fontSize: 12,
@@ -1279,6 +1287,248 @@ class _DashboardPageState extends State<DashboardPage> {
           ),
         ],
       ),
+    );
+  }
+
+  String _getPeriodeLabel() {
+    if (_filterType == 'quarter') {
+      int quarter = ((_selectedBulan - 1) ~/ 3) + 1;
+      return 'Target Triwulan $quarter $_selectedTahun';
+    } else {
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'];
+      return 'Target ${months[_selectedBulan - 1]} $_selectedTahun';
+    }
+  }
+
+  void _showFilterBottomSheet() {
+    int tempBulan = _selectedBulan;
+    int tempTahun = _selectedTahun;
+    String tempFilter = _filterType;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) {
+        return StatefulBuilder(builder: (context, setStateModal) {
+          return Container(
+            padding: const EdgeInsets.all(20),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(24),
+                topRight: Radius.circular(24),
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 20),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                const Text(
+                  'Pilih Periode',
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: _textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                
+                // Toggle Filter Type
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: const EdgeInsets.all(4),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => setStateModal(() => tempFilter = 'month'),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            decoration: BoxDecoration(
+                              color: tempFilter == 'month' ? Colors.white : Colors.transparent,
+                              borderRadius: BorderRadius.circular(8),
+                              boxShadow: tempFilter == 'month' ? [
+                                BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4, offset: const Offset(0, 2))
+                              ] : [],
+                            ),
+                            child: Center(
+                              child: Text(
+                                'Bulanan',
+                                style: TextStyle(
+                                  fontFamily: 'Poppins',
+                                  fontWeight: tempFilter == 'month' ? FontWeight.w600 : FontWeight.w500,
+                                  color: tempFilter == 'month' ? const Color(0xFF1E40AF) : _textSecondary,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => setStateModal(() => tempFilter = 'quarter'),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            decoration: BoxDecoration(
+                              color: tempFilter == 'quarter' ? Colors.white : Colors.transparent,
+                              borderRadius: BorderRadius.circular(8),
+                              boxShadow: tempFilter == 'quarter' ? [
+                                BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4, offset: const Offset(0, 2))
+                              ] : [],
+                            ),
+                            child: Center(
+                              child: Text(
+                                'Per 3 Bulan',
+                                style: TextStyle(
+                                  fontFamily: 'Poppins',
+                                  fontWeight: tempFilter == 'quarter' ? FontWeight.w600 : FontWeight.w500,
+                                  color: tempFilter == 'quarter' ? const Color(0xFF1E40AF) : _textSecondary,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+                
+                // Year Selector
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.chevron_left),
+                      onPressed: () => setStateModal(() => tempTahun--),
+                    ),
+                    Text(
+                      '$tempTahun',
+                      style: const TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.chevron_right),
+                      onPressed: () => setStateModal(() => tempTahun++),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                
+                // Grid Selection
+                if (tempFilter == 'month')
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 4,
+                      childAspectRatio: 2,
+                      crossAxisSpacing: 8,
+                      mainAxisSpacing: 8,
+                    ),
+                    itemCount: 12,
+                    itemBuilder: (context, index) {
+                      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'];
+                      bool isSelected = tempBulan == index + 1;
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _selectedBulan = index + 1;
+                            _selectedTahun = tempTahun;
+                            _filterType = tempFilter;
+                          });
+                          Navigator.pop(context);
+                          _onRefresh();
+                        },
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: isSelected ? const Color(0xFF1E40AF) : Colors.grey[50],
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: isSelected ? const Color(0xFF1E40AF) : Colors.grey[200]!),
+                          ),
+                          child: Center(
+                            child: Text(
+                              months[index],
+                              style: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontSize: 13,
+                                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                                color: isSelected ? Colors.white : _textPrimary,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  )
+                else
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      childAspectRatio: 2.5,
+                      crossAxisSpacing: 8,
+                      mainAxisSpacing: 8,
+                    ),
+                    itemCount: 4,
+                    itemBuilder: (context, index) {
+                      const quarters = ['Q1 (Jan-Mar)', 'Q2 (Apr-Jun)', 'Q3 (Jul-Sep)', 'Q4 (Okt-Des)'];
+                      int startBulan = index * 3 + 1;
+                      bool isSelected = (tempBulan >= startBulan && tempBulan <= startBulan + 2);
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _selectedBulan = startBulan;
+                            _selectedTahun = tempTahun;
+                            _filterType = tempFilter;
+                          });
+                          Navigator.pop(context);
+                          _onRefresh();
+                        },
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: isSelected ? const Color(0xFF1E40AF) : Colors.grey[50],
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: isSelected ? const Color(0xFF1E40AF) : Colors.grey[200]!),
+                          ),
+                          child: Center(
+                            child: Text(
+                              quarters[index],
+                              style: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontSize: 13,
+                                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                                color: isSelected ? Colors.white : _textPrimary,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                const SizedBox(height: 20),
+              ],
+            ),
+          );
+        });
+      },
     );
   }
 }
