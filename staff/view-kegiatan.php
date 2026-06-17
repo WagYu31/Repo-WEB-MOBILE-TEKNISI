@@ -427,9 +427,27 @@ $stmt_pelaksanaan->close();
                                     </span>
                                 </div>
                             <?php else : ?>
-                                <div style="text-align:center;padding:16px 0;">
-                                    <i class="material-icons" style="font-size:32px;color:#fca5a5;display:block;margin-bottom:6px;">receipt</i>
-                                    <span style="background:#fef2f2;color:#dc2626;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:0.5px;">NO PAYMENT</span>
+                                <div class="detail-row">
+                                    <span class="detail-label">Invoice</span>
+                                    <span class="detail-value" style="color:#cbd5e1;">-</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Nominal</span>
+                                    <span class="detail-value" style="color:#cbd5e1;">Rp 0</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Tgl Invoice</span>
+                                    <span class="detail-value" style="color:#cbd5e1;">-</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Status</span>
+                                    <span class="detail-value">
+                                        <span class="invoice-status invoice-belum"><i class="material-icons" style="font-size:12px;">money_off</i> NO PAYMENT</span>
+                                    </span>
+                                </div>
+                                <div style="margin-top:10px;padding:10px 14px;background:#fefce8;border:1px solid #fde68a;border-radius:8px;font-size:11px;color:#92400e;display:flex;align-items:center;gap:6px;">
+                                    <i class="material-icons" style="font-size:14px;">info</i>
+                                    Invoice belum di-input untuk kegiatan ini. Silakan input melalui halaman <strong>Laporan Kegiatan</strong>.
                                 </div>
                             <?php endif; ?>
                         </div>
