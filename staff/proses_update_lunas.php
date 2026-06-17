@@ -10,6 +10,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $kode_transaksi = $_POST['kode_transaksi'];
         $tanggal_lunas = $_POST['tanggal_lunas'];
 
+        // Normalisasi format tanggal dari DD/MM/YYYY atau DD-MM-YYYY menjadi YYYY-MM-DD
+        $date_parsed = DateTime::createFromFormat('d/m/Y', $tanggal_lunas);
+        if ($date_parsed) {
+            $tanggal_lunas = $date_parsed->format('Y-m-d');
+        } else {
+            $date_parsed = DateTime::createFromFormat('d-m-Y', $tanggal_lunas);
+            if ($date_parsed) {
+                $tanggal_lunas = $date_parsed->format('Y-m-d');
+            }
+        }
+
         // Siapkan statement untuk keamanan
         $sql = "UPDATE kegiatan SET lunas = ? WHERE kode = ?";
         $stmt = $conn->prepare($sql);
