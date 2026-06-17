@@ -62,13 +62,25 @@ if (!$teknisiInfo) {
     exit;
 }
 
-// Jumlah kegiatan (across quarter, only selesai - consistent with Statistik page)
-$sql = "SELECT COUNT(DISTINCT pk.kode) AS jumlah FROM pelaksanaan_kegiatan pk JOIN kegiatan k ON k.id = pk.kegiatan_id WHERE pk.teknisi_id = ? AND pk.deleted_at IS NULL AND k.deleted_at IS NULL AND k.status IN ('selesai', 'selesai by admin') AND DATE(k.created_at) >= ? AND DATE(k.created_at) <= ?";
-$stmtKegiatan = $conn->prepare($sql);
-$stmtKegiatan->bind_param("iss", $teknisiId, $quarterStart, $quarterEnd);
-$stmtKegiatan->execute();
-$jumlahKegiatan = $stmtKegiatan->get_result()->fetch_assoc()['jumlah'] ?? 0;
-$stmtKegiatan->close();
+// Jumlah kegiatan - fetch from Laravel API (same source as Statistik page)
+$laravelUrl = "https://api-teknisi.id-giti.com/api/v4/teknisi/pencapaian/{$teknisiId}/{$bulan}/{$tahun}";
+$ch = curl_init($laravelUrl);
+curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 5, CURLOPT_HTTPHEADER => ['Accept: application/json']]);
+$laravelResp = curl_exec($ch);
+$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+curl_close($ch);
+if ($httpCode == 200 && $laravelResp) {
+    $laravelData = json_decode($laravelResp, true);
+    $jumlahKegiatan = intval($laravelData['total_selesai'] ?? 0);
+} else {
+    // Fallback to local query if API fails
+    $sql = "SELECT COUNT(DISTINCT pk.kode) AS jumlah FROM pelaksanaan_kegiatan pk JOIN kegiatan k ON k.id = pk.kegiatan_id WHERE pk.teknisi_id = ? AND pk.deleted_at IS NULL AND k.deleted_at IS NULL AND k.status IN ('selesai', 'selesai by admin') AND DATE(k.created_at) >= ? AND DATE(k.created_at) <= ?";
+    $stmtKegiatan = $conn->prepare($sql);
+    $stmtKegiatan->bind_param("iss", $teknisiId, $quarterStart, $quarterEnd);
+    $stmtKegiatan->execute();
+    $jumlahKegiatan = $stmtKegiatan->get_result()->fetch_assoc()['jumlah'] ?? 0;
+    $stmtKegiatan->close();
+}
 
 // Selesai count (consistent with Laporan Detail: pelaksanaan with status selesai)
 $sql = "SELECT COUNT(DISTINCT pk.kode) AS jumlah FROM pelaksanaan_kegiatan pk JOIN kegiatan k ON k.id = pk.kegiatan_id WHERE pk.teknisi_id = ? AND pk.deleted_at IS NULL AND k.deleted_at IS NULL AND DATE(pk.waktu_mulai) >= ? AND DATE(pk.waktu_mulai) <= ? AND k.status IN ('selesai', 'selesai by admin')";
