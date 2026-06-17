@@ -58,7 +58,7 @@ if (!empty($allTekIds)) {
 
     // === Invoice + Pendapatan ===
     $invCount = []; $pendapatanSum = [];
-    $sql = "SELECT pk.teknisi_id, COUNT(DISTINCT pk.kode) as cnt, SUM(ROUND(pk.nominal_invoice / counts.tek_count)) as total FROM pendapatan_kegiatan pk JOIN (SELECT kode, COUNT(*) as tek_count FROM pendapatan_kegiatan WHERE DATE_FORMAT(tanggal, '%Y-%m') = ? AND deleted_at IS NULL GROUP BY kode) counts ON pk.kode = counts.kode WHERE pk.teknisi_id IN ($placeholders) AND DATE_FORMAT(pk.tanggal, '%Y-%m') = ? AND pk.deleted_at IS NULL GROUP BY pk.teknisi_id";
+    $sql = "SELECT teknisi_id, COUNT(*) as cnt, SUM(share_amount) as total FROM (SELECT pk.teknisi_id, pk.kode, ROUND(pk.nominal_invoice / counts.tek_count) as share_amount FROM pendapatan_kegiatan pk JOIN (SELECT kode, COUNT(*) as tek_count FROM pendapatan_kegiatan WHERE DATE_FORMAT(tanggal, '%Y-%m') = ? AND deleted_at IS NULL GROUP BY kode) counts ON pk.kode = counts.kode WHERE pk.teknisi_id IN ($placeholders) AND DATE_FORMAT(pk.tanggal, '%Y-%m') = ? AND pk.deleted_at IS NULL GROUP BY pk.teknisi_id, pk.kode) deduped GROUP BY teknisi_id";
     $stmt = $conn->prepare($sql); $paramTypes = 's' . $types . 's'; $paramVals = array_merge([$ym], $allTekIds, [$ym]);
     $stmt->bind_param($paramTypes, ...$paramVals); $stmt->execute();
     $res = $stmt->get_result(); while ($r = $res->fetch_assoc()) { $invCount[$r['teknisi_id']] = $r['cnt']; $pendapatanSum[$r['teknisi_id']] = $r['total']; } $stmt->close();

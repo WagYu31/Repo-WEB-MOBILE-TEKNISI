@@ -59,22 +59,26 @@
 
         // ═══ BATCH QUERY 4: Invoice count + pendapatan per teknisi ═══
         // Patokan: nominal_invoice / jumlah_teknisi_per_kode (agar Total Pendapatan = Detail Invoice)
+        // Use inner dedup by kode to match detail modal's GROUP BY kode
         $invCount = [];
         $pendapatanSum = [];
-        $sql = "SELECT pk.teknisi_id, 
-                       COUNT(DISTINCT pk.kode) as cnt, 
-                       SUM(ROUND(pk.nominal_invoice / counts.tek_count)) as total 
-                FROM pendapatan_kegiatan pk
-                JOIN (
-                    SELECT kode, COUNT(*) as tek_count 
-                    FROM pendapatan_kegiatan 
-                    WHERE DATE_FORMAT(tanggal, '%Y-%m') = ? AND deleted_at IS NULL
-                    GROUP BY kode
-                ) counts ON pk.kode = counts.kode
-                WHERE pk.teknisi_id IN ($placeholders) 
-                AND DATE_FORMAT(pk.tanggal, '%Y-%m') = ? 
-                AND pk.deleted_at IS NULL
-                GROUP BY pk.teknisi_id";
+        $sql = "SELECT teknisi_id, COUNT(*) as cnt, SUM(share_amount) as total
+                FROM (
+                    SELECT pk.teknisi_id, pk.kode,
+                           ROUND(pk.nominal_invoice / counts.tek_count) as share_amount
+                    FROM pendapatan_kegiatan pk
+                    JOIN (
+                        SELECT kode, COUNT(*) as tek_count 
+                        FROM pendapatan_kegiatan 
+                        WHERE DATE_FORMAT(tanggal, '%Y-%m') = ? AND deleted_at IS NULL
+                        GROUP BY kode
+                    ) counts ON pk.kode = counts.kode
+                    WHERE pk.teknisi_id IN ($placeholders) 
+                    AND DATE_FORMAT(pk.tanggal, '%Y-%m') = ? 
+                    AND pk.deleted_at IS NULL
+                    GROUP BY pk.teknisi_id, pk.kode
+                ) deduped
+                GROUP BY teknisi_id";
         $stmt = $conn->prepare($sql);
         $paramTypes = 's' . $types . 's';
         $paramVals = array_merge([$ym], $allTekIds, [$ym]);
@@ -141,9 +145,10 @@
     $grand_total_bonus = 0;
 
     // ═══ GRAND TOTAL PENDAPATAN: Match per-row rounding exactly ═══
-    // Sum ROUND(nominal_invoice / tek_count) across all teknisi rows so total matches displayed rows
-    $sqlGrandPend = "SELECT SUM(rounded_share) as total FROM (
-        SELECT ROUND(pk.nominal_invoice / counts.tek_count) as rounded_share
+    // Dedup by teknisi_id + kode first, then sum, matching BATCH 4 and detail modal
+    $sqlGrandPend = "SELECT SUM(share_amount) as total FROM (
+        SELECT pk.teknisi_id, pk.kode,
+               ROUND(pk.nominal_invoice / counts.tek_count) as share_amount
         FROM pendapatan_kegiatan pk
         JOIN (
             SELECT kode, COUNT(*) as tek_count
@@ -152,6 +157,7 @@
             GROUP BY kode
         ) counts ON pk.kode = counts.kode
         WHERE DATE_FORMAT(pk.tanggal, '%Y-%m') = ? AND pk.deleted_at IS NULL
+        GROUP BY pk.teknisi_id, pk.kode
     ) sub";
     $stmtGP = $conn->prepare($sqlGrandPend);
     $stmtGP->bind_param('ss', $ym, $ym);
