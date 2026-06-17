@@ -62,8 +62,8 @@ if (!$teknisiInfo) {
     exit;
 }
 
-// Jumlah kegiatan (across quarter months, consistent with Laporan Detail)
-$sql = "SELECT COUNT(*) AS jumlah FROM pelaksanaan_kegiatan pk JOIN kegiatan k ON k.id = pk.kegiatan_id JOIN customer cust ON cust.id = k.customer_id WHERE pk.teknisi_id = ? AND pk.deleted_at IS NULL AND k.deleted_at IS NULL AND DATE(pk.waktu_mulai) >= ? AND DATE(pk.waktu_mulai) <= ?";
+// Jumlah kegiatan (across quarter months, COUNT DISTINCT kode = unique activities)
+$sql = "SELECT COUNT(DISTINCT pk.kode) AS jumlah FROM pelaksanaan_kegiatan pk JOIN kegiatan k ON k.id = pk.kegiatan_id WHERE pk.teknisi_id = ? AND pk.deleted_at IS NULL AND k.deleted_at IS NULL AND DATE(pk.waktu_mulai) >= ? AND DATE(pk.waktu_mulai) <= ?";
 $stmtKegiatan = $conn->prepare($sql);
 $stmtKegiatan->bind_param("iss", $teknisiId, $quarterStart, $quarterEnd);
 $stmtKegiatan->execute();
