@@ -29,6 +29,14 @@ if (isset($_GET['error'])) {
 
 // --- Logika untuk Tab Aktif ---
 $active_tab = $_GET['tab'] ?? 'belum_lunas'; // Default ke 'belum_lunas'
+
+// --- Fetch teknisi list for filter ---
+$teknisiFilter = [];
+$resTek = mysqli_query($conn, "SELECT DISTINCT t.id, t.nama FROM teknisi t INNER JOIN team_kegiatan tk ON tk.teknisi_id = t.id WHERE t.deleted_at IS NULL AND tk.deleted_at IS NULL ORDER BY t.nama ASC");
+while ($rTek = mysqli_fetch_assoc($resTek)) {
+    $teknisiFilter[] = $rTek;
+}
+$selectedTeknisi = intval($_GET['teknisi'] ?? 0);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -173,21 +181,30 @@ $active_tab = $_GET['tab'] ?? 'belum_lunas'; // Default ke 'belum_lunas'
                             <div class="d-flex flex-column flex-md-row justify-content-between align-items-center">
                                 <h5 class="mb-3 mb-md-0 page-title text-uppercase font-weight-bold">Laporan Kegiatan Selesai</h5>
                                 <form method="GET" action="" class="w-100 w-md-50">
-                                    <div class="input-group">
+                                    <div class="d-flex gap-2">
                                         <input type="hidden" name="tab" value="<?= htmlspecialchars($active_tab); ?>">
-                                        <input type="text" name="cari" class="form-control search-input" placeholder="Cari nama customer atau no. invoice..." value="<?= htmlspecialchars($_GET['cari'] ?? '') ?>">
-                                        <button class="btn search-btn mb-0" type="submit"><i class="material-icons text-sm text-white">search</i></button>
+                                        <select name="teknisi" class="form-select search-input" style="max-width:200px;padding:8px 12px !important;font-size:13px;">
+                                            <option value="0">Semua Teknisi</option>
+                                            <?php foreach ($teknisiFilter as $tek): ?>
+                                                <option value="<?= $tek['id'] ?>" <?= $selectedTeknisi == $tek['id'] ? 'selected' : '' ?>><?= htmlspecialchars($tek['nama']) ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                        <div class="input-group" style="flex:1;">
+                                            <input type="text" name="cari" class="form-control search-input" placeholder="Cari customer / invoice..." value="<?= htmlspecialchars($_GET['cari'] ?? '') ?>">
+                                            <button class="btn search-btn mb-0" type="submit"><i class="material-icons text-sm text-white">search</i></button>
+                                        </div>
                                     </div>
                                 </form>
                             </div>
                         </div>
                         <div class="card-body p-0">
                             <ul class="nav nav-tabs px-3" id="laporanTab" role="tablist">
+                                <?php $tabParams = ($selectedTeknisi > 0 ? '&teknisi=' . $selectedTeknisi : '') . (!empty($_GET['cari']) ? '&cari=' . urlencode($_GET['cari']) : ''); ?>
                                 <li class="nav-item" role="presentation">
-                                    <a class="nav-link <?= $active_tab == 'belum_lunas' ? 'active' : '' ?>" href="?tab=belum_lunas">Belum Lunas</a>
+                                    <a class="nav-link <?= $active_tab == 'belum_lunas' ? 'active' : '' ?>" href="?tab=belum_lunas<?= $tabParams ?>">Belum Lunas</a>
                                 </li>
                                 <li class="nav-item" role="presentation">
-                                    <a class="nav-link <?= $active_tab == 'lunas' ? 'active' : '' ?>" href="?tab=lunas">Lunas</a>
+                                    <a class="nav-link <?= $active_tab == 'lunas' ? 'active' : '' ?>" href="?tab=lunas<?= $tabParams ?>">Lunas</a>
                                 </li>
                             </ul>
 
@@ -219,15 +236,32 @@ $active_tab = $_GET['tab'] ?? 'belum_lunas'; // Default ke 'belum_lunas'
                                             $sql_main .= " AND (k.lunas IS NOT NULL AND k.lunas != '0000-00-00')";
                                         }
 
+                                        // Filter by teknisi
+                                        if ($selectedTeknisi > 0) {
+                                            $sql_main .= " AND EXISTS (SELECT 1 FROM pelaksanaan_kegiatan px WHERE px.kode = k.kode AND px.teknisi_id = ? AND px.deleted_at IS NULL)";
+                                        }
+
                                         if (!empty($search)) {
                                             $sql_main .= " AND (c.nama LIKE ? OR inv.no_invoice LIKE ?)";
                                         }
                                         $sql_main .= " GROUP BY k.kode ORDER BY k.created_at DESC";
 
                                         $stmt_main = $conn->prepare($sql_main);
+                                        // Dynamic bind params
+                                        $paramTypes = '';
+                                        $paramValues = [];
+                                        if ($selectedTeknisi > 0) {
+                                            $paramTypes .= 'i';
+                                            $paramValues[] = $selectedTeknisi;
+                                        }
                                         if (!empty($search)) {
                                             $search_param = "%$search%";
-                                            $stmt_main->bind_param("ss", $search_param, $search_param);
+                                            $paramTypes .= 'ss';
+                                            $paramValues[] = $search_param;
+                                            $paramValues[] = $search_param;
+                                        }
+                                        if (!empty($paramTypes)) {
+                                            $stmt_main->bind_param($paramTypes, ...$paramValues);
                                         }
                                         $stmt_main->execute();
                                         $result_main = $stmt_main->get_result();
