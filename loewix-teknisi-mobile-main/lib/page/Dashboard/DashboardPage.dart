@@ -648,12 +648,6 @@ class _DashboardPageState extends State<DashboardPage> {
                                 ),
                                 _buildStatDivider(),
                                 _buildStatItem(
-                                  emoji: '\uD83D\uDCB0',
-                                  value: _formatRupiah(totalPendapatan),
-                                  label: 'Pendapatan',
-                                ),
-                                _buildStatDivider(),
-                                _buildStatItem(
                                   emoji: '\u2B50',
                                   value: bonus > 0 ? _formatRupiah(bonus) : '-',
                                   label: 'Bonus',
@@ -674,6 +668,65 @@ class _DashboardPageState extends State<DashboardPage> {
             ),
             // Space for the overlapping card
             SizedBox(height: overlapAmount + 16),
+            // Pendapatan Card
+            if (isLoaded)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+                child: GestureDetector(
+                  onTap: _showFilterBottomSheet,
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.03),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF1F5F9),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Text('\uD83D\uDCB0', style: TextStyle(fontSize: 24)),
+                        ),
+                        const SizedBox(width: 16),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Total Pendapatan',
+                              style: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontSize: 13,
+                                color: _textSecondary.withValues(alpha: 0.8),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              _formatRupiah(totalPendapatan),
+                              style: const TextStyle(
+                                fontFamily: 'Poppins',
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                                color: _textPrimary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
             // Progress bar
             if (isLoaded)
               Padding(
