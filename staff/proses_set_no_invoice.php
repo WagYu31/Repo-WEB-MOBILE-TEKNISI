@@ -2,12 +2,22 @@
 include "conn.php";
 include "session.php";
 
-if (!isset($_GET['kode']) || empty($_GET['kode'])) {
+// Support both GET (legacy) and POST (new modal form)
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $kode_kegiatan = $_POST['kode'] ?? '';
+    $kategori = $_POST['kategori'] ?? '';
+    $keterangan = $_POST['keterangan'] ?? '';
+} else {
+    $kode_kegiatan = $_GET['kode'] ?? '';
+    $kategori = '';
+    $keterangan = '';
+}
+
+if (empty($kode_kegiatan)) {
     header("Location: lap-kegiatan.php?error=3");
     exit();
 }
 
-$kode_kegiatan = $_GET['kode'];
 $nilai_invoice = null;
 
 $query_get_nilai = "SELECT nilai FROM noinv WHERE deleted_at IS NULL ORDER BY id DESC LIMIT 1";
@@ -69,6 +79,23 @@ if ($jumlah_teknisi == 0) {
 
 $nilai_dibagi = $nilai_invoice / $jumlah_teknisi;
 
+// Build keterangan no payment with category
+$nopay_info = '';
+if (!empty($kategori)) {
+    $kategoriLabels = [
+        'garansi' => 'Garansi',
+        'tidak_jadi' => 'Customer Tidak Jadi',
+        'gratis' => 'Gratis / Free Service',
+        'internal' => 'Internal / Kantor',
+        'lainnya' => 'Lainnya'
+    ];
+    $nopay_info = '[NO PAYMENT: ' . ($kategoriLabels[$kategori] ?? $kategori) . ']';
+    if (!empty($keterangan)) {
+        $nopay_info .= ' ' . $keterangan;
+    }
+}
+
+// Update kegiatan
 $query_update_kegiatan = "UPDATE kegiatan SET invoice = 'n/a', paid = ? WHERE kode = ?";
 $stmt_update = $conn->prepare($query_update_kegiatan);
 
@@ -76,6 +103,17 @@ if ($stmt_update) {
     $stmt_update->bind_param("ds", $nilai_dibagi, $kode_kegiatan);
     
     if ($stmt_update->execute()) {
+        // Save no payment reason to catatan_admin if provided
+        if (!empty($nopay_info)) {
+            $sql_catatan = "UPDATE kegiatan SET catatan_admin = ? WHERE kode = ?";
+            $stmt_catatan = $conn->prepare($sql_catatan);
+            if ($stmt_catatan) {
+                $stmt_catatan->bind_param("ss", $nopay_info, $kode_kegiatan);
+                $stmt_catatan->execute();
+                $stmt_catatan->close();
+            }
+        }
+        
         header("Location: lap-kegiatan.php?success=na_updated");
         exit();
     } else {

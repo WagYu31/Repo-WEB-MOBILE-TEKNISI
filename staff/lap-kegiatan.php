@@ -581,9 +581,9 @@ if (!empty($allRows)) {
                                                             <button class="lk-act-btn act-invoice detailBtn" data-bs-toggle="modal" data-bs-target="#detailModal" data-kode="<?= $kodeTransaksi; ?>">
                                                                 <i class="material-icons">receipt</i> Invoice
                                                             </button>
-                                                            <a href="proses_set_no_invoice.php?kode=<?= $kodeTransaksi; ?>" class="lk-act-btn act-nopay" onclick="return confirm('Tandai kegiatan ini Tidak memiliki Payment?')">
+                                                            <button type="button" class="lk-act-btn act-nopay noPayBtn" data-kode="<?= $kodeTransaksi; ?>" data-cust="<?= htmlspecialchars($row_main['nama_cust']); ?>">
                                                                 <i class="material-icons">money_off</i> No Pay
-                                                            </a>
+                                                            </button>
                                                         </div>
                                                         <div class="lk-act-row">
                                                             <a href="proses_set_tidak_valid.php?kode=<?= $kodeTransaksi; ?>" class="lk-act-btn act-invalid" onclick="return confirm('Tandai kegiatan ini sebagai Tidak Valid?')">
@@ -726,6 +726,45 @@ endif; // Akhir dari blok if ($show_modal)
         </div>
     </div>
 
+    <!-- Modal No Payment -->
+    <div class="modal fade" id="noPayModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius:14px;border:none;box-shadow:0 8px 32px rgba(0,0,0,0.15);">
+                <div class="modal-header" style="background:linear-gradient(135deg,#d97706,#f59e0b);border-radius:14px 14px 0 0;padding:16px 20px;">
+                    <h5 class="modal-title" style="color:#fff;font-size:15px;font-weight:700;"><i class="material-icons" style="font-size:18px;vertical-align:middle;margin-right:6px;">money_off</i>Tandai No Payment</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" style="font-size:10px;"></button>
+                </div>
+                <div class="modal-body" style="padding:20px;">
+                    <input type="hidden" id="nopay_kode">
+                    
+                    <div style="background:#fefce8;border:1px solid #fde68a;border-radius:10px;padding:12px 14px;margin-bottom:16px;display:flex;align-items:center;gap:8px;">
+                        <i class="material-icons" style="font-size:18px;color:#d97706;">info</i>
+                        <div style="font-size:12px;color:#92400e;">
+                            Kegiatan <strong id="nopay_cust_display"></strong> akan ditandai sebagai <strong>No Payment</strong>.
+                        </div>
+                    </div>
+
+                    <label style="font-size:12px;font-weight:700;color:#475569;margin-bottom:6px;display:block;">Kategori</label>
+                    <select id="nopay_kategori" style="width:100%;border:1.5px solid #e5e7eb;border-radius:10px;padding:10px 14px;font-size:13px;color:#1e293b;background:#f8fafc;cursor:pointer;margin-bottom:14px;">
+                        <option value="garansi">🔧 Garansi</option>
+                        <option value="tidak_jadi">❌ Customer Tidak Jadi</option>
+                        <option value="gratis">🎁 Gratis / Free Service</option>
+                        <option value="internal">🏢 Internal / Kantor</option>
+                        <option value="lainnya">📝 Lainnya</option>
+                    </select>
+
+                    <label style="font-size:12px;font-weight:700;color:#475569;margin-bottom:6px;display:block;">Keterangan <span style="color:#94a3b8;font-weight:400;">(opsional)</span></label>
+                    <textarea id="nopay_keterangan" rows="3" style="width:100%;border:1.5px solid #e5e7eb;border-radius:10px;padding:12px 14px;font-size:13px;color:#1e293b;background:#f8fafc;font-family:inherit;resize:vertical;" placeholder="Tulis alasan kenapa No Payment..."></textarea>
+
+                    <div style="display:flex;gap:8px;margin-top:16px;">
+                        <button type="button" class="ep-btn-cancel" data-bs-dismiss="modal" style="flex:1;padding:10px;border:1.5px solid #e5e7eb;border-radius:10px;background:#fff;color:#64748b;font-size:13px;font-weight:600;cursor:pointer;">Batal</button>
+                        <button type="button" id="btnKonfirmNoPay" style="flex:2;padding:10px;border:none;border-radius:10px;background:linear-gradient(135deg,#d97706,#f59e0b);color:#fff;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(217,119,6,0.25);">Konfirmasi No Payment</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <?php include "js-include.php"; ?>
 
     <!-- Horizontal scroll JS removed - now using vertical grid layout -->
@@ -799,6 +838,48 @@ endif; // Akhir dari blok if ($show_modal)
                     btn.prop('disabled', false).text('Simpan Catatan');
                 }
             });
+        });
+        // No Payment modal
+        $(document).on('click', '.noPayBtn', function() {
+            var kode = $(this).data('kode');
+            var cust = $(this).data('cust');
+            $('#nopay_kode').val(kode);
+            $('#nopay_cust_display').text(cust);
+            $('#nopay_kategori').val('garansi');
+            $('#nopay_keterangan').val('');
+            var modal = new bootstrap.Modal(document.getElementById('noPayModal'));
+            modal.show();
+        });
+
+        // Konfirmasi No Payment
+        $('#btnKonfirmNoPay').click(function() {
+            var btn = $(this);
+            var kode = $('#nopay_kode').val();
+            var kategori = $('#nopay_kategori').val();
+            var keterangan = $('#nopay_keterangan').val();
+            btn.prop('disabled', true).text('Memproses...');
+
+            // Submit via form POST
+            var form = document.createElement('form');
+            form.method = 'POST';
+            form.action = 'proses_set_no_invoice.php';
+            
+            var inputs = {
+                'kode': kode,
+                'kategori': kategori,
+                'keterangan': keterangan
+            };
+            
+            for (var key in inputs) {
+                var input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = key;
+                input.value = inputs[key];
+                form.appendChild(input);
+            }
+            
+            document.body.appendChild(form);
+            form.submit();
         });
     });
     </script>
