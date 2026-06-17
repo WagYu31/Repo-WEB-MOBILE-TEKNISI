@@ -26,8 +26,10 @@ $monthTypes = str_repeat('s', $monthCount);
 // === Main query: teknisi + kegiatan count + pendapatan across range ===
 $sql = "SELECT 
             t.id, t.nik, t.nama, t.telp, t.target,
-            (SELECT COUNT(DISTINCT k.kode) FROM team_kegiatan tk JOIN kegiatan k ON tk.kegiatan_id = k.id 
-             WHERE tk.teknisi_id = t.id AND DATE_FORMAT(k.jadwal, '%Y-%m') IN ($monthPlaceholders) AND tk.deleted_at IS NULL) AS jumlah_kegiatan,
+            (SELECT COUNT(DISTINCT pk_c.kode) FROM pelaksanaan_kegiatan pk_c 
+             JOIN kegiatan k_c ON k_c.id = pk_c.kegiatan_id
+             WHERE pk_c.teknisi_id = t.id AND pk_c.deleted_at IS NULL AND k_c.deleted_at IS NULL
+             AND DATE(pk_c.waktu_mulai) >= ? AND DATE(pk_c.waktu_mulai) <= ?) AS jumlah_kegiatan,
             (SELECT COALESCE(SUM(ROUND(pk.nominal_invoice / (
                 SELECT COUNT(*) FROM pendapatan_kegiatan pk2 
                 WHERE pk2.kode = pk.kode AND DATE_FORMAT(pk2.tanggal, '%Y-%m') IN ($monthPlaceholders) AND pk2.deleted_at IS NULL
@@ -38,10 +40,10 @@ $sql = "SELECT
         ORDER BY t.nama ASC";
 
 $stmt = $conn->prepare($sql);
-// Bind months 3 times (kegiatan, pendapatan subquery count, pendapatan main)
-$allMonthParams = array_merge($months, $months, $months);
-$allMonthTypes = str_repeat('s', count($allMonthParams));
-$stmt->bind_param($allMonthTypes, ...$allMonthParams);
+// Bind: 2 dates (kegiatan count) + months x2 (pendapatan subquery count, pendapatan main)
+$allParams = array_merge([$rangeStart, $rangeEnd], $months, $months);
+$allTypes = 'ss' . str_repeat('s', count($months) * 2);
+$stmt->bind_param($allTypes, ...$allParams);
 $stmt->execute();
 $result = $stmt->get_result();
 $technicians = $result->fetch_all(MYSQLI_ASSOC);
