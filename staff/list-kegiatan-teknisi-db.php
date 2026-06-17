@@ -193,10 +193,11 @@ if (isset($idTeknis) && $idTeknis !== null && $conn) {
                 $bonus = ($totalEarning - $target) * 0.60;
             }
 
-            // --- 4. Count kegiatan (selaras dengan tabel detail: dari pelaksanaan_kegiatan + waktu_mulai) ---
-            $sqlKeg = "SELECT COUNT(DISTINCT pk.kode) AS total 
+            // --- 4. Count kegiatan (= jumlah baris di tabel detail) ---
+            $sqlKeg = "SELECT COUNT(*) AS total 
                        FROM pelaksanaan_kegiatan pk
                        JOIN kegiatan k ON k.id = pk.kegiatan_id
+                       JOIN customer cust ON cust.id = k.customer_id
                        WHERE pk.teknisi_id = '" . mysqli_real_escape_string($conn, $idTeknis) . "' 
                          AND pk.deleted_at IS NULL
                          AND k.deleted_at IS NULL

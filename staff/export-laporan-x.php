@@ -46,7 +46,7 @@ if (!empty($allTekIds)) {
 
     // === Kegiatan count (consistent with Laporan Detail) ===
     $kegiatanCount = [];
-    $sql = "SELECT pk.teknisi_id, COUNT(DISTINCT pk.kode) as total FROM pelaksanaan_kegiatan pk JOIN kegiatan k ON k.id = pk.kegiatan_id WHERE pk.teknisi_id IN ($placeholders) AND pk.deleted_at IS NULL AND k.deleted_at IS NULL AND DATE(pk.waktu_mulai) >= '$monthStart' AND DATE(pk.waktu_mulai) <= '$monthEnd' GROUP BY pk.teknisi_id";
+    $sql = "SELECT pk.teknisi_id, COUNT(*) as total FROM pelaksanaan_kegiatan pk JOIN kegiatan k ON k.id = pk.kegiatan_id JOIN customer cust ON cust.id = k.customer_id WHERE pk.teknisi_id IN ($placeholders) AND pk.deleted_at IS NULL AND k.deleted_at IS NULL AND DATE(pk.waktu_mulai) >= '$monthStart' AND DATE(pk.waktu_mulai) <= '$monthEnd' GROUP BY pk.teknisi_id";
     $stmt = $conn->prepare($sql); $stmt->bind_param($types, ...$allTekIds); $stmt->execute();
     $res = $stmt->get_result(); while ($r = $res->fetch_assoc()) $kegiatanCount[$r['teknisi_id']] = $r['total']; $stmt->close();
 

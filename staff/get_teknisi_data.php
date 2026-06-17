@@ -26,8 +26,9 @@ $monthTypes = str_repeat('s', $monthCount);
 // === Main query: teknisi + kegiatan count + pendapatan across range ===
 $sql = "SELECT 
             t.id, t.nik, t.nama, t.telp, t.target,
-            (SELECT COUNT(DISTINCT pk_c.kode) FROM pelaksanaan_kegiatan pk_c 
+            (SELECT COUNT(*) FROM pelaksanaan_kegiatan pk_c 
              JOIN kegiatan k_c ON k_c.id = pk_c.kegiatan_id
+             JOIN customer cust_c ON cust_c.id = k_c.customer_id
              WHERE pk_c.teknisi_id = t.id AND pk_c.deleted_at IS NULL AND k_c.deleted_at IS NULL
              AND DATE(pk_c.waktu_mulai) >= ? AND DATE(pk_c.waktu_mulai) <= ?) AS jumlah_kegiatan,
             (SELECT COALESCE(SUM(ROUND(pk.nominal_invoice / (
