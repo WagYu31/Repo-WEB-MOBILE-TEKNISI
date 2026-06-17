@@ -101,7 +101,8 @@ $result = mysqli_stmt_get_result($stmt);
             <input type="hidden" name="kode_transaksi" value="<?php echo htmlspecialchars($kode_transaksi); ?>">
 
             <div class="mb-3 mt-3">
-                <input type="text" class="form-control" placeholder="Kode Invoice" id="kodeInvoice" name="kode_invoice" value="<?php echo htmlspecialchars((strtolower($default_invoice) == 'no') ? '' : $default_invoice); ?>" required>
+                <input type="text" class="form-control" placeholder="Kode Invoice" id="kodeInvoice" name="kode_invoice" value="<?php echo htmlspecialchars((strtolower($default_invoice) == 'no') ? '' : $default_invoice); ?>" required autocomplete="off">
+                <div id="invoiceFeedback" style="font-size:12px; margin-top:4px;"></div>
             </div>
 
             <div class="mb-3">
@@ -194,11 +195,58 @@ $result = mysqli_stmt_get_result($stmt);
                 <p class="text-danger">Tidak ada pelaksanaan kegiatan yang ditemukan untuk kode transaksi ini.</p>
             <?php endif; ?>
 
-            <button type="submit" class="btn btn-primary w-100">Submit</button>
+            <button type="submit" class="btn btn-primary w-100" id="btnSubmitInvoice">SUBMIT</button>
         </form>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    (function() {
+        const input = document.getElementById('kodeInvoice');
+        const feedback = document.getElementById('invoiceFeedback');
+        const btn = document.getElementById('btnSubmitInvoice');
+        const currentKode = '<?= htmlspecialchars($kode_transaksi) ?>';
+        let debounceTimer = null;
+
+        input.addEventListener('input', function() {
+            clearTimeout(debounceTimer);
+            const val = this.value.trim();
+            if (val.length < 2) {
+                feedback.innerHTML = '';
+                btn.disabled = false;
+                input.style.borderColor = '';
+                return;
+            }
+            debounceTimer = setTimeout(() => {
+                fetch(`check_invoice_code.php?kode_invoice=${encodeURIComponent(val)}&current_kode=${encodeURIComponent(currentKode)}`)
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.exists) {
+                            feedback.innerHTML = `<span style="color:#dc3545;">⚠️ ${data.message}</span>`;
+                            btn.disabled = true;
+                            input.style.borderColor = '#dc3545';
+                        } else {
+                            feedback.innerHTML = `<span style="color:#198754;">✅ Kode Invoice tersedia</span>`;
+                            btn.disabled = false;
+                            input.style.borderColor = '#198754';
+                        }
+                    })
+                    .catch(() => {
+                        feedback.innerHTML = '';
+                        btn.disabled = false;
+                        input.style.borderColor = '';
+                    });
+            }, 400);
+        });
+
+        input.closest('form').addEventListener('submit', function(e) {
+            if (btn.disabled) {
+                e.preventDefault();
+                alert('Kode Invoice sudah digunakan! Silakan gunakan kode yang berbeda.');
+            }
+        });
+    })();
+    </script>
 </body>
 
 </html>

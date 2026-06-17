@@ -4,11 +4,25 @@ include 'conn.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $kode_transaksi = $_POST['kode_transaksi'];
-    $kode_invoice = $_POST['kode_invoice'];
+    $kode_invoice = trim($_POST['kode_invoice']);
     $nominal_invoice = preg_replace('/[^0-9]/', '', $_POST['nominal_invoice']); 
     $tanggal_invoice = $_POST['tanggal_invoice'];
     $tanggal_lunas = $_POST['tanggal_lunas'];
     $selected_kegiatan = isset($_POST['selected_kegiatan']) ? $_POST['selected_kegiatan'] : [];
+
+    // === Validasi duplikat kode invoice ===
+    $sqlDupCheck = "SELECT id, kode FROM pendapatan_kegiatan WHERE no_invoice = ? AND kode != ? AND deleted_at IS NULL LIMIT 1";
+    $stmtDup = $conn->prepare($sqlDupCheck);
+    $stmtDup->bind_param('ss', $kode_invoice, $kode_transaksi);
+    $stmtDup->execute();
+    $resDup = $stmtDup->get_result();
+    if ($resDup->num_rows > 0) {
+        $rowDup = $resDup->fetch_assoc();
+        $stmtDup->close();
+        echo "<script>alert('Kode Invoice \\\"" . addslashes($kode_invoice) . "\\\" sudah digunakan pada transaksi " . addslashes($rowDup['kode']) . ". Gunakan kode invoice yang berbeda.'); window.history.back();</script>";
+        exit;
+    }
+    $stmtDup->close();
 
     // Cek apakah kode transaksi sudah ada pada tabel pendapatan_kegiatan
     $sqlCheck = "SELECT id FROM pendapatan_kegiatan WHERE kode = '$kode_transaksi' AND deleted_at IS NULL";
