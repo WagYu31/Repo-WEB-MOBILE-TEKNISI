@@ -562,7 +562,7 @@ class _DashboardPageState extends State<DashboardPage> {
         final bool isLoaded = provider.pendapatanState == PencapaianState.loaded;
 
         final totalKegiatan = provider.pendapatanData?.jumlahKegiatan ?? 0;
-        final totalPendapatan = provider.pendapatanData?.totalKeseluruhan ?? 0;
+        final totalPendapatan = provider.pendapatanData?.totalPendapatan ?? 0;
         final bonus = provider.pendapatanData?.bonus ?? 0;
         final target = provider.pendapatanData?.target ?? 0;
         final progress = target > 0
