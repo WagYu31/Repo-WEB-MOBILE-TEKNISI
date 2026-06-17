@@ -233,7 +233,7 @@ $stmt_pelaksanaan->close();
                                 </li>
                             </ul>
                         <?php else : ?>
-                            <p class="text-center text-danger mb-0">Invoice belum dibuat.</p>
+                            <p class="text-center mb-0"><span style="background:#fef2f2;color:#dc2626;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:0.5px;">NO PAYMENT</span></p>
                         <?php endif; ?>
                     </div>
                 </div>

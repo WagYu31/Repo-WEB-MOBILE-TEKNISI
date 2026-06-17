@@ -137,7 +137,7 @@ $nama_bulan = $daftar_bulan[(int)$bulan];
                                                 <p class="mb-0 fw-bolder text-success">Rp 30.000</p>
                                             </div>
                                         <?php else : ?>
-                                            <p class="small text-center text-danger fw-bold mb-0">Invoice Belum Dibuat</p>
+                                            <p class="small text-center mb-0"><span style="background:#fef2f2;color:#dc2626;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:0.5px;">NO PAYMENT</span></p>
                                         <?php endif; ?>
                                     </div>
                                 </td>

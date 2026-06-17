@@ -113,7 +113,7 @@ $stmt->close();
                                                     <p class="text-sm mb-0"><strong>Status:</strong>
                                                         <?php if(!empty($activity['info']['lunas']) && $activity['info']['lunas'] != '0000-00-00'): ?><span class="badge badge-sm bg-gradient-success">LUNAS</span><?php else: ?><span class="badge badge-sm bg-gradient-danger">BELUM LUNAS</span><?php endif; ?>
                                                     </p>
-                                                <?php else: ?><p class="text-sm text-muted">Invoice belum dibuat.</p><?php endif; ?>
+                                                <?php else: ?><p class="text-sm"><span style="background:#fef2f2;color:#dc2626;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:0.5px;">NO PAYMENT</span></p><?php endif; ?>
                                             </div>
                                             <div class="col-md-8 border-start ps-md-4 mt-4 mt-md-0">
                                                 <h6 class="font-weight-bolder">Absensi Teknisi</h6>

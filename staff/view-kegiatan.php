@@ -429,7 +429,7 @@ $stmt_pelaksanaan->close();
                             <?php else : ?>
                                 <div style="text-align:center;padding:16px 0;">
                                     <i class="material-icons" style="font-size:32px;color:#fca5a5;display:block;margin-bottom:6px;">receipt</i>
-                                    <span style="color:#ef4444;font-size:13px;font-weight:600;">Invoice belum dibuat</span>
+                                    <span style="background:#fef2f2;color:#dc2626;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:0.5px;">NO PAYMENT</span>
                                 </div>
                             <?php endif; ?>
                         </div>
