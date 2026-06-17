@@ -29,9 +29,29 @@ if (!function_exists('shortenTechnicianName_all')) {
       <i class="material-icons">check_circle</i>
       <h6>Selesai</h6>
     </div>
-    <div class="d-flex align-items-center" style="position:relative;">
-      <i class="material-icons" style="position:absolute;left:10px;font-size:16px;color:#94a3b8;pointer-events:none;">search</i>
-      <input type="text" id="searchAll" placeholder="Cari nama, kode, teknisi..." style="background:#fff;border:2px solid #e2e8f0;border-radius:8px;padding:7px 12px 7px 32px;font-size:12px;color:#1e293b;outline:none;width:240px;transition:border-color 0.2s;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#e2e8f0'" oninput="filterRows(this.value,'listAll')">
+    <div class="d-flex align-items-center gap-2">
+      <select id="filterMonth" onchange="filterSelesai()" style="background:#fff;border:2px solid #e2e8f0;border-radius:8px;padding:7px 12px;font-size:12px;color:#1e293b;outline:none;cursor:pointer;transition:border-color 0.2s;font-weight:600;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#e2e8f0'">
+        <option value="all">📅 Semua Bulan</option>
+        <?php
+        $bulanList = [1=>'Januari',2=>'Februari',3=>'Maret',4=>'April',5=>'Mei',6=>'Juni',7=>'Juli',8=>'Agustus',9=>'September',10=>'Oktober',11=>'November',12=>'Desember'];
+        $currentMonth = (int)date('n');
+        $currentYear = (int)date('Y');
+        // Tampilkan 12 bulan ke belakang dari bulan ini
+        for ($i = 0; $i < 12; $i++) {
+            $m = $currentMonth - $i;
+            $y = $currentYear;
+            if ($m <= 0) { $m += 12; $y--; }
+            $val = $y . '-' . str_pad($m, 2, '0', STR_PAD_LEFT);
+            $label = $bulanList[$m] . ' ' . $y;
+            $selected = ($i === 0) ? ' selected' : '';
+            echo "<option value=\"$val\"$selected>$label</option>";
+        }
+        ?>
+      </select>
+      <div style="position:relative;">
+        <i class="material-icons" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:16px;color:#94a3b8;pointer-events:none;">search</i>
+        <input type="text" id="searchAll" placeholder="Cari nama, kode, invoice..." style="background:#fff;border:2px solid #e2e8f0;border-radius:8px;padding:7px 12px 7px 32px;font-size:12px;color:#1e293b;outline:none;width:240px;transition:border-color 0.2s;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#e2e8f0'" oninput="filterSelesai()">
+      </div>
     </div>
   </div>
 </div>
@@ -75,7 +95,10 @@ if (!function_exists('shortenTechnicianName_all')) {
             elseif (strpos($kegLower, 'pasang') !== false) $badgeClass = 'badge-pasang';
             $displayInvoice = $row['invoice'] ?? 'no';
           ?>
-            <li class="list-group-item tbl-row">
+            <?php
+            $jadwalMonth = date('Y-m', strtotime($row['jadwal']));
+            ?>
+            <li class="list-group-item tbl-row" data-month="<?= $jadwalMonth ?>">
               <div class="row px-3 w-100 align-items-start">
                 <div class="col-md-2">
                   <?php if (!empty($row['kegiatan'])): ?>
@@ -138,22 +161,30 @@ if (!function_exists('shortenTechnicianName_all')) {
   </div>
 </div>
 <script>
-function filterRows(query, listId) {
-  var list = document.getElementById(listId);
+function filterSelesai() {
+  var list = document.getElementById('listAll');
   if (!list) return;
   var rows = list.querySelectorAll('.tbl-row');
-  var q = query.toLowerCase().trim();
+  var searchInput = document.getElementById('searchAll');
+  var monthSelect = document.getElementById('filterMonth');
+  var q = (searchInput ? searchInput.value : '').toLowerCase().trim();
+  var selectedMonth = monthSelect ? monthSelect.value : 'all';
   var count = 0;
   rows.forEach(function(row) {
     var text = row.textContent.toLowerCase();
-    if (q === '' || text.indexOf(q) > -1) { row.style.display = ''; count++; }
+    var rowMonth = row.getAttribute('data-month') || '';
+    var matchText = (q === '' || text.indexOf(q) > -1);
+    var matchMonth = (selectedMonth === 'all' || rowMonth === selectedMonth);
+    if (matchText && matchMonth) { row.style.display = ''; count++; }
     else { row.style.display = 'none'; }
   });
   var noResult = list.querySelector('.search-no-result');
-  if (count === 0 && q !== '') {
-    if (!noResult) { noResult = document.createElement('div'); noResult.className = 'search-no-result ms-4 text-sm py-4'; noResult.style.color = '#94a3b8'; list.appendChild(noResult); }
-    noResult.textContent = 'Tidak ditemukan "' + query + '"';
+  if (count === 0) {
+    if (!noResult) { noResult = document.createElement('div'); noResult.className = 'search-no-result'; noResult.style.cssText = 'padding:24px 16px;text-align:center;color:#94a3b8;font-size:13px;'; list.appendChild(noResult); }
+    noResult.innerHTML = '<i class="material-icons" style="font-size:32px;color:#cbd5e1;display:block;margin-bottom:8px;">search_off</i>Tidak ditemukan';
     noResult.style.display = '';
   } else if (noResult) { noResult.style.display = 'none'; }
 }
+// Auto-filter on page load (default = bulan ini)
+document.addEventListener('DOMContentLoaded', function() { filterSelesai(); });
 </script>
