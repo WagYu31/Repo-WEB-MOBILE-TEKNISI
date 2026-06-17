@@ -380,35 +380,40 @@ $active_tab = $_GET['tab'] ?? 'belum_lunas'; // Default ke 'belum_lunas'
 
     <?php include "js-include.php"; ?>
     <script>
-    $(document).ready(function() {
+    document.addEventListener('DOMContentLoaded', function() {
         // --- Handler untuk Modal Pelunasan ---
-        $('.lunasBtn').click(function() {
-            var kode_transaksi = $(this).data('kode');
-            $('#kode_transaksi_lunas').val(kode_transaksi);
-            // Set tanggal default ke hari ini
-            document.getElementById('tanggal_lunas').valueAsDate = new Date();
+        const lunasButtons = document.querySelectorAll('.lunasBtn');
+        lunasButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const kode_transaksi = this.getAttribute('data-kode');
+                document.getElementById('kode_transaksi_lunas').value = kode_transaksi;
+                document.getElementById('tanggal_lunas').valueAsDate = new Date();
+            });
         });
 
-        $('#lunasForm').submit(function(e) {
-            e.preventDefault(); // Mencegah form submit biasa
-            
-            var formData = $(this).serialize(); // Mengambil data dari form
-            
-            Swal.fire({
-                title: 'Memproses...',
-                text: 'Sedang menyimpan status pelunasan',
-                allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
-            });
-            
-            $.ajax({
-                url: 'proses_update_lunas.php', // File PHP untuk memproses update
-                type: 'POST',
-                data: formData,
-                success: function(response) {
-                    if (response.trim() === 'success') {
+        const lunasForm = document.getElementById('lunasForm');
+        if (lunasForm) {
+            lunasForm.addEventListener('submit', function(e) {
+                e.preventDefault(); // Mencegah form submit biasa
+                
+                const formData = new FormData(lunasForm);
+                
+                Swal.fire({
+                    title: 'Memproses...',
+                    text: 'Sedang menyimpan status pelunasan',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+                
+                fetch('proses_update_lunas.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.text())
+                .then(responseText => {
+                    if (responseText.trim() === 'success') {
                         Swal.fire({
                             title: 'Berhasil!',
                             text: 'Status pembayaran berhasil diperbarui.',
@@ -421,22 +426,22 @@ $active_tab = $_GET['tab'] ?? 'belum_lunas'; // Default ke 'belum_lunas'
                     } else {
                         Swal.fire({
                             title: 'Gagal!',
-                            text: 'Gagal memperbarui status: ' + response,
+                            text: 'Gagal memperbarui status: ' + responseText,
                             icon: 'error',
                             confirmButtonText: 'Tutup'
                         });
                     }
-                },
-                error: function(xhr, status, error) {
+                })
+                .catch(error => {
                     Swal.fire({
                         title: 'Error!',
                         text: 'Terjadi kesalahan koneksi: ' + error,
                         icon: 'error',
                         confirmButtonText: 'Tutup'
                     });
-                }
+                });
             });
-        });
+        }
     });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
