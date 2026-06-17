@@ -46,6 +46,12 @@ $role = $jabatan;
     <?php
     include "cek-menu.php";
     $current_date = (isset($_GET['cariBulanTahun']) && !empty($_GET['cariBulanTahun'])) ? $_GET['cariBulanTahun'] : date("Y-m");
+    $filterPeriode = $_GET['periode'] ?? '1'; // '1' = 1 bulan, '3' = 3 bulan
+    $filterTeknisiId = intval($_GET['ftek'] ?? 0); // 0 = semua
+    // Build teknisi options
+    $tekOptions = [];
+    $resTekOpt = mysqli_query($conn, "SELECT id, nama FROM teknisi WHERE deleted_at IS NULL ORDER BY nama ASC");
+    while ($rTekOpt = mysqli_fetch_assoc($resTekOpt)) $tekOptions[] = $rTekOpt;
     ?>
     <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg">
         <?php include "nav-top.php"; ?>

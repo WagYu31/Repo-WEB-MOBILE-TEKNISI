@@ -11,6 +11,31 @@
     $tahun_filter = date('Y', $timestamp);
     $ym = $current_date; // e.g. "2026-06"
 
+    // Period calculation (1 or 3 months)
+    $filterPeriode = $filterPeriode ?? '1';
+    $filterTeknisiId = $filterTeknisiId ?? 0;
+    if ($filterPeriode == '3') {
+        $dtStart = new DateTime($current_date . '-01');
+        $dtStart->modify('-2 months');
+        $monthStart = $dtStart->format('Y-m-d');
+        $monthEnd = date('Y-m-t', $timestamp);
+        // Build list of Y-m for SQL IN
+        $ymList = [];
+        $dtTmp = clone $dtStart;
+        for ($mi = 0; $mi < 3; $mi++) {
+            $ymList[] = $dtTmp->format('Y-m');
+            $dtTmp->modify('+1 month');
+        }
+        $ymCondition = implode(',', array_map(function($v) { return "'$v'"; }, $ymList));
+        $periodeLabel = $daftar_bulan[intval($dtStart->format('m'))] . ' - ' . $bulan . ' ' . $tahun;
+    } else {
+        $monthStart = "$tahun_filter-$bulan_filter-01";
+        $monthEnd = date('Y-m-t', strtotime($monthStart));
+        $ymList = [$ym];
+        $ymCondition = "'$ym'";
+        $periodeLabel = $bulan . ' ' . $tahun;
+    }
+
     // ═══ BATCH QUERY 1: All teknisi ═══
     $teknisiList = [];
     $teknisiTargets = [];
@@ -24,8 +49,6 @@
     if (!empty($allTekIds)) {
         $placeholders = implode(',', array_fill(0, count($allTekIds), '?'));
         $types = str_repeat('i', count($allTekIds));
-        $monthStart = "$tahun_filter-$bulan_filter-01";
-        $monthEnd = date('Y-m-t', strtotime($monthStart));
 
         // ═══ BATCH QUERY 2: Kegiatan count per teknisi ═══
         $kegiatanCount = [];
@@ -58,8 +81,6 @@
         $stmt->close();
 
         // ═══ BATCH QUERY 4: Invoice count + pendapatan per teknisi ═══
-        // Patokan: nominal_invoice / jumlah_teknisi_per_kode (agar Total Pendapatan = Detail Invoice)
-        // Use inner dedup by kode to match detail modal's GROUP BY kode
         $invCount = [];
         $pendapatanSum = [];
         $sql = "SELECT teknisi_id, COUNT(*) as cnt, SUM(share_amount) as total
@@ -70,19 +91,17 @@
                     JOIN (
                         SELECT kode, COUNT(*) as tek_count 
                         FROM pendapatan_kegiatan 
-                        WHERE DATE_FORMAT(tanggal, '%Y-%m') = ? AND deleted_at IS NULL
+                        WHERE DATE_FORMAT(tanggal, '%Y-%m') IN ($ymCondition) AND deleted_at IS NULL
                         GROUP BY kode
                     ) counts ON pk.kode = counts.kode
                     WHERE pk.teknisi_id IN ($placeholders) 
-                    AND DATE_FORMAT(pk.tanggal, '%Y-%m') = ? 
+                    AND DATE_FORMAT(pk.tanggal, '%Y-%m') IN ($ymCondition) 
                     AND pk.deleted_at IS NULL
                     GROUP BY pk.teknisi_id, pk.kode
                 ) deduped
                 GROUP BY teknisi_id";
         $stmt = $conn->prepare($sql);
-        $paramTypes = 's' . $types . 's';
-        $paramVals = array_merge([$ym], $allTekIds, [$ym]);
-        $stmt->bind_param($paramTypes, ...$paramVals);
+        $stmt->bind_param($types, ...$allTekIds);
         $stmt->execute();
         $res = $stmt->get_result();
         while ($r = $res->fetch_assoc()) {
@@ -90,10 +109,6 @@
             $pendapatanSum[$r['teknisi_id']] = $r['total'];
         }
         $stmt->close();
-
-        // Reset params for subsequent queries
-        $paramTypes = $types . 's';
-        $paramVals = array_merge($allTekIds, [$ym]);
 
         // ═══ BATCH QUERY 6: Fee 30k calculation (2 queries instead of N*M) ═══
         // Step 1: Get all eligible kode for this month
@@ -144,8 +159,7 @@
     $grand_total_pendapatan = 0;
     $grand_total_bonus = 0;
 
-    // ═══ GRAND TOTAL PENDAPATAN: Match per-row rounding exactly ═══
-    // Dedup by teknisi_id + kode first, then sum, matching BATCH 4 and detail modal
+    // ═══ GRAND TOTAL PENDAPATAN ═══
     $sqlGrandPend = "SELECT SUM(share_amount) as total FROM (
         SELECT pk.teknisi_id, pk.kode,
                ROUND(pk.nominal_invoice / counts.tek_count) as share_amount
@@ -153,23 +167,22 @@
         JOIN (
             SELECT kode, COUNT(*) as tek_count
             FROM pendapatan_kegiatan
-            WHERE DATE_FORMAT(tanggal, '%Y-%m') = ? AND deleted_at IS NULL
+            WHERE DATE_FORMAT(tanggal, '%Y-%m') IN ($ymCondition) AND deleted_at IS NULL
             GROUP BY kode
         ) counts ON pk.kode = counts.kode
-        WHERE DATE_FORMAT(pk.tanggal, '%Y-%m') = ? AND pk.deleted_at IS NULL
+        WHERE DATE_FORMAT(pk.tanggal, '%Y-%m') IN ($ymCondition) AND pk.deleted_at IS NULL
         GROUP BY pk.teknisi_id, pk.kode
     ) sub";
-    $stmtGP = $conn->prepare($sqlGrandPend);
-    $stmtGP->bind_param('ss', $ym, $ym);
-    $stmtGP->execute();
-    $resGP = $stmtGP->get_result();
-    $rowGP = $resGP->fetch_assoc();
+    $resGP = mysqli_query($conn, $sqlGrandPend);
+    $rowGP = mysqli_fetch_assoc($resGP);
     $grand_total_pendapatan = $rowGP['total'] ?? 0;
-    $stmtGP->close();
 
-    // Pre-calculate all rows (bonus = dynamic, same as Daftar Teknisi)
+    // Pre-calculate all rows
     $tableRows = [];
     foreach ($teknisiList as $idT => $namaT) {
+        // Filter by teknisi if set
+        if ($filterTeknisiId > 0 && $idT != $filterTeknisiId) continue;
+
         $keg = $kegiatanCount[$idT] ?? 0;
         $sel = $selesaiCount[$idT] ?? 0;
         $inv = $invCount[$idT] ?? 0;
@@ -185,6 +198,10 @@
 
         $tableRows[] = compact('idT', 'namaT', 'keg', 'sel', 'inv', 'fee', 'pend', 'bon', 'total');
     }
+    // Recalculate grand pendapatan if filtering by teknisi
+    if ($filterTeknisiId > 0) {
+        $grand_total_pendapatan = $pendapatanSum[$filterTeknisiId] ?? 0;
+    }
     $grand_total_all = $grand_total_fee + $grand_total_pendapatan + $grand_total_bonus;
 ?>
 
@@ -198,11 +215,21 @@
                     </div>
                     <div>
                         <h5>Rekapitulasi Bulanan</h5>
-                        <p><?= $bulan . ' ' . $tahun ?></p>
+                        <p><?= $periodeLabel ?></p>
                     </div>
                 </div>
                 <form method="GET" action="" class="rekap-filter no-print">
                     <input type="month" class="rekap-month-input" name="cariBulanTahun" value="<?= $current_date; ?>">
+                    <select name="periode" class="rekap-month-input" style="min-width:100px;">
+                        <option value="1" <?= $filterPeriode == '1' ? 'selected' : '' ?>>1 Bulan</option>
+                        <option value="3" <?= $filterPeriode == '3' ? 'selected' : '' ?>>3 Bulan</option>
+                    </select>
+                    <select name="ftek" class="rekap-month-input" style="min-width:140px;">
+                        <option value="0">Semua Teknisi</option>
+                        <?php foreach ($tekOptions as $to): ?>
+                            <option value="<?= $to['id'] ?>" <?= $filterTeknisiId == $to['id'] ? 'selected' : '' ?>><?= htmlspecialchars($to['nama']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
                     <button type="submit" class="rekap-btn-cari">
                         <i class="fa-solid fa-magnifying-glass"></i> Cari
                     </button>
