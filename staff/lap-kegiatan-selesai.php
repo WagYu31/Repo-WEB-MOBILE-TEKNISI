@@ -413,7 +413,7 @@ $active_tab = $_GET['tab'] ?? 'belum_lunas'; // Default ke 'belum_lunas'
                 })
                 .then(response => response.text())
                 .then(responseText => {
-                    if (responseText.trim() === 'success') {
+                    if (responseText.includes('success')) {
                         Swal.fire({
                             title: 'Berhasil!',
                             text: 'Status pembayaran berhasil diperbarui.',

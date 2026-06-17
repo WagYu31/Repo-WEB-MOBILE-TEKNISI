@@ -1,5 +1,8 @@
 <?php
+error_reporting(0); // Sembunyikan semua PHP warning/notice dari output
+ob_start(); // Mulai output buffering
 include "conn.php"; // Pastikan koneksi database Anda disertakan
+ob_clean(); // Bersihkan output apapun yang dihasilkan oleh conn.php atau include lainnya
 
 // Validasi request adalah POST
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
