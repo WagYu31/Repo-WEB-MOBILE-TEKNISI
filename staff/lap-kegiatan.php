@@ -158,32 +158,18 @@ if (!empty($allRows)) {
         .btn-search { background: #1e293b; border: none; border-radius: 8px; padding: 8px 14px; }
         .btn-search:hover { background: #334155; }
 
-        /* Horizontal Scroll */
-        .lk-scroll-wrap { position: relative; margin: 0 -4px; }
+        /* Vertical Grid Layout */
+        .lk-scroll-wrap { margin: 0; }
         .lk-scroll-container {
-            display: flex; gap: 16px; overflow-x: auto; scroll-snap-type: x mandatory;
-            -webkit-overflow-scrolling: touch; padding: 8px 8px 20px 8px;
-            scrollbar-width: none; cursor: grab; scroll-behavior: smooth;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            padding: 8px 0 20px 0;
         }
-        .lk-scroll-container::-webkit-scrollbar { display: none; }
-        .lk-scroll-container.dragging { cursor: grabbing; scroll-snap-type: none; scroll-behavior: auto; }
-        .lk-scroll-container.dragging .lk-item * { pointer-events: none; }
-        .lk-scroll-nav {
-            position: absolute; top: 50%; transform: translateY(-50%);
-            width: 36px; height: 36px; border-radius: 50%; background: #fff; border: 1px solid #e5e7eb;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center;
-            cursor: pointer; z-index: 5; transition: all 0.2s; color: #475569;
-        }
-        .lk-scroll-nav:hover { background: #6366f1; color: #fff; border-color: #6366f1; box-shadow: 0 4px 16px rgba(99,102,241,0.3); }
-        .lk-scroll-nav.nav-left { left: -6px; }
-        .lk-scroll-nav.nav-right { right: -6px; }
-        .lk-scroll-dots { display: flex; justify-content: center; gap: 6px; margin-top: 4px; }
-        .lk-scroll-dot { width: 8px; height: 8px; border-radius: 50%; background: #e2e8f0; transition: all 0.3s; }
-        .lk-scroll-dot.active { background: #6366f1; width: 20px; border-radius: 10px; }
 
         /* Card Item */
         .lk-item {
-            min-width: 340px; max-width: 380px; flex-shrink: 0; scroll-snap-align: start;
+            min-width: 0; max-width: 100%; width: 100%;
             background: #fff; border: 1px solid #e5e7eb; border-radius: 16px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.02);
             transition: transform 0.2s, box-shadow 0.2s; display: flex; flex-direction: column; overflow: hidden;
@@ -240,8 +226,8 @@ if (!empty($allRows)) {
         .lk-empty-text { font-size: 14px; color: #94a3b8; font-weight: 600; }
         .lk-empty-sub { font-size: 12px; color: #cbd5e1; margin-top: 4px; }
         .modal-xl { max-width: 80%; }
-        @media (max-width: 992px) { .lk-summary { flex-direction: column; } .lk-item { min-width: 300px; } }
-        @media (max-width: 767px) { .modal-xl { max-width: 95%; } .lk-item { min-width: 280px; max-width: 320px; } .lk-scroll-nav { display: none; } }
+        @media (max-width: 992px) { .lk-summary { flex-direction: column; } .lk-scroll-container { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 767px) { .modal-xl { max-width: 95%; } .lk-scroll-container { grid-template-columns: 1fr; } }
 
         /* ═══ PREMIUM FILTER BUTTON STYLING ═══ */
         .btn-filter {
@@ -509,12 +495,6 @@ if (!empty($allRows)) {
 
                         <!-- Horizontal Card Scroll -->
                         <div class="lk-scroll-wrap" id="scrollWrap">
-                            <div class="lk-scroll-nav nav-left" id="scrollLeft" onclick="scrollCards(-1)">
-                                <i class="material-icons">chevron_left</i>
-                            </div>
-                            <div class="lk-scroll-nav nav-right" id="scrollRight" onclick="scrollCards(1)">
-                                <i class="material-icons">chevron_right</i>
-                            </div>
                             <div class="lk-scroll-container" id="scrollContainer">
                                         <?php
                                         if (!empty($allRows)) {
@@ -629,7 +609,6 @@ if (!empty($allRows)) {
                                         <?php } ?>
 
                             </div><!-- end scroll-container -->
-                            <div class="lk-scroll-dots" id="scrollDots"></div>
                         </div><!-- end scroll-wrap -->
                     </div>
                 </div>
@@ -749,54 +728,7 @@ endif; // Akhir dari blok if ($show_modal)
 
     <?php include "js-include.php"; ?>
 
-    <script>
-    // ═══ DRAG-TO-SCROLL & NAVIGATION ═══
-    (function() {
-        var container = document.getElementById('scrollContainer');
-        if (!container) return;
-
-        // Drag to scroll
-        var isDown = false, startX, scrollLeft;
-        container.addEventListener('mousedown', function(e) {
-            if (e.target.closest('.lk-act-btn, a, button')) return;
-            isDown = true;
-            container.classList.add('dragging');
-            startX = e.pageX - container.offsetLeft;
-            scrollLeft = container.scrollLeft;
-        });
-        container.addEventListener('mouseleave', function() { isDown = false; container.classList.remove('dragging'); });
-        container.addEventListener('mouseup', function() { isDown = false; container.classList.remove('dragging'); });
-        container.addEventListener('mousemove', function(e) {
-            if (!isDown) return;
-            e.preventDefault();
-            var x = e.pageX - container.offsetLeft;
-            var walk = (x - startX) * 1.5;
-            container.scrollLeft = scrollLeft - walk;
-        });
-
-        // Update dots
-        function updateDots() {
-            var dotsEl = document.getElementById('scrollDots');
-            if (!dotsEl) return;
-            var cards = container.querySelectorAll('.lk-item');
-            var total = Math.ceil(cards.length / 3) || 1;
-            var current = Math.round(container.scrollLeft / (container.scrollWidth - container.clientWidth) * (total - 1));
-            var html = '';
-            for (var i = 0; i < total; i++) {
-                html += '<div class="lk-scroll-dot' + (i === current ? ' active' : '') + '"></div>';
-            }
-            dotsEl.innerHTML = html;
-        }
-        container.addEventListener('scroll', updateDots);
-        updateDots();
-
-        // Arrow navigation
-        window.scrollCards = function(dir) {
-            var cardW = 356;
-            container.scrollBy({ left: dir * cardW, behavior: 'smooth' });
-        };
-    })();
-    </script>
+    <!-- Horizontal scroll JS removed - now using vertical grid layout -->
 
     <script>
     window.addEventListener('load', function() {
