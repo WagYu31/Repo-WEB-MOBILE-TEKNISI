@@ -121,7 +121,7 @@ if (isset($_POST['kode_transaksi'])) {
             </div>
             <div class="mb-3">
                 <label for="dateInv" class="">Tanggal Invoice</label>
-                <input type="date" class="form-control border p-2" name="dateInv" value="<?php echo $tglInv;?>" id="dateInv">
+                <input type="date" class="form-control border p-2" name="dateInv" value="<?php echo $tglInv;?>" id="dateInv" max="<?= date('Y-m-d') ?>">
             </div>
             <div class="mb-3">
                 <label for="nominal" class="">Total Nominal Invoice</label>

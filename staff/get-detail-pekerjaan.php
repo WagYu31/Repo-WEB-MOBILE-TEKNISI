@@ -110,13 +110,13 @@ $result = mysqli_stmt_get_result($stmt);
 
             <div class="mb-3">
                 <label>Tanggal Invoice</label>
-                <input type="date" class="form-control" id="tanggalInvoice" name="tanggal_invoice" required>
+                <input type="date" class="form-control" id="tanggalInvoice" name="tanggal_invoice" max="<?= date('Y-m-d') ?>" required>
             </div>
             
             
             <div class="mb-3">
                 <label>Tanggal Lunas</label>
-                <input type="date" class="form-control" id="tanggalLunas" name="tanggal_lunas" required>
+                <input type="date" class="form-control" id="tanggalLunas" name="tanggal_lunas" max="<?= date('Y-m-d') ?>" required>
             </div>
             
 

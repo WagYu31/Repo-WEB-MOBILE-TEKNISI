@@ -87,12 +87,12 @@ if (isset($_POST['kode_transaksi'])) {
 
             <div class="mb-3">
                 <label>Tanggal Invoice</label>
-                <input type="date" class="form-control" id="tanggalInvoice" name="tanggal_invoice" required>
+                <input type="date" class="form-control" id="tanggalInvoice" name="tanggal_invoice" max="<?= date('Y-m-d') ?>" required>
             </div>
 
             <div class="mb-3">
                 <label>Tanggal Lunas</label>
-                <input type="date" class="form-control" id="tanggalLunas" name="tanggal_lunas">
+                <input type="date" class="form-control" id="tanggalLunas" name="tanggal_lunas" max="<?= date('Y-m-d') ?>">
             </div>
             
             <div class="form-check form-switch mb-3">
