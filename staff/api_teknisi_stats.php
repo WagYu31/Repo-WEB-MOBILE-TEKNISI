@@ -69,18 +69,14 @@ curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 5, CU
 $laravelResp = curl_exec($ch);
 $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 curl_close($ch);
-if ($httpCode == 200 && $laravelResp) {
-    $laravelData = json_decode($laravelResp, true);
-    $jumlahKegiatan = intval($laravelData['total_selesai'] ?? 0);
-} else {
-    // Fallback to local query if API fails
-    $sql = "SELECT COUNT(DISTINCT pk.kode) AS jumlah FROM pelaksanaan_kegiatan pk JOIN kegiatan k ON k.id = pk.kegiatan_id WHERE pk.teknisi_id = ? AND pk.deleted_at IS NULL AND k.deleted_at IS NULL AND k.status IN ('selesai', 'selesai by admin') AND DATE(k.created_at) >= ? AND DATE(k.created_at) <= ?";
-    $stmtKegiatan = $conn->prepare($sql);
-    $stmtKegiatan->bind_param("iss", $teknisiId, $quarterStart, $quarterEnd);
-    $stmtKegiatan->execute();
-    $jumlahKegiatan = $stmtKegiatan->get_result()->fetch_assoc()['jumlah'] ?? 0;
-    $stmtKegiatan->close();
-}
+    // Mengambil jumlah kegiatan yang SUDAH LUNAS di bulan ini (berdasarkan pendapatan_kegiatan)
+    $currentYm = sprintf('%04d-%02d', $tahun, $bulan);
+    $sql_lunas = "SELECT COUNT(DISTINCT pk.kode) AS jumlah_lunas FROM pendapatan_kegiatan pk WHERE pk.teknisi_id = ? AND DATE_FORMAT(pk.tanggal, '%Y-%m') = ? AND pk.deleted_at IS NULL";
+    $stmt_lunas = $conn->prepare($sql_lunas);
+    $stmt_lunas->bind_param("is", $teknisiId, $currentYm);
+    $stmt_lunas->execute();
+    $jumlahKegiatan = $stmt_lunas->get_result()->fetch_assoc()['jumlah_lunas'] ?? 0;
+    $stmt_lunas->close();
 
 // Selesai count (consistent with Laporan Detail: pelaksanaan with status selesai)
 $sql = "SELECT COUNT(DISTINCT pk.kode) AS jumlah FROM pelaksanaan_kegiatan pk JOIN kegiatan k ON k.id = pk.kegiatan_id WHERE pk.teknisi_id = ? AND pk.deleted_at IS NULL AND k.deleted_at IS NULL AND DATE(pk.waktu_mulai) >= ? AND DATE(pk.waktu_mulai) <= ? AND k.status IN ('selesai', 'selesai by admin')";
