@@ -9,6 +9,7 @@ import '../../service/provider/Auth/AuthProvider.dart';
 import '../../service/provider/Auth/TeknisiLoginProvider.dart';
 import '../../service/provider/preferences/PreferencesIDProvider.dart';
 import '../../service/provider/preferences/PreferencesTokenProvider.dart';
+import '../../constants/app_constants.dart';
 import '../container/HomePage.dart';
 
 class LoginPage extends StatefulWidget {
@@ -926,7 +927,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
         ),
         const SizedBox(height: 4),
         Text(
-          'v3.7.8 • Teknisi App',
+          'v${AppConstants.appVersion} • Teknisi App',
           style: TextStyle(
             fontFamily: 'Poppins',
             fontSize: 11,
