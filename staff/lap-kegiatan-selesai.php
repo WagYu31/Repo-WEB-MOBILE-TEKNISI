@@ -394,20 +394,46 @@ $active_tab = $_GET['tab'] ?? 'belum_lunas'; // Default ke 'belum_lunas'
             
             var formData = $(this).serialize(); // Mengambil data dari form
             
+            Swal.fire({
+                title: 'Memproses...',
+                text: 'Sedang menyimpan status pelunasan',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            
             $.ajax({
                 url: 'proses_update_lunas.php', // File PHP untuk memproses update
                 type: 'POST',
                 data: formData,
                 success: function(response) {
                     if (response.trim() === 'success') {
-                        // Redirect ke tab 'lunas' dengan notifikasi sukses
-                        window.location.href = 'lap-kegiatan-selesai.php?tab=lunas&success=2';
+                        Swal.fire({
+                            title: 'Berhasil!',
+                            text: 'Status pembayaran berhasil diperbarui.',
+                            icon: 'success',
+                            confirmButtonText: 'OK'
+                        }).then((result) => {
+                            // Redirect ke tab 'lunas'
+                            window.location.href = 'lap-kegiatan-selesai.php?tab=lunas';
+                        });
                     } else {
-                        alert('Gagal memperbarui status: ' + response);
+                        Swal.fire({
+                            title: 'Gagal!',
+                            text: 'Gagal memperbarui status: ' + response,
+                            icon: 'error',
+                            confirmButtonText: 'Tutup'
+                        });
                     }
                 },
-                error: function() {
-                    alert('Terjadi kesalahan koneksi. Silakan coba lagi.');
+                error: function(xhr, status, error) {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'Terjadi kesalahan koneksi: ' + error,
+                        icon: 'error',
+                        confirmButtonText: 'Tutup'
+                    });
                 }
             });
         });
