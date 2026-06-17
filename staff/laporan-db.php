@@ -140,16 +140,21 @@
     $grand_total_pendapatan = 0;
     $grand_total_bonus = 0;
 
-    // ═══ GRAND TOTAL PENDAPATAN: Match Detail Invoice exactly ═══
-    // Sum nominal_invoice per unique kode (same as detail-laporan-db.php)
-    $sqlGrandPend = "SELECT SUM(sub.nominal) as total FROM (
-        SELECT nominal_invoice as nominal
-        FROM pendapatan_kegiatan
-        WHERE DATE_FORMAT(tanggal, '%Y-%m') = ? AND deleted_at IS NULL
-        GROUP BY kode
+    // ═══ GRAND TOTAL PENDAPATAN: Match per-row rounding exactly ═══
+    // Sum ROUND(nominal_invoice / tek_count) across all teknisi rows so total matches displayed rows
+    $sqlGrandPend = "SELECT SUM(rounded_share) as total FROM (
+        SELECT ROUND(pk.nominal_invoice / counts.tek_count) as rounded_share
+        FROM pendapatan_kegiatan pk
+        JOIN (
+            SELECT kode, COUNT(*) as tek_count
+            FROM pendapatan_kegiatan
+            WHERE DATE_FORMAT(tanggal, '%Y-%m') = ? AND deleted_at IS NULL
+            GROUP BY kode
+        ) counts ON pk.kode = counts.kode
+        WHERE DATE_FORMAT(pk.tanggal, '%Y-%m') = ? AND pk.deleted_at IS NULL
     ) sub";
     $stmtGP = $conn->prepare($sqlGrandPend);
-    $stmtGP->bind_param('s', $ym);
+    $stmtGP->bind_param('ss', $ym, $ym);
     $stmtGP->execute();
     $resGP = $stmtGP->get_result();
     $rowGP = $resGP->fetch_assoc();
