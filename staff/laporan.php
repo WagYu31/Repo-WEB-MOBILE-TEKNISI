@@ -45,9 +45,39 @@ $role = $jabatan;
 <body class="g-sidenav-show bg-gray-200">
     <?php
     include "cek-menu.php";
-    $current_date = (isset($_GET['cariBulanTahun']) && !empty($_GET['cariBulanTahun'])) ? $_GET['cariBulanTahun'] : date("Y-m");
-    $filterPeriode = $_GET['periode'] ?? '1'; // '1' = 1 bulan, '3' = 3 bulan
-    $filterTeknisiId = intval($_GET['ftek'] ?? 0); // 0 = semua
+    $filterBulan = $_GET['bulan'] ?? ''; // format: "2026-06" or "2026-04_3"
+    $filterTeknisiId = intval($_GET['ftek'] ?? 0);
+
+    // Parse filter: determine current_date and period
+    if (!empty($filterBulan)) {
+        if (str_contains($filterBulan, '_3')) {
+            $filterPeriode = '3';
+            $current_date = str_replace('_3', '', $filterBulan); // keep as start month for date calc
+            // For display, shift to end month (+2)
+            $endDt = new DateTime($current_date . '-01');
+            $endDt->modify('+2 months');
+            $current_date = $endDt->format('Y-m'); // set to end month
+        } else {
+            $filterPeriode = '1';
+            $current_date = $filterBulan;
+        }
+    } else {
+        $current_date = (isset($_GET['cariBulanTahun']) && !empty($_GET['cariBulanTahun'])) ? $_GET['cariBulanTahun'] : date("Y-m");
+        $filterPeriode = '1';
+    }
+
+    // Build month options for last 12 months
+    $namaBulanList = ['','Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+    $monthOptions = [];
+    for ($i = 0; $i < 12; $i++) {
+        $dt = new DateTime();
+        $dt->modify("-$i months");
+        $val = $dt->format('Y-m');
+        $bln = intval($dt->format('m'));
+        $thn = $dt->format('Y');
+        $monthOptions[] = ['value' => $val, 'label' => $namaBulanList[$bln] . ' ' . $thn];
+    }
+
     // Build teknisi options
     $tekOptions = [];
     $resTekOpt = mysqli_query($conn, "SELECT id, nama FROM teknisi WHERE deleted_at IS NULL ORDER BY nama ASC");

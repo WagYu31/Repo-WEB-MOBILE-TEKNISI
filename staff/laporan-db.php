@@ -219,10 +219,28 @@
                     </div>
                 </div>
                 <form method="GET" action="" class="rekap-filter no-print">
-                    <input type="month" class="rekap-month-input" name="cariBulanTahun" value="<?= $current_date; ?>">
-                    <select name="periode" class="rekap-month-input" style="min-width:100px;">
-                        <option value="1" <?= $filterPeriode == '1' ? 'selected' : '' ?>>1 Bulan</option>
-                        <option value="3" <?= $filterPeriode == '3' ? 'selected' : '' ?>>3 Bulan</option>
+                    <select name="bulan" class="rekap-month-input" style="min-width:200px;">
+                        <option value="">Semua Bulan</option>
+                        <optgroup label="Per Bulan">
+                            <?php foreach ($monthOptions as $mo): ?>
+                                <option value="<?= $mo['value'] ?>" <?= $filterBulan == $mo['value'] ? 'selected' : '' ?>><?= $mo['label'] ?></option>
+                            <?php endforeach; ?>
+                        </optgroup>
+                        <optgroup label="Per 3 Bulan">
+                            <?php 
+                            for ($qi = 0; $qi < 12; $qi += 3) {
+                                $dt3 = new DateTime();
+                                $dt3->modify("-$qi months");
+                                $bln3s = intval($dt3->format('m'));
+                                $dt3e = clone $dt3;
+                                $dt3e->modify('-2 months');
+                                $bln3e = intval($dt3e->format('m'));
+                                $val3 = $dt3e->format('Y-m') . '_3';
+                                $label3 = $namaBulanList[$bln3e] . ' - ' . $namaBulanList[$bln3s] . ' ' . $dt3->format('Y');
+                                echo '<option value="' . $val3 . '"' . ($filterBulan == $val3 ? ' selected' : '') . '>' . $label3 . '</option>';
+                            }
+                            ?>
+                        </optgroup>
                     </select>
                     <select name="ftek" class="rekap-month-input" style="min-width:140px;">
                         <option value="0">Semua Teknisi</option>
