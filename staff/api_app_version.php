@@ -23,10 +23,10 @@ header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
 // KONFIGURASI VERSI - UBAH DI SINI UNTUK FORCE UPDATE
 // ═══════════════════════════════════════════════
 $response = [
-    'min_version'     => '4.0.20',   // Versi minimum yang dibolehkan
-    'latest_version'  => '4.0.20',   // Versi terbaru yang tersedia
-    'update_url'      => 'https://jadwal.id-giti.com/staff/download/teknisi-v4.0.20.apk', // URL download APK
-    'update_message'  => 'Versi terbaru tersedia! Silakan update untuk mendapatkan fitur dan perbaikan terbaru.',
+    'min_version'     => '4.0.21',   // Versi minimum yang dibolehkan
+    'latest_version'  => '4.0.21',   // Versi terbaru yang tersedia
+    'update_url'      => 'https://jadwal.id-giti.com/staff/download/teknisi-v4.0.21.apk', // URL download APK
+    'update_message'  => 'Versi terbaru tersedia! Perbaikan tampilan pendapatan dan kegiatan dashboard.',
     'force_message'   => 'Versi aplikasi Anda sudah tidak didukung. Silakan update ke versi terbaru untuk melanjutkan.',
 ];
 
