@@ -1150,13 +1150,17 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   String _formatRupiah(int value) {
-    if (value >= 1000000) {
-      return 'Rp ${(value / 1000000).toStringAsFixed(1)}jt';
+    String str = value.toString();
+    String result = '';
+    int count = 0;
+    for (int i = str.length - 1; i >= 0; i--) {
+      if (count > 0 && count % 3 == 0) {
+        result = '.' + result;
+      }
+      result = str[i] + result;
+      count++;
     }
-    if (value >= 1000) {
-      return 'Rp ${(value / 1000).toStringAsFixed(0)}rb';
-    }
-    return 'Rp $value';
+    return 'Rp $result';
   }
 
 
