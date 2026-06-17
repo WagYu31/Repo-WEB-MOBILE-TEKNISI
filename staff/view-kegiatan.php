@@ -427,28 +427,36 @@ $stmt_pelaksanaan->close();
                                     </span>
                                 </div>
                             <?php else : ?>
+                                <?php $isNoPay = (!empty($kegiatan_data['invoice']) && $kegiatan_data['invoice'] === 'n/a'); ?>
                                 <div class="detail-row">
                                     <span class="detail-label">Invoice</span>
                                     <span class="detail-value" style="color:#cbd5e1;">-</span>
                                 </div>
                                 <div class="detail-row">
                                     <span class="detail-label">Nominal</span>
-                                    <span class="detail-value" style="color:#cbd5e1;">Rp 0</span>
-                                </div>
-                                <div class="detail-row">
-                                    <span class="detail-label">Tgl Invoice</span>
-                                    <span class="detail-value" style="color:#cbd5e1;">-</span>
+                                    <span class="detail-value" style="color:#cbd5e1;"><?= $isNoPay ? 'Rp ' . number_format(intval($kegiatan_data['paid'] ?? 0), 0, ',', '.') . ' (fee)' : 'Rp 0' ?></span>
                                 </div>
                                 <div class="detail-row">
                                     <span class="detail-label">Status</span>
                                     <span class="detail-value">
-                                        <span class="invoice-status invoice-belum"><i class="material-icons" style="font-size:12px;">money_off</i> NO PAYMENT</span>
+                                        <?php if ($isNoPay) : ?>
+                                            <span class="invoice-status invoice-belum"><i class="material-icons" style="font-size:12px;">money_off</i> NO PAYMENT</span>
+                                        <?php else : ?>
+                                            <span class="invoice-status" style="background:#f1f5f9;color:#64748b;"><i class="material-icons" style="font-size:12px;">hourglass_empty</i> Belum Input</span>
+                                        <?php endif; ?>
                                     </span>
                                 </div>
-                                <div style="margin-top:10px;padding:10px 14px;background:#fefce8;border:1px solid #fde68a;border-radius:8px;font-size:11px;color:#92400e;display:flex;align-items:center;gap:6px;">
-                                    <i class="material-icons" style="font-size:14px;">info</i>
-                                    Invoice belum di-input untuk kegiatan ini. Silakan input melalui halaman <strong>Laporan Kegiatan</strong>.
-                                </div>
+                                <?php if ($isNoPay && !empty($kegiatan_data['catatan_admin'])) : ?>
+                                    <div style="margin-top:10px;padding:10px 14px;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;font-size:11px;color:#991b1b;display:flex;align-items:center;gap:6px;">
+                                        <i class="material-icons" style="font-size:14px;">info</i>
+                                        <?= htmlspecialchars($kegiatan_data['catatan_admin']) ?>
+                                    </div>
+                                <?php elseif (!$isNoPay) : ?>
+                                    <div style="margin-top:10px;padding:10px 14px;background:#fefce8;border:1px solid #fde68a;border-radius:8px;font-size:11px;color:#92400e;display:flex;align-items:center;gap:6px;">
+                                        <i class="material-icons" style="font-size:14px;">info</i>
+                                        Invoice belum di-input untuk kegiatan ini. Silakan input melalui halaman <strong>Laporan Kegiatan</strong>.
+                                    </div>
+                                <?php endif; ?>
                             <?php endif; ?>
                         </div>
                     </div>
