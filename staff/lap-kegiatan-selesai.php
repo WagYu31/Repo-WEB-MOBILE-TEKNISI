@@ -37,6 +37,35 @@ while ($rTek = mysqli_fetch_assoc($resTek)) {
     $teknisiFilter[] = $rTek;
 }
 $selectedTeknisi = intval($_GET['teknisi'] ?? 0);
+
+// --- Month filter ---
+$filterBulan = $_GET['bulan'] ?? ''; // format: "2026-06" or "2026-04_3" (3 bulan)
+$filterDateStart = '';
+$filterDateEnd = '';
+if (!empty($filterBulan)) {
+    if (str_contains($filterBulan, '_3')) {
+        // 3 bulan: ambil bulan awal, hitung 3 bulan
+        $baseBulan = str_replace('_3', '', $filterBulan);
+        $filterDateStart = $baseBulan . '-01';
+        $filterDateEnd = date('Y-m-t', strtotime($baseBulan . '-01 +2 months'));
+    } else {
+        // 1 bulan
+        $filterDateStart = $filterBulan . '-01';
+        $filterDateEnd = date('Y-m-t', strtotime($filterBulan . '-01'));
+    }
+}
+
+// Build month options for last 12 months
+$monthOptions = [];
+$namaBulan = ['','Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+for ($i = 0; $i < 12; $i++) {
+    $dt = new DateTime();
+    $dt->modify("-$i months");
+    $val = $dt->format('Y-m');
+    $bln = intval($dt->format('m'));
+    $thn = $dt->format('Y');
+    $monthOptions[] = ['value' => $val, 'label' => $namaBulan[$bln] . ' ' . $thn];
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -181,15 +210,38 @@ $selectedTeknisi = intval($_GET['teknisi'] ?? 0);
                             <div class="d-flex flex-column flex-md-row justify-content-between align-items-center">
                                 <h5 class="mb-3 mb-md-0 page-title text-uppercase font-weight-bold">Laporan Kegiatan Selesai</h5>
                                 <form method="GET" action="" class="w-100 w-md-50">
-                                    <div class="d-flex gap-2">
+                                    <div class="d-flex gap-2 flex-wrap">
                                         <input type="hidden" name="tab" value="<?= htmlspecialchars($active_tab); ?>">
-                                        <select name="teknisi" class="form-select search-input" style="max-width:200px;padding:8px 12px !important;font-size:13px;">
+                                        <select name="bulan" class="form-select search-input" style="max-width:200px;padding:8px 12px !important;font-size:13px;">
+                                            <option value="">Semua Bulan</option>
+                                            <optgroup label="Per Bulan">
+                                                <?php foreach ($monthOptions as $mo): ?>
+                                                    <option value="<?= $mo['value'] ?>" <?= $filterBulan == $mo['value'] ? 'selected' : '' ?>><?= $mo['label'] ?></option>
+                                                <?php endforeach; ?>
+                                            </optgroup>
+                                            <optgroup label="Per 3 Bulan">
+                                                <?php 
+                                                for ($i = 0; $i < 12; $i += 3) {
+                                                    $dt3 = new DateTime();
+                                                    $dt3->modify("-$i months");
+                                                    $val3 = $dt3->format('Y-m') . '_3';
+                                                    $bln3s = intval($dt3->format('m'));
+                                                    $dt3e = clone $dt3;
+                                                    $dt3e->modify('-2 months');
+                                                    $bln3e = intval($dt3e->format('m'));
+                                                    $label3 = $namaBulan[$bln3e] . ' - ' . $namaBulan[$bln3s] . ' ' . $dt3->format('Y');
+                                                    echo '<option value="' . $dt3e->format('Y-m') . '_3"' . ($filterBulan == $dt3e->format('Y-m') . '_3' ? ' selected' : '') . '>' . $label3 . '</option>';
+                                                }
+                                                ?>
+                                            </optgroup>
+                                        </select>
+                                        <select name="teknisi" class="form-select search-input" style="max-width:180px;padding:8px 12px !important;font-size:13px;">
                                             <option value="0">Semua Teknisi</option>
                                             <?php foreach ($teknisiFilter as $tek): ?>
                                                 <option value="<?= $tek['id'] ?>" <?= $selectedTeknisi == $tek['id'] ? 'selected' : '' ?>><?= htmlspecialchars($tek['nama']) ?></option>
                                             <?php endforeach; ?>
                                         </select>
-                                        <div class="input-group" style="flex:1;">
+                                        <div class="input-group" style="flex:1;min-width:180px;">
                                             <input type="text" name="cari" class="form-control search-input" placeholder="Cari customer / invoice..." value="<?= htmlspecialchars($_GET['cari'] ?? '') ?>">
                                             <button class="btn search-btn mb-0" type="submit"><i class="material-icons text-sm text-white">search</i></button>
                                         </div>
@@ -199,7 +251,7 @@ $selectedTeknisi = intval($_GET['teknisi'] ?? 0);
                         </div>
                         <div class="card-body p-0">
                             <ul class="nav nav-tabs px-3" id="laporanTab" role="tablist">
-                                <?php $tabParams = ($selectedTeknisi > 0 ? '&teknisi=' . $selectedTeknisi : '') . (!empty($_GET['cari']) ? '&cari=' . urlencode($_GET['cari']) : ''); ?>
+                                <?php $tabParams = ($selectedTeknisi > 0 ? '&teknisi=' . $selectedTeknisi : '') . (!empty($filterBulan) ? '&bulan=' . urlencode($filterBulan) : '') . (!empty($_GET['cari']) ? '&cari=' . urlencode($_GET['cari']) : ''); ?>
                                 <li class="nav-item" role="presentation">
                                     <a class="nav-link <?= $active_tab == 'belum_lunas' ? 'active' : '' ?>" href="?tab=belum_lunas<?= $tabParams ?>">Belum Lunas</a>
                                 </li>
@@ -236,6 +288,11 @@ $selectedTeknisi = intval($_GET['teknisi'] ?? 0);
                                             $sql_main .= " AND (k.lunas IS NOT NULL AND k.lunas != '0000-00-00')";
                                         }
 
+                                        // Filter by bulan
+                                        if (!empty($filterDateStart) && !empty($filterDateEnd)) {
+                                            $sql_main .= " AND DATE(k.created_at) >= ? AND DATE(k.created_at) <= ?";
+                                        }
+
                                         // Filter by teknisi
                                         if ($selectedTeknisi > 0) {
                                             $sql_main .= " AND EXISTS (SELECT 1 FROM pelaksanaan_kegiatan px WHERE px.kode = k.kode AND px.teknisi_id = ? AND px.deleted_at IS NULL)";
@@ -250,6 +307,11 @@ $selectedTeknisi = intval($_GET['teknisi'] ?? 0);
                                         // Dynamic bind params
                                         $paramTypes = '';
                                         $paramValues = [];
+                                        if (!empty($filterDateStart) && !empty($filterDateEnd)) {
+                                            $paramTypes .= 'ss';
+                                            $paramValues[] = $filterDateStart;
+                                            $paramValues[] = $filterDateEnd;
+                                        }
                                         if ($selectedTeknisi > 0) {
                                             $paramTypes .= 'i';
                                             $paramValues[] = $selectedTeknisi;
