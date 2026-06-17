@@ -23,10 +23,10 @@ header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
 // KONFIGURASI VERSI - UBAH DI SINI UNTUK FORCE UPDATE
 // ═══════════════════════════════════════════════
 $response = [
-    'min_version'     => '4.0.22',   // Versi minimum yang dibolehkan
-    'latest_version'  => '4.0.22',   // Versi terbaru yang tersedia
-    'update_url'      => 'https://jadwal.id-giti.com/staff/download/teknisi-v4.0.22.apk', // URL download APK
-    'update_message'  => 'Versi terbaru tersedia! Perbaikan format angka pendapatan (Rp 1.855.833) di dashboard.',
+    'min_version'     => '4.0.23',   // Versi minimum yang dibolehkan
+    'latest_version'  => '4.0.23',   // Versi terbaru yang tersedia
+    'update_url'      => 'https://jadwal.id-giti.com/staff/download/teknisi-v4.0.23.apk', // URL download APK
+    'update_message'  => 'Versi terbaru (v4.0.23) tersedia! Penambahan filter bulan dan triwulan di halaman Dashboard.',
     'force_message'   => 'Versi aplikasi Anda sudah tidak didukung. Silakan update ke versi terbaru untuk melanjutkan.',
 ];
 
