@@ -90,18 +90,36 @@ $stmtSelesai->execute();
 $selesai = $stmtSelesai->get_result()->fetch_assoc()['jumlah'] ?? 0;
 $stmtSelesai->close();
 
-// === Pendapatan (nominal_invoice / tek_count) across quarter ===
-$sql = "SELECT COALESCE(SUM(ROUND(pk.nominal_invoice / (SELECT COUNT(*) FROM pendapatan_kegiatan pk2 WHERE pk2.kode = pk.kode AND DATE_FORMAT(pk2.tanggal, '%Y-%m') IN ($monthConditions) AND pk2.deleted_at IS NULL))), 0) AS total FROM pendapatan_kegiatan pk WHERE pk.teknisi_id = ? AND DATE_FORMAT(pk.tanggal, '%Y-%m') IN ($monthConditions) AND pk.deleted_at IS NULL";
+// === Pendapatan (nominal_invoice / tek_count) — single month, dedup by kode ===
+// Must match web laporan-db.php BATCH QUERY 4 exactly
+$currentYm = sprintf('%04d-%02d', $tahun, $bulan);
+$sql = "SELECT COALESCE(SUM(share_amount), 0) AS total FROM (
+    SELECT pk.kode,
+           ROUND(pk.nominal_invoice / counts.tek_count) AS share_amount
+    FROM pendapatan_kegiatan pk
+    JOIN (
+        SELECT kode, COUNT(*) AS tek_count
+        FROM pendapatan_kegiatan
+        WHERE DATE_FORMAT(tanggal, '%Y-%m') = ? AND deleted_at IS NULL
+        GROUP BY kode
+    ) counts ON pk.kode = counts.kode
+    WHERE pk.teknisi_id = ?
+    AND DATE_FORMAT(pk.tanggal, '%Y-%m') = ?
+    AND pk.deleted_at IS NULL
+    GROUP BY pk.kode
+) deduped";
 $stmtPendapatan = $conn->prepare($sql);
-$stmtPendapatan->bind_param("i", $teknisiId);
+$stmtPendapatan->bind_param("sis", $currentYm, $teknisiId, $currentYm);
 $stmtPendapatan->execute();
 $totalPendapatan = floatval($stmtPendapatan->get_result()->fetch_assoc()['total'] ?? 0);
 $stmtPendapatan->close();
 
-// === Fee 30k (same as dashboard, across quarter) ===
+// === Fee 30k (single month, matching web) ===
+$monthStart = sprintf('%04d-%02d-01', $tahun, $bulan);
+$monthEnd = date('Y-m-t', strtotime($monthStart));
 $feeKodes = [];
 $sql = "SELECT k.kode FROM kegiatan k 
-        WHERE k.created_at >= '$quarterStart' AND k.created_at < DATE_ADD('$quarterEnd', INTERVAL 1 DAY)
+        WHERE k.created_at >= '$monthStart' AND k.created_at < DATE_ADD('$monthEnd', INTERVAL 1 DAY)
         AND k.paid REGEXP '^[0-9]+$' AND k.deleted_at IS NULL
         AND NOT EXISTS (SELECT 1 FROM pendapatan_kegiatan pk WHERE pk.kode = k.kode)
         GROUP BY k.kode";
