@@ -80,35 +80,21 @@ if (!empty($allTekIds)) {
     }
 }
 
-// ═══ GRAND TOTAL PENDAPATAN: Match Detail Invoice exactly ═══
-$grand_total_pendapatan = 0;
-$sqlGrandPend = "SELECT SUM(sub.nominal) as total FROM (
-    SELECT nominal_invoice as nominal
-    FROM pendapatan_kegiatan
-    WHERE DATE_FORMAT(tanggal, '%Y-%m') = ? AND deleted_at IS NULL
-    GROUP BY kode
-) sub";
-$stmtGP = $conn->prepare($sqlGrandPend);
-$stmtGP->bind_param('s', $ym);
-$stmtGP->execute();
-$resGP = $stmtGP->get_result();
-$rowGP = $resGP->fetch_assoc();
-$grand_total_pendapatan = $rowGP['total'] ?? 0;
-$stmtGP->close();
+
 
 // === Build rows ===
 foreach ($teknisiList as $idT => $namaT) {
     $total_k = $kegiatanCount[$idT] ?? 0;
     $total_s = $selesaiCount[$idT] ?? 0;
     $total_i = $invCount[$idT] ?? 0;
-    $fee_val = $feeMap[$idT] ?? 0;
-    $inc_val = $pendapatanSum[$idT] ?? 0;
+    $fee_val = intval($feeMap[$idT] ?? 0);
+    $inc_val = intval($pendapatanSum[$idT] ?? 0);
     
     $target = $teknisiTargets[$idT] ?? 0;
     $totalEarning = $fee_val + $inc_val;
-    $bns_val = ($target > 0 && $totalEarning > $target) ? ($totalEarning - $target) * 0.60 : 0;
+    $bns_val = intval(($target > 0 && $totalEarning > $target) ? ($totalEarning - $target) * 0.60 : 0);
 
-    $g_fee += $fee_val; $g_bns += $bns_val;
+    $g_fee += $fee_val; $g_bns += $bns_val; $g_inc += $inc_val;
 
     echo "<tr>
             <td>$namaT</td>
@@ -125,7 +111,7 @@ echo "<tr style='background-color:#ddd; font-weight:bold;'>
         <td>TOTAL KESELURUHAN</td>
         <td colspan='3'></td>
         <td align='right'>$g_fee</td>
-        <td align='right'>$grand_total_pendapatan</td>
+        <td align='right'>$g_inc</td>
         <td align='right'>$g_bns</td>
       </tr>";
 echo "</tbody></table>";
