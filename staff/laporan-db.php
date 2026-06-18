@@ -575,7 +575,7 @@
 
 <!-- Modal Detail Rincian Pendapatan -->
 <div class="modal fade" id="revenueDetailModal" tabindex="-1" aria-labelledby="revenueDetailModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
     <div class="modal-content" style="border-radius: 16px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.15); overflow: hidden;">
       <div class="modal-header bg-light" style="border-bottom: 1px solid #f1f5f9; padding: 20px 24px;">
         <h5 class="modal-title" id="revenueDetailModalLabel" style="font-weight: 800; color: #1e293b; display: flex; align-items: center;">
