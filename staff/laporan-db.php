@@ -699,9 +699,6 @@ function showRevenueDetail(techId, techName, period) {
                     }
                     
                     let shareHtml = `<span style="font-weight: 700; color: #16a34a;">${shareFormatted}</span>`;
-                    if (item.tech_visit_count > 1) {
-                        shareHtml += `<div style="font-size: 9px; color: #64748b; font-weight: 600; margin-top: 2px;">(${item.tech_visit_count}x @ Rp ${numberFormat(item.single_share)})</div>`;
-                    }
                     
                     html += `
                         <tr style="border-bottom: 1px solid #f1f5f9;">
