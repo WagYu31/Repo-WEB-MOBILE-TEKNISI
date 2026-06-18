@@ -644,7 +644,7 @@
 
 /* Modal Table Styling */
 #modal-detail-table {
-    table-layout: fixed;
+    table-layout: auto;
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;

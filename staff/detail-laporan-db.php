@@ -56,7 +56,7 @@
     .detail-btn-cari:hover { transform: translateY(-1.5px); box-shadow: 0 6px 20px rgba(99,102,241,0.35); }
 
     /* Table */
-    .laporan-table { width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; }
+    .laporan-table { width: 100%; border-collapse: separate; border-spacing: 0; table-layout: auto; }
     .laporan-table thead th {
         background: #f8fafc; border-bottom: 2px solid #e2e8f0;
         padding: 16px 14px; font-size: 11px; font-weight: 700; color: #475569;
