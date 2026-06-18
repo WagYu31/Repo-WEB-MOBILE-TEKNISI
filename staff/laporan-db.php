@@ -795,8 +795,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     bagi = cells[5].textContent.trim();
                 }
                 
-                // Extract received portion
-                const diterimaStr = cells[6].textContent.trim().replace(/[^\d]/g, '');
+                // Extract received portion (only from the main span to avoid including breakdown numbers)
+                const diterimaSpan = cells[6].querySelector('span');
+                const diterimaStr = (diterimaSpan ? diterimaSpan.textContent : cells[6].textContent).trim().replace(/[^\d]/g, '');
                 const diterima = parseInt(diterimaStr, 10) || 0;
                 totalDiterima += diterima;
                 
