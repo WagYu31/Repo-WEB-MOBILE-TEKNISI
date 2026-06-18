@@ -37,7 +37,7 @@ $sql = "SELECT pk.kode,
                SUM(ROUND(pk.nominal_invoice / counts.tek_count)) as share_amount,
                c.nama AS nama_cust,
                 (
-                    SELECT GROUP_CONCAT(CONCAT(t.nama, ' (', sub.kegiatan_count, 'x)') SEPARATOR ', ')
+                    SELECT GROUP_CONCAT(CONCAT(t.nama, IF(sub.kegiatan_count > 1, CONCAT(' ', sub.kegiatan_count, 'x'), '')) ORDER BY sub.kegiatan_count DESC, t.nama ASC SEPARATOR ', ')
                     FROM (
                         SELECT pk2.kode, pk2.teknisi_id, COUNT(*) as kegiatan_count
                         FROM pendapatan_kegiatan pk2

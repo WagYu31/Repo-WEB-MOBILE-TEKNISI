@@ -687,6 +687,9 @@ function showRevenueDetail(techId, techName, period) {
                     if (item.tech_visit_count > 1) {
                         infoBagi += `<br><span class="badge bg-info text-white mt-1" style="font-size: 9px; font-weight: 700;">Anda: ${item.tech_visit_count}x</span>`;
                     }
+                    if (item.nama_teknisi_group) {
+                        infoBagi += `<div style="font-size: 9px; color: #64748b; margin-top: 5px; line-height: 1.3; max-width: 160px; margin-left: auto; margin-right: auto; text-align: center; word-break: break-word; font-weight: 500;">${item.nama_teknisi_group}</div>`;
+                    }
                     
                     let shareHtml = `<span style="font-weight: 700; color: #16a34a;">${shareFormatted}</span>`;
                     if (item.tech_visit_count > 1) {
