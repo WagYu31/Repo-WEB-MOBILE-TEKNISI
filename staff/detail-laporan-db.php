@@ -244,9 +244,8 @@
             // Calculate total share for this invoice to match monthly report
             $tek_count = intval($row['tek_count'] ?? 1);
             if ($tek_count <= 0) $tek_count = 1;
-            $uniq_tek_count = intval($row['uniq_tek_count'] ?? 1);
             $share_amount = round($row['nominal_invoice'] / $tek_count);
-            $row['total_share'] = $uniq_tek_count * $share_amount;
+            $row['total_share'] = $tek_count * $share_amount;
 
             $allRows[] = $row;
             $totalNominalAll += $row['nominal_invoice'];
@@ -393,7 +392,7 @@
                             </td>
                             <td data-label="Nominal" style="text-align:right;">
                                 <span class="nominal-text"><?php echo $nominalFormatted; ?></span>
-                                <?php if ($totalShare != $nominal): ?>
+                                <?php if (abs($totalShare - $nominal) > 10): ?>
                                     <div style="font-size:10px; color:#64748b; font-weight:600; margin-top:2px;">
                                         Porsi: Rp <?php echo number_format($totalShare, 0, ',', '.'); ?>
                                     </div>

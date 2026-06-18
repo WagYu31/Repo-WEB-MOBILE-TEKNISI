@@ -83,23 +83,20 @@
         // ═══ BATCH QUERY 4: Invoice count + pendapatan per teknisi ═══
         $invCount = [];
         $pendapatanSum = [];
-        $sql = "SELECT teknisi_id, COUNT(*) as cnt, SUM(share_amount) as total
-                FROM (
-                    SELECT pk.teknisi_id, pk.kode,
-                           ROUND(pk.nominal_invoice / counts.tek_count) as share_amount
-                    FROM pendapatan_kegiatan pk
-                    JOIN (
-                        SELECT kode, COUNT(*) as tek_count 
-                        FROM pendapatan_kegiatan 
-                        WHERE DATE_FORMAT(tanggal, '%Y-%m') IN ($ymCondition) AND deleted_at IS NULL
-                        GROUP BY kode
-                    ) counts ON pk.kode = counts.kode
-                    WHERE pk.teknisi_id IN ($placeholders) 
-                    AND DATE_FORMAT(pk.tanggal, '%Y-%m') IN ($ymCondition) 
-                    AND pk.deleted_at IS NULL
-                    GROUP BY pk.teknisi_id, pk.kode
-                ) deduped
-                GROUP BY teknisi_id";
+        $sql = "SELECT pk.teknisi_id, 
+                       COUNT(DISTINCT pk.kode) as cnt, 
+                       SUM(ROUND(pk.nominal_invoice / counts.tek_count)) as total
+                FROM pendapatan_kegiatan pk
+                JOIN (
+                    SELECT kode, COUNT(*) as tek_count 
+                    FROM pendapatan_kegiatan 
+                    WHERE DATE_FORMAT(tanggal, '%Y-%m') IN ($ymCondition) AND deleted_at IS NULL
+                    GROUP BY kode
+                ) counts ON pk.kode = counts.kode
+                WHERE pk.teknisi_id IN ($placeholders) 
+                AND DATE_FORMAT(pk.tanggal, '%Y-%m') IN ($ymCondition) 
+                AND pk.deleted_at IS NULL
+                GROUP BY pk.teknisi_id";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param($types, ...$allTekIds);
         $stmt->execute();
@@ -160,9 +157,7 @@
     $grand_total_bonus = 0;
 
     // ═══ GRAND TOTAL PENDAPATAN ═══
-    $sqlGrandPend = "SELECT SUM(share_amount) as total FROM (
-        SELECT pk.teknisi_id, pk.kode,
-               ROUND(pk.nominal_invoice / counts.tek_count) as share_amount
+    $sqlGrandPend = "SELECT SUM(ROUND(pk.nominal_invoice / counts.tek_count)) as total
         FROM pendapatan_kegiatan pk
         JOIN (
             SELECT kode, COUNT(*) as tek_count
@@ -170,9 +165,7 @@
             WHERE DATE_FORMAT(tanggal, '%Y-%m') IN ($ymCondition) AND deleted_at IS NULL
             GROUP BY kode
         ) counts ON pk.kode = counts.kode
-        WHERE DATE_FORMAT(pk.tanggal, '%Y-%m') IN ($ymCondition) AND pk.deleted_at IS NULL
-        GROUP BY pk.teknisi_id, pk.kode
-    ) sub";
+        WHERE DATE_FORMAT(pk.tanggal, '%Y-%m') IN ($ymCondition) AND pk.deleted_at IS NULL";
     $resGP = mysqli_query($conn, $sqlGrandPend);
     $rowGP = mysqli_fetch_assoc($resGP);
     $grand_total_pendapatan = $rowGP['total'] ?? 0;
@@ -686,10 +679,18 @@ function showRevenueDetail(techId, techName, period) {
                     const shareFormatted = 'Rp ' + numberFormat(item.share_amount);
                     
                     // Detail of shared technicians
-                    let infoBagi = item.tek_count + ' Orang';
+                    let infoBagi = `<span class="badge bg-light text-dark text-wrap" style="font-size: 11px;">${item.tek_count} kunjungan</span>`;
                     if (item.nama_teknisi_group) {
                         const cleanTechGroup = item.nama_teknisi_group.replace(/, /g, '\n').replace(/'/g, "\\'");
-                        infoBagi = `<span class="badge bg-light text-dark text-wrap" style="cursor: pointer; max-width: 150px; font-size: 11px;" title="Klik untuk rincian kegiatan" onclick="alert('Rincian Kegiatan Teknisi untuk Invoice ${item.no_invoice}:\\n\\n${cleanTechGroup}')">${item.tek_count} orang</span>`;
+                        infoBagi = `<span class="badge bg-light text-dark text-wrap" style="cursor: pointer; max-width: 150px; font-size: 11px;" title="Klik untuk rincian kegiatan" onclick="alert('Rincian Kegiatan Teknisi untuk Invoice ${item.no_invoice}:\\n\\n${cleanTechGroup}')">${item.tek_count} kunjungan</span>`;
+                    }
+                    if (item.tech_visit_count > 1) {
+                        infoBagi += `<br><span class="badge bg-info text-white mt-1" style="font-size: 9px; font-weight: 700;">Anda: ${item.tech_visit_count}x</span>`;
+                    }
+                    
+                    let shareHtml = `<span style="font-weight: 700; color: #16a34a;">${shareFormatted}</span>`;
+                    if (item.tech_visit_count > 1) {
+                        shareHtml += `<div style="font-size: 9px; color: #64748b; font-weight: 600; margin-top: 2px;">(${item.tech_visit_count}x @ Rp ${numberFormat(item.single_share)})</div>`;
                     }
                     
                     html += `
@@ -700,7 +701,7 @@ function showRevenueDetail(techId, techName, period) {
                             <td style="word-break: break-word;">${item.nama_cust}</td>
                             <td class="text-end" style="color: #475569;">${nomFormatted}</td>
                             <td class="text-center">${infoBagi}</td>
-                            <td class="text-end pe-3" style="font-weight: 700; color: #16a34a;">${shareFormatted}</td>
+                            <td class="text-end pe-3">${shareHtml}</td>
                         </tr>
                     `;
                 });

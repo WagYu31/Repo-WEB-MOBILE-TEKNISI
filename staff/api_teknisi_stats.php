@@ -76,21 +76,17 @@ $res_selesai = mysqli_query($conn, $sql_selesai);
 $selesai = mysqli_fetch_assoc($res_selesai)['jumlah'] ?? 0;
 
 // 3. Pendapatan
-$sql_pendapatan = "SELECT COALESCE(SUM(share_amount), 0) AS total FROM (
-    SELECT pk.kode,
-           ROUND(pk.nominal_invoice / counts.tek_count) AS share_amount
-    FROM pendapatan_kegiatan pk
-    JOIN (
-        SELECT kode, COUNT(*) AS tek_count
-        FROM pendapatan_kegiatan
-        WHERE DATE_FORMAT(tanggal, '%Y-%m') IN ($monthConditions) AND deleted_at IS NULL
-        GROUP BY kode
-    ) counts ON pk.kode = counts.kode
-    WHERE pk.teknisi_id = $teknisiId
-    AND DATE_FORMAT(pk.tanggal, '%Y-%m') IN ($monthConditions)
-    AND pk.deleted_at IS NULL
-    GROUP BY pk.kode
-) deduped";
+$sql_pendapatan = "SELECT COALESCE(SUM(ROUND(pk.nominal_invoice / counts.tek_count)), 0) AS total 
+                   FROM pendapatan_kegiatan pk
+                   JOIN (
+                       SELECT kode, COUNT(*) AS tek_count
+                       FROM pendapatan_kegiatan
+                       WHERE DATE_FORMAT(tanggal, '%Y-%m') IN ($monthConditions) AND deleted_at IS NULL
+                       GROUP BY kode
+                   ) counts ON pk.kode = counts.kode
+                   WHERE pk.teknisi_id = $teknisiId
+                   AND DATE_FORMAT(pk.tanggal, '%Y-%m') IN ($monthConditions)
+                   AND pk.deleted_at IS NULL";
 $res_pendapatan = mysqli_query($conn, $sql_pendapatan);
 $totalPendapatan = floatval(mysqli_fetch_assoc($res_pendapatan)['total'] ?? 0);
 

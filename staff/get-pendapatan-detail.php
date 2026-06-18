@@ -32,7 +32,9 @@ $sql = "SELECT pk.kode,
                pk.tanggal, 
                pk.nominal_invoice, 
                counts.tek_count, 
-               ROUND(pk.nominal_invoice / counts.tek_count) as share_amount,
+               COUNT(*) as tech_visit_count,
+               ROUND(pk.nominal_invoice / counts.tek_count) as single_share,
+               SUM(ROUND(pk.nominal_invoice / counts.tek_count)) as share_amount,
                c.nama AS nama_cust,
                 (
                     SELECT GROUP_CONCAT(CONCAT(t.nama, ' (', sub.kegiatan_count, 'x)') SEPARATOR ', ')
@@ -77,6 +79,8 @@ $total_share = 0;
 while ($row = $res->fetch_assoc()) {
     $row['nominal_invoice'] = floatval($row['nominal_invoice']);
     $row['share_amount'] = floatval($row['share_amount']);
+    $row['single_share'] = floatval($row['single_share']);
+    $row['tech_visit_count'] = intval($row['tech_visit_count']);
     $row['tek_count'] = intval($row['tek_count']);
     $total_share += $row['share_amount'];
     
