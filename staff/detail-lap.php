@@ -79,29 +79,14 @@ $role = $jabatan;
         document.body.innerHTML = originalBody;
     });
   </script>
-  <script>
-    $(document).ready(function(){
-        $('#search-input').on('keyup', function(){
-            var query = $(this).val();
-            $.ajax({
-                url: 'search.php',
-                method: 'POST',
-                data: {query: query, cariBulanTahun: "<?php echo $current_date; ?>"},
-                success: function(data){
-                    $('#data-tek').html(data);
-                }
-            });
-        });
-    });
-  </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script>
   document.getElementById('download-btn').addEventListener('click', function () {
     const table = document.querySelector('#data-tek');
     if (!table) return;
     const dataRows = table.querySelectorAll('tbody tr[data-survey]');
-    let data = [["No", "Tanggal Invoice", "No Invoice", "Teknisi", "Customer", "Ket. Survey", "Surveyor", "Nominal Invoice"]];
-    let totalNominal = 0, rowIndex = 0;
+    let data = [["No", "Tanggal Invoice", "No Invoice", "Teknisi", "Customer", "Ket. Survey", "Surveyor", "Nominal Invoice", "Porsi Pendapatan"]];
+    let totalNominal = 0, totalShare = 0, rowIndex = 0;
     dataRows.forEach(function(row) {
         if (row.classList.contains('hidden-row')) return;
         rowIndex++;
@@ -114,17 +99,21 @@ $role = $jabatan;
         const ketSurvey = cells[5].textContent.trim();
         const surveyor = cells[6].textContent.trim();
         const nominal = parseInt(row.getAttribute('data-nominal')) || 0;
+        const share = parseInt(row.getAttribute('data-share')) || 0;
         totalNominal += nominal;
-        data.push([rowIndex, tglInvoice, noInvoice, teknisi, customer, ketSurvey === '-' ? '' : ketSurvey, surveyor === '-' ? '' : surveyor, nominal]);
+        totalShare += share;
+        data.push([rowIndex, tglInvoice, noInvoice, teknisi, customer, ketSurvey === '-' ? '' : ketSurvey, surveyor === '-' ? '' : surveyor, nominal, share]);
     });
-    data.push(["", "", "", "", "", "", "TOTAL", totalNominal]);
+    data.push(["", "", "", "", "", "", "TOTAL", totalNominal, totalShare]);
     const ws = XLSX.utils.aoa_to_sheet(data);
     const range = XLSX.utils.decode_range(ws['!ref']);
     for (let R = 1; R <= range.e.r; R++) {
-        const cell = ws[XLSX.utils.encode_cell({r: R, c: 7})];
-        if (cell && typeof cell.v === 'number') { cell.t = 'n'; cell.z = '#,##0'; }
+        const cellNominal = ws[XLSX.utils.encode_cell({r: R, c: 7})];
+        if (cellNominal && typeof cellNominal.v === 'number') { cellNominal.t = 'n'; cellNominal.z = '#,##0'; }
+        const cellShare = ws[XLSX.utils.encode_cell({r: R, c: 8})];
+        if (cellShare && typeof cellShare.v === 'number') { cellShare.t = 'n'; cellShare.z = '#,##0'; }
     }
-    ws['!cols'] = [{wch:5},{wch:16},{wch:18},{wch:22},{wch:28},{wch:28},{wch:18},{wch:18}];
+    ws['!cols'] = [{wch:5},{wch:16},{wch:18},{wch:22},{wch:28},{wch:28},{wch:18},{wch:18},{wch:18}];
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Laporan Pendapatan Teknisi");
     const currentDate = '<?php echo $current_date; ?>';

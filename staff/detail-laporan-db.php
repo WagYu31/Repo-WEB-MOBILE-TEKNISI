@@ -157,7 +157,8 @@
     .detail-summary-card .ds-value { font-size: 18px; font-weight: 800; letter-spacing: -0.01em; }
     .ds-invoice { background: linear-gradient(135deg, #eff6ff, #dbeafe); color: #1e40af; }
     .ds-survey { background: linear-gradient(135deg, #fefce8, #fef9c3); color: #854d0e; }
-    .ds-nominal { background: linear-gradient(135deg, #ecfdf5, #d1fae5); color: #065f46; }
+    .ds-nominal-invoice { background: linear-gradient(135deg, #ecfdf5, #d1fae5); color: #065f46; }
+    .ds-nominal { background: linear-gradient(135deg, #f0f0ff, #e0e7ff); color: #3730a3; }
 
     @media (max-width: 768px) {
         .detail-filter-bar { flex-direction: column; align-items: stretch; gap: 10px; padding: 12px 16px; }
@@ -200,11 +201,21 @@
                    k.customer_id, 
                    c.nama AS nama_cust,
                    sv.keterangan_survey,
-                   sv.surveyor
+                   sv.surveyor,
+                   counts.tek_count,
+                   counts.uniq_tek_count
             FROM pendapatan_kegiatan pk
             JOIN kegiatan k ON k.kode = pk.kode
             JOIN customer c ON c.id = k.customer_id
             JOIN teknisi t ON t.id = pk.teknisi_id
+            JOIN (
+                SELECT kode, 
+                       COUNT(*) as tek_count,
+                       COUNT(DISTINCT teknisi_id) as uniq_tek_count
+                FROM pendapatan_kegiatan
+                WHERE deleted_at IS NULL
+                GROUP BY kode
+            ) counts ON pk.kode = counts.kode
             LEFT JOIN (
                 SELECT k2.kode,
                        GROUP_CONCAT(DISTINCT CONCAT(UPPER(k2.kegiatan), ' - ', DATE_FORMAT(k2.jadwal, '%d/%m/%Y')) SEPARATOR ', ') AS keterangan_survey,
@@ -221,7 +232,8 @@
             ORDER BY pk.tanggal ASC";
             
     $result = mysqli_query($conn, $sql);
-    $totalBonusAll = 0;
+    $totalNominalAll = 0;
+    $totalShareAll = 0;
     $rowNum = 0;
     $totalSurvey = 0;
     $allRows = [];
@@ -229,8 +241,17 @@
 
     if ($result) {
         while ($row = mysqli_fetch_assoc($result)) {
+            // Calculate total share for this invoice to match monthly report
+            $tek_count = intval($row['tek_count'] ?? 1);
+            if ($tek_count <= 0) $tek_count = 1;
+            $uniq_tek_count = intval($row['uniq_tek_count'] ?? 1);
+            $share_amount = round($row['nominal_invoice'] / $tek_count);
+            $row['total_share'] = $uniq_tek_count * $share_amount;
+
             $allRows[] = $row;
-            $totalBonusAll += $row['nominal_invoice'];
+            $totalNominalAll += $row['nominal_invoice'];
+            $totalShareAll += $row['total_share'];
+
             if (!empty($row['keterangan_survey'])) $totalSurvey++;
             $names = explode(', ', $row['nama_teknisi_plain']);
             foreach ($names as $n) {
@@ -283,9 +304,13 @@
                 <span class="ds-label">Ada Survey</span>
                 <span class="ds-value" id="stat-survey"><?= $totalSurvey ?></span>
             </div>
+            <div class="detail-summary-card ds-nominal-invoice">
+                <span class="ds-label">Total Nominal Invoice</span>
+                <span class="ds-value" id="stat-nominal-invoice">Rp <?= number_format($totalNominalAll, 0, ',', '.') ?></span>
+            </div>
             <div class="detail-summary-card ds-nominal">
                 <span class="ds-label">Total Pendapatan</span>
-                <span class="ds-value" id="stat-nominal">Rp <?= number_format($totalBonusAll, 0, ',', '.') ?></span>
+                <span class="ds-value" id="stat-nominal">Rp <?= number_format($totalShareAll, 0, ',', '.') ?></span>
             </div>
         </div>
 
@@ -338,6 +363,7 @@
                             $namaC = $row['nama_cust'];
                             $invoice = $row['no_invoice'];
                             $nominal = $row['nominal_invoice'];
+                            $totalShare = $row['total_share'];
                             $tglInv = date('d M Y', strtotime($row['tanggal']));
                             $ketSurvey = $row['keterangan_survey'] ?? '';
                             $surveyor = $row['surveyor'] ?? '';
@@ -345,7 +371,7 @@
                             $hasSurvey = !empty($ketSurvey) ? 'yes' : 'no';
                             $teknisiPlain = $row['nama_teknisi_plain'];
                     ?>
-                        <tr data-survey="<?php echo $hasSurvey; ?>" data-teknisi="<?php echo htmlspecialchars($teknisiPlain); ?>" data-nominal="<?php echo $nominal; ?>">
+                        <tr data-survey="<?php echo $hasSurvey; ?>" data-teknisi="<?php echo htmlspecialchars($teknisiPlain); ?>" data-nominal="<?php echo $nominal; ?>" data-share="<?php echo $totalShare; ?>">
                             <td data-label="#"><span class="row-num"><?php echo $rowNum; ?></span></td>
                             <td data-label="Tgl Invoice"><?php echo $tglInv; ?></td>
                             <td data-label="No Invoice"><span class="invoice-link"><?php echo $invoice; ?></span></td>
@@ -367,6 +393,11 @@
                             </td>
                             <td data-label="Nominal" style="text-align:right;">
                                 <span class="nominal-text"><?php echo $nominalFormatted; ?></span>
+                                <?php if ($totalShare != $nominal): ?>
+                                    <div style="font-size:10px; color:#64748b; font-weight:600; margin-top:2px;">
+                                        Porsi: Rp <?php echo number_format($totalShare, 0, ',', '.'); ?>
+                                    </div>
+                                <?php endif; ?>
                             </td>
                         </tr>
                     <?php
@@ -383,8 +414,13 @@
                     </tbody>
                     <tfoot>
                         <tr class="laporan-footer-row">
-                            <td colspan="7" style="padding-left:20px;"><strong>TOTAL PENDAPATAN</strong></td>
-                            <td style="text-align:right;padding-right:20px;" id="footer-total"><strong><?php echo "Rp " . number_format($totalBonusAll, 0, ',', '.'); ?></strong></td>
+                            <td colspan="7" style="padding-left:20px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                                    <strong>TOTAL PENDAPATAN TEKNISI</strong>
+                                    <span style="font-size: 11px; font-weight: 500; opacity: 0.8; margin-left: 20px;" id="footer-nominal-invoice">Total Nominal Invoice: Rp <?php echo number_format($totalNominalAll, 0, ',', '.'); ?></span>
+                                </div>
+                            </td>
+                            <td style="text-align:right;padding-right:20px;" id="footer-total"><strong><?php echo "Rp " . number_format($totalShareAll, 0, ',', '.'); ?></strong></td>
                         </tr>
                     </tfoot>
                 </table>
@@ -402,25 +438,28 @@
     const rows = tbody.querySelectorAll('tr[data-survey]');
     const statCount = document.getElementById('stat-count');
     const statSurvey = document.getElementById('stat-survey');
+    const statNominalInvoice = document.getElementById('stat-nominal-invoice');
     const statNominal = document.getElementById('stat-nominal');
+    const footerNominalInvoice = document.getElementById('footer-nominal-invoice');
     const footerTotal = document.getElementById('footer-total');
 
     let surveyFilter = 'all';
 
     function formatRp(num) {
-        return 'Rp ' + num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        return 'Rp ' + Math.round(num).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     }
 
     function applyFilters() {
         const search = searchInput.value.toLowerCase().trim();
         const teknisi = filterTeknisi.value.toLowerCase();
-        let visibleCount = 0, surveyCount = 0, totalNominal = 0;
+        let visibleCount = 0, surveyCount = 0, totalNominal = 0, totalShare = 0;
 
         rows.forEach(function(row) {
             const text = row.textContent.toLowerCase();
             const rowSurvey = row.getAttribute('data-survey');
             const rowTeknisi = (row.getAttribute('data-teknisi') || '').toLowerCase();
             const rowNominal = parseInt(row.getAttribute('data-nominal')) || 0;
+            const rowShare = parseInt(row.getAttribute('data-share')) || 0;
 
             let show = true;
 
@@ -439,6 +478,7 @@
                 visibleCount++;
                 if (rowSurvey === 'yes') surveyCount++;
                 totalNominal += rowNominal;
+                totalShare += rowShare;
             } else {
                 row.classList.add('hidden-row');
             }
@@ -447,8 +487,11 @@
         // Update stats
         statCount.textContent = visibleCount;
         statSurvey.textContent = surveyCount;
-        statNominal.textContent = formatRp(totalNominal);
-        footerTotal.innerHTML = '<strong>' + formatRp(totalNominal) + '</strong>';
+        if (statNominalInvoice) statNominalInvoice.textContent = formatRp(totalNominal);
+        if (footerNominalInvoice) footerNominalInvoice.innerHTML = 'Total Nominal Invoice: ' + formatRp(totalNominal);
+        
+        statNominal.textContent = formatRp(totalShare);
+        footerTotal.innerHTML = '<strong>' + formatRp(totalShare) + '</strong>';
     }
 
     // Search
