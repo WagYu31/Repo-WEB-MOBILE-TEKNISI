@@ -149,16 +149,65 @@
         display: flex; flex-wrap: wrap; gap: 12px; padding: 16px 24px;
     }
     .detail-summary-card {
-        padding: 12px 18px; border-radius: 12px;
-        display: flex; flex-direction: column; gap: 2px;
+        padding: 16px 20px; 
+        border-radius: 14px;
+        display: flex; 
+        flex-direction: column; 
+        gap: 6px;
         min-width: 140px;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    .detail-summary-card .ds-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.7; }
-    .detail-summary-card .ds-value { font-size: 18px; font-weight: 800; letter-spacing: -0.01em; }
-    .ds-invoice { background: linear-gradient(135deg, #eff6ff, #dbeafe); color: #1e40af; }
-    .ds-survey { background: linear-gradient(135deg, #fefce8, #fef9c3); color: #854d0e; }
-    .ds-nominal-invoice { background: linear-gradient(135deg, #ecfdf5, #d1fae5); color: #065f46; }
-    .ds-nominal { background: linear-gradient(135deg, #f0f0ff, #e0e7ff); color: #3730a3; }
+    .detail-summary-card:hover {
+        transform: translateY(-3px);
+    }
+    .detail-summary-card .ds-label { 
+        font-size: 11px; 
+        font-weight: 700; 
+        text-transform: uppercase; 
+        letter-spacing: 0.08em; 
+        opacity: 0.9; 
+    }
+    .detail-summary-card .ds-value { 
+        font-size: 20px; 
+        font-weight: 850; 
+        letter-spacing: -0.02em; 
+    }
+    .ds-card-icon {
+        position: absolute;
+        right: 12px;
+        bottom: -10px;
+        font-size: 58px;
+        opacity: 0.15;
+        color: #fff;
+        pointer-events: none;
+        transition: all 0.25s ease;
+    }
+    .detail-summary-card:hover .ds-card-icon {
+        transform: scale(1.1) rotate(-6deg);
+        opacity: 0.22;
+    }
+    .ds-invoice { 
+        background: linear-gradient(135deg, #3b82f6, #1d4ed8); 
+        color: #ffffff; 
+        box-shadow: 0 4px 14px rgba(59, 130, 246, 0.22); 
+    }
+    .ds-survey { 
+        background: linear-gradient(135deg, #f59e0b, #d97706); 
+        color: #ffffff; 
+        box-shadow: 0 4px 14px rgba(245, 158, 11, 0.22); 
+    }
+    .ds-nominal-invoice { 
+        background: linear-gradient(135deg, #10b981, #059669); 
+        color: #ffffff; 
+        box-shadow: 0 4px 14px rgba(16, 185, 129, 0.22); 
+    }
+    .ds-nominal { 
+        background: linear-gradient(135deg, #8b5cf6, #6d28d9); 
+        color: #ffffff; 
+        box-shadow: 0 4px 14px rgba(139, 92, 246, 0.22); 
+    }
 
     @media (max-width: 768px) {
         .detail-filter-bar { flex-direction: column; align-items: stretch; gap: 10px; padding: 12px 16px; }
@@ -298,18 +347,22 @@
             <div class="detail-summary-card ds-invoice">
                 <span class="ds-label">Invoice</span>
                 <span class="ds-value" id="stat-count"><?= count($allRows) ?></span>
+                <i class="fa-solid fa-file-invoice ds-card-icon"></i>
             </div>
             <div class="detail-summary-card ds-survey">
                 <span class="ds-label">Ada Survey</span>
                 <span class="ds-value" id="stat-survey"><?= $totalSurvey ?></span>
+                <i class="fa-solid fa-clipboard-question ds-card-icon"></i>
             </div>
             <div class="detail-summary-card ds-nominal-invoice">
                 <span class="ds-label">Total Nominal Invoice</span>
                 <span class="ds-value" id="stat-nominal-invoice">Rp <?= number_format($totalNominalAll, 0, ',', '.') ?></span>
+                <i class="fa-solid fa-receipt ds-card-icon"></i>
             </div>
             <div class="detail-summary-card ds-nominal">
                 <span class="ds-label">Total Pendapatan</span>
                 <span class="ds-value" id="stat-nominal">Rp <?= number_format($totalShareAll, 0, ',', '.') ?></span>
+                <i class="fa-solid fa-wallet ds-card-icon"></i>
             </div>
         </div>
 

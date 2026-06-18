@@ -251,18 +251,22 @@
                 <div class="summary-card summary-fee">
                     <span class="summary-label">Total Fee</span>
                     <span class="summary-value">Rp <?= number_format($grand_total_fee, 0, ',', '.') ?></span>
+                    <i class="fa-solid fa-hand-holding-dollar summary-card-icon"></i>
                 </div>
                 <div class="summary-card summary-income">
                     <span class="summary-label">Total Pendapatan</span>
                     <span class="summary-value">Rp <?= number_format($grand_total_pendapatan, 0, ',', '.') ?></span>
+                    <i class="fa-solid fa-wallet summary-card-icon"></i>
                 </div>
                 <div class="summary-card summary-bonus">
                     <span class="summary-label">Total Bonus</span>
                     <span class="summary-value">Rp <?= number_format($grand_total_bonus, 0, ',', '.') ?></span>
+                    <i class="fa-solid fa-gift summary-card-icon"></i>
                 </div>
                 <div class="summary-card summary-total">
                     <span class="summary-label">Grand Total</span>
                     <span class="summary-value">Rp <?= number_format($grand_total_all, 0, ',', '.') ?></span>
+                    <i class="fa-solid fa-sack-dollar summary-card-icon"></i>
                 </div>
             </div>
         </div>
@@ -433,19 +437,65 @@
     .summary-row { grid-template-columns: repeat(2, 1fr); }
 }
 .summary-card {
-    padding: 14px 18px;
-    border-radius: 12px;
+    padding: 16px 20px;
+    border-radius: 14px;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 6px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.summary-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.7; }
-.summary-value { font-size: 16px; font-weight: 800; letter-spacing: -0.01em; }
+.summary-card:hover {
+    transform: translateY(-3px);
+}
+.summary-label { 
+    font-size: 11px; 
+    font-weight: 700; 
+    text-transform: uppercase; 
+    letter-spacing: 0.08em; 
+    opacity: 0.9; 
+}
+.summary-value { 
+    font-size: 20px; 
+    font-weight: 850; 
+    letter-spacing: -0.02em; 
+}
+.summary-card-icon {
+    position: absolute;
+    right: 12px;
+    bottom: -10px;
+    font-size: 58px;
+    opacity: 0.15;
+    color: #fff;
+    pointer-events: none;
+    transition: all 0.25s ease;
+}
+.summary-card:hover .summary-card-icon {
+    transform: scale(1.1) rotate(-6deg);
+    opacity: 0.22;
+}
 
-.summary-fee { background: linear-gradient(135deg, #ecfdf5, #d1fae5); color: #065f46; }
-.summary-income { background: linear-gradient(135deg, #eff6ff, #dbeafe); color: #1e40af; }
-.summary-bonus { background: linear-gradient(135deg, #fefce8, #fef9c3); color: #854d0e; }
-.summary-total { background: linear-gradient(135deg, #f0f0ff, #e0e7ff); color: #3730a3; }
+.summary-fee { 
+    background: linear-gradient(135deg, #10b981, #059669); 
+    color: #ffffff; 
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.22); 
+}
+.summary-income { 
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8); 
+    color: #ffffff; 
+    box-shadow: 0 4px 14px rgba(59, 130, 246, 0.22); 
+}
+.summary-bonus { 
+    background: linear-gradient(135deg, #f59e0b, #d97706); 
+    color: #ffffff; 
+    box-shadow: 0 4px 14px rgba(245, 158, 11, 0.22); 
+}
+.summary-total { 
+    background: linear-gradient(135deg, #8b5cf6, #6d28d9); 
+    color: #ffffff; 
+    box-shadow: 0 4px 14px rgba(139, 92, 246, 0.22); 
+}
 
 /* Table */
 .rekap-table { table-layout: fixed; width: 100%; }
