@@ -54,13 +54,24 @@ if (!$teknisiInfo) {
     exit;
 }
 
-// 1. Jumlah Kegiatan (Lunas)
-$sql_lunas = "SELECT COUNT(DISTINCT pk.kode) AS jumlah_lunas FROM pendapatan_kegiatan pk WHERE pk.teknisi_id = $teknisiId AND DATE_FORMAT(pk.tanggal, '%Y-%m') IN ($monthConditions) AND pk.deleted_at IS NULL";
-$res_lunas = mysqli_query($conn, $sql_lunas);
-$jumlahKegiatan = mysqli_fetch_assoc($res_lunas)['jumlah_lunas'] ?? 0;
+// 1. Jumlah Kegiatan (Berdasarkan k.created_at)
+$sql_kegiatan = "SELECT COUNT(DISTINCT k.kode) AS jumlah_kegiatan 
+                 FROM kegiatan k 
+                 JOIN team_kegiatan tk ON k.id = tk.kegiatan_id 
+                 WHERE tk.teknisi_id = $teknisiId 
+                 AND k.created_at >= '$quarterStart' AND k.created_at < DATE_ADD('$quarterEnd', INTERVAL 1 DAY)
+                 AND k.deleted_at IS NULL AND tk.deleted_at IS NULL";
+$res_kegiatan = mysqli_query($conn, $sql_kegiatan);
+$jumlahKegiatan = mysqli_fetch_assoc($res_kegiatan)['jumlah_kegiatan'] ?? 0;
 
 // 2. Selesai count
-$sql_selesai = "SELECT COUNT(DISTINCT pk.kode) AS jumlah FROM pelaksanaan_kegiatan pk JOIN kegiatan k ON k.id = pk.kegiatan_id WHERE pk.teknisi_id = $teknisiId AND pk.deleted_at IS NULL AND k.deleted_at IS NULL AND DATE(pk.waktu_mulai) >= '$quarterStart' AND DATE(pk.waktu_mulai) <= '$quarterEnd' AND k.status IN ('selesai', 'selesai by admin')";
+$sql_selesai = "SELECT COUNT(DISTINCT k.kode) AS jumlah 
+                FROM kegiatan k 
+                JOIN team_kegiatan tk ON k.id = tk.kegiatan_id 
+                WHERE tk.teknisi_id = $teknisiId 
+                AND k.created_at >= '$quarterStart' AND k.created_at < DATE_ADD('$quarterEnd', INTERVAL 1 DAY)
+                AND k.deleted_at IS NULL AND tk.deleted_at IS NULL
+                AND k.status IN ('selesai', 'selesai by admin')";
 $res_selesai = mysqli_query($conn, $sql_selesai);
 $selesai = mysqli_fetch_assoc($res_selesai)['jumlah'] ?? 0;
 
@@ -83,50 +94,16 @@ $sql_pendapatan = "SELECT COALESCE(SUM(share_amount), 0) AS total FROM (
 $res_pendapatan = mysqli_query($conn, $sql_pendapatan);
 $totalPendapatan = floatval(mysqli_fetch_assoc($res_pendapatan)['total'] ?? 0);
 
-// 4. Fee 30k
-$feeKodes = [];
-$sql_fee = "SELECT k.kode FROM kegiatan k 
-        WHERE k.created_at >= '$quarterStart' AND k.created_at < DATE_ADD('$quarterEnd', INTERVAL 1 DAY)
-        AND k.paid REGEXP '^[0-9]+$' AND k.deleted_at IS NULL
-        AND NOT EXISTS (SELECT 1 FROM pendapatan_kegiatan pk WHERE pk.kode = k.kode)
-        GROUP BY k.kode";
-$res_fee_kode = mysqli_query($conn, $sql_fee);
-while ($r = mysqli_fetch_assoc($res_fee_kode)) $feeKodes[] = $r['kode'];
+// 4. Fee (Rp 5000 per kegiatan)
+$totalFee = $jumlahKegiatan * 5000;
 
-$totalFee = 0;
-if (!empty($feeKodes)) {
-    $kodePlaceholders = implode(',', array_map(function($k) { return "'$k'"; }, $feeKodes));
-    $sql_fee_teknisi = "SELECT DISTINCT kode, teknisi_id
-            FROM pelaksanaan_kegiatan 
-            WHERE kode IN ($kodePlaceholders) AND waktu_mulai IS NOT NULL";
-    $res_fee_teknisi = mysqli_query($conn, $sql_fee_teknisi);
-    
-    $kodeTeknisi = [];
-    while ($r = mysqli_fetch_assoc($res_fee_teknisi)) {
-        $kodeTeknisi[$r['kode']][$r['teknisi_id']] = true;
-    }
-    
-    foreach ($kodeTeknisi as $kd => $tekIds) {
-        $jml = count($tekIds);
-        if ($jml > 0 && isset($tekIds[$teknisiId])) {
-            $totalFee += 30000 / $jml;
-        }
-    }
-}
-
-// Ensure $target is calculated appropriately
-if ($filterType === 'quarter') {
-    // If target in DB is monthly, and we view quarter, target is 3x.
-    // Assuming target is monthly! If it's already quarterly in DB, we don't multiply.
-    // The previous code didn't multiply target by 3 for quarter. I'll stick to 1x to be safe.
-    $target = floatval($teknisiInfo['target'] ?? 0);
-    // Wait, earlier the user had 'target' = ~10jt for 3 months? Let's check web logic.
-    // For now, let's keep it exactly as it was.
-}
+// Target
 $target = floatval($teknisiInfo['target'] ?? 0);
 
+// Total & Bonus
 $totalKeseluruhan = $totalPendapatan + $totalFee;
 $bonus = ($totalKeseluruhan > $target && $target > 0) ? ($totalKeseluruhan - $target) * 0.60 : 0;
+$grandTotal = $totalKeseluruhan + $bonus;
 
 $quarterLabel = '';
 foreach ($months as $i => $m) {
@@ -151,4 +128,5 @@ echo json_encode([
     'total_pendapatan' => intval($totalPendapatan),
     'total_keseluruhan' => intval($totalKeseluruhan),
     'bonus' => intval($bonus),
+    'grand_total' => intval($grandTotal),
 ]);

@@ -3,6 +3,7 @@ class PendapatanResponse {
   final String namaTeknisi;
   final int bulan;
   final int tahun;
+  final String filterType;
   final int target;
   final int jumlahKegiatan;
   final int selesai;
@@ -11,12 +12,14 @@ class PendapatanResponse {
   final int totalPendapatan;
   final int totalKeseluruhan;
   final int bonus;
+  final int grandTotal;
 
   PendapatanResponse({
     required this.teknisiId,
     required this.namaTeknisi,
     required this.bulan,
     required this.tahun,
+    required this.filterType,
     required this.target,
     required this.jumlahKegiatan,
     required this.selesai,
@@ -25,14 +28,16 @@ class PendapatanResponse {
     required this.totalPendapatan,
     required this.totalKeseluruhan,
     required this.bonus,
+    required this.grandTotal,
   });
 
   factory PendapatanResponse.fromJson(Map<String, dynamic> json) {
     return PendapatanResponse(
       teknisiId: json['teknisi_id'] ?? 0,
       namaTeknisi: json['nama_teknisi'] ?? '',
-      bulan: json['bulan'] ?? 0,
-      tahun: json['tahun'] ?? 0,
+      bulan: json['bulan'] ?? 1,
+      tahun: json['tahun'] ?? 2024,
+      filterType: json['filter_type'] ?? 'month',
       target: json['target'] ?? 0,
       jumlahKegiatan: json['jumlah_kegiatan'] ?? 0,
       selesai: json['selesai'] ?? 0,
@@ -41,6 +46,7 @@ class PendapatanResponse {
       totalPendapatan: json['total_pendapatan'] ?? 0,
       totalKeseluruhan: json['total_keseluruhan'] ?? 0,
       bonus: json['bonus'] ?? 0,
+      grandTotal: json['grand_total'] ?? 0,
     );
   }
 
