@@ -342,12 +342,18 @@
 </div>
 
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
 /* ═══ PREMIUM REKAP STYLES ═══ */
+.rekap-card, #revenueDetailModal {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+}
+
 .rekap-card {
     background: #fff;
-    border: 1px solid #e5e7eb;
+    border: 1px solid #e2e8f0;
     border-radius: 16px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 6px 24px rgba(0,0,0,0.03);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.025), 0 20px 25px -5px rgba(0, 0, 0, 0.05);
     overflow: hidden;
 }
 
@@ -361,7 +367,7 @@
     align-items: center;
     flex-wrap: wrap;
     gap: 16px;
-    margin-bottom: 20px;
+    margin-bottom: 24px;
 }
 
 .rekap-title-left {
@@ -371,49 +377,49 @@
 }
 
 .rekap-icon {
-    width: 42px; height: 42px;
+    width: 44px; height: 44px;
     background: linear-gradient(135deg, #6366f1, #8b5cf6);
     border-radius: 12px;
     display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 4px 12px rgba(99,102,241,0.25);
+    box-shadow: 0 4px 14px rgba(99,102,241,0.3);
 }
-.rekap-icon i { color: #fff; font-size: 16px; }
+.rekap-icon i { color: #fff; font-size: 18px; }
 
 .rekap-title-left h5 {
-    margin: 0; font-size: 16px; font-weight: 800; color: #1e293b;
-    letter-spacing: -0.01em;
+    margin: 0; font-size: 17px; font-weight: 800; color: #1e293b;
+    letter-spacing: -0.02em;
 }
 .rekap-title-left p {
-    margin: 2px 0 0; font-size: 12px; color: #94a3b8; font-weight: 500;
+    margin: 2px 0 0; font-size: 12.5px; color: #64748b; font-weight: 500;
 }
 
 .rekap-filter {
     display: flex; gap: 8px; align-items: center;
 }
 .rekap-month-input {
-    border: 1.5px solid #e5e7eb;
+    border: 1.5px solid #e2e8f0;
     border-radius: 10px;
-    padding: 8px 14px;
+    padding: 8.5px 14px;
     font-size: 13px;
     color: #1e293b;
     background: #f8fafc;
-    font-weight: 500;
+    font-weight: 600;
     transition: all 0.2s;
 }
 .rekap-month-input:focus {
     border-color: #6366f1;
-    box-shadow: 0 0 0 3px rgba(99,102,241,0.08);
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
     outline: none;
     background: #fff;
 }
 .rekap-btn-cari {
-    padding: 8px 20px;
+    padding: 9px 20px;
     border: none;
     border-radius: 10px;
     background: linear-gradient(135deg, #6366f1, #8b5cf6);
     color: #fff;
     font-size: 13px;
-    font-weight: 700;
+    font-weight: 750;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
@@ -422,7 +428,7 @@
     box-shadow: 0 4px 12px rgba(99,102,241,0.25);
 }
 .rekap-btn-cari:hover {
-    transform: translateY(-1px);
+    transform: translateY(-1.5px);
     box-shadow: 0 6px 20px rgba(99,102,241,0.35);
 }
 
@@ -430,15 +436,15 @@
 .summary-row {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
-    margin-bottom: 20px;
+    gap: 14px;
+    margin-bottom: 24px;
 }
 @media (max-width: 768px) {
     .summary-row { grid-template-columns: repeat(2, 1fr); }
 }
 .summary-card {
-    padding: 16px 20px;
-    border-radius: 14px;
+    padding: 18px 22px;
+    border-radius: 16px;
     display: flex;
     flex-direction: column;
     gap: 6px;
@@ -447,77 +453,89 @@
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .summary-card:hover {
-    transform: translateY(-3px);
+    transform: translateY(-4px);
 }
 .summary-label { 
     font-size: 11px; 
     font-weight: 700; 
     text-transform: uppercase; 
-    letter-spacing: 0.08em; 
-    opacity: 0.9; 
+    letter-spacing: 0.09em; 
+    opacity: 0.95; 
 }
 .summary-value { 
-    font-size: 20px; 
+    font-size: 21px; 
     font-weight: 850; 
-    letter-spacing: -0.02em; 
+    letter-spacing: -0.03em; 
 }
 .summary-card-icon {
     position: absolute;
-    right: 12px;
-    bottom: -10px;
-    font-size: 58px;
-    opacity: 0.15;
+    right: 14px;
+    bottom: -12px;
+    font-size: 64px;
+    opacity: 0.16;
     color: #fff;
     pointer-events: none;
     transition: all 0.25s ease;
 }
 .summary-card:hover .summary-card-icon {
-    transform: scale(1.1) rotate(-6deg);
-    opacity: 0.22;
+    transform: scale(1.12) rotate(-8deg);
+    opacity: 0.24;
 }
 
 .summary-fee { 
-    background: linear-gradient(135deg, #10b981, #059669); 
+    background: linear-gradient(135deg, #0d9488, #0f766e); 
     color: #ffffff; 
-    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.22); 
+    box-shadow: 0 10px 15px -3px rgba(13, 148, 136, 0.2); 
 }
 .summary-income { 
-    background: linear-gradient(135deg, #3b82f6, #1d4ed8); 
+    background: linear-gradient(135deg, #2563eb, #1d4ed8); 
     color: #ffffff; 
-    box-shadow: 0 4px 14px rgba(59, 130, 246, 0.22); 
+    box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.2); 
 }
 .summary-bonus { 
-    background: linear-gradient(135deg, #f59e0b, #d97706); 
+    background: linear-gradient(135deg, #ea580c, #c2410c); 
     color: #ffffff; 
-    box-shadow: 0 4px 14px rgba(245, 158, 11, 0.22); 
+    box-shadow: 0 10px 15px -3px rgba(234, 88, 12, 0.2); 
 }
 .summary-total { 
-    background: linear-gradient(135deg, #8b5cf6, #6d28d9); 
+    background: linear-gradient(135deg, #7c3aed, #6d28d9); 
     color: #ffffff; 
-    box-shadow: 0 4px 14px rgba(139, 92, 246, 0.22); 
+    box-shadow: 0 10px 15px -3px rgba(124, 58, 237, 0.2); 
 }
 
 /* Table */
-.rekap-table { table-layout: fixed; width: 100%; }
+.rekap-table { 
+    table-layout: fixed; 
+    width: 100%; 
+    border-collapse: separate; 
+    border-spacing: 0; 
+}
 
 .rekap-table thead th {
     background: #f8fafc;
-    border-bottom: 2px solid #e5e7eb;
-    padding: 12px 14px;
-    font-size: 10px;
-    font-weight: 800;
-    color: #94a3b8;
+    border-bottom: 2px solid #e2e8f0;
+    padding: 16px 14px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #475569;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.06em;
     white-space: nowrap;
 }
 
 .rekap-table tbody tr {
     border-bottom: 1px solid #f1f5f9;
-    transition: all 0.15s;
+    transition: all 0.2s ease;
 }
-.rekap-table tbody tr:hover { background: #f8fafc; }
-.rekap-table tbody td { padding: 12px 14px; font-size: 13px; }
+.rekap-table tbody tr:hover { 
+    background-color: #f8fafc; 
+    box-shadow: inset 4px 0 0 0 #6366f1;
+}
+.rekap-table tbody td { 
+    padding: 15px 14px; 
+    font-size: 13.5px; 
+    vertical-align: middle;
+}
 
 /* Teknisi name with avatar */
 .tek-name {
@@ -527,25 +545,29 @@
     text-decoration: none;
     color: #1e293b;
     font-weight: 700;
-    font-size: 13px;
-    transition: color 0.2s;
+    font-size: 13.5px;
+    transition: all 0.2s ease;
 }
-.tek-name:hover { color: #6366f1; }
+.tek-name:hover { 
+    color: #6366f1; 
+    transform: translateX(3px);
+}
 
 .tek-avatar-circle {
     width: 32px; height: 32px;
-    border-radius: 10px;
+    border-radius: 50%;
     background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
     color: #4338ca;
     display: flex; align-items: center; justify-content: center;
-    font-size: 12px; font-weight: 800;
+    font-size: 13px; font-weight: 800;
     flex-shrink: 0;
+    box-shadow: 0 2px 4px rgba(99,102,241,0.1);
 }
 
 /* Stat pills */
 .stat-pill {
     display: inline-block;
-    min-width: 28px;
+    min-width: 30px;
     padding: 4px 10px;
     border-radius: 8px;
     font-size: 12px;
@@ -553,17 +575,33 @@
     background: #f1f5f9;
     color: #475569;
     text-align: center;
+    border: 1px solid #e2e8f0;
 }
-.stat-done { background: #dcfce7; color: #166534; }
-.stat-inv { background: #dbeafe; color: #1e40af; }
+.stat-done { 
+    background: rgba(16, 185, 129, 0.1); 
+    color: #059669; 
+    border: 1px solid rgba(16, 185, 129, 0.2); 
+}
+.stat-inv { 
+    background: rgba(59, 130, 246, 0.1); 
+    color: #2563eb; 
+    border: 1px solid rgba(59, 130, 246, 0.2); 
+}
 
 /* Money values */
 .money-val {
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 700;
+    font-variant-numeric: tabular-nums;
 }
-.money-positive { color: #16a34a; }
-.money-zero { color: #cbd5e1; }
+.money-positive { 
+    color: #059669; 
+}
+.money-zero { 
+    color: #94a3b8; 
+    opacity: 0.6;
+    font-weight: 500;
+}
 
 /* Footer */
 .rekap-footer-row {
@@ -571,8 +609,9 @@
 }
 .rekap-footer-row td {
     color: #fff !important;
-    font-size: 13px !important;
-    padding: 14px !important;
+    font-size: 13.5px !important;
+    font-weight: 800 !important;
+    padding: 16px 14.5px !important;
     border: none !important;
 }
 
@@ -584,20 +623,56 @@
 /* Clickable revenue styles */
 .money-clickable {
     cursor: pointer;
-    text-decoration: underline dashed #16a34a;
-    transition: all 0.2s;
+    color: #6366f1 !important;
+    border-bottom: 1.5px dashed rgba(99, 102, 241, 0.4);
+    transition: all 0.2s ease;
     display: inline-block;
+    padding-bottom: 1px;
 }
 .money-clickable:hover {
-    color: #15803d !important;
-    text-decoration: underline solid #15803d;
-    transform: scale(1.05);
+    color: #4f46e5 !important;
+    border-bottom: 1.5px solid #4f46e5;
+    transform: scale(1.03);
 }
 
 /* Light styling for modal success badges */
 .bg-success-light {
-    background-color: #dcfce7 !important;
+    background-color: rgba(34, 197, 94, 0.1) !important;
     color: #166534 !important;
+    border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+/* Modal Table Styling */
+#modal-detail-table {
+    table-layout: fixed;
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+#modal-detail-table thead th {
+    background: #f8fafc;
+    border-bottom: 2px solid #e2e8f0;
+    padding: 16px 12px;
+    font-size: 11px;
+    font-weight: 750;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+}
+#modal-detail-table tbody tr {
+    transition: all 0.2s ease;
+    border-bottom: 1px solid #f1f5f9;
+}
+#modal-detail-table tbody tr:hover {
+    background-color: #f8fafc;
+    box-shadow: inset 4px 0 0 0 #6366f1;
+}
+#modal-detail-table tbody td {
+    padding: 14px 12px;
+    font-size: 13.5px;
+    color: #334155;
+    vertical-align: middle;
 }
 
 /* Spinner helper */
@@ -729,32 +804,32 @@ function showRevenueDetail(techId, techName, period) {
                     const shareFormatted = 'Rp ' + numberFormat(item.share_amount);
                     
                     // Detail of shared technicians
-                    let infoBagi = `<span class="badge bg-light text-dark text-wrap" style="font-size: 11px;">${item.tek_count} kunjungan</span>`;
+                    let infoBagi = `<span class="badge" style="font-size: 10px; font-weight: 700; background: #f1f5f9; border: 1px solid #e2e8f0; color: #475569; padding: 4px 10px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.05em;">${item.tek_count} Kunjungan</span>`;
                     if (item.nama_teknisi_group) {
                         const cleanTechGroup = item.nama_teknisi_group.replace(/, /g, '\n').replace(/'/g, "\\'");
-                        infoBagi = `<span class="badge bg-light text-dark text-wrap" style="cursor: pointer; max-width: 150px; font-size: 11px;" title="Klik untuk rincian kegiatan" onclick="alert('Rincian Kegiatan Teknisi untuk Invoice ${item.no_invoice}:\\n\\n${cleanTechGroup}')">${item.tek_count} kunjungan</span>`;
+                        infoBagi = `<span class="badge" style="cursor: pointer; max-width: 150px; font-size: 10px; font-weight: 700; background: #f1f5f9; border: 1px solid #e2e8f0; color: #475569; padding: 4px 10px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.05em;" title="Klik untuk rincian kegiatan" onclick="alert('Rincian Kegiatan Teknisi untuk Invoice ${item.no_invoice}:\\n\\n${cleanTechGroup}')">${item.tek_count} Kunjungan</span>`;
                     }
 
                     if (item.nama_teknisi_group) {
                         const formattedTechs = item.nama_teknisi_group.split(', ').map(name => {
                             const isActive = name.startsWith(techName) || name.includes(techName);
                             const style = isActive
-                                ? `display: inline-block; white-space: nowrap; background: #e0f2fe; padding: 2px 6px; border-radius: 4px; border: 1px solid #bae6fd; font-size: 10px; margin: 2px; color: #0369a1; font-weight: 700;`
-                                : `display: inline-block; white-space: nowrap; background: #f8fafc; padding: 2px 6px; border-radius: 4px; border: 1px solid #e2e8f0; font-size: 10px; margin: 2px; color: #475569; font-weight: 500;`;
+                                ? `display: inline-block; white-space: nowrap; background: rgba(99, 102, 241, 0.1); padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(99, 102, 241, 0.2); font-size: 10.5px; margin: 2px; color: #4f46e5; font-weight: 700;`
+                                : `display: inline-block; white-space: nowrap; background: #f8fafc; padding: 4px 8px; border-radius: 6px; border: 1px solid #e2e8f0; font-size: 10.5px; margin: 2px; color: #475569; font-weight: 550;`;
                             return `<span style="${style}">${name}</span>`;
                         }).join('');
                         infoBagi += `<div class="d-flex flex-wrap justify-content-center mt-2" style="max-width: 230px; margin-left: auto; margin-right: auto; line-height: 1.2;">${formattedTechs}</div>`;
                     }
                     
-                    let shareHtml = `<span style="font-weight: 700; color: #16a34a;">${shareFormatted}</span>`;
+                    let shareHtml = `<span style="font-weight: 750; color: #059669; font-variant-numeric: tabular-nums;">${shareFormatted}</span>`;
                     
                     html += `
                         <tr style="border-bottom: 1px solid #f1f5f9;">
-                            <td class="ps-3"><span style="font-weight: 600; color: #64748b;">${index + 1}</span></td>
-                            <td style="white-space: nowrap;">${item.formatted_date}</td>
-                            <td style="font-weight: 600; color: #2563eb;">${item.no_invoice}</td>
-                            <td style="word-break: break-word;">${item.nama_cust}</td>
-                            <td class="text-end" style="color: #475569;">${nomFormatted}</td>
+                            <td class="ps-3"><span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 6px; background: #f1f5f9; color: #64748b; font-size: 11px; font-weight: 700; border: 1px solid #e2e8f0;">${index + 1}</span></td>
+                            <td style="white-space: nowrap; font-weight: 500; color: #475569;">${item.formatted_date}</td>
+                            <td style="font-weight: 700; color: #2563eb;">${item.no_invoice}</td>
+                            <td style="word-break: break-word; font-weight: 600; color: #1e293b;">${item.nama_cust}</td>
+                            <td class="text-end" style="color: #475569; font-weight: 600; font-variant-numeric: tabular-nums;">${nomFormatted}</td>
                             <td class="text-center">${infoBagi}</td>
                             <td class="text-end pe-3">${shareHtml}</td>
                         </tr>
