@@ -34,12 +34,17 @@ $sql = "SELECT pk.kode,
                counts.tek_count, 
                ROUND(pk.nominal_invoice / counts.tek_count) as share_amount,
                c.nama AS nama_cust,
-               (
-                   SELECT GROUP_CONCAT(t.nama SEPARATOR ', ')
-                   FROM pendapatan_kegiatan pk2
-                   JOIN teknisi t ON t.id = pk2.teknisi_id
-                   WHERE pk2.kode = pk.kode AND pk2.deleted_at IS NULL
-               ) as nama_teknisi_group
+                (
+                    SELECT GROUP_CONCAT(CONCAT(t.nama, ' (', sub.kegiatan_count, 'x)') SEPARATOR ', ')
+                    FROM (
+                        SELECT pk2.kode, pk2.teknisi_id, COUNT(*) as kegiatan_count
+                        FROM pendapatan_kegiatan pk2
+                        WHERE pk2.deleted_at IS NULL
+                        GROUP BY pk2.kode, pk2.teknisi_id
+                    ) sub
+                    JOIN teknisi t ON t.id = sub.teknisi_id
+                    WHERE sub.kode = pk.kode
+                ) as nama_teknisi_group
         FROM pendapatan_kegiatan pk
         JOIN (
             SELECT kode, COUNT(*) as tek_count 

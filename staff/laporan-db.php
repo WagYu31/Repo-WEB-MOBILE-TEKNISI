@@ -688,7 +688,8 @@ function showRevenueDetail(techId, techName, period) {
                     // Detail of shared technicians
                     let infoBagi = item.tek_count + ' Orang';
                     if (item.nama_teknisi_group) {
-                        infoBagi = `<span class="badge bg-light text-dark text-wrap" style="cursor: help; max-width: 150px; font-size: 11px;" title="${item.nama_teknisi_group}">${item.tek_count} orang</span>`;
+                        const cleanTechGroup = item.nama_teknisi_group.replace(/, /g, '\n').replace(/'/g, "\\'");
+                        infoBagi = `<span class="badge bg-light text-dark text-wrap" style="cursor: pointer; max-width: 150px; font-size: 11px;" title="Klik untuk rincian kegiatan" onclick="alert('Rincian Kegiatan Teknisi untuk Invoice ${item.no_invoice}:\\n\\n${cleanTechGroup}')">${item.tek_count} orang</span>`;
                     }
                     
                     html += `
