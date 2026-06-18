@@ -54,7 +54,7 @@ $sql = "SELECT pk.kode,
             WHERE DATE_FORMAT(tanggal, '%Y-%m') = ? AND deleted_at IS NULL
             GROUP BY kode
         ) counts ON pk.kode = counts.kode
-        JOIN kegiatan k ON k.kode = pk.kode
+        JOIN kegiatan k ON k.id = pk.kegiatan_id
         JOIN customer c ON c.id = k.customer_id
         WHERE pk.teknisi_id = ? 
           AND DATE_FORMAT(pk.tanggal, '%Y-%m') = ? 
