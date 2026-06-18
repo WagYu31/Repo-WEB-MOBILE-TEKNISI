@@ -684,9 +684,7 @@ function showRevenueDetail(techId, techName, period) {
                         const cleanTechGroup = item.nama_teknisi_group.replace(/, /g, '\n').replace(/'/g, "\\'");
                         infoBagi = `<span class="badge bg-light text-dark text-wrap" style="cursor: pointer; max-width: 150px; font-size: 11px;" title="Klik untuk rincian kegiatan" onclick="alert('Rincian Kegiatan Teknisi untuk Invoice ${item.no_invoice}:\\n\\n${cleanTechGroup}')">${item.tek_count} kunjungan</span>`;
                     }
-                    if (item.tech_visit_count > 1) {
-                        infoBagi += `<br><span class="badge bg-info text-white mt-1" style="font-size: 9px; font-weight: 700;">Anda: ${item.tech_visit_count}x</span>`;
-                    }
+
                     if (item.nama_teknisi_group) {
                         const formattedTechs = item.nama_teknisi_group.split(', ').map(name => {
                             const isActive = name.startsWith(techName) || name.includes(techName);
