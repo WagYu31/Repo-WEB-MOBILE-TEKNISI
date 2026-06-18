@@ -843,5 +843,104 @@ document.addEventListener('DOMContentLoaded', function() {
             XLSX.writeFile(wb, `Rincian_Pendapatan_${safeTechName}_${safePeriod}.xlsx`);
         });
     }
+
+    // Make revenueDetailModal draggable
+    const draggableModal = document.getElementById('revenueDetailModal');
+    if (draggableModal) {
+        const dialog = draggableModal.querySelector('.modal-dialog');
+        const header = draggableModal.querySelector('.modal-header');
+        
+        let activeDrag = false;
+        let startX, startY;
+        let initialLeft = 0;
+        let initialTop = 0;
+        
+        header.style.cursor = 'move';
+        
+        // Reset positioning when modal opens
+        draggableModal.addEventListener('show.bs.modal', function() {
+            dialog.style.position = '';
+            dialog.style.margin = '';
+            dialog.style.left = '';
+            dialog.style.top = '';
+            dialog.style.transform = '';
+        });
+        
+        // Mouse events
+        header.addEventListener('mousedown', function(e) {
+            if (e.button !== 0) return; // Only left click
+            if (e.target.closest('.btn-close') || e.target.closest('button')) return;
+            
+            activeDrag = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            
+            const rect = dialog.getBoundingClientRect();
+            initialLeft = rect.left;
+            initialTop = rect.top;
+            
+            dialog.style.position = 'absolute';
+            dialog.style.margin = '0';
+            dialog.style.left = initialLeft + 'px';
+            dialog.style.top = initialTop + 'px';
+            dialog.style.transform = 'none';
+            
+            document.addEventListener('mousemove', mouseDrag);
+            document.addEventListener('mouseup', mouseDragEnd);
+        });
+        
+        function mouseDrag(e) {
+            if (!activeDrag) return;
+            const dx = e.clientX - startX;
+            const dy = e.clientY - startY;
+            dialog.style.left = (initialLeft + dx) + 'px';
+            dialog.style.top = (initialTop + dy) + 'px';
+        }
+        
+        function mouseDragEnd() {
+            activeDrag = false;
+            document.removeEventListener('mousemove', mouseDrag);
+            document.removeEventListener('mouseup', mouseDragEnd);
+        }
+        
+        // Touch events
+        header.addEventListener('touchstart', function(e) {
+            if (e.target.closest('.btn-close') || e.target.closest('button')) return;
+            
+            activeDrag = true;
+            const touch = e.touches[0];
+            startX = touch.clientX;
+            startY = touch.clientY;
+            
+            const rect = dialog.getBoundingClientRect();
+            initialLeft = rect.left;
+            initialTop = rect.top;
+            
+            dialog.style.position = 'absolute';
+            dialog.style.margin = '0';
+            dialog.style.left = initialLeft + 'px';
+            dialog.style.top = initialTop + 'px';
+            dialog.style.transform = 'none';
+            
+            document.addEventListener('touchmove', touchDrag, { passive: false });
+            document.addEventListener('touchend', touchDragEnd);
+        });
+        
+        function touchDrag(e) {
+            if (!activeDrag) return;
+            const touch = e.touches[0];
+            const dx = touch.clientX - startX;
+            const dy = touch.clientY - startY;
+            dialog.style.left = (initialLeft + dx) + 'px';
+            dialog.style.top = (initialTop + dy) + 'px';
+            e.preventDefault();
+        }
+        
+        function touchDragEnd() {
+            activeDrag = false;
+            document.removeEventListener('touchmove', touchDrag);
+            document.removeEventListener('touchend', touchDragEnd);
+        }
+    }
 });
 </script>
