@@ -786,8 +786,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 const nominal = parseInt(nominalStr, 10) || 0;
                 totalNominal += nominal;
                 
-                // Extract bagi text
-                const bagi = cells[5].textContent.trim();
+                // Extract bagi text (only the main badge text, not the list of other technicians in the div)
+                const badges = cells[5].querySelectorAll('.badge');
+                let bagi = '';
+                if (badges.length > 0) {
+                    bagi = Array.from(badges).map(b => b.textContent.trim()).join(' / ');
+                } else {
+                    bagi = cells[5].textContent.trim();
+                }
                 
                 // Extract received portion
                 const diterimaStr = cells[6].textContent.trim().replace(/[^\d]/g, '');
