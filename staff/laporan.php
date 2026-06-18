@@ -87,7 +87,7 @@ $role = $jabatan;
         <?php include "nav-top.php"; ?>
         <div class="container-fluid py-4">
             <div class="action-bar no-print">
-                <a href="detail-lap.php" class="action-btn btn-detail">
+                <a href="detail-lap.php?cariBulanTahun=<?= $current_date; ?>" class="action-btn btn-detail">
                     <i class="fa-solid fa-file-invoice"></i> Detail Invoice
                 </a>
                 <a href="print-laporan.php?cariBulanTahun=<?= $current_date;?>" target="_blank" class="action-btn btn-print">

@@ -46,12 +46,13 @@ $role = $jabatan;
   <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg">
     <?php
     include "nav-top.php";
+    $current_date = (isset($_GET['cariBulanTahun']) && !empty($_GET['cariBulanTahun'])) ? $_GET['cariBulanTahun'] : date("Y-m");
     $daftar_bulan = [1 => 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
     $todayDate = date('d') . ' ' . $daftar_bulan[(int)date('m')] . ' ' . date('Y');
     ?>
     <div class="container-fluid py-4">
       <div class="action-bar no-print">
-          <a href="laporan.php" class="action-btn btn-bulanan">
+          <a href="laporan.php?cariBulanTahun=<?= $current_date; ?>" class="action-btn btn-bulanan">
               <i class="fa-solid fa-chart-bar"></i> Bulanan
           </a>
           <button class="action-btn btn-print-action btn-print">
