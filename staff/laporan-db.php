@@ -602,15 +602,15 @@
         <!-- Table Detail -->
         <div class="table-responsive" style="border-radius: 12px; border: 1px solid #e5e7eb; max-height: 400px; overflow-y: auto;">
           <table class="table align-middle mb-0" id="modal-detail-table">
-            <thead class="table-light" style="position: sticky; top: 0; z-index: 1;">
+            <thead style="position: sticky; top: 0; z-index: 10; background-color: #f8fafc;">
               <tr style="font-size: 10px; font-weight: 800; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.05em; background-color: #f8fafc;">
-                <th class="ps-3" style="width: 50px;">#</th>
-                <th style="width: 110px;">Tanggal</th>
-                <th>No Invoice</th>
-                <th>Customer</th>
-                <th class="text-end" style="width: 130px;">Nominal Invoice</th>
-                <th class="text-center" style="width: 100px;">Bagi</th>
-                <th class="text-end pe-3" style="width: 130px;">Diterima</th>
+                <th class="ps-3" style="width: 50px; background-color: #f8fafc; border-bottom: 1px solid #e5e7eb;">#</th>
+                <th style="width: 100px; background-color: #f8fafc; border-bottom: 1px solid #e5e7eb;">Tanggal</th>
+                <th style="background-color: #f8fafc; border-bottom: 1px solid #e5e7eb;">No Invoice</th>
+                <th style="background-color: #f8fafc; border-bottom: 1px solid #e5e7eb;">Customer</th>
+                <th class="text-end" style="width: 120px; background-color: #f8fafc; border-bottom: 1px solid #e5e7eb;">Nominal Invoice</th>
+                <th class="text-center" style="width: 240px; background-color: #f8fafc; border-bottom: 1px solid #e5e7eb;">Bagi</th>
+                <th class="text-end pe-3" style="width: 120px; background-color: #f8fafc; border-bottom: 1px solid #e5e7eb;">Diterima</th>
               </tr>
             </thead>
             <tbody id="modal-detail-tbody" style="font-size: 13px; color: #334155;">
@@ -688,7 +688,14 @@ function showRevenueDetail(techId, techName, period) {
                         infoBagi += `<br><span class="badge bg-info text-white mt-1" style="font-size: 9px; font-weight: 700;">Anda: ${item.tech_visit_count}x</span>`;
                     }
                     if (item.nama_teknisi_group) {
-                        infoBagi += `<div style="font-size: 9px; color: #64748b; margin-top: 5px; line-height: 1.3; max-width: 160px; margin-left: auto; margin-right: auto; text-align: center; word-break: break-word; font-weight: 500;">${item.nama_teknisi_group}</div>`;
+                        const formattedTechs = item.nama_teknisi_group.split(', ').map(name => {
+                            const isActive = name.startsWith(techName) || name.includes(techName);
+                            const style = isActive
+                                ? `display: inline-block; white-space: nowrap; background: #e0f2fe; padding: 2px 6px; border-radius: 4px; border: 1px solid #bae6fd; font-size: 10px; margin: 2px; color: #0369a1; font-weight: 700;`
+                                : `display: inline-block; white-space: nowrap; background: #f8fafc; padding: 2px 6px; border-radius: 4px; border: 1px solid #e2e8f0; font-size: 10px; margin: 2px; color: #475569; font-weight: 500;`;
+                            return `<span style="${style}">${name}</span>`;
+                        }).join('');
+                        infoBagi += `<div class="d-flex flex-wrap justify-content-center mt-2" style="max-width: 230px; margin-left: auto; margin-right: auto; line-height: 1.2;">${formattedTechs}</div>`;
                     }
                     
                     let shareHtml = `<span style="font-weight: 700; color: #16a34a;">${shareFormatted}</span>`;
