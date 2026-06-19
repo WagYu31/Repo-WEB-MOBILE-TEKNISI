@@ -53,9 +53,16 @@ if (isset($_GET['latitude'], $_GET['longitude'], $_GET['id_kegiatan'], $_GET['fi
     echo $idTeknisi . "<br>";
     echo $jenis . "<br>";
 
+    // Jika tgl_selesai sudah terisi (clock out sebelumnya), pertahankan nilainya
+    $existing_tgl_selesai = $row["tgl_selesai"] ?? null;
+    if (!empty($existing_tgl_selesai) && $existing_tgl_selesai !== '0000-00-00 00:00:00') {
+        $updateDT = $existing_tgl_selesai;
+    } else {
+        $updateDT = $currDT;
+    }
 
     // Perbarui data kegiatan
-    $sql = "UPDATE kegiatan SET tgl_selesai = '$currDT', lokasi_selesai = '$lokasiSelesai', gambar_finish_1 = '$file1', gambar_finish_2 = '$file2', gambar_finish_3 = '$file3', gambar_finish_4 = '$file4', gambar_finish_5 = '$file5', status = '$status', ket_finish = '$permasalahan', ket_finish_2 = '$solusi', ket_finish_3 = '$keterangan' WHERE id_kegiatan = '$id_kegiatan'";
+    $sql = "UPDATE kegiatan SET tgl_selesai = '$updateDT', lokasi_selesai = '$lokasiSelesai', gambar_finish_1 = '$file1', gambar_finish_2 = '$file2', gambar_finish_3 = '$file3', gambar_finish_4 = '$file4', gambar_finish_5 = '$file5', status = '$status', ket_finish = '$permasalahan', ket_finish_2 = '$solusi', ket_finish_3 = '$keterangan' WHERE id_kegiatan = '$id_kegiatan'";
 
     if (mysqli_query($conn, $sql)) {
         // Query untuk mendapatkan nomor telepon karyawan dengan id_karyawan 2 dan 16
