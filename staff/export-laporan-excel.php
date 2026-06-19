@@ -32,7 +32,7 @@ echo '<thead>
         </tr>
         <tr>
             <th>Teknisi</th>
-            <th>Pendapatan Teknisi</th>
+            <th>Target Tercapai</th>
             <th>Tanggal Kerja</th>
             <th>Absen Mulai</th>
             <th>Absen Selesai</th>

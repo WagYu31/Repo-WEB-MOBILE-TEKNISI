@@ -254,7 +254,7 @@
                     <i class="fa-solid fa-hand-holding-dollar summary-card-icon"></i>
                 </div>
                 <div class="summary-card summary-income">
-                    <span class="summary-label">Total Pendapatan</span>
+                    <span class="summary-label">Total Target Tercapai</span>
                     <span class="summary-value">Rp <?= number_format($grand_total_pendapatan, 0, ',', '.') ?></span>
                     <i class="fa-solid fa-wallet summary-card-icon"></i>
                 </div>
@@ -280,7 +280,7 @@
                         <th class="text-center" style="width:8%;">Selesai</th>
                         <th class="text-center" style="width:8%;">Invoice</th>
                         <th class="text-center" style="width:17%;">Fee (30k)</th>
-                        <th class="text-center" style="width:17%;">Pendapatan</th>
+                        <th class="text-center" style="width:17%;">Target Tercapai</th>
                         <th class="text-center pe-4" style="width:17%;">Bonus</th>
                     </tr>
                 </thead>
@@ -704,7 +704,7 @@
     <div class="modal-content" style="border-radius: 16px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.15); overflow: hidden;">
       <div class="modal-header bg-light" style="border-bottom: 1px solid #f1f5f9; padding: 20px 24px;">
         <h5 class="modal-title" id="revenueDetailModalLabel" style="font-weight: 800; color: #1e293b; display: flex; align-items: center;">
-          <i class="fa-solid fa-file-invoice-dollar me-2 text-primary"></i> Rincian Pendapatan: <span id="modal-tech-name" class="ms-1" style="color: #6366f1;"></span>
+          <i class="fa-solid fa-file-invoice-dollar me-2 text-primary"></i> Rincian Target Tercapai: <span id="modal-tech-name" class="ms-1" style="color: #6366f1;"></span>
         </h5>
         <button type="button" class="btn-close text-dark" data-bs-dismiss="modal" aria-label="Close" style="background-color: transparent; border: none; font-size: 24px; font-weight: bold; line-height: 1; padding: 0; margin: 0; opacity: 0.5; cursor: pointer;">&times;</button>
       </div>
@@ -882,7 +882,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             let data = [
-                ["Rincian Pendapatan Teknisi"],
+                ["Rincian Target Tercapai Teknisi"],
                 ["Nama Teknisi:", techName],
                 ["Periode:", periodText],
                 [], // Empty row
@@ -965,7 +965,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const safeTechName = techName.toLowerCase().replace(/[^a-z0-9]/g, "_");
             const safePeriod = periodText.toLowerCase().replace(/[^a-z0-9]/g, "_");
-            XLSX.writeFile(wb, `Rincian_Pendapatan_${safeTechName}_${safePeriod}.xlsx`);
+            XLSX.writeFile(wb, `Rincian_Target_Tercapai_${safeTechName}_${safePeriod}.xlsx`);
         });
     }
 

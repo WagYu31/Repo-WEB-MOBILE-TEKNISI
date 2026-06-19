@@ -86,7 +86,11 @@ Future<void> _checkAndNotify(Map<String, dynamic>? inputData) async {
 Future<void> _showActiveTaskNotification(int count, List<String> names) async {
   final plugin = FlutterLocalNotificationsPlugin();
   const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
-  const initSettings = InitializationSettings(android: androidSettings);
+  const iOSSettings = DarwinInitializationSettings();
+  const initSettings = InitializationSettings(
+    android: androidSettings,
+    iOS: iOSSettings,
+  );
   await plugin.initialize(initSettings);
 
   final nameStr = names.isNotEmpty ? names.join(', ') : '';
@@ -119,7 +123,11 @@ Future<void> _showActiveTaskNotification(int count, List<String> names) async {
 Future<void> _showReportNotification(int count, List<String> names) async {
   final plugin = FlutterLocalNotificationsPlugin();
   const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
-  const initSettings = InitializationSettings(android: androidSettings);
+  const iOSSettings = DarwinInitializationSettings();
+  const initSettings = InitializationSettings(
+    android: androidSettings,
+    iOS: iOSSettings,
+  );
   await plugin.initialize(initSettings);
 
   final nameStr = names.isNotEmpty ? names.join(', ') : '';
@@ -166,7 +174,11 @@ class NotificationService {
 
     const androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
-    const initSettings = InitializationSettings(android: androidSettings);
+    const iOSSettings = DarwinInitializationSettings();
+    const initSettings = InitializationSettings(
+      android: androidSettings,
+      iOS: iOSSettings,
+    );
 
     await _plugin.initialize(
       initSettings,

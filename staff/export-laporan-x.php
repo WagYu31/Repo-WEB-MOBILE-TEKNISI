@@ -7,7 +7,7 @@ $bulan_filter = date('m', strtotime($current_date));
 $tahun_filter = date('Y', strtotime($current_date));
 
 header("Content-Type: application/vnd.ms-excel");
-header("Content-Disposition: attachment; filename=Rekap_Pendapatan_Teknisi_" . $current_date . ".xls");
+header("Content-Disposition: attachment; filename=Rekap_Target_Tercapai_Teknisi_" . $current_date . ".xls");
 header("Pragma: no-cache");
 header("Expires: 0");
 
@@ -19,7 +19,7 @@ echo "<thead>
             <th>Jumlah Kegiatan Selesai</th>
             <th>Jumlah Invoice</th>
             <th>Total Fee (30k)</th>
-            <th>Total Pendapatan</th>
+            <th>Total Target Tercapai</th>
             <th>Total Bonus</th>
         </tr>
       </thead>";

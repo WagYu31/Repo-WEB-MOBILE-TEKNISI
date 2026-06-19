@@ -237,7 +237,7 @@ function renderNavItem($pageNow, $targetPage, $url, $icon, $text) {
                 <?php renderNavHeader("Laporan"); ?>
                 <?php renderNavItem($pageNow, "Task", "task.php", "fa-solid fa-person-digging", "Kegiatan Teknisi"); ?>
                 <?php renderNavItem($pageNow, "Laporan", "lap-kegiatan.php", "fa-solid fa-file-invoice", "Laporan Kegiatan"); ?>
-                <?php renderNavItem($pageNow, "Pendapatan", "laporan.php", "fa-solid fa-hand-holding-dollar", "Pendapatan Teknisi"); ?>
+                <?php renderNavItem($pageNow, "Target Tercapai", "laporan.php", "fa-solid fa-hand-holding-dollar", "Target Tercapai Teknisi"); ?>
                 <?php renderNavItem($pageNow, "Progress Kegiatan", "lap-progress.php", "fa-solid fa-bars-progress", "Progress Kegiatan"); ?>
 
                 <?php renderNavHeader("Manajemen Aset"); ?>

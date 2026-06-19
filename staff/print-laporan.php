@@ -2,7 +2,7 @@
 include "conn.php";
 include "session.php";
 include "get-user-data.php";
-$pageNow = "Pendapatan";
+$pageNow = "Target Tercapai";
 $role = $jabatan;
 ?>
 <!DOCTYPE html>
@@ -10,7 +10,7 @@ $role = $jabatan;
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Rekap Pendapatan Teknisi</title>
+    <title>Rekap Target Tercapai Teknisi</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
@@ -49,7 +49,7 @@ $role = $jabatan;
 
         <div class="card">
             <div class="card-header bg-white py-3 border-0">
-                <h5 class="text-center mb-1 font-weight-bold">REKAPITULASI PENDAPATAN TEKNISI</h5>
+                <h5 class="text-center mb-1 font-weight-bold">REKAPITULASI TARGET TERCAPAI TEKNISI</h5>
                 <p class="text-center text-muted mb-0">Periode: <strong><?= date('F Y', strtotime($current_date)); ?></strong></p>
             </div>
             <div class="card-body p-0">
@@ -62,7 +62,7 @@ $role = $jabatan;
                                 <th class="text-center">Selesai</th>
                                 <th class="text-center">Invoice</th>
                                 <th class="text-end">Fee (30k)</th>
-                                <th class="text-end">Pendapatan</th>
+                                <th class="text-end">Target Tercapai</th>
                                 <th class="text-end pe-3">Bonus</th>
                             </tr>
                         </thead>

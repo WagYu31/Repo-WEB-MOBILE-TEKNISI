@@ -78,7 +78,7 @@
                     <a class="dropdown-item dropup-item-mobile" href="task.php"><i class="material-icons">engineering</i> Kegiatan Teknisi</a>
                     <a class="dropdown-item dropup-item-mobile" href="lap-kegiatan.php"><i class="material-icons">receipt_long</i> Laporan Kegiatan</a>
                     <?php if ($role !== 'Admin') { ?>
-                        <a class="dropdown-item dropup-item-mobile" href="laporan.php"><i class="material-icons">payments</i> Pendapatan Teknisi</a>
+                        <a class="dropdown-item dropup-item-mobile" href="laporan.php"><i class="material-icons">payments</i> Target Tercapai Teknisi</a>
                     <?php } ?>
                 </div>
             </li>

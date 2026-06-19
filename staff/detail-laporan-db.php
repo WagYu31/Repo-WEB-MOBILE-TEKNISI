@@ -369,7 +369,7 @@
                 <i class="fa-solid fa-receipt ds-card-icon"></i>
             </div>
             <div class="detail-summary-card ds-nominal">
-                <span class="ds-label">Total Pendapatan</span>
+                <span class="ds-label">Total Target Tercapai</span>
                 <span class="ds-value" id="stat-nominal">Rp <?= number_format($totalShareAll, 0, ',', '.') ?></span>
                 <i class="fa-solid fa-wallet ds-card-icon"></i>
             </div>
@@ -468,7 +468,7 @@
                         <tr>
                             <td colspan="8" style="text-align:center; padding:40px; color:#94a3b8;">
                                 <div style="font-size:48px; margin-bottom:8px;">📭</div>
-                                <div style="font-size:14px; font-weight:500;">Tidak ada data pendapatan untuk bulan ini</div>
+                                <div style="font-size:14px; font-weight:500;">Tidak ada data target tercapai untuk bulan ini</div>
                             </td>
                         </tr>
                     <?php } ?>
@@ -477,7 +477,7 @@
                         <tr class="laporan-footer-row">
                             <td colspan="7" style="padding-left:20px;">
                                 <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                                    <strong>TOTAL PENDAPATAN TEKNISI</strong>
+                                    <strong>TOTAL TARGET TERCAPAI TEKNISI</strong>
                                     <span style="font-size: 11px; font-weight: 500; opacity: 0.8; margin-left: 20px;" id="footer-nominal-invoice">Total Nominal Invoice: Rp <?php echo number_format($totalNominalAll, 0, ',', '.'); ?></span>
                                 </div>
                             </td>

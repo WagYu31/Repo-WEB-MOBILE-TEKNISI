@@ -72,42 +72,57 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<void> _navigateToNextScreen() async {
 
     Future.delayed(const Duration(seconds: 5), () async {
-
+      debugPrint('SPLASH: Starting navigation logic...');
+      
       AuthApp.setID(Provider.of<PreferencesIDProvider>(context, listen: false).isUserRole);
+      debugPrint('SPLASH: AuthApp ID set.');
 
       await Provider.of<AuthProvider>(context, listen: false).checkLoginStatus();
+      debugPrint('SPLASH: checkLoginStatus completed.');
 
       // ═══ CEK VERSI SEBELUM LANJUT ═══
       if (mounted) {
+        debugPrint('SPLASH: Checking app version...');
         final canProceed = await ForceUpdateService().checkVersion(context);
+        debugPrint('SPLASH: App version check result: $canProceed');
         if (!canProceed) {
           // App diblokir, dialog force update sudah tampil
           return;
         }
       }
 
+      debugPrint('SPLASH: Checking location permission...');
       bool hasLocationPermission = await checkLocationPermission();
+      debugPrint('SPLASH: location permission result: $hasLocationPermission');
 
+      debugPrint('SPLASH: Checking location service...');
       bool checkLocation = await checkLocationService();
+      debugPrint('SPLASH: location service result: $checkLocation');
 
       if (hasLocationPermission) {
         // Lanjutkan dengan operasi yang memerlukan akses lokasi
 
         if(checkLocation){
+          debugPrint('SPLASH: Location verified, checking login state...');
           if (Provider.of<AuthProvider>(context, listen: false).isLoggedIn) {
+            debugPrint('SPLASH: User is logged in, navigating to HomePageAdmin.');
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => const HomePageAdmin()),
             );
           } else {
+            debugPrint('SPLASH: User is NOT logged in, navigating to LoginPage.');
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => const LoginPage()),
             );
           }
+        } else {
+          debugPrint('SPLASH: Location service check failed.');
         }
       } else {
         // Tampilkan pesan kepada pengguna bahwa izin lokasi diperlukan
+        debugPrint('SPLASH: Location permission denied, showing alert.');
         QuickAlert.show(
             context: context,
             type: QuickAlertType.warning,

@@ -90,7 +90,7 @@
         <div class="offcanvas-menu-divider"></div>
         <div class="offcanvas-menu-section">Laporan</div>
         <a class="offcanvas-menu-item" href="lap-kegiatan.php"><i class="fa-solid fa-receipt"></i> Laporan Kegiatan</a>
-        <a class="offcanvas-menu-item" href="laporan.php"><i class="fa-solid fa-money-bill-wave"></i> Pendapatan Teknisi</a>
+        <a class="offcanvas-menu-item" href="laporan.php"><i class="fa-solid fa-money-bill-wave"></i> Target Tercapai Teknisi</a>
         <a class="offcanvas-menu-item" href="lap-progress.php"><i class="fa-solid fa-chart-line"></i> Progress Kegiatan</a>
 
         <div class="offcanvas-menu-divider"></div>

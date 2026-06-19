@@ -16,7 +16,7 @@ if (isset($_GET['cariBulanTahun']) && !empty($_GET['cariBulanTahun'])) {
         <div class="card-header pb-0 p-3">
             <div class="row">
                 <div class="col-12 col-md-6 d-flex align-items-center">
-                    <h6 class="mb-0 mx-1 ms-2 lead font-weight-bold text-uppercase">Laporan Pendapatan Teknisi</h6>
+                    <h6 class="mb-0 mx-1 ms-2 lead font-weight-bold text-uppercase">Laporan Target Tercapai Teknisi</h6>
                 </div>
                 <div class="col-12 col-md-6 d-flex align-items-center justify-content-center flex-row">
                     <form method="GET" action="" class="col-12 col-md-12 d-flex align-items-center justify-content-center flex-row">
@@ -241,7 +241,7 @@ if (isset($_GET['cariBulanTahun']) && !empty($_GET['cariBulanTahun'])) {
 
                         <div class="col-6 w-md-10 mb-2 mb-md-0 d-md-none d-block">
                             <h6 class="mb-1 text-white font-weight-bold text-sm p-2 text-start text-md-center">
-                                Total Pendapatan
+                                Total Target Tercapai
                             </h6>
                         </div>
                         <div class="col-6 w-md-15 mb-md-0 d-md-block d-none">

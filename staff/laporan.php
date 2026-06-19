@@ -2,7 +2,7 @@
 include "conn.php";
 include "session.php";
 include "get-user-data.php";
-$pageNow = "Pendapatan";
+$pageNow = "Target Tercapai";
 $currentPage = "Today";
 $role = $jabatan;
 ?>

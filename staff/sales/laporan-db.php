@@ -11,7 +11,7 @@
         <div class="card-header pb-0 p-3">
             <div class="row">
                 <div class="col-12 col-md-6 d-flex align-items-center">
-                    <h6 class="mb-0 mx-1 ms-2 lead font-weight-bold text-uppercase">Laporan Pendapatan Teknisi</h6>
+                    <h6 class="mb-0 mx-1 ms-2 lead font-weight-bold text-uppercase">Laporan Target Tercapai Teknisi</h6>
                 </div>
                 <div class="col-12 col-md-6 d-flex align-items-center justify-content-center flex-row">
                     <form method="GET" action="" class="col-12 col-md-12 d-flex align-items-center justify-content-center flex-row">
@@ -65,7 +65,7 @@
                             </div>
                             <div class="col-6 col-md-3 mb-md-0">
                                 <h6 class="mb-1 text-dark font-weight-bold text-sm p-2 text-center">
-                                    Total Pendapatan
+                                    Total Target Tercapai
                                 </h6>
                             </div>
 
@@ -178,7 +178,7 @@
                                         if ($result) {
                                             $row = mysqli_fetch_assoc($result);
                                             $total_bonus = $row['total_bonus'];
-                                            echo "Total Pendapatan: Rp " . number_format($total_bonus, 0, ',', '.');
+                                            echo "Total Target Tercapai: Rp " . number_format($total_bonus, 0, ',', '.');
                                         } else {
                                             echo "Error: " . mysqli_error($conn);
                                         }
