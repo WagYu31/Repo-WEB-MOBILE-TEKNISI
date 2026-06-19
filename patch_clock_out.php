@@ -19,9 +19,8 @@ if (strpos($content, 'unset($data[\'waktu_selesai\'])') !== false) {
     exit(0);
 }
 
-// Find the target code block in reportPelaksanaan
-$search = "\$data['status'] = 'selesai';\n                \$data['waktu_selesai'] = \$dateTime;";
-$searchAlt = "\$data['status'] = 'selesai';\r\n                \$data['waktu_selesai'] = \$dateTime;";
+// Find the target code block in reportPelaksanaan using a flexible regex
+$pattern = '/\$data\[[\'"]status[\'"]\]\s*=\s*[\'"]selesai[\'"]\s*;\s*\$data\[[\'"]waktu_selesai[\'"]\]\s*=\s*\$dateTime\s*;/';
 
 $replacement = "\$data['status'] = 'selesai';
                 if (empty(\$checkKegiatan->waktu_selesai) || \$checkKegiatan->waktu_selesai == '0000-00-00 00:00:00') {
@@ -30,12 +29,9 @@ $replacement = "\$data['status'] = 'selesai';
                     unset(\$data['waktu_selesai']);
                 }";
 
-$newContent = str_replace($search, $replacement, $content);
-if ($newContent === $content) {
-    $newContent = str_replace($searchAlt, $replacement, $content);
-}
+$newContent = preg_replace($pattern, $replacement, $content, 1, $count);
 
-if ($newContent === $content) {
+if ($count === 0) {
     echo "ERROR: Could not find insertion point. File may have different formatting.\n";
     exit(1);
 }
