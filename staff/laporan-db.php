@@ -735,7 +735,7 @@
                 <th style="background-color: #f8fafc; border-bottom: 1px solid #e5e7eb;">Customer</th>
                 <th class="text-end" style="width: 120px; background-color: #f8fafc; border-bottom: 1px solid #e5e7eb;">Nominal Invoice</th>
                 <th class="text-center" style="width: 240px; background-color: #f8fafc; border-bottom: 1px solid #e5e7eb;">Bagi</th>
-                <th class="text-end pe-3" style="width: 120px; background-color: #f8fafc; border-bottom: 1px solid #e5e7eb;">Diterima</th>
+                <th class="text-end pe-3" style="width: 120px; background-color: #f8fafc; border-bottom: 1px solid #e5e7eb;">Target</th>
               </tr>
             </thead>
             <tbody id="modal-detail-tbody" style="font-size: 13px; color: #334155;">
@@ -886,7 +886,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 ["Nama Teknisi:", techName],
                 ["Periode:", periodText],
                 [], // Empty row
-                ["No", "Tanggal", "No Invoice", "Customer", "Nominal Invoice", "Bagi", "Porsi Diterima"]
+                ["No", "Tanggal", "No Invoice", "Customer", "Nominal Invoice", "Bagi", "Porsi Target"]
             ];
             
             let totalNominal = 0;
