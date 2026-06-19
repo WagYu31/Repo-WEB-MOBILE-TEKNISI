@@ -90,7 +90,7 @@ $role = $jabatan;
                 <a href="detail-lap.php?cariBulanTahun=<?= $current_date; ?>" class="action-btn btn-detail">
                     <i class="fa-solid fa-file-invoice"></i> Detail Invoice
                 </a>
-                <a href="print-laporan.php?cariBulanTahun=<?= $current_date;?>" target="_blank" class="action-btn btn-print">
+                <a href="print-laporan.php?cariBulanTahun=<?= $current_date;?>&bulan=<?= urlencode($filterBulan); ?>&ftek=<?= $filterTeknisiId; ?>" target="_blank" class="action-btn btn-print">
                     <i class="fa-solid fa-print"></i> Print Laporan
                 </a>
                 <a href="cetak-laporan-bulanan.php?bulan=<?= date('m', strtotime($current_date)); ?>&tahun=<?= date('Y', strtotime($current_date)); ?>" target="_blank" class="action-btn btn-lengkap">
