@@ -33,8 +33,9 @@ $end_date = $_GET['end_date'] ?? '';
 $teknisi_id = $_GET['teknisi_id'] ?? '';
 $customer_id = $_GET['customer_id'] ?? '';
 $jenis_kegiatan = $_GET['jenis_kegiatan'] ?? '';
+$kode_transaksi_filter = $_GET['kode_transaksi_filter'] ?? '';
 
-$is_search_triggered = !empty($start_date) || !empty($end_date) || !empty($teknisi_id) || !empty($customer_name) || !empty($jenis_kegiatan);
+$is_search_triggered = !empty($start_date) || !empty($end_date) || !empty($teknisi_id) || !empty($customer_id) || !empty($jenis_kegiatan) || !empty($kode_transaksi_filter);
 $groupedData = [];
 
 $sql_all_teknisi = "SELECT id, nama FROM teknisi WHERE deleted_at IS NULL ORDER BY nama ASC";
@@ -76,6 +77,11 @@ if ($is_search_triggered) {
         $sql_kegiatan .= " AND k.kegiatan = ?";
         $types .= 's';
         $params[] = $jenis_kegiatan;
+    }
+    if (!empty($kode_transaksi_filter)) {
+        $sql_kegiatan .= " AND k.kode LIKE ?";
+        $types .= 's';
+        $params[] = "%" . $kode_transaksi_filter . "%";
     }
     $sql_kegiatan .= " ORDER BY k.jadwal DESC LIMIT 200";
     
@@ -379,7 +385,7 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
                 <div class="filter-body">
                     <form method="GET">
                         <div class="row g-3">
-                            <div class="col-md-4">
+                            <div class="col-lg-3 col-md-6">
                                 <label>Jenis Kegiatan</label>
                                 <select class="form-control" name="jenis_kegiatan">
                                     <option value="">Semua Jenis</option>
@@ -388,28 +394,32 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
                                     <option value="pasang baru" <?= ($jenis_kegiatan == 'pasang baru' ? ' selected' : '') ?>>Pasang Baru</option>
                                 </select>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-lg-3 col-md-6">
                                 <label>Teknisi</label>
                                 <select class="form-control" name="teknisi_id">
                                     <option value="">Semua Teknisi</option>
                                     <?php mysqli_data_seek($result_all_teknisi, 0); while ($teknisi = mysqli_fetch_assoc($result_all_teknisi)) { echo "<option value='" . $teknisi['id'] . "'" . ($teknisi_id == $teknisi['id'] ? ' selected' : '') . ">" . htmlspecialchars($teknisi['nama']) . "</option>"; } ?>
                                 </select>
                             </div>
-                            <div class="col-md-4 position-relative">
+                            <div class="col-lg-3 col-md-6 position-relative">
                                 <label>Nama Customer</label>
-                                <input type="text" id="customerSearchInput" name="nama_customer_display" class="form-control" placeholder="Ketik nama customer..." autocomplete="off">
-                                <input type="hidden" id="customerIdInput" name="customer_id">
+                                <input type="text" id="customerSearchInput" name="nama_customer_display" class="form-control" placeholder="Ketik nama customer..." autocomplete="off" value="<?= htmlspecialchars($_GET['nama_customer_display'] ?? '') ?>">
+                                <input type="hidden" id="customerIdInput" name="customer_id" value="<?= htmlspecialchars($customer_id) ?>">
                                 <div id="searchResults" class="list-group position-absolute w-100" style="z-index: 1000;"></div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-lg-3 col-md-6">
+                                <label>Kode ID</label>
+                                <input type="text" name="kode_transaksi_filter" class="form-control" placeholder="Cari Kode ID..." value="<?= htmlspecialchars($kode_transaksi_filter) ?>">
+                            </div>
+                            <div class="col-lg-4 col-md-6">
                                 <label>Dari Tanggal</label>
                                 <input type="date" class="form-control" name="start_date" id="startDate" value="<?= htmlspecialchars($start_date) ?>">
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-lg-4 col-md-6">
                                 <label>Sampai Tanggal</label>
                                 <input type="date" class="form-control" name="end_date" id="endDate" value="<?= htmlspecialchars($end_date) ?>">
                             </div>
-                            <div class="col-md-4 d-flex align-items-end">
+                            <div class="col-lg-4 col-md-12 d-flex align-items-end">
                                 <div class="d-flex gap-2 w-100">
                                     <button type="submit" class="btn-filter btn-filter-primary flex-fill">
                                         <i class="fa-solid fa-magnifying-glass"></i> Tampilkan
