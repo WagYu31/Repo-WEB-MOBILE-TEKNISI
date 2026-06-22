@@ -470,6 +470,7 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
                                     <div style="margin-top:5px;">
                                         <div style="font-size:12px;font-weight:700;color:#1e293b;white-space:nowrap;"><?= date("d M Y", strtotime($latest_kegiatan['jadwal'])) ?></div>
                                         <div style="font-size:10px;color:#94a3b8;font-weight:500;"><?= date("H:i", strtotime($latest_kegiatan['jadwal'])) ?> WIB</div>
+                                        <div style="font-size:10.5px;color:#64748b;font-weight:700;margin-top:4px;letter-spacing:0.02em;">ID: <?= htmlspecialchars($kodeTransaksi) ?></div>
                                     </div>
                                 </td>
 
