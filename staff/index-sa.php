@@ -918,6 +918,9 @@ if (isset($_GET['export'])) {
                       <span style="font-size:12px;font-weight:600;color:#1e293b;<?= $date_css ?>"><?= $jadwal_display ?></span>
                       <span class="text-code" style="margin-left:4px;"><?= $row['kode'] ?></span>
                     </div>
+                    <div style="margin-top:2px; font-size:10px; color:#b0b8c4;" title="Tanggal Pembuatan">
+                      Buat: <?= date('d/m/y H:i', strtotime($row['created_at'])) ?>
+                    </div>
                   </div>
                   <div class="col-md-7">
                     <p style="font-size:11.5px;color:#475569;line-height:1.5;margin:0;" title="<?= htmlspecialchars($fullAddr) ?>">

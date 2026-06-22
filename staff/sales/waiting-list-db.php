@@ -94,6 +94,7 @@ $sql = "SELECT k.*, t.nama AS nama_teknisi
                                         <div class="col-6 col-md-1 mb-2 mb-md-0">
                                             <h6 class="mb-1 text-dark font-weight-bold text-sm"><?php echo date('d-m-y', strtotime($row["tgl_update"])); ?></h6>
                                             <span class="text-xs text-uppercase"><?php echo date('H:i', strtotime($row["tgl_update"])); ?></span>
+                                            <span style="display:block; font-size:10px; color:#94a3b8; margin-top:2px;">Buat: <?php echo date('d-m-y H:i', strtotime($row['created_at'])); ?></span>
                                         </div>
 
                                         <?php
@@ -122,6 +123,7 @@ $sql = "SELECT k.*, t.nama AS nama_teknisi
                                             <div class="col-6 col-md-1 mb-2 mb-md-0">
                                                 <h6 class="mb-1 font-weight-bold text-sm" style="color:red;"><?php echo date('d-m-y', $tgl_request); ?></h6>
                                                 <span class="text-xs text-uppercase" style="color:red;"><?php echo date('H:i', $tgl_request); ?></span>
+                                                <span style="display:block; font-size:10px; color:#94a3b8; margin-top:2px;">Buat: <?php echo date('d-m-y H:i', strtotime($row['created_at'])); ?></span>
                                             </div>
 
                                         <?php
@@ -137,6 +139,7 @@ $sql = "SELECT k.*, t.nama AS nama_teknisi
                                             <div class="col-6 col-md-1 mb-2 mb-md-0">
                                                 <h6 class="mb-1 font-weight-bold text-sm" style="color:blue;"><?php echo date('d-m-y', $tgl_request); ?></h6>
                                                 <span class="text-xs text-uppercase" style="color:blue;"><?php echo date('H:i', $tgl_request); ?></span>
+                                                <span style="display:block; font-size:10px; color:#94a3b8; margin-top:2px;">Buat: <?php echo date('d-m-y H:i', strtotime($row['created_at'])); ?></span>
                                             </div>
 
                                         <?php
@@ -151,6 +154,7 @@ $sql = "SELECT k.*, t.nama AS nama_teknisi
                                             <div class="col-6 col-md-1 mb-2 mb-md-0">
                                                 <h6 class="mb-1 text-dark font-weight-bold text-sm"><?php echo date('d-m-y', $tgl_request); ?></h6>
                                                 <span class="text-xs text-uppercase"><?php echo date('H:i', $tgl_request); ?></span>
+                                                <span style="display:block; font-size:10px; color:#94a3b8; margin-top:2px;">Buat: <?php echo date('d-m-y H:i', strtotime($row['created_at'])); ?></span>
                                             </div>
 
                                     <?php

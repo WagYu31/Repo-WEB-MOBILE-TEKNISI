@@ -266,6 +266,9 @@ $pageNow = "Waiting List";
                                             <span class="wl-date <?= $is_overdue ? 'wl-date-red' : '' ?>"><?= $jadwal_display ?></span>
                                             <span class="wl-code" style="margin-left:6px;"><?= $row['kode'] ?></span>
                                         </div>
+                                        <div style="margin-top:2px; font-size:10px; color:#b0b8c4;" title="Tanggal Pembuatan">
+                                            Buat: <?= date('d/m/y H:i', strtotime($row['created_at'])) ?>
+                                        </div>
                                     </div>
 
                                     <!-- Center: Address -->
