@@ -41,8 +41,11 @@ $sql_income = "SELECT COALESCE(SUM(sub.nominal), 0) as total
                FROM (
                    SELECT pk.kode, MAX(pk.nominal_invoice) as nominal
                    FROM pendapatan_kegiatan pk
-                   JOIN kegiatan k ON pk.kode = k.kode
-                   WHERE MONTH(k.created_at) = ? AND YEAR(k.created_at) = ? AND k.deleted_at IS NULL
+                   WHERE pk.kode IN (
+                       SELECT DISTINCT k2.kode FROM kegiatan k2
+                       WHERE MONTH(k2.created_at) = ? AND YEAR(k2.created_at) = ? AND k2.deleted_at IS NULL
+                   )
+                   AND pk.deleted_at IS NULL
                    GROUP BY pk.kode
                ) sub";
 $stmt_income = $conn->prepare($sql_income);
@@ -152,7 +155,7 @@ if (!empty($all_rows)) {
                         FROM team_kegiatan tk
                         JOIN teknisi t ON tk.teknisi_id = t.id
                         JOIN kegiatan k ON tk.kegiatan_id = k.id
-                        WHERE k.kode = ? GROUP BY t.id";
+                        WHERE k.kode = ? AND t.deleted_at IS NULL GROUP BY t.id";
             $stmt_tek = $conn->prepare($sql_tek);
             $stmt_tek->bind_param("ss", $kode, $kode);
             $stmt_tek->execute();
