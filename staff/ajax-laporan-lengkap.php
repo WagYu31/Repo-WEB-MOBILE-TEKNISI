@@ -140,44 +140,6 @@ $stmt_income->close();
 .ll-no-result p { font-size: 13px; font-weight: 600; margin: 0; }
 </style>
 
-<script>
-function llFilter(type, btn) {
-    // Update active button
-    document.querySelectorAll('.ll-filter-btn').forEach(b => b.classList.remove('ll-fbtn-active'));
-    btn.classList.add('ll-fbtn-active');
-
-    const cards = document.querySelectorAll('.ll-card');
-    let visible = 0;
-
-    cards.forEach(card => {
-        if (type === 'all') {
-            card.classList.remove('ll-hidden');
-            visible++;
-        } else if (type === 'lunas') {
-            if (card.classList.contains('ll-lunas')) {
-                card.classList.remove('ll-hidden');
-                visible++;
-            } else {
-                card.classList.add('ll-hidden');
-            }
-        } else if (type === 'belum') {
-            if (!card.classList.contains('ll-lunas')) {
-                card.classList.remove('ll-hidden');
-                visible++;
-            } else {
-                card.classList.add('ll-hidden');
-            }
-        }
-    });
-
-    // Show/hide empty state
-    const noResult = document.getElementById('ll-no-result');
-    if (noResult) {
-        if (visible === 0) noResult.classList.add('ll-show');
-        else noResult.classList.remove('ll-show');
-    }
-}
-</script>
 
 <!-- Column Labels -->
 <div class="ll-col-labels">
