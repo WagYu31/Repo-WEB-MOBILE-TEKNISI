@@ -84,9 +84,13 @@ if (isset($_GET['export'])) {
     /* ═══════ PREMIUM DASHBOARD CSS ═══════ */
     body { font-family: 'Roboto', 'Inter', -apple-system, sans-serif !important; }
 
-    /* Alternating row backgrounds */
-    ul#data-tek-today li:nth-child(even) .row,
-    ul#data-tek-upcoming li:nth-child(even) .row { background-color: #fafbfc; border-radius: 4px; }
+    /* Padding and background for container lists */
+    ul#data-tek-today,
+    ul#data-tek-upcoming {
+      padding: 12px 16px !important;
+      background: #f8fafc !important;
+      border-radius: 0 0 10px 10px;
+    }
 
     /* Toggles */
     #toggleLoadMore, #toggleLoadMore1, #toggleLoadMore2 { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
@@ -123,28 +127,46 @@ if (isset($_GET['export'])) {
 
     /* ── Table Header Row ── */
     .tbl-header {
-      background: #f8fafc !important; border: none !important;
-      border-bottom: 2px solid #e2e8f0 !important; border-radius: 0 !important;
-      padding: 12px 16px !important;
+      background: transparent !important; border: none !important;
+      border-bottom: none !important; border-radius: 0 !important;
+      padding: 8px 16px !important;
+      margin-bottom: 4px !important;
+    }
+    .tbl-header .row {
+      background: transparent !important;
+      margin: 0 !important;
+      padding: 0 !important;
     }
     .tbl-th {
-      font-size: 10.5px; font-weight: 700; color: #64748b;
+      font-size: 11px; font-weight: 700; color: #64748b;
       text-transform: uppercase; letter-spacing: 0.06em;
     }
 
     /* ── Data Rows ── */
     .tbl-row {
-      border: none !important; border-bottom: 1px solid #f1f5f9 !important;
-      border-radius: 0 !important; padding: 16px !important; transition: background 0.15s;
+      background: #fff !important;
+      border: 1px solid rgba(226, 232, 240, 0.8) !important;
+      border-radius: 12px !important;
+      padding: 16px !important;
+      margin-bottom: 12px !important;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.01) !important;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
     }
-    .tbl-row:hover { background: #f0f4f8 !important; }
-    .tbl-row:last-child { border-bottom: none !important; }
+    .tbl-row:hover {
+      background: #fff !important;
+      box-shadow: 0 10px 20px -3px rgba(0, 0, 0, 0.04), 0 4px 6px -2px rgba(0, 0, 0, 0.02) !important;
+      transform: translateY(-3px) scale(1.002);
+      border-color: rgba(203, 213, 225, 0.8) !important;
+    }
+    .tbl-row:last-child {
+      margin-bottom: 0 !important;
+    }
 
     /* ── Status Badges (Pill Shape) ── */
     .badge-status {
-      font-size: 9px; font-weight: 700; padding: 2px 7px;
-      border-radius: 4px; letter-spacing: 0.04em; display: inline-flex;
-      align-items: center; gap: 3px; white-space: nowrap;
+      font-size: 9px; font-weight: 700; padding: 3px 8px;
+      border-radius: 6px; letter-spacing: 0.04em; display: inline-flex;
+      align-items: center; gap: 4px; white-space: nowrap;
     }
     .badge-status .dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
     .badge-selesai { background: #dcfce7; color: #166534; }
@@ -359,8 +381,12 @@ if (isset($_GET['export'])) {
     .btn-premium-act-note:hover { background: #ea580c; color: #fff; }
     .btn-premium-act-note-has { background: #f0fdf4; color: #16a34a; }
     .btn-premium-act-note-has:hover { background: #16a34a; color: #fff; }
+    .btn-premium-act-view { background: #f0fdf4; color: #16a34a; }
+    .btn-premium-act-view:hover { background: #16a34a; color: #fff; }
     .btn-premium-act-edit { background: #eff6ff; color: #3b82f6; }
     .btn-premium-act-edit:hover { background: #3b82f6; color: #fff; }
+    .btn-premium-act-edit-orange { background: #fffbeb; color: #d97706; }
+    .btn-premium-act-edit-orange:hover { background: #d97706; color: #fff; }
     .btn-premium-act-delete { background: #fef2f2; color: #dc2626; }
     .btn-premium-act-delete:hover { background: #dc2626; color: #fff; }
 
@@ -706,7 +732,7 @@ if (isset($_GET['export'])) {
                 if (!empty($allTodayRows)) {
                   foreach ($allTodayRows as $row) { $groupedDataToday[$row['kode']][] = $row; }
                 } else {
-                  echo "<div class='ms-4 text-sm'>Tidak ada kegiatan untuk Hari Ini</div>";
+                  echo "<div style='padding:32px 16px;text-align:center;'><i class='material-icons' style='font-size:40px;color:#cbd5e1;'>event_available</i><p style='font-size:13px;color:#94a3b8;margin:8px 0 0;'>Tidak ada kegiatan untuk Hari Ini.</p></div>";
                 }
                 foreach ($groupedDataToday as $kodeTransaksi => $data_group) {
                   usort($data_group, fn($a, $b) => $b['id'] - $a['id']);
@@ -717,19 +743,26 @@ if (isset($_GET['export'])) {
                       <div class="col-md-2">
                         <?php
                           $kegLower = strtolower($data['kegiatan']);
-                          $badgeClass = 'badge-default';
-                          if (strpos($kegLower, 'survey') !== false) $badgeClass = 'badge-survey';
-                          elseif (strpos($kegLower, 'service') !== false) $badgeClass = 'badge-service';
-                          elseif (strpos($kegLower, 'pasang') !== false) $badgeClass = 'badge-pasang';
+                          $badgeClassPremium = 'badge-premium-type-default';
+                          if (strpos($kegLower, 'survey') !== false) $badgeClassPremium = 'badge-premium-type-survey';
+                          elseif (strpos($kegLower, 'service') !== false) $badgeClassPremium = 'badge-premium-type-service';
+                          elseif (strpos($kegLower, 'pasang') !== false) $badgeClassPremium = 'badge-premium-type-pasang';
                         ?>
-                        <span class="badge-type <?= $badgeClass ?>"><?= htmlspecialchars($data['kegiatan']) ?></span>
-                        <p class="text-time"><?= date("H:i", strtotime($data['jadwal'])) ?> WIB</p>
-                        <span class="text-code"><?= $kodeTransaksi; ?></span>
+                        <span class="badge-premium-type <?= $badgeClassPremium ?>"><?= htmlspecialchars($data['kegiatan']) ?></span>
+                        <div class="premium-date-badge">
+                          <i class="material-icons" style="font-size:14px;color:#64748b;margin-right:2px;">schedule</i>
+                          <?= date("H:i", strtotime($data['jadwal'])) ?> WIB
+                        </div>
+                        <span class="text-code" style="margin-top:4px;">ID: <?= $kodeTransaksi; ?></span>
                       </div>
                       <div class="col-md-2">
-                        <a href="customer-detail.php?id_cust=<?= $data['customer_id']; ?>" class="text-name d-block"><?= htmlspecialchars($data['nama_customer']); ?></a>
-                        <a href="https://api.whatsapp.com/send?phone=62<?= substr(preg_replace('/[^0-9]/', '', $data['cust_nomor']), 1); ?>" target="_blank" class="text-phone"><?= htmlspecialchars($data['cust_nomor']); ?></a>
-                        <p class="text-note">"<?= !empty($data["keterangan"]) ? htmlspecialchars($data["keterangan"]) : '-'; ?>"</p>
+                        <a href="customer-detail.php?id_cust=<?= $data['customer_id']; ?>" class="text-name d-block" style="font-size:14px; font-weight:700; color:#0f172a; text-decoration:none; margin-bottom:6px; transition:color 0.2s;" onmouseover="this.style.color='#3b82f6'" onmouseout="this.style.color='#0f172a'"><?= htmlspecialchars($data['nama_customer']); ?></a>
+                        <a href="https://api.whatsapp.com/send?phone=62<?= substr(preg_replace('/[^0-9]/', '', $data['cust_nomor']), 1); ?>" target="_blank" class="premium-phone-badge">
+                          <i class="material-icons" style="font-size:13px;">phone</i> <?= htmlspecialchars($data['cust_nomor']); ?>
+                        </a>
+                        <?php if (!empty($data["keterangan"])): ?>
+                          <div class="premium-keterangan-box">"<?= htmlspecialchars($data["keterangan"]); ?>"</div>
+                        <?php endif; ?>
                       </div>
                       <div class="col-md-2">
                         <?php
@@ -748,19 +781,21 @@ if (isset($_GET['export'])) {
                           $hasMulai = !empty($waktu_mulai_tek) && $waktu_mulai_tek !== '0000-00-00 00:00:00';
                           $hasSelesai = !empty($waktu_selesai_tek) && substr($waktu_selesai_tek, 0, 10) !== '0000-00-00';
                         ?>
-                          <div style="margin-bottom:6px;">
-                            <a href="list-kegiatan-teknisi.php?idTek=<?= $rowTeknisi['teknisi_id']; ?>" style="font-size:12px;font-weight:600;color:#1e293b;text-decoration:none;display:inline;line-height:1.3;"><?= shortenTechnicianName($rowTeknisi['nama_teknisi']); ?></a>
-                            <?php if (!empty($rowTeknisi['is_ketua'])): ?><span style="font-size:9px;font-weight:700;padding:1px 5px;border-radius:8px;background:#fef3c7;color:#92400e;margin-left:4px;vertical-align:middle;">👑</span><?php endif; ?>
-                            <span class="<?= $statusInfo['class']; ?>" style="margin-top:3px;"><?= $statusInfo['text']; ?></span>
+                          <div style="margin-bottom:8px; display:flex; flex-direction:column; gap:2px;">
+                            <div class="d-flex align-items-center gap-1 flex-wrap">
+                              <a href="list-kegiatan-teknisi.php?idTek=<?= $rowTeknisi['teknisi_id']; ?>" style="font-size:12.5px;font-weight:600;color:#1e293b;text-decoration:none;display:inline-block;line-height:1.3;"><?= shortenTechnicianName($rowTeknisi['nama_teknisi']); ?></a>
+                              <?php if (!empty($rowTeknisi['is_ketua'])): ?><span style="font-size:10px;vertical-align:middle;cursor:default;" title="Ketua Tim">👑</span><?php endif; ?>
+                              <span class="<?= $statusInfo['class']; ?>"><?= $statusInfo['text']; ?></span>
+                            </div>
                             <?php if ($hasMulai): ?>
-                            <div style="margin-top:4px;font-size:10px;color:#64748b;display:flex;align-items:center;gap:3px;flex-wrap:wrap;">
-                              <span style="color:#059669;font-weight:600;">▶ <?= date("H:i", strtotime($waktu_mulai_tek)); ?></span>
+                            <div style="font-size:10px;color:#64748b;display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-top:2px;">
+                              <span style="color:#059669;font-weight:600;background:#ecfdf5;padding:1px 5px;border-radius:4px;">▶ <?= date("H:i", strtotime($waktu_mulai_tek)); ?></span>
                               <?php if (!empty($lat_mulai) && !empty($lon_mulai)): ?>
                               <a href="https://www.google.com/maps?q=<?= $lat_mulai ?>,<?= $lon_mulai ?>" target="_blank" style="color:#3b82f6;text-decoration:none;font-size:11px;" title="Lokasi Mulai">📍</a>
                               <?php endif; ?>
                               <?php if ($hasSelesai): ?>
                               <span style="color:#94a3b8;margin:0 1px;">→</span>
-                              <span style="color:#dc2626;font-weight:600;">⏹ <?= date("H:i", strtotime($waktu_selesai_tek)); ?></span>
+                              <span style="color:#dc2626;font-weight:600;background:#fef2f2;padding:1px 5px;border-radius:4px;">⏹ <?= date("H:i", strtotime($waktu_selesai_tek)); ?></span>
                               <?php if (!empty($lat_selesai) && !empty($lon_selesai)): ?>
                               <a href="https://www.google.com/maps?q=<?= $lat_selesai ?>,<?= $lon_selesai ?>" target="_blank" style="color:#3b82f6;text-decoration:none;font-size:11px;" title="Lokasi Selesai">📍</a>
                               <?php endif; ?>
@@ -771,10 +806,13 @@ if (isset($_GET['export'])) {
                         <?php } ?>
                       </div>
                       <div class="col-md-3">
-                        <p class="text-addr">
-                          <?= htmlspecialchars(!empty($data['alamat_lokasi']) ? $data['alamat_lokasi'] : ($data['alamat'] ?? '')); ?>
-                          <button class="btn-act" style="width:22px;height:22px;display:inline-flex;vertical-align:middle;margin-left:4px;background:transparent;" onclick='openLocationModal(<?= json_encode($data) ?>)'><i class="material-icons" style="font-size:12px;color:#3b82f6;">edit_location</i></button>
-                        </p>
+                        <div class="premium-address-box">
+                          <i class="material-icons" style="font-size:14px; color:#f43f5e; margin-top:2px; flex-shrink:0;">location_on</i>
+                          <div>
+                            <?= htmlspecialchars(!empty($data['alamat_lokasi']) ? $data['alamat_lokasi'] : ($data['alamat'] ?? '')); ?>
+                            <button type="button" class="btn-act" style="width:20px;height:20px;background:transparent;display:inline-flex;vertical-align:middle;margin-left:3px;border:none;" onclick='openLocationModal(<?= json_encode($data) ?>)' title="Ubah lokasi peta"><i class="material-icons" style="font-size:11px;color:#3b82f6;">edit</i></button>
+                          </div>
+                        </div>
                       </div>
                       <div class="col-md-3 text-center">
                         <div class="d-flex align-items-center justify-content-end gap-2">
@@ -786,10 +824,10 @@ if (isset($_GET['export'])) {
                             <span class="text-hour"><?= date("H:i", strtotime($data['created_at'])); ?></span>
                           </div>
                           <div class="d-flex gap-1 ms-1">
-                            <a class="btn-act btn-act-view" href="view-kegiatan.php?kode_transaksi=<?= $kodeTransaksi; ?>"><i class="material-icons" style="font-size:14px;">visibility</i></a>
+                            <a class="btn-premium-act btn-premium-act-view" href="view-kegiatan.php?kode_transaksi=<?= $kodeTransaksi; ?>" title="Detail Kegiatan"><i class="material-icons" style="font-size:16px;">visibility</i></a>
                             <?php if ($pageNow != 'Task') : ?>
-                              <a class="btn-act btn-act-edit" href="edit_kegiatan.php?kode_transaksi=<?= $kodeTransaksi; ?>"><i class="material-icons" style="font-size:14px;">edit</i></a>
-                              <button class="btn-act btn-act-delete btn-delete" data-kode="<?= $kodeTransaksi; ?>" data-customer="<?= htmlspecialchars($data['nama_customer']); ?>"><i class="material-icons" style="font-size:14px;">delete</i></button>
+                              <a class="btn-premium-act btn-premium-act-edit-orange" href="edit_kegiatan.php?kode_transaksi=<?= $kodeTransaksi; ?>" title="Edit Kegiatan"><i class="material-icons" style="font-size:16px;">edit</i></a>
+                              <button class="btn-premium-act btn-premium-act-delete btn-delete" data-kode="<?= $kodeTransaksi; ?>" data-customer="<?= htmlspecialchars($data['nama_customer']); ?>" title="Hapus Kegiatan"><i class="material-icons" style="font-size:16px;">delete</i></button>
                             <?php endif; ?>
                           </div>
                         </div>
@@ -900,43 +938,61 @@ if (isset($_GET['export'])) {
                       <div class="col-md-2">
                         <?php
                           $kegLower2 = strtolower($data['kegiatan']);
-                          $badgeClass2 = 'badge-default';
-                          if (strpos($kegLower2, 'survey') !== false) $badgeClass2 = 'badge-survey';
-                          elseif (strpos($kegLower2, 'service') !== false) $badgeClass2 = 'badge-service';
-                          elseif (strpos($kegLower2, 'pasang') !== false) $badgeClass2 = 'badge-pasang';
+                          $badgeClassPremium2 = 'badge-premium-type-default';
+                          if (strpos($kegLower2, 'survey') !== false) $badgeClassPremium2 = 'badge-premium-type-survey';
+                          elseif (strpos($kegLower2, 'service') !== false) $badgeClassPremium2 = 'badge-premium-type-service';
+                          elseif (strpos($kegLower2, 'pasang') !== false) $badgeClassPremium2 = 'badge-premium-type-pasang';
                         ?>
-                        <span class="badge-type <?= $badgeClass2 ?>"><?= htmlspecialchars($data['kegiatan']) ?></span>
-                        <p class="text-time"><?= date("d/m/y H:i", strtotime($data['jadwal'])) ?></p>
+                        <span class="badge-premium-type <?= $badgeClassPremium2 ?>"><?= htmlspecialchars($data['kegiatan']) ?></span>
+                        <div class="premium-date-badge">
+                          <i class="material-icons" style="font-size:14px;color:#64748b;margin-right:2px;">event</i>
+                          <?= date("d/m/y H:i", strtotime($data['jadwal'])) ?>
+                        </div>
+                        <span class="text-code" style="margin-top:4px;">ID: <?= $kodeTransaksi; ?></span>
                       </div>
                       <div class="col-md-2">
-                        <a href="customer-detail.php?id_cust=<?= $data['customer_id']; ?>" class="text-name d-block"><?= htmlspecialchars($data['nama_customer']); ?></a>
-                        <a href="https://api.whatsapp.com/send?phone=62<?= substr(preg_replace('/[^0-9]/', '', $data['cust_nomor']), 1); ?>" target="_blank" class="text-phone"><?= htmlspecialchars($data['cust_nomor']); ?></a>
-                        <p class="text-note">"<?= !empty($data["keterangan"]) ? htmlspecialchars($data["keterangan"]) : '-'; ?>"</p>
+                        <a href="customer-detail.php?id_cust=<?= $data['customer_id']; ?>" class="text-name d-block" style="font-size:14px; font-weight:700; color:#0f172a; text-decoration:none; margin-bottom:6px; transition:color 0.2s;" onmouseover="this.style.color='#3b82f6'" onmouseout="this.style.color='#0f172a'"><?= htmlspecialchars($data['nama_customer']); ?></a>
+                        <a href="https://api.whatsapp.com/send?phone=62<?= substr(preg_replace('/[^0-9]/', '', $data['cust_nomor']), 1); ?>" target="_blank" class="premium-phone-badge">
+                          <i class="material-icons" style="font-size:13px;">phone</i> <?= htmlspecialchars($data['cust_nomor']); ?>
+                        </a>
+                        <?php if (!empty($data["keterangan"])): ?>
+                          <div class="premium-keterangan-box">"<?= htmlspecialchars($data["keterangan"]); ?>"</div>
+                        <?php endif; ?>
                       </div>
                       <div class="col-md-2">
                         <?php
                         $teknisiListUp = $teknisiByKegUpcoming[$data['id']] ?? [];
                         foreach ($teknisiListUp as $rowTeknisi) {
-                          $ketuaBadge = !empty($rowTeknisi['is_ketua']) ? " <span style='font-size:9px;font-weight:700;padding:1px 5px;border-radius:8px;background:#fef3c7;color:#92400e;vertical-align:middle;'>👑</span>" : "";
-                          echo "<div style='margin-bottom:4px;'><a href='list-kegiatan-teknisi.php?idTek=".$rowTeknisi['teknisi_id']."' style='font-size:12px;font-weight:600;color:#1e293b;text-decoration:none;display:inline;line-height:1.3;'>".shortenTechnicianName($rowTeknisi['nama_teknisi'])."</a>".$ketuaBadge."</div>";
-                        } ?>
+                        ?>
+                          <div style="margin-bottom:6px;">
+                            <a href="list-kegiatan-teknisi.php?idTek=<?= $rowTeknisi['teknisi_id']; ?>" style="font-size:12.5px;font-weight:600;color:#1e293b;text-decoration:none;display:inline-block;line-height:1.3;"><?= shortenTechnicianName($rowTeknisi['nama_teknisi']); ?></a>
+                            <?php if (!empty($rowTeknisi['is_ketua'])): ?><span style="font-size:10px;vertical-align:middle;cursor:default;" title="Ketua Tim">👑</span><?php endif; ?>
+                          </div>
+                        <?php } ?>
                       </div>
                       <div class="col-md-3">
-                        <p class="text-addr">
-                          <?= htmlspecialchars(!empty($data['alamat_lokasi']) ? $data['alamat_lokasi'] : ($data['alamat'] ?? '')); ?>
-                          <button class="btn-act" style="width:22px;height:22px;display:inline-flex;vertical-align:middle;margin-left:4px;background:transparent;" onclick='openLocationModal(<?= json_encode($data) ?>)'><i class="material-icons" style="font-size:12px;color:#3b82f6;">edit_location</i></button>
-                        </p>
+                        <div class="premium-address-box">
+                          <i class="material-icons" style="font-size:14px; color:#f43f5e; margin-top:2px; flex-shrink:0;">location_on</i>
+                          <div>
+                            <?= htmlspecialchars(!empty($data['alamat_lokasi']) ? $data['alamat_lokasi'] : ($data['alamat'] ?? '')); ?>
+                            <button type="button" class="btn-act" style="width:20px;height:20px;background:transparent;display:inline-flex;vertical-align:middle;margin-left:3px;border:none;" onclick='openLocationModal(<?= json_encode($data) ?>)' title="Ubah lokasi peta"><i class="material-icons" style="font-size:11px;color:#3b82f6;">edit</i></button>
+                          </div>
+                        </div>
                       </div>
                       <div class="col-md-3 text-center">
                         <div class="d-flex align-items-center justify-content-end gap-2">
                           <div class="avatar-initials">
                             <span><?= getInitials($data['request']); ?></span>
                           </div>
+                          <div style="text-align:left;min-width:40px;">
+                            <span class="text-date"><?= date("d/m", strtotime($data['created_at'])); ?></span>
+                            <span class="text-hour"><?= date("H:i", strtotime($data['created_at'])); ?></span>
+                          </div>
                           <div class="d-flex gap-1 ms-1">
-                            <a class="btn-act btn-act-view" href="view-kegiatan.php?kode_transaksi=<?= $kodeTransaksi; ?>"><i class="material-icons" style="font-size:14px;">visibility</i></a>
+                            <a class="btn-premium-act btn-premium-act-view" href="view-kegiatan.php?kode_transaksi=<?= $kodeTransaksi; ?>" title="Detail Kegiatan"><i class="material-icons" style="font-size:16px;">visibility</i></a>
                             <?php if ($pageNow != 'Task') : ?>
-                              <a class="btn-act btn-act-edit" href="edit_kegiatan.php?kode_transaksi=<?= $kodeTransaksi; ?>"><i class="material-icons" style="font-size:14px;">edit</i></a>
-                              <button class="btn-act btn-act-delete btn-delete" data-kode="<?= $kodeTransaksi; ?>" data-customer="<?= htmlspecialchars($data['nama_customer']); ?>"><i class="material-icons" style="font-size:14px;">delete</i></button>
+                              <a class="btn-premium-act btn-premium-act-edit-orange" href="edit_kegiatan.php?kode_transaksi=<?= $kodeTransaksi; ?>" title="Edit Kegiatan"><i class="material-icons" style="font-size:16px;">edit</i></a>
+                              <button class="btn-premium-act btn-premium-act-delete btn-delete" data-kode="<?= $kodeTransaksi; ?>" data-customer="<?= htmlspecialchars($data['nama_customer']); ?>" title="Hapus Kegiatan"><i class="material-icons" style="font-size:16px;">delete</i></button>
                             <?php endif; ?>
                           </div>
                         </div>
