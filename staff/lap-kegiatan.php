@@ -690,16 +690,15 @@ endif; // Akhir dari blok if ($show_modal)
 
     <div class="modal fade" style="z-index:99999;" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-xl">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="detailModalLabel">Rincian & Input Invoice</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-content" style="border-radius:16px;border:none;box-shadow:0 10px 40px rgba(0,0,0,0.15);overflow:hidden;">
+                <div class="modal-header" style="background:linear-gradient(135deg,#4f46e5,#7c3aed);border:none;padding:18px 24px;">
+                    <h5 class="modal-title" id="detailModalLabel" style="color:#fff;font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px;">
+                        <i class="fa-solid fa-file-invoice" style="font-size:16px;opacity:0.9;"></i> Rincian & Input Invoice
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" style="font-size:10px;opacity:0.8;"></button>
                 </div>
-                <div class="modal-body" id="dataDetailTek">
+                <div class="modal-body" id="dataDetailTek" style="padding:24px;">
                     <div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn bg-gradient-secondary" data-bs-dismiss="modal">Tutup</button>
                 </div>
             </div>
         </div>
