@@ -258,6 +258,7 @@
                    GROUP_CONCAT(DISTINCT t.nama SEPARATOR ', ') AS nama_teknisi_plain,
                    k.customer_id, 
                    c.nama AS nama_cust,
+                   k.lunas,
                    sv.keterangan_survey,
                    sv.surveyor,
                    counts.tek_count,
@@ -407,6 +408,7 @@
                     <tr>
                         <th style="width:35px;padding-left:16px;">#</th>
                         <th style="width:80px;">Tgl Invoice</th>
+                        <th style="width:90px;">Tgl Lunas</th>
                         <th style="width:120px;">No Invoice</th>
                         <th style="width:13%;">Teknisi</th>
                         <th style="width:18%;">Customer</th>
@@ -426,6 +428,8 @@
                             $nominal = $row['nominal_invoice'];
                             $totalShare = $row['total_share'];
                             $tglInv = date('d M Y', strtotime($row['tanggal']));
+                            $is_lunas = (!empty($row['lunas']) && $row['lunas'] != '0000-00-00');
+                            $tglLunas = $is_lunas ? date('d M Y', strtotime($row['lunas'])) : '<span style="color:#ef4444; font-weight:600; font-size:11.5px;">Belum Lunas</span>';
                             $ketSurvey = $row['keterangan_survey'] ?? '';
                             $surveyor = $row['surveyor'] ?? '';
                             $nominalFormatted = "Rp " . number_format($nominal, 0, ',', '.');
@@ -435,6 +439,7 @@
                         <tr data-survey="<?php echo $hasSurvey; ?>" data-teknisi="<?php echo htmlspecialchars($teknisiPlain); ?>" data-nominal="<?php echo $nominal; ?>" data-share="<?php echo $totalShare; ?>">
                             <td data-label="#"><span class="row-num"><?php echo $rowNum; ?></span></td>
                             <td data-label="Tgl Invoice"><?php echo $tglInv; ?></td>
+                            <td data-label="Tgl Lunas"><?php echo $tglLunas; ?></td>
                             <td data-label="No Invoice"><span class="invoice-link"><?php echo $invoice; ?></span></td>
                             <td data-label="Teknisi"><div class="cell-truncate teknisi-link"><?php echo $namaT; ?></div></td>
                             <td data-label="Customer"><div class="cell-truncate"><?php echo $namaC; ?></div></td>
@@ -466,7 +471,7 @@
                     } else {
                     ?>
                         <tr>
-                            <td colspan="8" style="text-align:center; padding:40px; color:#94a3b8;">
+                            <td colspan="9" style="text-align:center; padding:40px; color:#94a3b8;">
                                 <div style="font-size:48px; margin-bottom:8px;">📭</div>
                                 <div style="font-size:14px; font-weight:500;">Tidak ada data target tercapai untuk bulan ini</div>
                             </td>
@@ -475,7 +480,7 @@
                     </tbody>
                     <tfoot>
                         <tr class="laporan-footer-row">
-                            <td colspan="7" style="padding-left:20px;">
+                            <td colspan="8" style="padding-left:20px;">
                                 <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
                                     <strong>TOTAL TARGET TERCAPAI TEKNISI</strong>
                                     <span style="font-size: 11px; font-weight: 500; opacity: 0.8; margin-left: 20px;" id="footer-nominal-invoice">Total Nominal Invoice: Rp <?php echo number_format($totalNominalAll, 0, ',', '.'); ?></span>
