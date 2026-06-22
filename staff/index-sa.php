@@ -754,6 +754,10 @@ if (isset($_GET['export'])) {
                           <?= date("H:i", strtotime($data['jadwal'])) ?> WIB
                         </div>
                         <span class="text-code" style="margin-top:4px;">ID: <?= $kodeTransaksi; ?></span>
+                        <div class="premium-created-info" title="Tanggal Pembuatan">
+                          <i class="material-icons" style="font-size:12px;color:#94a3b8;margin-top:1px;">history</i>
+                          <span>Buat: <?= date('d/m/y H:i', strtotime($data['created_at'])) ?></span>
+                        </div>
                       </div>
                       <div class="col-md-2">
                         <a href="customer-detail.php?id_cust=<?= $data['customer_id']; ?>" class="text-name d-block" style="font-size:14px; font-weight:700; color:#0f172a; text-decoration:none; margin-bottom:6px; transition:color 0.2s;" onmouseover="this.style.color='#3b82f6'" onmouseout="this.style.color='#0f172a'"><?= htmlspecialchars($data['nama_customer']); ?></a>
@@ -816,12 +820,8 @@ if (isset($_GET['export'])) {
                       </div>
                       <div class="col-md-3 text-center">
                         <div class="d-flex align-items-center justify-content-end gap-2">
-                          <div class="avatar-initials">
+                          <div class="avatar-initials" title="Request oleh: <?= htmlspecialchars($data['request']) ?>">
                             <span><?= getInitials($data['request']); ?></span>
-                          </div>
-                          <div style="text-align:left;min-width:40px;">
-                            <span class="text-date"><?= date("d/m", strtotime($data['created_at'])); ?></span>
-                            <span class="text-hour"><?= date("H:i", strtotime($data['created_at'])); ?></span>
                           </div>
                           <div class="d-flex gap-1 ms-1">
                             <a class="btn-premium-act btn-premium-act-view" href="view-kegiatan.php?kode_transaksi=<?= $kodeTransaksi; ?>" title="Detail Kegiatan"><i class="material-icons" style="font-size:16px;">visibility</i></a>
@@ -949,6 +949,10 @@ if (isset($_GET['export'])) {
                           <?= date("d/m/y H:i", strtotime($data['jadwal'])) ?>
                         </div>
                         <span class="text-code" style="margin-top:4px;">ID: <?= $kodeTransaksi; ?></span>
+                        <div class="premium-created-info" title="Tanggal Pembuatan">
+                          <i class="material-icons" style="font-size:12px;color:#94a3b8;margin-top:1px;">history</i>
+                          <span>Buat: <?= date('d/m/y H:i', strtotime($data['created_at'])) ?></span>
+                        </div>
                       </div>
                       <div class="col-md-2">
                         <a href="customer-detail.php?id_cust=<?= $data['customer_id']; ?>" class="text-name d-block" style="font-size:14px; font-weight:700; color:#0f172a; text-decoration:none; margin-bottom:6px; transition:color 0.2s;" onmouseover="this.style.color='#3b82f6'" onmouseout="this.style.color='#0f172a'"><?= htmlspecialchars($data['nama_customer']); ?></a>
@@ -981,12 +985,8 @@ if (isset($_GET['export'])) {
                       </div>
                       <div class="col-md-3 text-center">
                         <div class="d-flex align-items-center justify-content-end gap-2">
-                          <div class="avatar-initials">
+                          <div class="avatar-initials" title="Request oleh: <?= htmlspecialchars($data['request']) ?>">
                             <span><?= getInitials($data['request']); ?></span>
-                          </div>
-                          <div style="text-align:left;min-width:40px;">
-                            <span class="text-date"><?= date("d/m", strtotime($data['created_at'])); ?></span>
-                            <span class="text-hour"><?= date("H:i", strtotime($data['created_at'])); ?></span>
                           </div>
                           <div class="d-flex gap-1 ms-1">
                             <a class="btn-premium-act btn-premium-act-view" href="view-kegiatan.php?kode_transaksi=<?= $kodeTransaksi; ?>" title="Detail Kegiatan"><i class="material-icons" style="font-size:16px;">visibility</i></a>
