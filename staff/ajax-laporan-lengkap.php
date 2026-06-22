@@ -87,6 +87,10 @@ $stmt_income->close();
     <button class="ll-filter-btn" data-filter="belum" onclick="llFilter('belum', this)">
         <i class="fa-solid fa-clock"></i> Belum Lunas <span class="ll-filter-count"><?= $total_belum_lunas ?></span>
     </button>
+    <div class="ll-search-wrapper">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="ll-search-input" placeholder="Cari Kode / Customer..." onkeyup="llSearchFilter()">
+    </div>
 </div>
 
 <style>
@@ -130,6 +134,44 @@ $stmt_income->close();
     min-width: 20px; text-align: center;
 }
 .ll-filter-btn i { font-size: 12px; }
+.ll-search-wrapper {
+    margin-left: auto;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+.ll-search-wrapper i {
+    position: absolute;
+    left: 10px;
+    color: #94a3b8;
+    font-size: 12px;
+}
+#ll-search-input {
+    padding: 6px 12px 6px 30px;
+    border-radius: 8px;
+    border: 1.5px solid #e2e8f0;
+    font-size: 12px;
+    font-weight: 600;
+    width: 220px;
+    outline: none;
+    transition: all 0.2s;
+    background: #fff;
+    color: #1e293b;
+}
+#ll-search-input:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+}
+@media (max-width: 768px) {
+    .ll-search-wrapper {
+        margin-left: 0;
+        width: 100%;
+        margin-top: 8px;
+    }
+    #ll-search-input {
+        width: 100%;
+    }
+}
 .ll-card.ll-hidden { display: none !important; }
 .ll-no-result {
     text-align: center; padding: 40px 20px; color: #94a3b8;

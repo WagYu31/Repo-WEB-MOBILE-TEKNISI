@@ -396,6 +396,7 @@ $role = $jabatan;
         const bulanNames = ['','Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 
         function openLaporanLengkap(bulan, tahun) {
+            currentStatusFilter = 'all';
             llPeriod.textContent = bulanNames[bulan] + ' ' + tahun;
             llExportLink.href = 'export-laporan-excel.php?bulan=' + bulan + '&tahun=' + tahun;
             llBody.innerHTML = '<div class="ll-loading"><div class="ll-spinner"></div><span>Memuat laporan...</span></div>';
@@ -437,32 +438,57 @@ $role = $jabatan;
         });
 
         // ═══ FILTER LAPORAN LENGKAP ═══
+        let currentStatusFilter = 'all';
+
         function llFilter(type, btn) {
             // Update active button
             document.querySelectorAll('.ll-filter-btn').forEach(b => b.classList.remove('ll-fbtn-active'));
             btn.classList.add('ll-fbtn-active');
+            currentStatusFilter = type;
+            runCombinedFilter();
+        }
 
+        function llSearchFilter() {
+            runCombinedFilter();
+        }
+
+        function runCombinedFilter() {
+            const searchInput = document.getElementById('ll-search-input');
+            const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
             const cards = document.querySelectorAll('.ll-card');
             let visible = 0;
 
             cards.forEach(card => {
-                if (type === 'all') {
+                // 1. Status Filter Check
+                let statusMatch = false;
+                if (currentStatusFilter === 'all') {
+                    statusMatch = true;
+                } else if (currentStatusFilter === 'lunas') {
+                    statusMatch = card.classList.contains('ll-lunas');
+                } else if (currentStatusFilter === 'belum') {
+                    statusMatch = !card.classList.contains('ll-lunas');
+                }
+
+                // 2. Search Query Check (Customer Name, Transaction Code, Keterangan)
+                let queryMatch = false;
+                if (!query) {
+                    queryMatch = true;
+                } else {
+                    const customerName = card.querySelector('.ll-cname')?.textContent.toLowerCase() || '';
+                    const keterangan = card.querySelector('.ll-cket')?.textContent.toLowerCase() || '';
+                    const txCode = card.querySelector('.ll-ctag strong')?.textContent.toLowerCase() || '';
+
+                    if (customerName.includes(query) || txCode.includes(query) || keterangan.includes(query)) {
+                        queryMatch = true;
+                    }
+                }
+
+                // Combine conditions
+                if (statusMatch && queryMatch) {
                     card.classList.remove('ll-hidden');
                     visible++;
-                } else if (type === 'lunas') {
-                    if (card.classList.contains('ll-lunas')) {
-                        card.classList.remove('ll-hidden');
-                        visible++;
-                    } else {
-                        card.classList.add('ll-hidden');
-                    }
-                } else if (type === 'belum') {
-                    if (!card.classList.contains('ll-lunas')) {
-                        card.classList.remove('ll-hidden');
-                        visible++;
-                    } else {
-                        card.classList.add('ll-hidden');
-                    }
+                } else {
+                    card.classList.add('ll-hidden');
                 }
             });
 
