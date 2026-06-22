@@ -231,6 +231,139 @@ if (isset($_GET['export'])) {
     }
     .filter-pill.active .pill-count { background: rgba(255,255,255,0.2); color: #fff; }
 
+    /* ── PREMIUM WAITING CARD ── */
+    .waiting-card {
+      background: #fff;
+      border: 1px solid rgba(226, 232, 240, 0.8) !important;
+      border-radius: 12px !important;
+      margin-bottom: 12px;
+      overflow: hidden;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.01) !important;
+    }
+    .waiting-card:hover {
+      box-shadow: 0 10px 20px -3px rgba(0, 0, 0, 0.04), 0 4px 6px -2px rgba(0, 0, 0, 0.02) !important;
+      transform: translateY(-3px) scale(1.002);
+      border-color: rgba(203, 213, 225, 0.8) !important;
+    }
+    /* Accents */
+    .waiting-card-reported { border-left: 5px solid #f59e0b !important; }
+    .waiting-card-scheduled { border-left: 5px solid #3b82f6 !important; }
+    .waiting-card-overdue { border-left: 5px solid #ef4444 !important; }
+
+    /* Custom Badges Premium */
+    .badge-premium-status {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 20px;
+      letter-spacing: 0.02em;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .badge-premium-status-reported { background: linear-gradient(135deg, #fef3c7, #fde68a); color: #92400e; }
+    .badge-premium-status-scheduled { background: linear-gradient(135deg, #dbeafe, #93c5fd); color: #1e40af; }
+    .badge-premium-status-overdue { background: linear-gradient(135deg, #fee2e2, #fca5a5); color: #991b1b; }
+
+    .badge-premium-type {
+      font-size: 9px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      display: inline-flex;
+      align-items: center;
+    }
+    .badge-premium-type-survey { background: rgba(245, 158, 11, 0.08); border-left: 3px solid #f59e0b; color: #b45309; }
+    .badge-premium-type-service { background: rgba(99, 102, 241, 0.08); border-left: 3px solid #6366f1; color: #4338ca; }
+    .badge-premium-type-pasang { background: rgba(34, 197, 94, 0.08); border-left: 3px solid #22c55e; color: #15803d; }
+    .badge-premium-type-default { background: rgba(100, 116, 139, 0.08); border-left: 3px solid #64748b; color: #475569; }
+
+    /* Detail layout enhancements */
+    .premium-phone-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #eff6ff;
+      color: #2563eb;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 6px;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .premium-phone-badge:hover {
+      background: #2563eb;
+      color: #fff;
+    }
+    .premium-date-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: #1e293b;
+      margin-top: 6px;
+    }
+    .premium-date-badge-overdue {
+      color: #dc2626 !important;
+    }
+    .premium-created-info {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 10px;
+      color: #94a3b8;
+      margin-top: 4px;
+    }
+    .premium-address-box {
+      font-size: 11.5px;
+      color: #334155;
+      line-height: 1.6;
+      margin: 0;
+      display: flex;
+      align-items: flex-start;
+      gap: 4px;
+    }
+    .premium-keterangan-box {
+      font-size: 10.5px;
+      color: #475569;
+      font-style: italic;
+      margin: 6px 0 0;
+      padding: 8px 12px;
+      background: #f8fafc;
+      border-left: 3px solid #cbd5e1;
+      border-radius: 0 6px 6px 0;
+    }
+    /* Action buttons rounded */
+    .btn-premium-act {
+      width: 32px;
+      height: 32px;
+      border-radius: 50% !important;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+    .btn-premium-act:hover {
+      transform: scale(1.1);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+    }
+    .btn-premium-act-note { background: #fff7ed; color: #ea580c; }
+    .btn-premium-act-note:hover { background: #ea580c; color: #fff; }
+    .btn-premium-act-note-has { background: #f0fdf4; color: #16a34a; }
+    .btn-premium-act-note-has:hover { background: #16a34a; color: #fff; }
+    .btn-premium-act-edit { background: #eff6ff; color: #3b82f6; }
+    .btn-premium-act-edit:hover { background: #3b82f6; color: #fff; }
+    .btn-premium-act-delete { background: #fef2f2; color: #dc2626; }
+    .btn-premium-act-delete:hover { background: #dc2626; color: #fff; }
+
     <?php include "css/floating-menu2.css"; ?>
     @media (min-width: 992px) { .w-lg-30 { width: 30% !important; } }
     @media (min-width: 768px) and (max-width: 991px) { .w-md-70 { width: 50% !important; } }
@@ -887,55 +1020,83 @@ if (isset($_GET['export'])) {
                     if ($geoAddr) $fullAddr = $geoAddr;
                 }
             ?>
-            <div class="waiting-card" data-type="<?= strtolower($row['kegiatan']) ?>" style="background:#fff;border:1px solid #e9ecef;border-radius:10px;margin-bottom:10px;overflow:hidden;transition:all 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.03);<?= $card_border ?>" onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.08)';this.style.transform='translateY(-1px)'" onmouseout="this.style.boxShadow='0 1px 3px rgba(0,0,0,0.03)';this.style.transform='none'">
-              <div style="padding:14px 18px;">
+            <?php
+                $status_class_premium = "badge-premium-status-reported";
+                $card_class_premium = "waiting-card-reported";
+                if ($status_display == "Dijadwalkan") {
+                    $status_class_premium = "badge-premium-status-scheduled";
+                    $card_class_premium = "waiting-card-scheduled";
+                } elseif ($status_display == "Terlambat") {
+                    $status_class_premium = "badge-premium-status-overdue";
+                    $card_class_premium = "waiting-card-overdue";
+                }
+
+                $type_class_premium = "badge-premium-type-default";
+                if (strpos($kegL, 'survey') !== false) $type_class_premium = "badge-premium-type-survey";
+                elseif (strpos($kegL, 'service') !== false) $type_class_premium = "badge-premium-type-service";
+                elseif (strpos($kegL, 'pasang') !== false) $type_class_premium = "badge-premium-type-pasang";
+            ?>
+            <div class="waiting-card <?= $card_class_premium ?>" data-type="<?= strtolower($row['kegiatan']) ?>">
+              <div style="padding:18px 20px;">
                 <!-- Top: Badges + Customer + Actions -->
-                <div class="d-flex align-items-center justify-content-between" style="margin-bottom:10px;">
+                <div class="d-flex align-items-center justify-content-between" style="margin-bottom:12px;">
                   <div class="d-flex align-items-center gap-2" style="flex:1;min-width:0;">
-                    <span style="font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px;white-space:nowrap;<?= $status_css ?>"><?= $status_display ?></span>
-                    <span style="font-size:9px;font-weight:700;padding:3px 8px;border-radius:20px;letter-spacing:0.04em;text-transform:uppercase;white-space:nowrap;<?= $tCSS ?>"><?= htmlspecialchars($row['kegiatan']) ?></span>
-                    <a href="customer-detail.php?id_cust=<?= $row['customer_id'] ?>" style="font-size:14px;font-weight:700;color:#1e293b;text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><?= htmlspecialchars($row['nama_customer']) ?></a>
+                    <span class="badge-premium-status <?= $status_class_premium ?>"><?= $status_display ?></span>
+                    <span class="badge-premium-type <?= $type_class_premium ?>"><?= htmlspecialchars($row['kegiatan']) ?></span>
+                    <a href="customer-detail.php?id_cust=<?= $row['customer_id'] ?>" style="font-size:15px; font-weight:700; color:#0f172a; text-decoration:none; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; transition:color 0.2s;" onmouseover="this.style.color='#3b82f6'" onmouseout="this.style.color='#0f172a'"><?= htmlspecialchars($row['nama_customer']) ?></a>
                   </div>
-                  <div class="d-flex align-items-center gap-1" style="flex-shrink:0;margin-left:12px;">
-                    <button type="button" class="btn-act <?= $hasReason ? 'btn-act-view' : '' ?> reason-btn" data-id="<?= $row['id'] ?>" style="<?= !$hasReason ? 'background:#fff7ed;color:#ea580c;' : '' ?>" title="<?= $hasReason ? $row['reason_count'].' catatan' : 'Tambah' ?>">
-                      <i class="material-icons" style="font-size:14px;"><?= $hasReason ? 'history' : 'add_comment' ?></i>
+                  <div class="d-flex align-items-center gap-2" style="flex-shrink:0;margin-left:12px;">
+                    <button type="button" class="btn-premium-act <?= $hasReason ? 'btn-premium-act-note-has' : 'btn-premium-act-note' ?> reason-btn" data-id="<?= $row['id'] ?>" title="<?= $hasReason ? $row['reason_count'].' catatan' : 'Tambah catatan' ?>">
+                      <i class="material-icons" style="font-size:16px;"><?= $hasReason ? 'history' : 'add_comment' ?></i>
                     </button>
-                    <button type="button" class="btn-act btn-act-edit jadwalkan-btn" data-id="<?= $row["id"] ?>" data-tgl-request="<?= $row["jadwal"] ?>" title="Jadwalkan">
-                      <i class="material-icons" style="font-size:14px;">calendar_today</i>
+                    <button type="button" class="btn-premium-act btn-premium-act-edit jadwalkan-btn" data-id="<?= $row["id"] ?>" data-tgl-request="<?= $row["jadwal"] ?>" title="Jadwalkan">
+                      <i class="material-icons" style="font-size:16px;">calendar_today</i>
                     </button>
-                    <button type="button" class="btn-act btn-act-delete hapus-btn" data-id="<?= $row["id"] ?>" data-kode="<?= $row["kode"] ?>" data-nama="<?= htmlspecialchars($nmUser) ?>" title="Hapus" style="background:#f8fafc;color:#94a3b8;">
-                      <i class="material-icons" style="font-size:14px;">delete</i>
+                    <button type="button" class="btn-premium-act btn-premium-act-delete hapus-btn" data-id="<?= $row["id"] ?>" data-kode="<?= $row["kode"] ?>" data-nama="<?= htmlspecialchars($nmUser) ?>" title="Hapus">
+                      <i class="material-icons" style="font-size:16px;">delete</i>
                     </button>
                   </div>
                 </div>
                 <!-- Bottom: Details Grid -->
                 <div class="row align-items-start">
-                  <div class="col-md-2">
-                    <a href="https://api.whatsapp.com/send?phone=62<?= substr(preg_replace('/[^0-9]/', '', $row['cust_nomor']), 1) ?>" target="_blank" class="text-phone" style="display:inline-flex;align-items:center;gap:3px;">
+                  <div class="col-md-3">
+                    <a href="https://api.whatsapp.com/send?phone=62<?= substr(preg_replace('/[^0-9]/', '', $row['cust_nomor']), 1) ?>" target="_blank" class="premium-phone-badge">
                       <i class="material-icons" style="font-size:13px;">phone</i> <?= htmlspecialchars($row['cust_nomor']) ?>
                     </a>
-                    <div style="margin-top:5px;">
-                      <span style="font-size:12px;font-weight:600;color:#1e293b;<?= $date_css ?>"><?= $jadwal_display ?></span>
-                      <span class="text-code" style="margin-left:4px;"><?= $row['kode'] ?></span>
+                    <div>
+                      <div class="premium-date-badge <?= $status_display == 'Terlambat' ? 'premium-date-badge-overdue' : '' ?>">
+                        <i class="material-icons" style="font-size:14px;color:#64748b;margin-right:2px;">event</i>
+                        <?= $jadwal_display ?>
+                      </div>
+                      <span class="text-code" style="margin-left:18px; margin-top:2px;">ID: <?= $row['kode'] ?></span>
                     </div>
-                    <div style="margin-top:2px; font-size:10px; color:#b0b8c4;" title="Tanggal Pembuatan">
-                      Buat: <?= date('d/m/y H:i', strtotime($row['created_at'])) ?>
+                    <div class="premium-created-info" title="Tanggal Pembuatan">
+                      <i class="material-icons" style="font-size:12px;color:#94a3b8;">history</i>
+                      <span>Buat: <?= date('d/m/y H:i', strtotime($row['created_at'])) ?></span>
                     </div>
                   </div>
-                  <div class="col-md-7">
-                    <p style="font-size:11.5px;color:#475569;line-height:1.5;margin:0;" title="<?= htmlspecialchars($fullAddr) ?>">
-                      <i class="material-icons" style="font-size:12px;vertical-align:middle;color:#94a3b8;margin-right:2px;">location_on</i>
-                      <?= htmlspecialchars($fullAddr) ?>
-                      <button class="btn-act" style="width:20px;height:20px;background:transparent;display:inline-flex;vertical-align:middle;margin-left:3px;" onclick='openLocationModal(<?= json_encode($row) ?>)'><i class="material-icons" style="font-size:11px;color:#3b82f6;">edit</i></button>
-                    </p>
+                  <div class="col-md-6">
+                    <div class="premium-address-box" title="<?= htmlspecialchars($fullAddr) ?>">
+                      <i class="material-icons" style="font-size:14px; color:#f43f5e; margin-top:2px; flex-shrink:0;">location_on</i>
+                      <div>
+                        <?= htmlspecialchars($fullAddr) ?>
+                        <button class="btn-act" style="width:20px;height:20px;background:transparent;display:inline-flex;vertical-align:middle;margin-left:3px;border:none;" onclick='openLocationModal(<?= json_encode($row) ?>)'><i class="material-icons" style="font-size:11px;color:#3b82f6;">edit</i></button>
+                      </div>
+                    </div>
                     <?php if (!empty($row['keterangan'])): ?>
-                    <p style="font-size:10.5px;color:#94a3b8;font-style:italic;margin:4px 0 0;">"<?= htmlspecialchars($row['keterangan']) ?>"</p>
+                    <div class="premium-keterangan-box">"<?= htmlspecialchars($row['keterangan']) ?>"</div>
                     <?php endif; ?>
                   </div>
-                  <div class="col-md-3 text-end">
-                    <span style="font-size:11px;font-weight:600;color:#1e293b;background:#f1f5f9;padding:4px 10px;border-radius:6px;"><?= htmlspecialchars($row['request']) ?></span>
+                  <div class="col-md-3 text-end d-flex flex-column align-items-end gap-2">
+                    <span style="font-size:11px; font-weight:600; color:#475569; background:#f1f5f9; padding:5px 12px; border-radius:8px; display:inline-flex; align-items:center; gap:4px;">
+                      <i class="material-icons" style="font-size:12px;color:#64748b;">person</i>
+                      <?= htmlspecialchars($row['request']) ?>
+                    </span>
                     <?php if ($hasReason): ?>
-                    <span style="font-size:10px;color:#16a34a;font-weight:600;display:block;margin-top:4px;"><?= $row['reason_count'] ?> catatan</span>
+                    <span style="font-size:10px; color:#16a34a; font-weight:600; display:inline-flex; align-items:center; gap:2px; background:#f0fdf4; padding:2px 8px; border-radius:4px;">
+                      <i class="material-icons" style="font-size:11px;">comment</i>
+                      <?= $row['reason_count'] ?> catatan
+                    </span>
                     <?php endif; ?>
                   </div>
                 </div>

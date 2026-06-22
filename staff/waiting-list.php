@@ -232,14 +232,30 @@ $pageNow = "Waiting List";
                                     if ($geoAddr) $fullAddr = $geoAddr;
                                 }
                         ?>
+                        <?php
+                            $status_class_premium = "badge-premium-status-reported";
+                            $card_class_premium = "wl-card-reported";
+                            if ($status_display == "Dijadwalkan") {
+                                $status_class_premium = "badge-premium-status-scheduled";
+                                $card_class_premium = "wl-card-scheduled";
+                            } elseif ($status_display == "Terlambat") {
+                                $status_class_premium = "badge-premium-status-overdue";
+                                $card_class_premium = "wl-card-overdue";
+                            }
+
+                            $type_class_premium = "badge-premium-type-default";
+                            if (strpos($kegLower, 'survey') !== false) $type_class_premium = "badge-premium-type-survey";
+                            elseif (strpos($kegLower, 'service') !== false) $type_class_premium = "badge-premium-type-service";
+                            elseif (strpos($kegLower, 'pasang') !== false) $type_class_premium = "badge-premium-type-pasang";
+                        ?>
                         <!-- CARD ITEM -->
-                        <div class="wl-card <?= $card_class ?>">
+                        <div class="wl-card <?= $card_class_premium ?>">
                             <div class="wl-card-body">
                                 <!-- Top: Status + Customer + Actions -->
                                 <div class="wl-top">
                                     <div class="wl-top-left">
-                                        <span class="wl-status <?= $status_class ?>"><?= $status_display ?></span>
-                                        <span class="<?= $typeClass ?>"><?= htmlspecialchars($row['kegiatan']) ?></span>
+                                        <span class="badge-premium-status <?= $status_class_premium ?>"><?= $status_display ?></span>
+                                        <span class="<?= $type_class_premium ?>"><?= htmlspecialchars($row['kegiatan']) ?></span>
                                         <a href="customer-detail.php?id_cust=<?= $row['customer_id'] ?>" class="wl-cust"><?= htmlspecialchars($row['nama_customer']) ?></a>
                                     </div>
                                     <div class="wl-top-right">
@@ -262,36 +278,48 @@ $pageNow = "Waiting List";
                                         <a href="https://api.whatsapp.com/send?phone=62<?= substr(preg_replace('/[^0-9]/', '', $row['cust_nomor']), 1) ?>" target="_blank" class="wl-phone">
                                             <i class="material-icons" style="font-size:13px;">phone</i> <?= htmlspecialchars($row['cust_nomor']) ?>
                                         </a>
-                                        <div style="margin-top:6px;">
-                                            <span class="wl-date <?= $is_overdue ? 'wl-date-red' : '' ?>"><?= $jadwal_display ?></span>
-                                            <span class="wl-code" style="margin-left:6px;"><?= $row['kode'] ?></span>
+                                        <div>
+                                            <div class="wl-date <?= $is_overdue ? 'wl-date-red' : '' ?>">
+                                                <i class="material-icons" style="font-size:14px;color:#64748b;margin-right:2px;">event</i>
+                                                <?= $jadwal_display ?>
+                                            </div>
+                                            <span class="wl-code" style="margin-left:18px;">ID: <?= $row['kode'] ?></span>
                                         </div>
-                                        <div style="margin-top:2px; font-size:10px; color:#b0b8c4;" title="Tanggal Pembuatan">
-                                            Buat: <?= date('d/m/y H:i', strtotime($row['created_at'])) ?>
+                                        <div class="wl-created-info" title="Tanggal Pembuatan">
+                                            <i class="material-icons" style="font-size:12px;color:#94a3b8;">history</i>
+                                            <span>Buat: <?= date('d/m/y H:i', strtotime($row['created_at'])) ?></span>
                                         </div>
                                     </div>
 
                                     <!-- Center: Address -->
                                     <div>
-                                        <p class="wl-addr" title="<?= htmlspecialchars($fullAddr) ?>">
-                                            <i class="material-icons" style="font-size:12px;vertical-align:middle;color:#94a3b8;margin-right:2px;">location_on</i>
-                                            <?= htmlspecialchars($fullAddr) ?>
-                                            <button type="button" class="wl-btn-loc edit-loc-btn" 
-                                                    data-id="<?= $row['id'] ?>" data-cust="<?= $row['customer_id'] ?>" 
-                                                    data-lat="<?= $row['lat'] ?>" data-lon="<?= $row['lon'] ?>" data-rad="<?= $row['rad'] ?>">
-                                                <i class="material-icons" style="font-size:12px;color:#3b82f6;">edit</i>
-                                            </button>
-                                        </p>
+                                        <div class="wl-addr" title="<?= htmlspecialchars($fullAddr) ?>">
+                                            <i class="material-icons" style="font-size:14px;color:#f43f5e;margin-top:2px;flex-shrink:0;">location_on</i>
+                                            <div>
+                                                <?= htmlspecialchars($fullAddr) ?>
+                                                <button type="button" class="wl-btn-loc edit-loc-btn" 
+                                                        data-id="<?= $row['id'] ?>" data-cust="<?= $row['customer_id'] ?>" 
+                                                        data-lat="<?= $row['lat'] ?>" data-lon="<?= $row['lon'] ?>" data-rad="<?= $row['rad'] ?>">
+                                                    <i class="material-icons" style="font-size:12px;color:#3b82f6;">edit</i>
+                                                </button>
+                                            </div>
+                                        </div>
                                         <?php if (!empty($row['keterangan'])): ?>
-                                        <p class="wl-ket">"<?= htmlspecialchars($row['keterangan']) ?>"</p>
+                                        <div class="wl-ket">"<?= htmlspecialchars($row['keterangan']) ?>"</div>
                                         <?php endif; ?>
                                     </div>
 
                                     <!-- Right: Request + Reason count -->
                                     <div class="wl-meta">
-                                        <span class="wl-request-badge"><?= htmlspecialchars($row['request']) ?></span>
+                                        <span class="wl-request-badge">
+                                            <i class="material-icons" style="font-size:12px;color:#64748b;">person</i>
+                                            <?= htmlspecialchars($row['request']) ?>
+                                        </span>
                                         <?php if ($hasReason): ?>
-                                        <span style="font-size:10px;color:#16a34a;font-weight:600;"><?= $row['reason_count'] ?> catatan</span>
+                                        <span style="font-size:10px;color:#16a34a;font-weight:600;display:inline-flex;align-items:center;gap:2px;background:#f0fdf4;padding:2px 8px;border-radius:4px;">
+                                            <i class="material-icons" style="font-size:11px;">comment</i>
+                                            <?= $row['reason_count'] ?> catatan
+                                        </span>
                                         <?php endif; ?>
                                     </div>
                                 </div>
