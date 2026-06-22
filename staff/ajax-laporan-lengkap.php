@@ -37,10 +37,14 @@ while ($r = $result_main->fetch_assoc()) {
 }
 $stmt_main->close();
 
-$sql_income = "SELECT COALESCE(SUM(pk.nominal_invoice), 0) as total
-               FROM pendapatan_kegiatan pk
-               JOIN kegiatan k ON pk.kode = k.kode
-               WHERE MONTH(k.created_at) = ? AND YEAR(k.created_at) = ? AND k.deleted_at IS NULL";
+$sql_income = "SELECT COALESCE(SUM(sub.nominal), 0) as total
+               FROM (
+                   SELECT pk.kode, MAX(pk.nominal_invoice) as nominal
+                   FROM pendapatan_kegiatan pk
+                   JOIN kegiatan k ON pk.kode = k.kode
+                   WHERE MONTH(k.created_at) = ? AND YEAR(k.created_at) = ? AND k.deleted_at IS NULL
+                   GROUP BY pk.kode
+               ) sub";
 $stmt_income = $conn->prepare($sql_income);
 $stmt_income->bind_param("ii", $bulan, $tahun);
 $stmt_income->execute();
