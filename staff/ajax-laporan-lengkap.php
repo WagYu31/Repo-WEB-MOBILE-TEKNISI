@@ -75,11 +75,115 @@ $stmt_income->close();
     </div>
 </div>
 
+<!-- Filter Bar -->
+<div class="ll-filter-bar">
+    <span class="ll-filter-label"><i class="fa-solid fa-filter"></i> Filter:</span>
+    <button class="ll-filter-btn ll-fbtn-active" data-filter="all" onclick="llFilter('all', this)">
+        <i class="fa-solid fa-list"></i> Semua <span class="ll-filter-count"><?= $total_kegiatan ?></span>
+    </button>
+    <button class="ll-filter-btn" data-filter="lunas" onclick="llFilter('lunas', this)">
+        <i class="fa-solid fa-circle-check"></i> Lunas <span class="ll-filter-count"><?= $total_lunas ?></span>
+    </button>
+    <button class="ll-filter-btn" data-filter="belum" onclick="llFilter('belum', this)">
+        <i class="fa-solid fa-clock"></i> Belum Lunas <span class="ll-filter-count"><?= $total_belum_lunas ?></span>
+    </button>
+</div>
+
+<style>
+.ll-filter-bar {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 16px; padding: 10px 14px;
+    background: #f8fafc; border: 1px solid #e2e8f0;
+    border-radius: 12px; flex-wrap: wrap;
+}
+.ll-filter-label {
+    font-size: 11px; font-weight: 700; color: #94a3b8;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    display: flex; align-items: center; gap: 4px;
+    margin-right: 4px;
+}
+.ll-filter-label i { font-size: 12px; }
+.ll-filter-btn {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 6px 14px; border-radius: 8px;
+    font-size: 12px; font-weight: 700;
+    border: 1.5px solid #e2e8f0; background: #fff;
+    color: #64748b; cursor: pointer;
+    transition: all 0.2s;
+}
+.ll-filter-btn:hover {
+    border-color: #6366f1; color: #6366f1;
+    background: #eef2ff;
+}
+.ll-filter-btn.ll-fbtn-active {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: #fff; border-color: #6366f1;
+    box-shadow: 0 2px 8px rgba(99,102,241,0.25);
+}
+.ll-filter-btn.ll-fbtn-active .ll-filter-count {
+    background: rgba(255,255,255,0.25); color: #fff;
+}
+.ll-filter-count {
+    font-size: 10px; font-weight: 800;
+    background: #f1f5f9; color: #64748b;
+    padding: 1px 7px; border-radius: 10px;
+    min-width: 20px; text-align: center;
+}
+.ll-filter-btn i { font-size: 12px; }
+.ll-card.ll-hidden { display: none !important; }
+.ll-no-result {
+    text-align: center; padding: 40px 20px; color: #94a3b8;
+    display: none;
+}
+.ll-no-result.ll-show { display: block; }
+.ll-no-result i { font-size: 32px; opacity: 0.3; margin-bottom: 8px; display: block; }
+.ll-no-result p { font-size: 13px; font-weight: 600; margin: 0; }
+</style>
+
+<script>
+function llFilter(type, btn) {
+    // Update active button
+    document.querySelectorAll('.ll-filter-btn').forEach(b => b.classList.remove('ll-fbtn-active'));
+    btn.classList.add('ll-fbtn-active');
+
+    const cards = document.querySelectorAll('.ll-card');
+    let visible = 0;
+
+    cards.forEach(card => {
+        if (type === 'all') {
+            card.classList.remove('ll-hidden');
+            visible++;
+        } else if (type === 'lunas') {
+            if (card.classList.contains('ll-lunas')) {
+                card.classList.remove('ll-hidden');
+                visible++;
+            } else {
+                card.classList.add('ll-hidden');
+            }
+        } else if (type === 'belum') {
+            if (!card.classList.contains('ll-lunas')) {
+                card.classList.remove('ll-hidden');
+                visible++;
+            } else {
+                card.classList.add('ll-hidden');
+            }
+        }
+    });
+
+    // Show/hide empty state
+    const noResult = document.getElementById('ll-no-result');
+    if (noResult) {
+        if (visible === 0) noResult.classList.add('ll-show');
+        else noResult.classList.remove('ll-show');
+    }
+}
+</script>
+
 <!-- Column Labels -->
 <div class="ll-col-labels">
     <span>No</span>
-    <span>Customer & Request</span>
-    <span>Invoice & Pembayaran</span>
+    <span>Customer &amp; Request</span>
+    <span>Invoice &amp; Pembayaran</span>
     <span>Teknisi & Pelaksanaan</span>
 </div>
 
@@ -212,6 +316,12 @@ if (!empty($all_rows)) {
 </div>
 <?php
     }
+?>
+<div class="ll-no-result" id="ll-no-result">
+    <i class="fa-solid fa-filter-circle-xmark"></i>
+    <p>Tidak ada kegiatan untuk filter ini.</p>
+</div>
+<?php
 } else {
 ?>
 <div class="ll-empty">
