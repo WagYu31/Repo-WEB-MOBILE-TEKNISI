@@ -649,18 +649,26 @@
     border-color: rgba(168, 85, 247, 0.3);
 }
 
+/* Table responsive wrapper contrast */
+.table-responsive {
+    background: #f8fafc !important;
+    padding: 16px 20px !important;
+    border-radius: 12px;
+}
+
 /* Table */
 .rekap-table { 
     table-layout: fixed; 
     width: 100%; 
-    border-collapse: separate; 
-    border-spacing: 0; 
+    border-collapse: separate !important; 
+    border-spacing: 0 10px !important; 
+    background: transparent !important;
 }
 
 .rekap-table thead th {
-    background: #f8fafc;
-    border-bottom: 2px solid #e2e8f0;
-    padding: 16px 14px;
+    background: transparent !important;
+    border-bottom: none !important;
+    padding: 10px 14px;
     font-size: 11px;
     font-weight: 800;
     color: #64748b;
@@ -670,17 +678,40 @@
 }
 
 .rekap-table tbody tr {
-    border-bottom: 1px solid #f1f5f9;
-    transition: all 0.25s ease;
+    background: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02), 0 1px 2px rgba(0, 0, 0, 0.01) !important;
+    border-radius: 12px !important;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
+
 .rekap-table tbody tr:hover { 
-    background-color: #f8fafc; 
-    box-shadow: inset 4px 0 0 0 #4f46e5;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 24px rgba(79, 70, 229, 0.08) !important;
 }
+
 .rekap-table tbody td { 
-    padding: 16px 14px; 
+    padding: 18px 14px; 
     font-size: 13.5px; 
     vertical-align: middle;
+    border: none !important;
+    background: #ffffff !important;
+}
+
+/* Rounded corners for cells in row card */
+.rekap-table tbody tr td:first-child {
+    border-top-left-radius: 12px !important;
+    border-bottom-left-radius: 12px !important;
+    border-left: 4px solid transparent !important;
+    transition: border-color 0.25s ease;
+}
+.rekap-table tbody tr td:last-child {
+    border-top-right-radius: 12px !important;
+    border-bottom-right-radius: 12px !important;
+}
+
+/* Hover accent indicator */
+.rekap-table tbody tr:hover td:first-child {
+    border-left-color: #4f46e5 !important;
 }
 
 /* Teknisi name with avatar */
@@ -752,16 +783,26 @@
     font-weight: 500;
 }
 
-/* Footer */
-.rekap-footer-row {
+/* Footer Row Card */
+.rekap-table tfoot tr.rekap-footer-row {
     background: linear-gradient(135deg, #0f172a, #1e293b) !important;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.1) !important;
 }
-.rekap-footer-row td {
+.rekap-table tfoot tr.rekap-footer-row td {
+    background: transparent !important;
     color: #fff !important;
     font-size: 13.5px !important;
     font-weight: 800 !important;
     padding: 18px 14.5px !important;
     border: none !important;
+}
+.rekap-table tfoot tr.rekap-footer-row td:first-child {
+    border-top-left-radius: 12px !important;
+    border-bottom-left-radius: 12px !important;
+}
+.rekap-table tfoot tr.rekap-footer-row td:last-child {
+    border-top-right-radius: 12px !important;
+    border-bottom-right-radius: 12px !important;
 }
 
 @media print {

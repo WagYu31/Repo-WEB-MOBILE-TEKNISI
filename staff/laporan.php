@@ -13,6 +13,12 @@ $role = $jabatan;
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <?php include "head.php"; ?>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    
+    body {
+        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    }
+    
     @media print {
         .no-print, .sidenav, .navbar, .fixed-plugin { display: none !important; }
         .main-content { margin-left: 0 !important; }
