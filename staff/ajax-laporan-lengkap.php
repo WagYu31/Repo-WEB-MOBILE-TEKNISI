@@ -18,10 +18,15 @@ $nama_bulan = $daftar_bulan[$bulan] ?? '';
 // ── Pre-fetch data ──
 $sql_main = "SELECT k.id, k.kode AS kode_transaksi, k.keterangan, k.created_at, k.lunas, k.paid, k.invoice, c.nama AS nama_cust
             FROM kegiatan k LEFT JOIN customer c ON k.customer_id = c.id
-            WHERE MONTH(k.created_at) = ? AND YEAR(k.created_at) = ? AND k.deleted_at IS NULL
+            WHERE (
+                (EXISTS (SELECT 1 FROM pendapatan_kegiatan pk WHERE pk.kode = k.kode AND MONTH(pk.tanggal) = ? AND YEAR(pk.tanggal) = ? AND pk.deleted_at IS NULL))
+                OR
+                (NOT EXISTS (SELECT 1 FROM pendapatan_kegiatan pk WHERE pk.kode = k.kode AND pk.deleted_at IS NULL) AND MONTH(k.created_at) = ? AND YEAR(k.created_at) = ?)
+            )
+            AND k.deleted_at IS NULL
             GROUP BY k.kode ORDER BY k.created_at ASC";
 $stmt_main = $conn->prepare($sql_main);
-$stmt_main->bind_param("ii", $bulan, $tahun);
+$stmt_main->bind_param("iiii", $bulan, $tahun, $bulan, $tahun);
 $stmt_main->execute();
 $result_main = $stmt_main->get_result();
 
@@ -41,10 +46,7 @@ $sql_income = "SELECT COALESCE(SUM(sub.nominal), 0) as total
                FROM (
                    SELECT pk.kode, MAX(pk.nominal_invoice) as nominal
                    FROM pendapatan_kegiatan pk
-                   WHERE pk.kode IN (
-                       SELECT DISTINCT k2.kode FROM kegiatan k2
-                       WHERE MONTH(k2.created_at) = ? AND YEAR(k2.created_at) = ? AND k2.deleted_at IS NULL
-                   )
+                   WHERE MONTH(pk.tanggal) = ? AND YEAR(pk.tanggal) = ?
                    AND pk.deleted_at IS NULL
                    GROUP BY pk.kode
                ) sub";
