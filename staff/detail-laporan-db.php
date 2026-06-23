@@ -72,7 +72,7 @@
         border-collapse: separate !important; 
         border-spacing: 0 10px !important; 
         background: transparent !important;
-        table-layout: auto; 
+        table-layout: fixed !important; 
     }
     .laporan-table thead th {
         background: transparent !important;
@@ -511,15 +511,15 @@
             <table class="laporan-table" id="data-tek" style="min-width:900px;">
                 <thead>
                     <tr>
-                        <th style="width:35px;padding-left:16px;">#</th>
-                        <th style="width:80px;">Tgl Invoice</th>
-                        <th style="width:90px;">Tgl Lunas</th>
-                        <th style="width:120px;">No Invoice</th>
-                        <th style="width:13%;">Teknisi</th>
-                        <th style="width:18%;">Customer</th>
-                        <th style="width:15%;">Ket. Survey</th>
-                        <th style="width:12%;">Surveyor</th>
-                        <th style="width:110px;text-align:right;padding-right:16px;">Nominal</th>
+                        <th style="width: 4%; padding-left: 18px;">#</th>
+                        <th style="width: 10%;">Tgl Invoice</th>
+                        <th style="width: 10%;">Tgl Lunas</th>
+                        <th style="width: 13%;">No Invoice</th>
+                        <th style="width: 15%;">Teknisi</th>
+                        <th style="width: 20%;">Customer</th>
+                        <th style="width: 14%;">Ket. Survey</th>
+                        <th style="width: 11%;">Surveyor</th>
+                        <th style="width: 13%; text-align: right; padding-right: 18px;">Nominal</th>
                     </tr>
                 </thead>
                 <tbody>
