@@ -107,6 +107,23 @@
         }
         $stmt->close();
 
+        // ═══ BATCH QUERY 5: Unpaid Invoice count per teknisi ═══
+        $unpaidInvCount = [];
+        $sql = "SELECT pk.teknisi_id, COUNT(DISTINCT pk.kode) as total 
+                FROM pendapatan_kegiatan pk
+                JOIN kegiatan k ON pk.kode = k.kode
+                WHERE pk.teknisi_id IN ($placeholders) 
+                AND DATE_FORMAT(pk.tanggal, '%Y-%m') IN ($ymCondition)
+                AND pk.deleted_at IS NULL AND k.deleted_at IS NULL
+                AND (k.lunas IS NULL OR k.lunas = '0000-00-00')
+                GROUP BY pk.teknisi_id";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param($types, ...$allTekIds);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        while ($r = $res->fetch_assoc()) $unpaidInvCount[$r['teknisi_id']] = $r['total'];
+        $stmt->close();
+
         // ═══ BATCH QUERY 6: Fee 30k calculation (2 queries instead of N*M) ═══
         // Step 1: Get all eligible kode for this month
         $feeKodes = [];
@@ -179,6 +196,7 @@
         $keg = $kegiatanCount[$idT] ?? 0;
         $sel = $selesaiCount[$idT] ?? 0;
         $inv = $invCount[$idT] ?? 0;
+        $unpaidInv = $unpaidInvCount[$idT] ?? 0;
         $fee = $feeMap[$idT] ?? 0;
         $pend = $pendapatanSum[$idT] ?? 0;
         $target = $teknisiTargets[$idT] ?? 0;
@@ -189,7 +207,7 @@
         $grand_total_fee += $fee;
         $grand_total_bonus += $bon;
 
-        $tableRows[] = compact('idT', 'namaT', 'keg', 'sel', 'inv', 'fee', 'pend', 'bon', 'total');
+        $tableRows[] = compact('idT', 'namaT', 'keg', 'sel', 'inv', 'unpaidInv', 'fee', 'pend', 'bon', 'total');
     }
     // Recalculate grand pendapatan if filtering by teknisi
     if ($filterTeknisiId > 0) {
@@ -315,13 +333,14 @@
             <table class="table align-middle mb-0 rekap-table">
                 <thead>
                     <tr>
-                        <th class="ps-4" style="width:25%;">Teknisi</th>
-                        <th class="text-center" style="width:8%;">Kegiatan</th>
-                        <th class="text-center" style="width:8%;">Selesai</th>
-                        <th class="text-center" style="width:8%;">Invoice</th>
-                        <th class="text-center" style="width:17%;">Fee (30k)</th>
-                        <th class="text-center" style="width:17%;">Target Tercapai</th>
-                        <th class="text-center pe-4" style="width:17%;">Bonus</th>
+                        <th class="ps-4" style="width:24%;">Teknisi</th>
+                        <th class="text-center" style="width:7%;">Kegiatan</th>
+                        <th class="text-center" style="width:7%;">Selesai</th>
+                        <th class="text-center" style="width:7%;">Invoice</th>
+                        <th class="text-center" style="width:7%;">Belum Lunas</th>
+                        <th class="text-center" style="width:16%;">Fee (30k)</th>
+                        <th class="text-center" style="width:16%;">Target Tercapai</th>
+                        <th class="text-center pe-4" style="width:16%;">Bonus</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -341,6 +360,9 @@
                         </td>
                         <td class="text-center">
                             <span class="stat-pill stat-inv"><?= $tr['inv'] ?></span>
+                        </td>
+                        <td class="text-center">
+                            <span class="stat-pill stat-unpaid"><?= $tr['unpaidInv'] ?></span>
                         </td>
                         <td class="text-center">
                             <span class="money-val <?= $tr['fee'] > 0 ? 'money-positive' : 'money-zero' ?>">
@@ -370,7 +392,7 @@
                 <tfoot>
                     <tr class="rekap-footer-row">
                         <td class="ps-4 font-weight-bold">TOTAL KESELURUHAN</td>
-                        <td colspan="3"></td>
+                        <td colspan="4"></td>
                         <td class="text-center font-weight-bold">Rp <?= number_format($grand_total_fee, 0, ',', '.') ?></td>
                         <td class="text-center font-weight-bold">Rp <?= number_format($grand_total_pendapatan, 0, ',', '.') ?></td>
                         <td class="text-center font-weight-bold pe-4">Rp <?= number_format($grand_total_bonus, 0, ',', '.') ?></td>
@@ -637,6 +659,11 @@
     background: rgba(59, 130, 246, 0.1); 
     color: #2563eb; 
     border: 1px solid rgba(59, 130, 246, 0.2); 
+}
+.stat-unpaid { 
+    background: rgba(225, 29, 72, 0.1); 
+    color: #e11d48; 
+    border: 1px solid rgba(225, 29, 72, 0.2); 
 }
 
 /* Money values */
