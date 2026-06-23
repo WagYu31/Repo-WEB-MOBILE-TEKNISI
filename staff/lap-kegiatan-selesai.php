@@ -196,6 +196,105 @@ for ($i = 0; $i < 12; $i++) {
         .bulk-bar:hover { background: #dc2626; box-shadow: 0 6px 25px rgba(220,38,38,0.25); }
         @keyframes barSlideUp { from { opacity:0; transform:translateX(-50%) translateY(16px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }
 
+        /* === Premium Modal Styling === */
+        .modal-content-premium {
+            border: none !important;
+            border-radius: 20px !important;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1), 0 30px 60px rgba(0,0,0,0.08) !important;
+            overflow: hidden;
+            background: #fff;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+        }
+        .modal-header-premium {
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            border-bottom: 1px solid #e2e8f0;
+            padding: 20px 24px !important;
+        }
+        .modal-title-premium {
+            font-size: 17px !important;
+            font-weight: 750 !important;
+            color: #1e293b !important;
+            letter-spacing: -0.01em;
+        }
+        .modal-body-premium {
+            padding: 24px !important;
+        }
+        .modal-desc-premium {
+            font-size: 13.5px;
+            color: #64748b;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+        .modal-label-premium {
+            font-size: 11px;
+            font-weight: 700;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+            display: block;
+        }
+        .modal-input-premium {
+            border: 1.5px solid #e2e8f0 !important;
+            border-radius: 12px !important;
+            padding: 12px 16px !important;
+            font-size: 14px !important;
+            color: #1e293b !important;
+            background: #f8fafc !important;
+            transition: all 0.2s ease !important;
+            font-weight: 600 !important;
+            outline: none;
+            width: 100%;
+        }
+        .modal-input-premium:focus {
+            border-color: #3b82f6 !important;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
+            background: #fff !important;
+        }
+        .modal-footer-premium {
+            border-top: 1px solid #e2e8f0;
+            background: #f8fafc;
+            padding: 16px 24px !important;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        .btn-modal-cancel {
+            background: #fff !important;
+            border: 1.5px solid #e2e8f0 !important;
+            color: #475569 !important;
+            font-weight: 700 !important;
+            font-size: 13px !important;
+            padding: 10px 20px !important;
+            border-radius: 12px !important;
+            transition: all 0.2s !important;
+            cursor: pointer;
+            box-shadow: none !important;
+            text-transform: none !important;
+        }
+        .btn-modal-cancel:hover {
+            background: #f1f5f9 !important;
+            color: #1e293b !important;
+            border-color: #cbd5e1 !important;
+        }
+        .btn-modal-save {
+            background: linear-gradient(135deg, #10b981, #059669) !important;
+            border: none !important;
+            color: #fff !important;
+            font-weight: 700 !important;
+            font-size: 13px !important;
+            padding: 10px 24px !important;
+            border-radius: 12px !important;
+            transition: all 0.2s !important;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2) !important;
+            text-transform: none !important;
+        }
+        .btn-modal-save:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.3) !important;
+        }
+
         <?php include "css/floating-menu2.css"; ?>
     </style>
 </head>
@@ -473,23 +572,23 @@ for ($i = 0; $i < 12; $i++) {
 
     <div class="modal fade" style="z-index:99999;" id="lunasModal" tabindex="-1" aria-labelledby="lunasModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
+            <div class="modal-content modal-content-premium">
                 <form id="lunasForm">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="lunasModalLabel">Tandai Pelunasan</h5>
+                    <div class="modal-header modal-header-premium">
+                        <h5 class="modal-title modal-title-premium" id="lunasModalLabel">Tandai Pelunasan</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <div class="modal-body">
-                        <p id="lunasModalDesc">Anda akan menandai transaksi ini sebagai lunas. Silakan masukkan tanggal pembayaran.</p>
+                    <div class="modal-body modal-body-premium">
+                        <p id="lunasModalDesc" class="modal-desc-premium">Anda akan menandai transaksi ini sebagai lunas. Silakan masukkan tanggal pembayaran.</p>
                         <input type="hidden" id="kode_transaksi_lunas" name="kode_transaksi">
                         <div class="form-group">
-                            <label for="tanggal_lunas">Tanggal Pelunasan</label>
-                            <input type="date" class="form-control p-2" style="border:1px solid #adb5bd" id="tanggal_lunas" name="tanggal_lunas" required>
+                            <label for="tanggal_lunas" class="modal-label-premium">Tanggal Pelunasan</label>
+                            <input type="date" class="modal-input-premium" id="tanggal_lunas" name="tanggal_lunas" max="<?= date('Y-m-d'); ?>" required>
                         </div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn bg-gradient-secondary" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn bg-gradient-success">Simpan</button>
+                    <div class="modal-footer modal-footer-premium">
+                        <button type="button" class="btn btn-modal-cancel" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-modal-save">Simpan</button>
                     </div>
                 </form>
             </div>
