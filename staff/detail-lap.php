@@ -13,6 +13,12 @@ $role = $jabatan;
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <?php include "head.php"; ?>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    
+    body {
+        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    }
+    
     @media print {
         .no-print { display: none !important; }
         .sidenav, .navbar, .fixed-plugin { display: none !important; }
@@ -22,23 +28,47 @@ $role = $jabatan;
 
     /* Action bar */
     .action-bar {
-        display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+        display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
         margin-bottom: 24px;
+        font-family: 'Plus Jakarta Sans', sans-serif;
     }
     .action-btn {
-        padding: 10px 20px; border: none; border-radius: 10px;
-        font-size: 12px; font-weight: 700; cursor: pointer;
+        padding: 12px 24px; border: none; border-radius: 12px;
+        font-size: 13px; font-weight: 700; cursor: pointer;
         display: inline-flex; align-items: center; gap: 8px;
-        text-decoration: none; transition: all 0.2s;
-        letter-spacing: 0.02em;
+        text-decoration: none; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        letter-spacing: 0.01em;
     }
-    .action-btn:hover { transform: translateY(-1px); }
-    .btn-bulanan { background: #1e293b; color: #fff; box-shadow: 0 4px 12px rgba(30,41,59,0.2); }
-    .btn-bulanan:hover { background: #334155; color: #fff; }
-    .btn-print-action { background: linear-gradient(135deg, #06b6d4, #0891b2); color: #fff; box-shadow: 0 4px 12px rgba(6,182,212,0.25); }
-    .btn-print-action:hover { color: #fff; box-shadow: 0 6px 16px rgba(6,182,212,0.35); }
-    .btn-excel { background: linear-gradient(135deg, #22c55e, #16a34a); color: #fff; box-shadow: 0 4px 12px rgba(34,197,94,0.25); }
-    .btn-excel:hover { color: #fff; box-shadow: 0 6px 16px rgba(34,197,94,0.35); }
+    .action-btn:hover { 
+        transform: translateY(-2px); 
+    }
+    .btn-bulanan { 
+        background: linear-gradient(135deg, #0f172a, #1e293b); 
+        color: #fff; 
+        box-shadow: 0 4px 14px rgba(15,23,42,0.15); 
+    }
+    .btn-bulanan:hover { 
+        box-shadow: 0 6px 20px rgba(15,23,42,0.25); 
+        color: #fff;
+    }
+    .btn-print-action { 
+        background: linear-gradient(135deg, #0284c7, #0369a1); 
+        color: #fff; 
+        box-shadow: 0 4px 14px rgba(2,132,199,0.15); 
+    }
+    .btn-print-action:hover { 
+        box-shadow: 0 6px 20px rgba(2,132,199,0.25); 
+        color: #fff;
+    }
+    .btn-excel { 
+        background: linear-gradient(135deg, #059669, #047857); 
+        color: #fff; 
+        box-shadow: 0 4px 14px rgba(5,150,105,0.15); 
+    }
+    .btn-excel:hover { 
+        box-shadow: 0 6px 20px rgba(5,150,105,0.25); 
+        color: #fff;
+    }
   </style>
 </head>
 <body class="g-sidenav-show bg-gray-200">
