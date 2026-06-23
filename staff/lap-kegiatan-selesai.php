@@ -91,7 +91,7 @@ for ($i = 0; $i < 12; $i++) {
         .table tbody tr:last-child { border-bottom: none !important; }
 
         /* === Technician List === */
-        .technician-list .technician-item { border-bottom: 1px solid #f1f5f9; padding: 8px 0; }
+        .technician-list .technician-item { width: 100%; border-bottom: 1px solid #f1f5f9; padding: 8px 0; }
         .technician-list .technician-item:last-child { border-bottom: none; }
 
         /* === Invoice Card === */
@@ -401,7 +401,7 @@ for ($i = 0; $i < 12; $i++) {
                                                         if($result_teknisi->num_rows > 0) {
                                                             while($row_teknisi = $result_teknisi->fetch_assoc()) {
                                                         ?>
-                                                         <div class="d-flex align-items-center py-2 technician-item">
+                                                         <div class="d-flex align-items-center w-100 py-2 technician-item">
                                                              <div class="text-sm font-weight-bold" style="flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                                                                  <?= htmlspecialchars($row_teknisi['nama_teknisi']); ?>
                                                              </div>
