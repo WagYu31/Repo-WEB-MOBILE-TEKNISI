@@ -228,10 +228,20 @@ if ($result && mysqli_num_rows($result) > 0) {
 /* Invoice feedback */
 .inv-feedback { font-size: 11px; margin-top: 4px; font-weight: 600; }
 
+.inv-tek-share {
+    font-size: 12.5px; font-weight: 750; color: #059669;
+    background: #ecfdf5; border: 1.5px solid #a7f3d0;
+    padding: 4px 10px; border-radius: 8px;
+    margin-left: auto; font-variant-numeric: tabular-nums;
+    transition: all 0.2s;
+    display: inline-flex; align-items: center; justify-content: center;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .inv-form-row { grid-template-columns: 1fr; }
     .inv-tek-card { flex-wrap: wrap; }
+    .inv-tek-share { margin-left: 68px; margin-top: 4px; margin-bottom: 2px; width: auto; }
     .inv-tek-times { width: 100%; margin-top: 6px; padding-left: 68px; }
 }
 </style>
@@ -267,7 +277,7 @@ if ($result && mysqli_num_rows($result) > 0) {
             </div>
             <div class="inv-form-group">
                 <label class="inv-form-label">Nominal Invoice</label>
-                <input type="text" class="inv-form-input" id="nominalInvoice" placeholder="Rp 0" name="nominal_invoice" oninput="formatRupiah(this)" required>
+                <input type="text" class="inv-form-input" id="nominalInvoice" placeholder="Rp 0" name="nominal_invoice" oninput="formatRupiah(this); calculateShares();" required>
             </div>
         </div>
 
@@ -333,6 +343,7 @@ if ($result && mysqli_num_rows($result) > 0) {
                             <span class="inv-tek-tag tag-kegiatan"><?= ucwords(htmlspecialchars($row['kegiatan'])) ?></span>
                         </div>
                     </div>
+                    <div class="inv-tek-share" style="display:none;"></div>
                     <div class="inv-tek-times">
                         <span class="inv-tek-time t-request">
                             <i class="fa-regular fa-calendar"></i>
@@ -384,7 +395,98 @@ function formatRupiah(input) {
     input.value = "Rp " + nominal;
 }
 
+function calculateShares() {
+    const nominalInput = document.getElementById('nominalInvoice');
+    if (!nominalInput) return;
+
+    const rawVal = nominalInput.value.replace(/\D/g, '');
+    const nominal = parseInt(rawVal) || 0;
+
+    const checkedBoxes = [];
+    document.querySelectorAll('.inv-tek-check:checked').forEach(cb => {
+        const parts = cb.value.split('|');
+        if (parts.length === 2) {
+            checkedBoxes.push({
+                element: cb,
+                id: parts[0],
+                type: parts[1].toLowerCase().trim()
+            });
+        }
+    });
+
+    // Hide share badge for all cards first
+    document.querySelectorAll('.inv-tek-share').forEach(el => {
+        el.style.display = 'none';
+        el.textContent = '';
+    });
+
+    if (nominal <= 0 || checkedBoxes.length === 0) {
+        return;
+    }
+
+    const survey_ids = checkedBoxes.filter(x => x.type === 'survey');
+    const pasang_baru_ids = checkedBoxes.filter(x => x.type === 'pasang baru');
+    const service_ids = checkedBoxes.filter(x => x.type === 'service');
+
+    const survey_count = survey_ids.length;
+    const pasang_baru_count = pasang_baru_ids.length;
+    const service_count = service_ids.length;
+
+    function formatRp(num) {
+        return 'Rp ' + Math.round(num).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    }
+
+    // Calculation Logic matching submit_invoice.php
+    if (survey_count > 0 && pasang_baru_count === 0 && service_count === 0) {
+        const share = nominal / survey_count;
+        survey_ids.forEach(x => showShare(x.element, share));
+    } else if (survey_count === 0 && pasang_baru_count > 0 && service_count === 0) {
+        const share = nominal / pasang_baru_count;
+        pasang_baru_ids.forEach(x => showShare(x.element, share));
+    } else if (survey_count === 0 && pasang_baru_count === 0 && service_count > 0) {
+        const share = nominal / service_count;
+        service_ids.forEach(x => showShare(x.element, share));
+    }
+    // Mix of survey and pasang baru
+    else if (survey_count > 0 && pasang_baru_count > 0 && service_count === 0) {
+        const survey_share = (0.1 * nominal) / survey_count;
+        const pasang_baru_share = (0.9 * nominal) / pasang_baru_count;
+        survey_ids.forEach(x => showShare(x.element, survey_share));
+        pasang_baru_ids.forEach(x => showShare(x.element, pasang_baru_share));
+    }
+    // Mix of all three
+    else if (survey_count > 0 && pasang_baru_count > 0 && service_count > 0) {
+        const survey_share = (0.05 * nominal) / survey_count;
+        const pasang_baru_share = (0.85 * nominal) / pasang_baru_count;
+        const service_share = (0.10 * nominal) / service_count;
+        survey_ids.forEach(x => showShare(x.element, survey_share));
+        pasang_baru_ids.forEach(x => showShare(x.element, pasang_baru_share));
+        service_ids.forEach(x => showShare(x.element, service_share));
+    }
+    // Other combinations
+    else {
+        const share = nominal / checkedBoxes.length;
+        checkedBoxes.forEach(x => showShare(x.element, share));
+    }
+
+    function showShare(checkboxEl, amount) {
+        const card = checkboxEl.closest('.inv-tek-card');
+        if (card) {
+            const shareEl = card.querySelector('.inv-tek-share');
+            if (shareEl) {
+                shareEl.textContent = formatRp(amount);
+                shareEl.style.display = 'inline-flex';
+            }
+        }
+    }
+}
+
 (function() {
+    // Add event listeners to checkboxes for live share updates
+    document.querySelectorAll('.inv-tek-check').forEach(cb => {
+        cb.addEventListener('change', calculateShares);
+    });
+
     const input = document.getElementById('kodeInvoice');
     const feedback = document.getElementById('invoiceFeedback');
     const btn = document.getElementById('btnSubmitInvoice');
