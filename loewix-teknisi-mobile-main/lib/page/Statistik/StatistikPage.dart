@@ -1099,7 +1099,7 @@ class _StatistikPageState extends State<StatistikPage>
           const SizedBox(height: 20),
           _buildBreakdownItem('Jumlah Kegiatan', data.jumlahKegiatan.toString(), Iconsax.task_square, _primaryBlue),
           _buildBreakdownItem('Selesai', data.selesai.toString(), Iconsax.tick_circle, _successGreen),
-          _buildBreakdownItem('Invoice', _formatRupiahFull(data.invoice), Iconsax.document_text, _cyanAccent),
+          _buildBreakdownItem('Invoice Belum Lunas', _formatRupiahFull(data.invoice), Iconsax.document_text, _cyanAccent),
           _buildBreakdownItem('Fee Teknisi', _formatRupiahFull(data.fee), Iconsax.money_recive, _warningAmber),
           _buildBreakdownItem('Total Pendapatan', _formatRupiahFull(data.totalPendapatan), Iconsax.wallet_money, _purpleAccent),
           if (data.bonus > 0)

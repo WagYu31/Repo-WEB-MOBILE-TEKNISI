@@ -106,6 +106,22 @@ $stmtPendapatan->execute();
 $totalPendapatan = floatval($stmtPendapatan->get_result()->fetch_assoc()['total'] ?? 0);
 $stmtPendapatan->close();
 
+// Get unpaid invoice sum for technician
+$stmtUnpaid = $conn->prepare("
+    SELECT COALESCE(SUM(pk.pendapatan), 0) AS total
+    FROM pendapatan_kegiatan pk 
+    JOIN kegiatan k ON pk.kode = k.kode
+    WHERE pk.teknisi_id = ? 
+      AND DATE_FORMAT(pk.tanggal, '%Y-%m') = ? 
+      AND pk.deleted_at IS NULL
+      AND k.deleted_at IS NULL
+      AND (k.lunas IS NULL OR k.lunas = '0000-00-00')
+");
+$stmtUnpaid->bind_param("is", $teknisiId, $date);
+$stmtUnpaid->execute();
+$unpaidInvoice = floatval($stmtUnpaid->get_result()->fetch_assoc()['total'] ?? 0);
+$stmtUnpaid->close();
+
 // Get total fee (paid) - same complex logic as web panel
 $stmtFee = $conn->prepare("
     SELECT COALESCE(SUM(k.paid), 0) AS total
@@ -147,7 +163,7 @@ echo json_encode([
     'target' => intval($target),
     'jumlah_kegiatan' => intval($jumlahKegiatan),
     'selesai' => intval($selesai),
-    'invoice' => 0,
+    'invoice' => intval($unpaidInvoice),
     'fee' => intval($totalFee),
     'total_pendapatan' => intval($totalPendapatan),
     'total_keseluruhan' => intval($totalKeseluruhan),

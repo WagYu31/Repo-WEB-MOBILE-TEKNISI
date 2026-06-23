@@ -196,6 +196,41 @@
         $grand_total_pendapatan = $pendapatanSum[$filterTeknisiId] ?? 0;
     }
     $grand_total_all = $grand_total_fee + $grand_total_pendapatan + $grand_total_bonus;
+
+    // ═══ GRAND TOTAL UNPAID INVOICE ═══
+    if ($filterTeknisiId > 0) {
+        $sqlUnpaid = "SELECT SUM(ROUND(pk.nominal_invoice / counts.tek_count)) as total
+            FROM pendapatan_kegiatan pk
+            JOIN (
+                SELECT kode, COUNT(*) as tek_count
+                FROM pendapatan_kegiatan
+                WHERE DATE_FORMAT(tanggal, '%Y-%m') IN ($ymCondition) AND deleted_at IS NULL
+                GROUP BY kode
+            ) counts ON pk.kode = counts.kode
+            JOIN kegiatan k ON pk.kode = k.kode
+            WHERE pk.teknisi_id = $filterTeknisiId
+              AND DATE_FORMAT(pk.tanggal, '%Y-%m') IN ($ymCondition)
+              AND pk.deleted_at IS NULL
+              AND k.deleted_at IS NULL
+              AND (k.lunas IS NULL OR k.lunas = '0000-00-00')";
+    } else {
+        $sqlUnpaid = "SELECT SUM(ROUND(pk.nominal_invoice / counts.tek_count)) as total
+            FROM pendapatan_kegiatan pk
+            JOIN (
+                SELECT kode, COUNT(*) as tek_count
+                FROM pendapatan_kegiatan
+                WHERE DATE_FORMAT(tanggal, '%Y-%m') IN ($ymCondition) AND deleted_at IS NULL
+                GROUP BY kode
+            ) counts ON pk.kode = counts.kode
+            JOIN kegiatan k ON pk.kode = k.kode
+            WHERE DATE_FORMAT(pk.tanggal, '%Y-%m') IN ($ymCondition)
+              AND pk.deleted_at IS NULL
+              AND k.deleted_at IS NULL
+              AND (k.lunas IS NULL OR k.lunas = '0000-00-00')";
+    }
+    $resUnpaid = mysqli_query($conn, $sqlUnpaid);
+    $rowUnpaid = mysqli_fetch_assoc($resUnpaid);
+    $grand_total_unpaid = $rowUnpaid['total'] ?? 0;
 ?>
 
     <!-- ═══ PREMIUM REKAP CARD ═══ -->
@@ -262,6 +297,11 @@
                     <span class="summary-label">Total Bonus</span>
                     <span class="summary-value">Rp <?= number_format($grand_total_bonus, 0, ',', '.') ?></span>
                     <i class="fa-solid fa-gift summary-card-icon"></i>
+                </div>
+                <div class="summary-card summary-unpaid">
+                    <span class="summary-label">Invoice Belum Lunas</span>
+                    <span class="summary-value">Rp <?= number_format($grand_total_unpaid, 0, ',', '.') ?></span>
+                    <i class="fa-solid fa-file-invoice-dollar summary-card-icon"></i>
                 </div>
                 <div class="summary-card summary-total">
                     <span class="summary-label">Grand Total</span>
@@ -435,12 +475,18 @@
 /* Summary Cards */
 .summary-row {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap: 14px;
     margin-bottom: 24px;
 }
+@media (max-width: 1200px) {
+    .summary-row { grid-template-columns: repeat(3, 1fr); }
+}
 @media (max-width: 768px) {
     .summary-row { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 480px) {
+    .summary-row { grid-template-columns: 1fr; }
 }
 .summary-card {
     padding: 18px 22px;
@@ -496,6 +542,11 @@
     background: linear-gradient(135deg, #ea580c, #c2410c); 
     color: #ffffff; 
     box-shadow: 0 10px 15px -3px rgba(234, 88, 12, 0.2); 
+}
+.summary-unpaid { 
+    background: linear-gradient(135deg, #e11d48, #be123c); 
+    color: #ffffff; 
+    box-shadow: 0 10px 15px -3px rgba(225, 29, 72, 0.2); 
 }
 .summary-total { 
     background: linear-gradient(135deg, #7c3aed, #6d28d9); 

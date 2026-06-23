@@ -90,6 +90,24 @@ $sql_pendapatan = "SELECT COALESCE(SUM(ROUND(pk.nominal_invoice / counts.tek_cou
 $res_pendapatan = mysqli_query($conn, $sql_pendapatan);
 $totalPendapatan = floatval(mysqli_fetch_assoc($res_pendapatan)['total'] ?? 0);
 
+// 3.5. Unpaid Invoices
+$sql_unpaid = "SELECT COALESCE(SUM(ROUND(pk.nominal_invoice / counts.tek_count)), 0) AS total 
+               FROM pendapatan_kegiatan pk
+               JOIN (
+                   SELECT kode, COUNT(*) AS tek_count
+                   FROM pendapatan_kegiatan
+                   WHERE DATE_FORMAT(tanggal, '%Y-%m') IN ($monthConditions) AND deleted_at IS NULL
+                   GROUP BY kode
+               ) counts ON pk.kode = counts.kode
+               JOIN kegiatan k ON pk.kode = k.kode
+               WHERE pk.teknisi_id = $teknisiId
+               AND DATE_FORMAT(pk.tanggal, '%Y-%m') IN ($monthConditions)
+               AND pk.deleted_at IS NULL
+               AND k.deleted_at IS NULL
+               AND (k.lunas IS NULL OR k.lunas = '0000-00-00')";
+$res_unpaid = mysqli_query($conn, $sql_unpaid);
+$unpaidInvoice = floatval(mysqli_fetch_assoc($res_unpaid)['total'] ?? 0);
+
 // 4. Fee (Rp 5000 per kegiatan)
 $totalFee = $jumlahKegiatan * 5000;
 
@@ -120,6 +138,7 @@ echo json_encode([
     'target' => intval($target),
     'jumlah_kegiatan' => intval($jumlahKegiatan),
     'selesai' => intval($selesai),
+    'invoice' => intval($unpaidInvoice),
     'fee' => intval($totalFee),
     'total_pendapatan' => intval($totalPendapatan),
     'total_keseluruhan' => intval($totalKeseluruhan),
