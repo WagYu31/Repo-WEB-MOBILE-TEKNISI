@@ -421,30 +421,36 @@ for ($i = 0; $i < 12; $i++) {
                                                     </td>
 
                                                     <td class="text-center pe-3">
-                                                        <?php 
-                                                        // if ($active_tab == 'belum_lunas') :
-                                                        ?>
-                                                            <div class="d-flex align-items-center justify-content-center gap-1">
-                                                                <button class="btn-action btn-action-pay lunasBtn" data-bs-toggle="modal" data-bs-target="#lunasModal" data-kode="<?= $kodeTransaksi; ?>" title="Lunas">
+                                                        <div class="d-flex align-items-center justify-content-center gap-1">
+                                                            <?php if ($active_tab == 'belum_lunas') : ?>
+                                                                <button class="btn-action btn-action-pay lunasBtn" 
+                                                                    data-bs-toggle="modal" 
+                                                                    data-bs-target="#lunasModal" 
+                                                                    data-kode="<?= $kodeTransaksi; ?>" 
+                                                                    data-lunas="<?= !empty($row_main['lunas']) && $row_main['lunas'] != '0000-00-00' ? date('Y-m-d', strtotime($row_main['lunas'])) : ''; ?>" 
+                                                                    title="Lunas">
                                                                     💸 Lunas
                                                                 </button>
-                                                                <a class="btn-action btn-action-reset" href="reset_invoice.php?kode=<?= $kodeTransaksi; ?>" title="Reset Invoice">
-                                                                    <i class="material-icons" style="font-size:15px;">refresh</i>
-                                                                </a>
-                                                                <button class="btn-action btn-action-delete btn-hapus-laporan" 
+                                                            <?php else: ?>
+                                                                <button class="btn-action btn-action-pay lunasBtn" 
+                                                                    data-bs-toggle="modal" 
+                                                                    data-bs-target="#lunasModal" 
                                                                     data-kode="<?= $kodeTransaksi; ?>" 
-                                                                    data-customer="<?= htmlspecialchars($row_main['nama_cust']); ?>" title="Hapus">
-                                                                    <i class="material-icons" style="font-size:15px;">delete_outline</i>
+                                                                    data-lunas="<?= !empty($row_main['lunas']) && $row_main['lunas'] != '0000-00-00' ? date('Y-m-d', strtotime($row_main['lunas'])) : ''; ?>" 
+                                                                    title="Edit tgl LUNAS" 
+                                                                    style="background:#eff6ff; color:#2563eb; border-color:#bfdbfe; font-size: 11px; font-weight: 700; width: auto; padding: 0 10px;">
+                                                                    📝 Edit tgl LUNAS
                                                                 </button>
-                                                            </div>
-                                                        <?php 
-                                                        // else: 
-                                                        ?>
-                                                            <!--<button class="btn-action btn-action-pay lunasBtn" data-bs-toggle="modal" data-bs-target="#lunasModal" data-kode="<?= $kodeTransaksi; ?>">💸 Bayar</button>-->
-                                                            <!--<a class="btn-action btn-action-reset" href="reset_invoice.php?kode=<?= $kodeTransaksi; ?>"><i class="material-icons" style="font-size:15px;">refresh</i></a>-->
-                                                        <?php 
-                                                        // endif; 
-                                                        ?>
+                                                            <?php endif; ?>
+                                                            <a class="btn-action btn-action-reset" href="reset_invoice.php?kode=<?= $kodeTransaksi; ?>" title="Reset Invoice">
+                                                                <i class="material-icons" style="font-size:15px;">refresh</i>
+                                                            </a>
+                                                            <button class="btn-action btn-action-delete btn-hapus-laporan" 
+                                                                data-kode="<?= $kodeTransaksi; ?>" 
+                                                                data-customer="<?= htmlspecialchars($row_main['nama_cust']); ?>" title="Hapus">
+                                                                <i class="material-icons" style="font-size:15px;">delete_outline</i>
+                                                            </button>
+                                                        </div>
                                                     </td>
 
                                                 </tr>
@@ -474,7 +480,7 @@ for ($i = 0; $i < 12; $i++) {
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <p>Anda akan menandai transaksi ini sebagai lunas. Silakan masukkan tanggal pembayaran.</p>
+                        <p id="lunasModalDesc">Anda akan menandai transaksi ini sebagai lunas. Silakan masukkan tanggal pembayaran.</p>
                         <input type="hidden" id="kode_transaksi_lunas" name="kode_transaksi">
                         <div class="form-group">
                             <label for="tanggal_lunas">Tanggal Pelunasan</label>
@@ -498,8 +504,21 @@ for ($i = 0; $i < 12; $i++) {
         lunasButtons.forEach(btn => {
             btn.addEventListener('click', function() {
                 const kode_transaksi = this.getAttribute('data-kode');
+                const existingLunas = this.getAttribute('data-lunas');
                 document.getElementById('kode_transaksi_lunas').value = kode_transaksi;
-                document.getElementById('tanggal_lunas').valueAsDate = new Date();
+                
+                const titleEl = document.getElementById('lunasModalLabel');
+                const descEl = document.getElementById('lunasModalDesc');
+                
+                if (existingLunas) {
+                    document.getElementById('tanggal_lunas').value = existingLunas;
+                    if (titleEl) titleEl.textContent = "Edit Tanggal Pelunasan";
+                    if (descEl) descEl.textContent = "Silakan ubah tanggal pelunasan untuk transaksi ini.";
+                } else {
+                    document.getElementById('tanggal_lunas').valueAsDate = new Date();
+                    if (titleEl) titleEl.textContent = "Tandai Pelunasan";
+                    if (descEl) descEl.textContent = "Anda akan menandai transaksi ini sebagai lunas. Silakan masukkan tanggal pembayaran.";
+                }
             });
         });
 
