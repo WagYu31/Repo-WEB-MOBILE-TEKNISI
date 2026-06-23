@@ -34,8 +34,9 @@ $teknisi_id = $_GET['teknisi_id'] ?? '';
 $customer_id = $_GET['customer_id'] ?? '';
 $jenis_kegiatan = $_GET['jenis_kegiatan'] ?? '';
 $kode_transaksi_filter = $_GET['kode_transaksi_filter'] ?? '';
+$status_invoice = $_GET['status_invoice'] ?? '';
 
-$is_search_triggered = !empty($start_date) || !empty($end_date) || !empty($teknisi_id) || !empty($customer_id) || !empty($jenis_kegiatan) || !empty($kode_transaksi_filter);
+$is_search_triggered = !empty($start_date) || !empty($end_date) || !empty($teknisi_id) || !empty($customer_id) || !empty($jenis_kegiatan) || !empty($kode_transaksi_filter) || !empty($status_invoice);
 $groupedData = [];
 
 $sql_all_teknisi = "SELECT id, nama FROM teknisi WHERE deleted_at IS NULL ORDER BY nama ASC";
@@ -82,6 +83,13 @@ if ($is_search_triggered) {
         $sql_kegiatan .= " AND k.kode LIKE ?";
         $types .= 's';
         $params[] = "%" . $kode_transaksi_filter . "%";
+    }
+    if ($status_invoice === 'ada_invoice') {
+        $sql_kegiatan .= " AND inv.no_invoice IS NOT NULL";
+    } elseif ($status_invoice === 'belum_input') {
+        $sql_kegiatan .= " AND inv.no_invoice IS NULL AND (k.paid IS NULL OR k.paid != 'n/a') AND (k.invoice IS NULL OR k.invoice != 'n/a')";
+    } elseif ($status_invoice === 'no_pay') {
+        $sql_kegiatan .= " AND (k.paid = 'n/a' OR k.invoice = 'n/a')";
     }
     $sql_kegiatan .= " ORDER BY k.jadwal DESC LIMIT 200";
     
@@ -411,15 +419,24 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
                                 <label>Kode ID</label>
                                 <input type="text" name="kode_transaksi_filter" class="form-control" placeholder="Cari Kode ID..." value="<?= htmlspecialchars($kode_transaksi_filter) ?>">
                             </div>
-                            <div class="col-lg-4 col-md-6">
+                            <div class="col-lg-3 col-md-6">
                                 <label>Dari Tanggal</label>
                                 <input type="date" class="form-control" name="start_date" id="startDate" value="<?= htmlspecialchars($start_date) ?>">
                             </div>
-                            <div class="col-lg-4 col-md-6">
+                            <div class="col-lg-3 col-md-6">
                                 <label>Sampai Tanggal</label>
                                 <input type="date" class="form-control" name="end_date" id="endDate" value="<?= htmlspecialchars($end_date) ?>">
                             </div>
-                            <div class="col-lg-4 col-md-12 d-flex align-items-end">
+                            <div class="col-lg-3 col-md-6">
+                                <label>Status Invoice</label>
+                                <select class="form-control" name="status_invoice">
+                                    <option value="">Semua Status</option>
+                                    <option value="ada_invoice" <?= ($status_invoice == 'ada_invoice' ? ' selected' : '') ?>>Ada Invoice</option>
+                                    <option value="belum_input" <?= ($status_invoice == 'belum_input' ? ' selected' : '') ?>>Belum Input Invoice</option>
+                                    <option value="no_pay" <?= ($status_invoice == 'no_pay' ? ' selected' : '') ?>>No Pay</option>
+                                </select>
+                            </div>
+                            <div class="col-lg-3 col-md-12 d-flex align-items-end">
                                 <div class="d-flex gap-2 w-100">
                                     <button type="submit" class="btn-filter btn-filter-primary flex-fill">
                                         <i class="fa-solid fa-magnifying-glass"></i> Tampilkan
