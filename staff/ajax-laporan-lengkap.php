@@ -16,7 +16,7 @@ $daftar_bulan = [
 $nama_bulan = $daftar_bulan[$bulan] ?? '';
 
 // ── Pre-fetch data ──
-$sql_main = "SELECT k.id, k.kode AS kode_transaksi, k.keterangan, k.created_at, k.lunas, k.paid, c.nama AS nama_cust
+$sql_main = "SELECT k.id, k.kode AS kode_transaksi, k.keterangan, k.created_at, k.lunas, k.paid, k.invoice, c.nama AS nama_cust
             FROM kegiatan k LEFT JOIN customer c ON k.customer_id = c.id
             WHERE MONTH(k.created_at) = ? AND YEAR(k.created_at) = ? AND k.deleted_at IS NULL
             GROUP BY k.kode ORDER BY k.created_at ASC";
@@ -244,7 +244,11 @@ if (!empty($all_rows)) {
                     <div class="ll-inv-amtsm">Rp 30.000</div>
                 <?php else : ?>
                     <div style="text-align:center;padding:10px 0;">
-                        <span class="ll-pay-none"><i class="fa-solid fa-ban"></i> NO PAYMENT</span>
+                        <?php if ($row_main['paid'] === 'n/a' || $row_main['invoice'] === 'n/a') : ?>
+                            <span class="ll-pay-none-gray"><i class="fa-solid fa-ban"></i> NO PAY</span>
+                        <?php else : ?>
+                            <span class="ll-pay-none"><i class="fa-regular fa-clock"></i> BELUM INPUT INVOICE</span>
+                        <?php endif; ?>
                     </div>
                 <?php endif; ?>
             </div>

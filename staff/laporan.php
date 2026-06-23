@@ -315,6 +315,7 @@ $role = $jabatan;
     .ll-pay-lunas { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
     .ll-pay-belum { background: #fff1f2; color: #e11d48; border: 1px solid #fecdd3; }
     .ll-pay-none { background: #fff1f2; color: #e11d48; border: 1px solid #fecdd3; font-size: 10px; font-weight: 700; padding: 4px 12px; border-radius: 16px; }
+    .ll-pay-none-gray { background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; font-size: 10px; font-weight: 700; padding: 4px 12px; border-radius: 16px; }
 
     .ll-tek {
         background: #f8fafc; border: 1px solid #f1f5f9;

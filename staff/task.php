@@ -504,8 +504,10 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
                                     <?php if (!empty($latest_kegiatan['no_invoice'])) : ?>
                                         <p class="inv-number"><?= htmlspecialchars($latest_kegiatan['no_invoice']) ?></p>
                                         <p class="inv-amount">Rp <?= number_format($latest_kegiatan['nominal_invoice'], 0, ',', '.') ?></p>
+                                    <?php elseif ($latest_kegiatan['paid'] === 'n/a' || $latest_kegiatan['invoice'] === 'n/a') : ?>
+                                        <span style="font-size: 10.5px; color: #64748b; font-weight: 700; background: #f1f5f9; border: 1.5px solid #cbd5e1; padding: 3px 8px; border-radius: 8px; display: inline-block;">No Pay</span>
                                     <?php else: ?>
-                                        <span class="inv-none">Belum Ada Invoice</span>
+                                        <span class="inv-none">Belum Input Invoice</span>
                                     <?php endif; ?>
                                 </td>
 
