@@ -21,25 +21,57 @@ $role = $jabatan;
     <?php include "css/floating-menu2.css";?>
     /* Action bar */
     .action-bar {
-        display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+        display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
         margin-bottom: 24px;
+        font-family: 'Plus Jakarta Sans', sans-serif;
     }
     .action-btn {
-        padding: 10px 20px; border: none; border-radius: 10px;
-        font-size: 12px; font-weight: 700; cursor: pointer;
+        padding: 12px 24px; border: none; border-radius: 12px;
+        font-size: 13px; font-weight: 700; cursor: pointer;
         display: inline-flex; align-items: center; gap: 8px;
-        text-decoration: none; transition: all 0.2s;
-        letter-spacing: 0.02em;
+        text-decoration: none; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        letter-spacing: 0.01em;
     }
-    .action-btn:hover { transform: translateY(-1px); }
-    .btn-detail { background: #1e293b; color: #fff; box-shadow: 0 4px 12px rgba(30,41,59,0.2); }
-    .btn-detail:hover { background: #334155; color: #fff; box-shadow: 0 6px 16px rgba(30,41,59,0.3); }
-    .btn-print { background: linear-gradient(135deg, #06b6d4, #0891b2); color: #fff; box-shadow: 0 4px 12px rgba(6,182,212,0.25); }
-    .btn-print:hover { color: #fff; box-shadow: 0 6px 16px rgba(6,182,212,0.35); }
-    .btn-lengkap { background: linear-gradient(135deg, #22c55e, #16a34a); color: #fff; box-shadow: 0 4px 12px rgba(34,197,94,0.25); }
-    .btn-lengkap:hover { color: #fff; box-shadow: 0 6px 16px rgba(34,197,94,0.35); }
-    .btn-validasi { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; box-shadow: 0 4px 12px rgba(99,102,241,0.25); margin-left: auto; }
-    .btn-validasi:hover { color: #fff; box-shadow: 0 6px 16px rgba(99,102,241,0.35); }
+    .action-btn:hover { 
+        transform: translateY(-2px); 
+    }
+    .btn-detail { 
+        background: linear-gradient(135deg, #0f172a, #1e293b); 
+        color: #fff; 
+        box-shadow: 0 4px 14px rgba(15,23,42,0.15); 
+    }
+    .btn-detail:hover { 
+        box-shadow: 0 6px 20px rgba(15,23,42,0.25); 
+        color: #fff;
+    }
+    .btn-print { 
+        background: linear-gradient(135deg, #0284c7, #0369a1); 
+        color: #fff; 
+        box-shadow: 0 4px 14px rgba(2,132,199,0.15); 
+    }
+    .btn-print:hover { 
+        box-shadow: 0 6px 20px rgba(2,132,199,0.25); 
+        color: #fff;
+    }
+    .btn-lengkap { 
+        background: linear-gradient(135deg, #059669, #047857); 
+        color: #fff; 
+        box-shadow: 0 4px 14px rgba(5,150,105,0.15); 
+    }
+    .btn-lengkap:hover { 
+        box-shadow: 0 6px 20px rgba(5,150,105,0.25); 
+        color: #fff;
+    }
+    .btn-validasi { 
+        background: linear-gradient(135deg, #4f46e5, #4338ca); 
+        color: #fff; 
+        box-shadow: 0 4px 14px rgba(79,70,229,0.15); 
+        margin-left: auto; 
+    }
+    .btn-validasi:hover { 
+        box-shadow: 0 6px 20px rgba(79,70,229,0.25); 
+        color: #fff;
+    }
   </style>
 </head>
 <body class="g-sidenav-show bg-gray-200">

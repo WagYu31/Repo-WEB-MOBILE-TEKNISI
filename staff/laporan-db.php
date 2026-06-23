@@ -357,11 +357,30 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <?php foreach ($tableRows as $i => $tr): ?>
+                    <?php 
+                    $gradients = [
+                        'A' => ['from' => '#e0e7ff', 'to' => '#c7d2fe', 'color' => '#4338ca'],
+                        'B' => ['from' => '#dcfce7', 'to' => '#bbf7d0', 'color' => '#15803d'],
+                        'C' => ['from' => '#fef9c3', 'to' => '#fef08a', 'color' => '#a16207'],
+                        'D' => ['from' => '#ffedd5', 'to' => '#fed7aa', 'color' => '#c2410c'],
+                        'E' => ['from' => '#fee2e2', 'to' => '#fecaca', 'color' => '#b91c1c'],
+                        'F' => ['from' => '#f3e8ff', 'to' => '#e9d5ff', 'color' => '#7e22ce'],
+                        'G' => ['from' => '#fae8ff', 'to' => '#f5d0fe', 'color' => '#a21caf'],
+                        'H' => ['from' => '#e0f2fe', 'to' => '#bae6fd', 'color' => '#0369a1'],
+                        'I' => ['from' => '#e0f7fa', 'to' => '#b2ebf2', 'color' => '#00838f'],
+                        'J' => ['from' => '#e2e8f0', 'to' => '#cbd5e1', 'color' => '#475569']
+                    ];
+                    
+                    foreach ($tableRows as $i => $tr): 
+                        $char = strtoupper(substr($tr['namaT'], 0, 1));
+                        $code = ord($char) % 10;
+                        $keys = array_keys($gradients);
+                        $selectedGrad = $gradients[$char] ?? $gradients[$keys[$code]];
+                    ?>
                     <tr>
                         <td class="ps-4">
                             <a href="list-kegiatan-teknisi.php?cariBulanTahun=<?= $current_date ?>&idTek=<?= $tr['idT'] ?>" class="tek-name">
-                                <span class="tek-avatar-circle"><?= strtoupper(substr($tr['namaT'], 0, 1)) ?></span>
+                                <span class="tek-avatar-circle" style="background: linear-gradient(135deg, <?= $selectedGrad['from'] ?>, <?= $selectedGrad['to'] ?>); color: <?= $selectedGrad['color'] ?>;"><?= $char ?></span>
                                 <?= htmlspecialchars($tr['namaT']) ?>
                             </a>
                         </td>
@@ -426,9 +445,9 @@
 
 .rekap-card {
     background: #fff;
-    border: 1px solid #e2e8f0;
+    border: 1px solid rgba(226, 232, 240, 0.8);
     border-radius: 16px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.025), 0 20px 25px -5px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.03), 0 2px 8px -1px rgba(0, 0, 0, 0.02);
     overflow: hidden;
 }
 
@@ -453,15 +472,15 @@
 
 .rekap-icon {
     width: 44px; height: 44px;
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    background: linear-gradient(135deg, #4f46e5, #4338ca);
     border-radius: 12px;
     display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 4px 14px rgba(99,102,241,0.3);
+    box-shadow: 0 4px 14px rgba(79,70,229,0.25);
 }
 .rekap-icon i { color: #fff; font-size: 18px; }
 
 .rekap-title-left h5 {
-    margin: 0; font-size: 17px; font-weight: 800; color: #1e293b;
+    margin: 0; font-size: 17px; font-weight: 800; color: #0f172a;
     letter-spacing: -0.02em;
 }
 .rekap-title-left p {
@@ -473,46 +492,50 @@
 }
 .rekap-month-input {
     border: 1.5px solid #e2e8f0;
-    border-radius: 10px;
-    padding: 8.5px 14px;
+    border-radius: 12px;
+    padding: 9px 16px;
     font-size: 13px;
     color: #1e293b;
     background: #f8fafc;
     font-weight: 600;
-    transition: all 0.2s;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+.rekap-month-input:hover {
+    border-color: #cbd5e1;
 }
 .rekap-month-input:focus {
-    border-color: #6366f1;
-    box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 3px rgba(79,70,229,0.15);
     outline: none;
     background: #fff;
 }
 .rekap-btn-cari {
-    padding: 9px 20px;
+    padding: 9.5px 22px;
     border: none;
-    border-radius: 10px;
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    border-radius: 12px;
+    background: linear-gradient(135deg, #4f46e5, #4338ca);
     color: #fff;
     font-size: 13px;
-    font-weight: 750;
+    font-weight: 700;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    transition: all 0.2s;
-    box-shadow: 0 4px 12px rgba(99,102,241,0.25);
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(79,70,229,0.2);
 }
 .rekap-btn-cari:hover {
     transform: translateY(-1.5px);
-    box-shadow: 0 6px 20px rgba(99,102,241,0.35);
+    box-shadow: 0 6px 18px rgba(79,70,229,0.3);
 }
 
 /* Summary Cards */
 .summary-row {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    gap: 14px;
-    margin-bottom: 24px;
+    gap: 16px;
+    margin-bottom: 28px;
 }
 @media (max-width: 1200px) {
     .summary-row { grid-template-columns: repeat(3, 1fr); }
@@ -524,14 +547,16 @@
     .summary-row { grid-template-columns: 1fr; }
 }
 .summary-card {
-    padding: 18px 22px;
+    padding: 20px 24px;
     border-radius: 16px;
     display: flex;
     flex-direction: column;
     gap: 6px;
     position: relative;
     overflow: hidden;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    background: #ffffff;
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .summary-card:hover {
     transform: translateY(-4px);
@@ -540,53 +565,88 @@
     font-size: 11px; 
     font-weight: 700; 
     text-transform: uppercase; 
-    letter-spacing: 0.09em; 
-    opacity: 0.95; 
+    letter-spacing: 0.08em; 
 }
 .summary-value { 
-    font-size: 21px; 
-    font-weight: 850; 
-    letter-spacing: -0.03em; 
+    font-size: 22px; 
+    font-weight: 800; 
+    letter-spacing: -0.02em; 
 }
 .summary-card-icon {
     position: absolute;
-    right: 14px;
-    bottom: -12px;
-    font-size: 64px;
-    opacity: 0.16;
-    color: #fff;
+    right: 20px;
+    bottom: -8px;
+    font-size: 56px;
+    transition: all 0.3s ease;
     pointer-events: none;
-    transition: all 0.25s ease;
 }
 .summary-card:hover .summary-card-icon {
-    transform: scale(1.12) rotate(-8deg);
-    opacity: 0.24;
+    transform: scale(1.1) rotate(-5deg);
 }
 
 .summary-fee { 
-    background: linear-gradient(135deg, #0d9488, #0f766e); 
-    color: #ffffff; 
-    box-shadow: 0 10px 15px -3px rgba(13, 148, 136, 0.2); 
+    background: #f0fdf4;
+    border-left: 4px solid #10b981;
+    color: #14532d;
 }
+.summary-fee .summary-label { color: #15803d; }
+.summary-fee .summary-value { color: #166534; }
+.summary-fee .summary-card-icon { color: rgba(16, 185, 129, 0.15); }
+.summary-fee:hover {
+    box-shadow: 0 12px 24px -10px rgba(16, 185, 129, 0.25);
+    border-color: rgba(16, 185, 129, 0.3);
+}
+
 .summary-income { 
-    background: linear-gradient(135deg, #2563eb, #1d4ed8); 
-    color: #ffffff; 
-    box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.2); 
+    background: #eff6ff;
+    border-left: 4px solid #3b82f6;
+    color: #1e3a8a;
 }
+.summary-income .summary-label { color: #1d4ed8; }
+.summary-income .summary-value { color: #1e40af; }
+.summary-income .summary-card-icon { color: rgba(59, 130, 246, 0.15); }
+.summary-income:hover {
+    box-shadow: 0 12px 24px -10px rgba(59, 130, 246, 0.25);
+    border-color: rgba(59, 130, 246, 0.3);
+}
+
 .summary-bonus { 
-    background: linear-gradient(135deg, #ea580c, #c2410c); 
-    color: #ffffff; 
-    box-shadow: 0 10px 15px -3px rgba(234, 88, 12, 0.2); 
+    background: #fff7ed;
+    border-left: 4px solid #f97316;
+    color: #7c2d12;
 }
+.summary-bonus .summary-label { color: #c2410c; }
+.summary-bonus .summary-value { color: #9a3412; }
+.summary-bonus .summary-card-icon { color: rgba(249, 115, 22, 0.15); }
+.summary-bonus:hover {
+    box-shadow: 0 12px 24px -10px rgba(249, 115, 22, 0.25);
+    border-color: rgba(249, 115, 22, 0.3);
+}
+
 .summary-unpaid { 
-    background: linear-gradient(135deg, #e11d48, #be123c); 
-    color: #ffffff; 
-    box-shadow: 0 10px 15px -3px rgba(225, 29, 72, 0.2); 
+    background: #fff1f2;
+    border-left: 4px solid #f43f5e;
+    color: #881337;
 }
+.summary-unpaid .summary-label { color: #be123c; }
+.summary-unpaid .summary-value { color: #9f1239; }
+.summary-unpaid .summary-card-icon { color: rgba(244, 63, 94, 0.15); }
+.summary-unpaid:hover {
+    box-shadow: 0 12px 24px -10px rgba(244, 63, 94, 0.25);
+    border-color: rgba(244, 63, 94, 0.3);
+}
+
 .summary-total { 
-    background: linear-gradient(135deg, #7c3aed, #6d28d9); 
-    color: #ffffff; 
-    box-shadow: 0 10px 15px -3px rgba(124, 58, 237, 0.2); 
+    background: #faf5ff;
+    border-left: 4px solid #a855f7;
+    color: #581c87;
+}
+.summary-total .summary-label { color: #7e22ce; }
+.summary-total .summary-value { color: #6b21a8; }
+.summary-total .summary-card-icon { color: rgba(168, 85, 247, 0.15); }
+.summary-total:hover {
+    box-shadow: 0 12px 24px -10px rgba(168, 85, 247, 0.25);
+    border-color: rgba(168, 85, 247, 0.3);
 }
 
 /* Table */
@@ -602,23 +662,23 @@
     border-bottom: 2px solid #e2e8f0;
     padding: 16px 14px;
     font-size: 11px;
-    font-weight: 700;
-    color: #475569;
+    font-weight: 800;
+    color: #64748b;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.08em;
     white-space: nowrap;
 }
 
 .rekap-table tbody tr {
     border-bottom: 1px solid #f1f5f9;
-    transition: all 0.2s ease;
+    transition: all 0.25s ease;
 }
 .rekap-table tbody tr:hover { 
     background-color: #f8fafc; 
-    box-shadow: inset 4px 0 0 0 #6366f1;
+    box-shadow: inset 4px 0 0 0 #4f46e5;
 }
 .rekap-table tbody td { 
-    padding: 15px 14px; 
+    padding: 16px 14px; 
     font-size: 13.5px; 
     vertical-align: middle;
 }
@@ -629,64 +689,62 @@
     align-items: center;
     gap: 10px;
     text-decoration: none;
-    color: #1e293b;
+    color: #0f172a;
     font-weight: 700;
     font-size: 13.5px;
     transition: all 0.2s ease;
 }
 .tek-name:hover { 
-    color: #6366f1; 
+    color: #4f46e5; 
     transform: translateX(3px);
 }
 
 .tek-avatar-circle {
     width: 32px; height: 32px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
-    color: #4338ca;
     display: flex; align-items: center; justify-content: center;
     font-size: 13px; font-weight: 800;
     flex-shrink: 0;
-    box-shadow: 0 2px 4px rgba(99,102,241,0.1);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
 }
 
 /* Stat pills */
 .stat-pill {
-    display: inline-block;
-    min-width: 30px;
-    padding: 4px 10px;
-    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 26px;
+    padding: 0 10px;
+    border-radius: 20px;
     font-size: 12px;
     font-weight: 700;
     background: #f1f5f9;
     color: #475569;
     text-align: center;
-    border: 1px solid #e2e8f0;
+    border: none;
 }
 .stat-done { 
-    background: rgba(16, 185, 129, 0.1); 
-    color: #059669; 
-    border: 1px solid rgba(16, 185, 129, 0.2); 
+    background: #dcfce7; 
+    color: #15803d; 
 }
 .stat-inv { 
-    background: rgba(59, 130, 246, 0.1); 
-    color: #2563eb; 
-    border: 1px solid rgba(59, 130, 246, 0.2); 
+    background: #dbeafe; 
+    color: #1d4ed8; 
 }
 .stat-unpaid { 
-    background: rgba(225, 29, 72, 0.1); 
-    color: #e11d48; 
-    border: 1px solid rgba(225, 29, 72, 0.2); 
+    background: #fee2e2; 
+    color: #b91c1c; 
 }
 
 /* Money values */
 .money-val {
-    font-size: 13px;
+    font-size: 13.5px;
     font-weight: 700;
     font-variant-numeric: tabular-nums;
 }
 .money-positive { 
-    color: #059669; 
+    color: #16a34a; 
 }
 .money-zero { 
     color: #94a3b8; 
@@ -696,13 +754,13 @@
 
 /* Footer */
 .rekap-footer-row {
-    background: linear-gradient(135deg, #1e293b, #334155) !important;
+    background: linear-gradient(135deg, #0f172a, #1e293b) !important;
 }
 .rekap-footer-row td {
     color: #fff !important;
     font-size: 13.5px !important;
     font-weight: 800 !important;
-    padding: 16px 14.5px !important;
+    padding: 18px 14.5px !important;
     border: none !important;
 }
 
