@@ -348,6 +348,33 @@
     @media (max-width: 480px) {
         .detail-summary-row { grid-template-columns: 1fr; }
     }
+    @media print {
+        .no-print { display: none !important; }
+        .detail-card { 
+            box-shadow: none !important; 
+            border: none !important; 
+            max-height: none !important;
+            overflow: visible !important;
+        }
+        .table-scroll-area {
+            max-height: none !important;
+            overflow: visible !important;
+            background: transparent !important;
+            padding: 0 !important;
+        }
+        .laporan-table {
+            table-layout: fixed !important;
+        }
+        .laporan-table thead th {
+            position: relative !important;
+            background: #fff !important;
+            color: #0f172a !important;
+            border-bottom: 2px solid #cbd5e1 !important;
+        }
+        .laporan-table tbody tr.hidden-row {
+            display: none !important;
+        }
+    }
 </style>
 
 <?php

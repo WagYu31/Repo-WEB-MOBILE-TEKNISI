@@ -103,11 +103,7 @@ $role = $jabatan;
   <script>
     // Print
     document.querySelector(".btn-print").addEventListener("click", function() {
-        var content = document.getElementById("printable-content").innerHTML;
-        var originalBody = document.body.innerHTML;
-        document.body.innerHTML = content;
         window.print();
-        document.body.innerHTML = originalBody;
     });
   </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
