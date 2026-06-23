@@ -111,10 +111,15 @@
         $unpaidInvCount = [];
         $sql = "SELECT pk.teknisi_id, COUNT(DISTINCT pk.kode) as total 
                 FROM pendapatan_kegiatan pk
-                JOIN kegiatan k ON pk.kode = k.kode
+                JOIN (
+                    SELECT kode, lunas
+                    FROM kegiatan
+                    WHERE deleted_at IS NULL
+                    GROUP BY kode
+                ) k ON pk.kode = k.kode
                 WHERE pk.teknisi_id IN ($placeholders) 
                 AND DATE_FORMAT(pk.tanggal, '%Y-%m') IN ($ymCondition)
-                AND pk.deleted_at IS NULL AND k.deleted_at IS NULL
+                AND pk.deleted_at IS NULL
                 AND (k.lunas IS NULL OR k.lunas = '0000-00-00')
                 GROUP BY pk.teknisi_id";
         $stmt = $conn->prepare($sql);
@@ -225,11 +230,15 @@
                 WHERE DATE_FORMAT(tanggal, '%Y-%m') IN ($ymCondition) AND deleted_at IS NULL
                 GROUP BY kode
             ) counts ON pk.kode = counts.kode
-            JOIN kegiatan k ON pk.kode = k.kode
+            JOIN (
+                SELECT kode, lunas
+                FROM kegiatan
+                WHERE deleted_at IS NULL
+                GROUP BY kode
+            ) k ON pk.kode = k.kode
             WHERE pk.teknisi_id = $filterTeknisiId
               AND DATE_FORMAT(pk.tanggal, '%Y-%m') IN ($ymCondition)
               AND pk.deleted_at IS NULL
-              AND k.deleted_at IS NULL
               AND (k.lunas IS NULL OR k.lunas = '0000-00-00')";
     } else {
         $sqlUnpaid = "SELECT SUM(ROUND(pk.nominal_invoice / counts.tek_count)) as total
@@ -240,10 +249,14 @@
                 WHERE DATE_FORMAT(tanggal, '%Y-%m') IN ($ymCondition) AND deleted_at IS NULL
                 GROUP BY kode
             ) counts ON pk.kode = counts.kode
-            JOIN kegiatan k ON pk.kode = k.kode
+            JOIN (
+                SELECT kode, lunas
+                FROM kegiatan
+                WHERE deleted_at IS NULL
+                GROUP BY kode
+            ) k ON pk.kode = k.kode
             WHERE DATE_FORMAT(pk.tanggal, '%Y-%m') IN ($ymCondition)
               AND pk.deleted_at IS NULL
-              AND k.deleted_at IS NULL
               AND (k.lunas IS NULL OR k.lunas = '0000-00-00')";
     }
     $resUnpaid = mysqli_query($conn, $sqlUnpaid);

@@ -110,11 +110,15 @@ $stmtPendapatan->close();
 $stmtUnpaid = $conn->prepare("
     SELECT COALESCE(SUM(pk.pendapatan), 0) AS total
     FROM pendapatan_kegiatan pk 
-    JOIN kegiatan k ON pk.kode = k.kode
+    JOIN (
+        SELECT kode, lunas
+        FROM kegiatan
+        WHERE deleted_at IS NULL
+        GROUP BY kode
+    ) k ON pk.kode = k.kode
     WHERE pk.teknisi_id = ? 
       AND DATE_FORMAT(pk.tanggal, '%Y-%m') = ? 
       AND pk.deleted_at IS NULL
-      AND k.deleted_at IS NULL
       AND (k.lunas IS NULL OR k.lunas = '0000-00-00')
 ");
 $stmtUnpaid->bind_param("is", $teknisiId, $date);

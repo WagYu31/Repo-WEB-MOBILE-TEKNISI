@@ -99,11 +99,15 @@ $sql_unpaid = "SELECT COALESCE(SUM(ROUND(pk.nominal_invoice / counts.tek_count))
                    WHERE DATE_FORMAT(tanggal, '%Y-%m') IN ($monthConditions) AND deleted_at IS NULL
                    GROUP BY kode
                ) counts ON pk.kode = counts.kode
-               JOIN kegiatan k ON pk.kode = k.kode
+               JOIN (
+                   SELECT kode, lunas
+                   FROM kegiatan
+                   WHERE deleted_at IS NULL
+                   GROUP BY kode
+               ) k ON pk.kode = k.kode
                WHERE pk.teknisi_id = $teknisiId
                AND DATE_FORMAT(pk.tanggal, '%Y-%m') IN ($monthConditions)
                AND pk.deleted_at IS NULL
-               AND k.deleted_at IS NULL
                AND (k.lunas IS NULL OR k.lunas = '0000-00-00')";
 $res_unpaid = mysqli_query($conn, $sql_unpaid);
 $unpaidInvoice = floatval(mysqli_fetch_assoc($res_unpaid)['total'] ?? 0);
