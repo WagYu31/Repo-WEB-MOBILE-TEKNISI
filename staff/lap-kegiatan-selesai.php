@@ -425,8 +425,8 @@ for ($i = 0; $i < 12; $i++) {
                                                         // if ($active_tab == 'belum_lunas') :
                                                         ?>
                                                             <div class="d-flex align-items-center justify-content-center gap-1">
-                                                                <button class="btn-action btn-action-pay lunasBtn" data-bs-toggle="modal" data-bs-target="#lunasModal" data-kode="<?= $kodeTransaksi; ?>" title="Bayar">
-                                                                    💸 Bayar
+                                                                <button class="btn-action btn-action-pay lunasBtn" data-bs-toggle="modal" data-bs-target="#lunasModal" data-kode="<?= $kodeTransaksi; ?>" title="Lunas">
+                                                                    💸 Lunas
                                                                 </button>
                                                                 <a class="btn-action btn-action-reset" href="reset_invoice.php?kode=<?= $kodeTransaksi; ?>" title="Reset Invoice">
                                                                     <i class="material-icons" style="font-size:15px;">refresh</i>
