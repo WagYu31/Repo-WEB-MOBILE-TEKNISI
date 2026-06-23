@@ -477,8 +477,12 @@ $role = $jabatan;
                     const customerName = card.querySelector('.ll-cname')?.textContent.toLowerCase() || '';
                     const keterangan = card.querySelector('.ll-cket')?.textContent.toLowerCase() || '';
                     const txCode = card.querySelector('.ll-ctag strong')?.textContent.toLowerCase() || '';
+                    const invoiceNo = card.querySelector('.ll-inv-no')?.textContent.toLowerCase() || '';
 
-                    if (customerName.includes(query) || txCode.includes(query) || keterangan.includes(query)) {
+                    if (customerName.includes(query) || 
+                        txCode.includes(query) || 
+                        keterangan.includes(query) || 
+                        invoiceNo.includes(query)) {
                         queryMatch = true;
                     }
                 }

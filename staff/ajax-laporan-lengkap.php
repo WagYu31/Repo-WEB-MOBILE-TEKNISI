@@ -89,7 +89,7 @@ $stmt_income->close();
     </button>
     <div class="ll-search-wrapper">
         <i class="fa-solid fa-magnifying-glass"></i>
-        <input type="text" id="ll-search-input" placeholder="Cari Kode / Customer..." onkeyup="llSearchFilter()">
+        <input type="text" id="ll-search-input" placeholder="Cari Kode / Customer / Invoice..." onkeyup="llSearchFilter()">
     </div>
 </div>
 
