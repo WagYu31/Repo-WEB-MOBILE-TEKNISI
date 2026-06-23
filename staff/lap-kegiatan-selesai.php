@@ -401,19 +401,20 @@ for ($i = 0; $i < 12; $i++) {
                                                         if($result_teknisi->num_rows > 0) {
                                                             while($row_teknisi = $result_teknisi->fetch_assoc()) {
                                                         ?>
-                                                        <div class="d-flex justify-content-between align-items-center py-2 technician-item">
-                                                             <p class="text-sm font-weight-bold mb-0">
+                                                         <div class="d-flex align-items-center py-2 technician-item">
+                                                             <div class="text-sm font-weight-bold" style="flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                                                                  <?= htmlspecialchars($row_teknisi['nama_teknisi']); ?>
+                                                             </div>
+                                                             <div style="min-width: 105px; text-align: right; margin-right: 16px; flex-shrink: 0;">
                                                                  <?php if ($row_teknisi['pendapatan'] !== null): ?>
-                                                                     <span class="badge-share-amount">Rp <?= number_format($row_teknisi['pendapatan'], 0, ',', '.'); ?></span>
+                                                                     <span class="badge-share-amount" style="margin-left: 0;">Rp <?= number_format($row_teknisi['pendapatan'], 0, ',', '.'); ?></span>
                                                                  <?php endif; ?>
-                                                             </p>
-                                                            <div class="text-end">
-                                                                <p class="text-xs text-dark mb-0">Mulai: <?= $row_teknisi['waktu_mulai_pertama'] ? date("d/m H:i", strtotime($row_teknisi['waktu_mulai_pertama'])) : '-'; ?></p>
-                                                                <p class="text-xs text-dark mb-0">Selesai: <?= $row_teknisi['waktu_selesai_terakhir'] ? date("d/m H:i", strtotime($row_teknisi['waktu_selesai_terakhir'])) : '-'; ?></p>
-                                                            </div>
-                                                        </div>
-                                                        <?php }
+                                                             </div>
+                                                             <div class="text-end" style="width: 110px; flex-shrink: 0;">
+                                                                 <p class="text-xs text-dark mb-0">Mulai: <?= $row_teknisi['waktu_mulai_pertama'] ? date("d/m H:i", strtotime($row_teknisi['waktu_mulai_pertama'])) : '-'; ?></p>
+                                                                 <p class="text-xs text-dark mb-0">Selesai: <?= $row_teknisi['waktu_selesai_terakhir'] ? date("d/m H:i", strtotime($row_teknisi['waktu_selesai_terakhir'])) : '-'; ?></p>
+                                                             </div>
+                                                         </div><?php }
                                                         } else { echo "<p class='text-xs text-danger text-center mb-0'>Data teknisi tidak ditemukan.</p>"; }
                                                         $stmt_teknisi->close();
                                                         ?>
