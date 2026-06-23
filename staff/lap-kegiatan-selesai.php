@@ -176,6 +176,15 @@ for ($i = 0; $i < 12; $i++) {
         /* === Selected Row === */
         tr:has(.form-check-input-custom:checked) { background-color: #f0f9ff !important; }
 
+        /* === Share Amount Badge === */
+        .badge-share-amount {
+            font-size: 11px; font-weight: 700; color: #059669;
+            background: #ecfdf5; border: 1px solid #a7f3d0;
+            padding: 2px 8px; border-radius: 12px;
+            margin-left: 8px; font-variant-numeric: tabular-nums;
+            display: inline-block;
+        }
+
         /* === Bulk Delete Bar === */
         .bulk-bar {
             position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 9999;
@@ -379,11 +388,12 @@ for ($i = 0; $i < 12; $i++) {
 
                                                     <td class="technician-list pe-4">
                                                         <?php
-                                                        $sql_teknisi = "SELECT t.nama_teknisi,
-                                                                        (SELECT MIN(waktu_mulai) FROM pelaksanaan_kegiatan WHERE teknisi_id = p.teknisi_id AND kode = p.kode) AS waktu_mulai_pertama,
-                                                                        (SELECT MAX(waktu_selesai) FROM pelaksanaan_kegiatan WHERE teknisi_id = p.teknisi_id AND kode = p.kode) AS waktu_selesai_terakhir
-                                                                    FROM pelaksanaan_kegiatan p JOIN team_kegiatan t ON t.teknisi_id = p.teknisi_id JOIN kegiatan k ON t.kegiatan_id = k.id
-                                                                    WHERE p.kode = ? AND k.customer_id = ? AND p.deleted_at IS NULL GROUP BY p.teknisi_id";
+                                                         $sql_teknisi = "SELECT t.nama_teknisi, p.teknisi_id, p.kode,
+                                                                         (SELECT MIN(waktu_mulai) FROM pelaksanaan_kegiatan WHERE teknisi_id = p.teknisi_id AND kode = p.kode) AS waktu_mulai_pertama,
+                                                                         (SELECT MAX(waktu_selesai) FROM pelaksanaan_kegiatan WHERE teknisi_id = p.teknisi_id AND kode = p.kode) AS waktu_selesai_terakhir,
+                                                                         (SELECT pendapatan FROM pendapatan_kegiatan WHERE kode = p.kode AND teknisi_id = p.teknisi_id AND deleted_at IS NULL LIMIT 1) AS pendapatan
+                                                                     FROM pelaksanaan_kegiatan p JOIN team_kegiatan t ON t.teknisi_id = p.teknisi_id JOIN kegiatan k ON t.kegiatan_id = k.id
+                                                                     WHERE p.kode = ? AND k.customer_id = ? AND p.deleted_at IS NULL GROUP BY p.teknisi_id";
                                                         $stmt_teknisi = $conn->prepare($sql_teknisi);
                                                         $stmt_teknisi->bind_param("si", $kodeTransaksi, $idC);
                                                         $stmt_teknisi->execute();
@@ -392,7 +402,12 @@ for ($i = 0; $i < 12; $i++) {
                                                             while($row_teknisi = $result_teknisi->fetch_assoc()) {
                                                         ?>
                                                         <div class="d-flex justify-content-between align-items-center py-2 technician-item">
-                                                            <p class="text-sm font-weight-bold mb-0"><?= htmlspecialchars($row_teknisi['nama_teknisi']); ?></p>
+                                                             <p class="text-sm font-weight-bold mb-0">
+                                                                 <?= htmlspecialchars($row_teknisi['nama_teknisi']); ?>
+                                                                 <?php if ($row_teknisi['pendapatan'] !== null): ?>
+                                                                     <span class="badge-share-amount">Rp <?= number_format($row_teknisi['pendapatan'], 0, ',', '.'); ?></span>
+                                                                 <?php endif; ?>
+                                                             </p>
                                                             <div class="text-end">
                                                                 <p class="text-xs text-dark mb-0">Mulai: <?= $row_teknisi['waktu_mulai_pertama'] ? date("d/m H:i", strtotime($row_teknisi['waktu_mulai_pertama'])) : '-'; ?></p>
                                                                 <p class="text-xs text-dark mb-0">Selesai: <?= $row_teknisi['waktu_selesai_terakhir'] ? date("d/m H:i", strtotime($row_teknisi['waktu_selesai_terakhir'])) : '-'; ?></p>
