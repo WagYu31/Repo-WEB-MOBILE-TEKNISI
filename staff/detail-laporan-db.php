@@ -75,7 +75,7 @@
         table-layout: fixed !important; 
     }
     .laporan-table thead th {
-        background: transparent !important;
+        background: #f8fafc !important;
         border-bottom: none !important;
         padding: 10px 14px; font-size: 11px; font-weight: 800; color: #64748b;
         text-transform: uppercase; letter-spacing: 0.08em; white-space: nowrap;
