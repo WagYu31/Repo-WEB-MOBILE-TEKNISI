@@ -32,11 +32,12 @@ $start_date = $_GET['start_date'] ?? '';
 $end_date = $_GET['end_date'] ?? '';
 $teknisi_id = $_GET['teknisi_id'] ?? '';
 $customer_id = $_GET['customer_id'] ?? '';
+$nama_customer_display = $_GET['nama_customer_display'] ?? '';
 $jenis_kegiatan = $_GET['jenis_kegiatan'] ?? '';
 $kode_transaksi_filter = $_GET['kode_transaksi_filter'] ?? '';
 $status_invoice = $_GET['status_invoice'] ?? '';
 
-$is_search_triggered = !empty($start_date) || !empty($end_date) || !empty($teknisi_id) || !empty($customer_id) || !empty($jenis_kegiatan) || !empty($kode_transaksi_filter) || !empty($status_invoice);
+$is_search_triggered = !empty($start_date) || !empty($end_date) || !empty($teknisi_id) || !empty($customer_id) || !empty($nama_customer_display) || !empty($jenis_kegiatan) || !empty($kode_transaksi_filter) || !empty($status_invoice);
 $groupedData = [];
 
 $sql_all_teknisi = "SELECT id, nama FROM teknisi WHERE deleted_at IS NULL ORDER BY nama ASC";
@@ -73,6 +74,10 @@ if ($is_search_triggered) {
         $sql_kegiatan .= " AND k.customer_id = ?";
         $types .= 'i';
         $params[] = $customer_id;
+    } elseif (!empty($nama_customer_display)) {
+        $sql_kegiatan .= " AND c.nama LIKE ?";
+        $types .= 's';
+        $params[] = "%" . $nama_customer_display . "%";
     }
     if (!empty($jenis_kegiatan)) {
         $sql_kegiatan .= " AND k.kegiatan = ?";
@@ -587,6 +592,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const customerIdInput = document.getElementById('customerIdInput');
     const resultsContainer = document.getElementById('searchResults');
     let debounceTimer;
+
+    searchInput.addEventListener('input', function() {
+        customerIdInput.value = '';
+    });
 
     searchInput.addEventListener('keyup', function() {
         clearTimeout(debounceTimer);
