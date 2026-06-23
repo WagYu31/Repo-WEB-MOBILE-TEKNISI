@@ -312,10 +312,10 @@
         border-color: rgba(168, 85, 247, 0.3);
     }
 
-    @media (max-width: 1200px) {
+    @media screen and (max-width: 1200px) {
         .detail-summary-row { grid-template-columns: repeat(2, 1fr); }
     }
-    @media (max-width: 768px) {
+    @media screen and (max-width: 768px) {
         .detail-filter-bar { flex-direction: column; align-items: stretch; gap: 10px; padding: 12px 16px; }
         .filter-select, .filter-search { min-width: unset; width: 100%; }
         .filter-search-wrap { min-width: unset; }
@@ -345,7 +345,7 @@
         .laporan-table tbody tr td:first-child { border-left: none !important; padding-left: 0; }
         .laporan-table tbody tr td:last-child { padding-right: 0; }
     }
-    @media (max-width: 480px) {
+    @media screen and (max-width: 480px) {
         .detail-summary-row { grid-template-columns: 1fr; }
     }
     @media print {
@@ -364,12 +364,29 @@
         }
         .laporan-table {
             table-layout: fixed !important;
+            width: 100% !important;
+        }
+        .laporan-table thead {
+            display: table-header-group !important;
         }
         .laporan-table thead th {
             position: relative !important;
             background: #fff !important;
             color: #0f172a !important;
             border-bottom: 2px solid #cbd5e1 !important;
+            padding: 8px 6px !important;
+            font-size: 10px !important;
+        }
+        .laporan-table tbody tr {
+            display: table-row !important;
+            background: #fff !important;
+        }
+        .laporan-table tbody td {
+            display: table-cell !important;
+            background: #fff !important;
+            padding: 8px 6px !important;
+            font-size: 10.5px !important;
+            border-bottom: 1px solid #e2e8f0 !important;
         }
         .laporan-table tbody tr.hidden-row {
             display: none !important;
