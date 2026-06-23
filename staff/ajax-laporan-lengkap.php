@@ -71,7 +71,7 @@ $stmt_income->close();
     </div>
     <div class="ll-stat-box">
         <div class="ll-stat-dot ll-dot-amber"><i class="fa-solid fa-wallet"></i></div>
-        <div><div class="ll-stat-label">Total Pendapatan</div><div class="ll-stat-num" style="font-size:17px">Rp <?= number_format($total_income, 0, ',', '.') ?></div></div>
+        <div><div class="ll-stat-label">Total Pendapatan</div><div class="ll-stat-num" id="ll-total-income-val" style="font-size:17px">Rp <?= number_format($total_income, 0, ',', '.') ?></div></div>
     </div>
 </div>
 
@@ -202,8 +202,21 @@ if (!empty($all_rows)) {
         $is_lunas = (!empty($row_main['lunas']) && $row_main['lunas'] != '0000-00-00');
         $card_type = $is_lunas ? 'll-lunas' : ($is_manual ? 'll-manual' : 'll-unpaid');
         $overlay = $is_lunas ? 'll-lunas-overlay' : '';
+
+        // Fetch invoice details early for card attribute
+        $sql_inv = "SELECT no_invoice, tanggal, nominal_invoice FROM pendapatan_kegiatan WHERE kode = ? AND deleted_at IS NULL LIMIT 1";
+        $stmt_inv = $conn->prepare($sql_inv);
+        $stmt_inv->bind_param("s", $kode);
+        $stmt_inv->execute();
+        $inv = $stmt_inv->get_result()->fetch_assoc();
+        $stmt_inv->close();
+
+        $card_income = 0;
+        if ($inv) {
+            $card_income = floatval($inv['nominal_invoice']);
+        }
 ?>
-<div class="ll-card <?= $card_type ?>">
+<div class="ll-card <?= $card_type ?>" data-income="<?= $card_income ?>">
     <div class="ll-card-grid">
         <div><span class="ll-rnum"><?= $no ?></span></div>
         <div>
@@ -217,14 +230,6 @@ if (!empty($all_rows)) {
             </div>
         </div>
         <div>
-            <?php
-            $sql_inv = "SELECT no_invoice, tanggal, nominal_invoice FROM pendapatan_kegiatan WHERE kode = ? LIMIT 1";
-            $stmt_inv = $conn->prepare($sql_inv);
-            $stmt_inv->bind_param("s", $kode);
-            $stmt_inv->execute();
-            $inv = $stmt_inv->get_result()->fetch_assoc();
-            $stmt_inv->close();
-            ?>
             <div class="ll-inv <?= $overlay ?>">
                 <?php if ($inv) : ?>
                     <div class="ll-inv-lbl">No. Invoice</div>

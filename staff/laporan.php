@@ -458,6 +458,7 @@ $role = $jabatan;
             const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
             const cards = document.querySelectorAll('.ll-card');
             let visible = 0;
+            let totalIncome = 0;
 
             cards.forEach(card => {
                 // 1. Status Filter Check
@@ -492,10 +493,18 @@ $role = $jabatan;
                 if (statusMatch && queryMatch) {
                     card.classList.remove('ll-hidden');
                     visible++;
+                    const income = parseFloat(card.getAttribute('data-income') || 0);
+                    totalIncome += income;
                 } else {
                     card.classList.add('ll-hidden');
                 }
             });
+
+            // Update Total Income Value Card
+            const totalIncomeVal = document.getElementById('ll-total-income-val');
+            if (totalIncomeVal) {
+                totalIncomeVal.textContent = 'Rp ' + totalIncome.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+            }
 
             // Show/hide empty state
             const noResult = document.getElementById('ll-no-result');
