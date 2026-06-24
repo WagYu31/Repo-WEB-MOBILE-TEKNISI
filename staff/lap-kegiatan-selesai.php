@@ -628,6 +628,19 @@ for ($i = 0; $i < 12; $i++) {
                 
                 const formData = new FormData(lunasForm);
                 
+                // Tutup modal pelunasan agar tidak menghalangi SweetAlert
+                const modalEl = document.getElementById('lunasModal');
+                if (modalEl) {
+                    if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                        const modalInstance = bootstrap.Modal.getOrCreateInstance(modalEl);
+                        if (modalInstance) {
+                            modalInstance.hide();
+                        }
+                    } else if (window.$ || window.jQuery) {
+                        $(modalEl).modal('hide');
+                    }
+                }
+                
                 Swal.fire({
                     title: 'Memproses...',
                     text: 'Sedang menyimpan status pelunasan',
