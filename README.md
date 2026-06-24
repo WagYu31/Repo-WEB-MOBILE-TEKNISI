@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-4.0.17-blue?style=for-the-badge" alt="Version"/>
+  <img src="https://img.shields.io/badge/Version-4.1.0-blue?style=for-the-badge" alt="Version"/>
   <img src="https://img.shields.io/badge/Flutter-3.6+-02569B?style=for-the-badge&logo=flutter" alt="Flutter"/>
   <img src="https://img.shields.io/badge/PHP-8.x-777BB4?style=for-the-badge&logo=php" alt="PHP"/>
   <img src="https://img.shields.io/badge/MySQL-Database-4479A1?style=for-the-badge&logo=mysql&logoColor=white" alt="MySQL"/>
@@ -156,6 +156,17 @@ jadwal.id-giti.com/
 | **Tutorial** | Upload materi training untuk teknisi |
 | **Pendapatan** | Invoice, tracking pembayaran, laporan keuangan |
 | **Export** | Export laporan ke Excel/PDF |
+
+---
+
+## 🎨 Desain Visual Baru — Web Admin
+
+Halaman Laporan dan Detail Invoice telah diredesain sepenuhnya untuk menyajikan tampilan dashboard SaaS modern yang profesional dan bersih:
+- **Plus Jakarta Sans Typography** — Font premium yang menggantikan font sistem standar untuk keterbacaan tingkat tinggi.
+- **Floating Row Cards** — Baris tabel yang melayang dengan spasi horizontal terpisah (`border-collapse: separate`) dan efek bayangan lembut saat di-hover.
+- **Soft Tint Indicator Cards** — Summary cards dengan latar warna redup (Soft Blue, Orange, Green, Purple) dan border samping warna solid untuk tampilan yang tidak melelahkan mata.
+- **Custom Form Controls** — Input tanggal dan filter select menggunakan custom SVG polyline arrows yang seragam.
+- **Native Print Engine** — Optimalisasi cetak dengan `@media print` sehingga data terfilter dicetak secara bersih dalam bentuk tabel horizontal (bukan format tumpuk mobile), serta otomatis menyembunyikan tombol aksi dan kontrol pencarian.
 
 ---
 
