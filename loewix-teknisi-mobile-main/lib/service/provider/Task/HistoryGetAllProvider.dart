@@ -22,6 +22,7 @@ class HistoryGetAllProvider extends ChangeNotifier {
   ResultState _state = ResultState.dll;
   String _message = '';
   String? _teknisiId;
+  String _currentFilter = 'semua';
 
   // Getters
   List<DataTask> get historyList => _historyList;
@@ -32,18 +33,20 @@ class HistoryGetAllProvider extends ChangeNotifier {
   bool get isLoadingMore => _isLoadingMore;
   ResultState get state => _state;
   String get message => _message;
+  String get currentFilter => _currentFilter;
 
   /// Mengambil data history pertama kali (reset pagination)
-  Future<void> getTask(String teknisiId) async {
+  Future<void> getTask(String teknisiId, {String filter = 'semua'}) async {
     try {
       _teknisiId = teknisiId;
+      _currentFilter = filter;
       _currentPage = 1;
       _historyList.clear();
 
       _state = ResultState.loading;
       notifyListeners();
 
-      final response = await api.getHistoryTask(teknisiId, page: 1);
+      final response = await api.getHistoryTask(teknisiId, page: 1, filter: filter);
 
       if (response.data.isNotEmpty) {
         _historyList = response.data;
@@ -78,7 +81,7 @@ class HistoryGetAllProvider extends ChangeNotifier {
       notifyListeners();
 
       final nextPage = _currentPage + 1;
-      final response = await api.getHistoryTask(_teknisiId!, page: nextPage);
+      final response = await api.getHistoryTask(_teknisiId!, page: nextPage, filter: _currentFilter);
 
       if (response.data.isNotEmpty) {
         _historyList.addAll(response.data);
@@ -100,7 +103,7 @@ class HistoryGetAllProvider extends ChangeNotifier {
   /// Refresh data (pull to refresh)
   Future<void> refresh() async {
     if (_teknisiId != null) {
-      await getTask(_teknisiId!);
+      await getTask(_teknisiId!, filter: _currentFilter);
     }
   }
 
@@ -115,6 +118,7 @@ class HistoryGetAllProvider extends ChangeNotifier {
     _state = ResultState.dll;
     _message = '';
     _teknisiId = null;
+    _currentFilter = 'semua';
     notifyListeners();
   }
 }

@@ -45,10 +45,11 @@ class ApiTask {
     );
   }
 
-  Future<HistoryPaginatedResponse> getHistoryTask(String teknisiId, {int page = 1}) async {
+  Future<HistoryPaginatedResponse> getHistoryTask(String teknisiId, {int page = 1, String filter = 'semua'}) async {
+    final filterQuery = filter != 'semua' ? '&filter=$filter' : '';
     return _handleRequest(
       () => http.get(
-        Uri.parse('$_baseUrl/teknisihistory/$teknisiId?page=$page'),
+        Uri.parse('$_baseUrl/teknisihistory/$teknisiId?page=$page$filterQuery'),
         headers: _defaultHeaders,
       ),
       (json) => HistoryPaginatedResponse.fromJson(json),

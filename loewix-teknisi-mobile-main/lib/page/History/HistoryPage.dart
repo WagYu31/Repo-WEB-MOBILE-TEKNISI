@@ -80,6 +80,11 @@ class _HistoryPageState extends State<HistoryPage> {
       body: Column(
         children: [
           _buildPremiumHeader(),
+          Consumer<HistoryGetAllProvider>(
+            builder: (context, provider, child) {
+              return _buildFilterRow(provider);
+            },
+          ),
           Expanded(
             child: Consumer<HistoryGetAllProvider>(
               builder: (context, provider, child) {
@@ -323,6 +328,75 @@ class _HistoryPageState extends State<HistoryPage> {
                   ),
                 ),
               ),
+      ),
+    );
+  }
+
+  Widget _buildFilterRow(HistoryGetAllProvider provider) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      child: Row(
+        children: [
+          _buildFilterChip(
+            label: 'Semua Tugas',
+            isSelected: provider.currentFilter == 'semua',
+            onTap: () {
+              if (provider.currentFilter != 'semua' && _teknisiId != null) {
+                provider.getTask(_teknisiId!, filter: 'semua');
+              }
+            },
+          ),
+          const SizedBox(width: 10),
+          _buildFilterChip(
+            label: 'Belum Invoice',
+            isSelected: provider.currentFilter == 'belum_invoice',
+            onTap: () {
+              if (provider.currentFilter != 'belum_invoice' && _teknisiId != null) {
+                provider.getTask(_teknisiId!, filter: 'belum_invoice');
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterChip({
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? _navy : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? _navy : Colors.grey.withValues(alpha: 0.3),
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: _navy.withValues(alpha: 0.15),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontFamily: 'Poppins',
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: isSelected ? Colors.white : _textSecondary,
+          ),
+        ),
       ),
     );
   }
