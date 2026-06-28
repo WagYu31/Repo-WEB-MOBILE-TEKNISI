@@ -565,6 +565,57 @@ class _CardTaskState extends State<CardTask> with SingleTickerProviderStateMixin
                             ),
                           ],
 
+                          // ── Invoice Status Badge (for completed tasks) ──
+                          if (widget.history || _statusLabel == 'Selesai' || _pelaksanaanStatus == 'selesai') ...[
+                            const SizedBox(height: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: data.paid != null
+                                    ? const Color(0xFFEFF6FF) // light blue
+                                    : const Color(0xFFFEF2F2), // light red
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(
+                                  color: data.paid != null
+                                      ? const Color(0xFFBFDBFE)
+                                      : const Color(0xFFFECACA),
+                                  width: 0.8,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    data.paid != null
+                                        ? Icons.check_circle_outline_rounded
+                                        : Icons.warning_amber_rounded,
+                                    size: 12,
+                                    color: data.paid != null
+                                        ? const Color(0xFF1D4ED8) // dark blue
+                                        : const Color(0xFFB91C1C), // dark red
+                                  ),
+                                  const SizedBox(width: 5),
+                                  Text(
+                                    data.paid != null
+                                        ? 'Invoice Sudah Diinput'
+                                        : 'Belum Input Invoice',
+                                    style: TextStyle(
+                                      fontFamily: 'Poppins',
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w600,
+                                      color: data.paid != null
+                                          ? const Color(0xFF1D4ED8)
+                                          : const Color(0xFFB91C1C),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+
                           const SizedBox(height: 12),
 
                           // ── Date & Time row ──
