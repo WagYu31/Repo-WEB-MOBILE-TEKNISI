@@ -335,28 +335,42 @@ class _HistoryPageState extends State<HistoryPage> {
   Widget _buildFilterRow(HistoryGetAllProvider provider) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      child: Row(
-        children: [
-          _buildFilterChip(
-            label: 'Semua Tugas',
-            isSelected: provider.currentFilter == 'semua',
-            onTap: () {
-              if (provider.currentFilter != 'semua' && _teknisiId != null) {
-                provider.getTask(_teknisiId!, filter: 'semua');
-              }
-            },
-          ),
-          const SizedBox(width: 10),
-          _buildFilterChip(
-            label: 'Belum Invoice',
-            isSelected: provider.currentFilter == 'belum_invoice',
-            onTap: () {
-              if (provider.currentFilter != 'belum_invoice' && _teknisiId != null) {
-                provider.getTask(_teknisiId!, filter: 'belum_invoice');
-              }
-            },
-          ),
-        ],
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        child: Row(
+          children: [
+            _buildFilterChip(
+              label: 'Semua Tugas',
+              isSelected: provider.currentFilter == 'semua',
+              onTap: () {
+                if (provider.currentFilter != 'semua' && _teknisiId != null) {
+                  provider.getTask(_teknisiId!, filter: 'semua');
+                }
+              },
+            ),
+            const SizedBox(width: 8),
+            _buildFilterChip(
+              label: 'Sudah Invoice',
+              isSelected: provider.currentFilter == 'sudah_invoice',
+              onTap: () {
+                if (provider.currentFilter != 'sudah_invoice' && _teknisiId != null) {
+                  provider.getTask(_teknisiId!, filter: 'sudah_invoice');
+                }
+              },
+            ),
+            const SizedBox(width: 8),
+            _buildFilterChip(
+              label: 'Belum Invoice',
+              isSelected: provider.currentFilter == 'belum_invoice',
+              onTap: () {
+                if (provider.currentFilter != 'belum_invoice' && _teknisiId != null) {
+                  provider.getTask(_teknisiId!, filter: 'belum_invoice');
+                }
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

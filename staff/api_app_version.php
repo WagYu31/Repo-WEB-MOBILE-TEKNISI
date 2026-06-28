@@ -23,10 +23,10 @@ header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
 // KONFIGURASI VERSI - UBAH DI SINI UNTUK FORCE UPDATE
 // ═══════════════════════════════════════════════
 $response = [
-    'min_version'     => '4.0.28',   // Versi minimum yang dibolehkan
-    'latest_version'  => '4.0.28',   // Versi terbaru yang tersedia
-    'update_url'      => 'https://jadwal.id-giti.com/staff/download/teknisi-v4.0.28.apk', // URL download APK
-    'update_message'  => 'Versi terbaru (v4.0.28) tersedia! Perbaikan bug dan peningkatan performa.',
+    'min_version'     => '4.0.29',   // Versi minimum yang dibolehkan
+    'latest_version'  => '4.0.29',   // Versi terbaru yang tersedia
+    'update_url'      => 'https://jadwal.id-giti.com/staff/download/teknisi-v4.0.29.apk', // URL download APK
+    'update_message'  => 'Versi terbaru (v4.0.29) tersedia! Perbaikan bug dan peningkatan performa.',
     'force_message'   => 'Versi aplikasi Anda sudah tidak didukung. Silakan update ke versi terbaru untuk melanjutkan.',
 ];
 
