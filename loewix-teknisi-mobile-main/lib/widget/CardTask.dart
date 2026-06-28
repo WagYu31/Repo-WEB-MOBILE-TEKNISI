@@ -627,8 +627,7 @@ class _CardTaskState extends State<CardTask> with SingleTickerProviderStateMixin
                             ),
                           ],
 
-                          // ── Invoice Status Badge (for completed tasks) ──
-                          if (widget.history || _statusLabel == 'Selesai' || _pelaksanaanStatus == 'selesai') ...[
+                          if (_pelaksanaanStatus.toLowerCase() == 'selesai' || data.status.toLowerCase() == 'selesai' || data.status.toLowerCase() == 'selesai by admin') ...[
                             const SizedBox(height: 6),
                             Wrap(
                               spacing: 8,
