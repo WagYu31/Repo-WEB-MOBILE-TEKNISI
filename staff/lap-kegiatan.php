@@ -569,9 +569,9 @@ if (!empty($allRows)) {
                                                             }
                                                             ?>
                                                             <span class="lk-badge-status <?= $statusClass ?>"><?= htmlspecialchars($statusKegiatan); ?></span>
-                                                            <?php if (!empty($row_main['req_invoice_at'])) : ?>
-                                                                <span class="pulse-badge"><i class="fa-solid fa-bell" style="margin-right: 3px;"></i>Minta Invoice</span>
-                                                            <?php endif; ?>
+                                                            <?php if (!empty($row_main['req_invoice_at']) && (strtolower($statusKegiatan) == 'selesai' || strtolower($statusKegiatan) == 'selesai by admin')) : ?>
+                                                                 <span class="pulse-badge"><i class="fa-solid fa-bell" style="margin-right: 3px;"></i>Minta Invoice</span>
+                                                             <?php endif; ?>
                                                         </div>
                                                         <!-- Customer -->
                                                         <a href="view-kegiatan.php?kode_transaksi=<?= $kodeTransaksi; ?>" target="_blank" class="lk-cust-name" title="<?= htmlspecialchars($row_main['nama_cust']); ?>">

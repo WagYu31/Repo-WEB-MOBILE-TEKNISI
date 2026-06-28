@@ -169,7 +169,7 @@ if (!function_exists('shortenTechnicianName_all')) {
                 <div class="col-md-2">
                   <?php if (strtolower($displayInvoice) == 'no' || empty($displayInvoice)): ?>
                     <span style="font-size:11px;color:#94a3b8;">-</span>
-                    <?php if (!empty($row['req_invoice_at'])) : ?>
+                    <?php if (!empty($row['req_invoice_at']) && (strtolower($row['status']) == 'selesai' || strtolower($row['status']) == 'selesai by admin')) : ?>
                       <div style="margin-top: 4px;">
                         <span class="pulse-badge"><i class="fa-solid fa-bell" style="margin-right: 3px;"></i>Minta Invoice</span>
                       </div>

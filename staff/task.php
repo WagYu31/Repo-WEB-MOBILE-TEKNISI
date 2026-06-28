@@ -565,11 +565,11 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
                                         <span style="font-size: 10.5px; color: #64748b; font-weight: 700; background: #f1f5f9; border: 1.5px solid #cbd5e1; padding: 3px 8px; border-radius: 8px; display: inline-block;">No Pay</span>
                                     <?php else: ?>
                                         <span class="inv-none">Belum Input Invoice</span>
-                                        <?php if (!empty($latest_kegiatan['req_invoice_at'])) : ?>
-                                            <div style="margin-top: 5px;">
-                                                <span class="pulse-badge"><i class="fa-solid fa-bell" style="margin-right: 3px;"></i>Minta Invoice</span>
-                                            </div>
-                                        <?php endif; ?>
+                                        <?php if (!empty($latest_kegiatan['req_invoice_at']) && (strtolower($latest_kegiatan['status']) == 'selesai' || strtolower($latest_kegiatan['status']) == 'selesai by admin')) : ?>
+                                             <div style="margin-top: 5px;">
+                                                 <span class="pulse-badge"><i class="fa-solid fa-bell" style="margin-right: 3px;"></i>Minta Invoice</span>
+                                             </div>
+                                         <?php endif; ?>
                                     <?php endif; ?>
                                 </td>
 
