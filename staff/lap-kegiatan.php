@@ -194,6 +194,12 @@ if (!empty($allRows)) {
         .lk-badge-jenis.jenis-pasang { background: #d1fae5; color: #065f46; }
         .lk-badge-jenis.jenis-default { background: #f1f5f9; color: #475569; }
         .lk-badge-kode { font-size: 10px; color: #818cf8; font-family: 'SF Mono','Consolas',monospace; font-weight: 700; background: #eef2ff; padding: 2px 8px; border-radius: 4px; }
+        .lk-badge-status { font-size: 9px; padding: 3px 10px; border-radius: 20px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; }
+        .lk-badge-status.status-selesai { background: #d1fae5; color: #065f46; }
+        .lk-badge-status.status-lanjut { background: #fffbeb; color: #b45309; }
+        .lk-badge-status.status-dijadwalkan { background: #e0e7ff; color: #3730a3; }
+        .lk-badge-status.status-dibatalkan { background: #fee2e2; color: #991b1b; }
+        .lk-badge-status.status-default { background: #f1f5f9; color: #475569; }
         .pulse-badge {
             font-size: 11px;
             color: #ffffff;
@@ -549,6 +555,20 @@ if (!empty($allRows)) {
                                                         <div class="lk-badges">
                                                             <span class="lk-badge-jenis <?= $jenisClass ?>"><?= strtoupper(htmlspecialchars($row_main['kegiatan'])); ?></span>
                                                             <span class="lk-badge-kode"><?= htmlspecialchars($kodeTransaksi); ?></span>
+                                                            <?php
+                                                            $statusKegiatan = $row_main['status_kegiatan'];
+                                                            $statusClass = 'status-default';
+                                                            if (strtolower($statusKegiatan) == 'selesai' || strtolower($statusKegiatan) == 'selesai by admin') {
+                                                                $statusClass = 'status-selesai';
+                                                            } elseif (strtolower($statusKegiatan) == 'lanjut nanti' || strtolower($statusKegiatan) == 'lanjutan') {
+                                                                $statusClass = 'status-lanjut';
+                                                            } elseif (strtolower($statusKegiatan) == 'dijadwalkan') {
+                                                                $statusClass = 'status-dijadwalkan';
+                                                            } elseif (strtolower($statusKegiatan) == 'dibatalkan') {
+                                                                $statusClass = 'status-dibatalkan';
+                                                            }
+                                                            ?>
+                                                            <span class="lk-badge-status <?= $statusClass ?>"><?= htmlspecialchars($statusKegiatan); ?></span>
                                                             <?php if (!empty($row_main['req_invoice_at'])) : ?>
                                                                 <span class="pulse-badge"><i class="fa-solid fa-bell" style="margin-right: 3px;"></i>Minta Invoice</span>
                                                             <?php endif; ?>
