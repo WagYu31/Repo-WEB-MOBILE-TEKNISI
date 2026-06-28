@@ -22,6 +22,32 @@ if (!function_exists('shortenTechnicianName_all')) {
   }
 }
 ?>
+<style>
+.pulse-badge {
+    font-size: 9.5px;
+    color: #b91c1c;
+    font-weight: 700;
+    background: #fee2e2;
+    border: 1.5px solid #fecaca;
+    padding: 3px 8px;
+    border-radius: 8px;
+    display: inline-block;
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+    animation: pulse-animation 2s infinite;
+}
+@keyframes pulse-animation {
+    0% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+    }
+}
+</style>
+
 
 <div class="col-lg-12 mt-4 mb-0">
   <div class="d-flex justify-content-between align-items-center section-header">
@@ -132,6 +158,11 @@ if (!function_exists('shortenTechnicianName_all')) {
                 <div class="col-md-2">
                   <?php if (strtolower($displayInvoice) == 'no' || empty($displayInvoice)): ?>
                     <span style="font-size:11px;color:#94a3b8;">-</span>
+                    <?php if (!empty($row['req_invoice_at'])) : ?>
+                      <div style="margin-top: 4px;">
+                        <span class="pulse-badge"><i class="fa-solid fa-bell" style="margin-right: 3px;"></i>Minta Invoice</span>
+                      </div>
+                    <?php endif; ?>
                   <?php else: ?>
                     <button type="button" class="btn-act btn-act-edit edit-invoice-btn" style="width:auto;height:auto;padding:4px 10px;font-size:10px;font-weight:600;"
                       data-bs-toggle="modal" data-bs-target="#editInvoiceModal"

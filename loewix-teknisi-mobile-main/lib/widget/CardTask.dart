@@ -514,6 +514,30 @@ class _CardTaskState extends State<CardTask> with SingleTickerProviderStateMixin
                                   ],
                                 ),
                               ),
+                              const SizedBox(width: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 3,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF1F5F9),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(
+                                    color: const Color(0xFFE2E8F0),
+                                    width: 0.8,
+                                  ),
+                                ),
+                                child: Text(
+                                  data.kode,
+                                  style: const TextStyle(
+                                    fontFamily: 'SF Mono',
+                                    fontSize: 9.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: Color(0xFF475569),
+                                  ),
+                                ),
+                              ),
                               const Spacer(),
                               // Activity type pill
                               Container(
