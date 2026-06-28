@@ -176,6 +176,30 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
     <?php include "head.php"; ?>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <style>
+        .pulse-badge {
+            font-size: 9.5px;
+            color: #b91c1c;
+            font-weight: 700;
+            background: #fee2e2;
+            border: 1.5px solid #fecaca;
+            padding: 3px 8px;
+            border-radius: 8px;
+            display: inline-block;
+            box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+            animation: pulse-animation 2s infinite;
+        }
+        @keyframes pulse-animation {
+            0% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+            }
+            70% {
+                box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+            }
+        }
+
         .lunas-background { position: relative; z-index: 1; }
         .lunas-background::after { content: ''; position: absolute; top: 0; left: 0; width: 80%; height: 80%; background-image: url('assets/img/lunas.png'); background-size: contain; background-position: center; background-repeat: no-repeat; opacity: 0.1; z-index: -1; }
         <?php include "css/floating-menu2.css";?>
@@ -530,6 +554,11 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
                                         <span style="font-size: 10.5px; color: #64748b; font-weight: 700; background: #f1f5f9; border: 1.5px solid #cbd5e1; padding: 3px 8px; border-radius: 8px; display: inline-block;">No Pay</span>
                                     <?php else: ?>
                                         <span class="inv-none">Belum Input Invoice</span>
+                                        <?php if (!empty($latest_kegiatan['req_invoice_at'])) : ?>
+                                            <div style="margin-top: 5px;">
+                                                <span class="pulse-badge"><i class="fa-solid fa-bell" style="margin-right: 3px;"></i>Minta Invoice</span>
+                                            </div>
+                                        <?php endif; ?>
                                     <?php endif; ?>
                                 </td>
 

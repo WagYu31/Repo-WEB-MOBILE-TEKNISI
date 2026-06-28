@@ -72,4 +72,14 @@ class ApiTask {
       (json) => TaskAllResponse.fromJson(json),
     );
   }
+
+  Future<Map<String, dynamic>> requestInvoice(String kode) async {
+    return _handleRequest(
+      () => http.post(
+        Uri.parse('$_baseUrl/task/request-invoice/$kode'),
+        headers: _defaultHeaders,
+      ),
+      (json) => json,
+    );
+  }
 }

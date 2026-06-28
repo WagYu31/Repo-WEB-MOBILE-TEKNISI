@@ -9,6 +9,7 @@ import '../page/History/HistoryDetailPage.dart';
 import '../page/Task/TaskPage.dart';
 import '../service/model/task/TaskAllResponse.dart';
 import '../service/provider/preferences/PreferencesIDProvider.dart';
+import '../service/api/ApiTask.dart';
 
 class CardTask extends StatefulWidget {
   final DataTask data;
@@ -23,6 +24,7 @@ class CardTask extends StatefulWidget {
 
 class _CardTaskState extends State<CardTask> with SingleTickerProviderStateMixin {
   int? _teknisiId;
+  bool _isLoadingRequest = false;
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
 
@@ -167,6 +169,42 @@ class _CardTaskState extends State<CardTask> with SingleTickerProviderStateMixin
       _statusColor = _errorRed;
       _statusBgColor = const Color(0xFFFFF1F2);
       _statusIcon = Icons.warning_amber_rounded;
+    }
+  }
+
+  Future<void> _handleRequestInvoice() async {
+    setState(() {
+      _isLoadingRequest = true;
+    });
+
+    try {
+      await ApiTask().requestInvoice(widget.data.kode);
+      setState(() {
+        widget.data.reqInvoiceAt = DateTime.now().toIso8601String();
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Permintaan invoice berhasil dikirim ke Admin!'),
+            backgroundColor: _successGreen,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal mengirim permintaan: ${e.toString().replaceAll('Exception: ', '')}'),
+            backgroundColor: _errorRed,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingRequest = false;
+        });
+      }
     }
   }
 
@@ -568,51 +606,147 @@ class _CardTaskState extends State<CardTask> with SingleTickerProviderStateMixin
                           // ── Invoice Status Badge (for completed tasks) ──
                           if (widget.history || _statusLabel == 'Selesai' || _pelaksanaanStatus == 'selesai') ...[
                             const SizedBox(height: 6),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: data.paid != null
-                                    ? const Color(0xFFEFF6FF) // light blue
-                                    : const Color(0xFFFEF2F2), // light red
-                                borderRadius: BorderRadius.circular(6),
-                                border: Border.all(
-                                  color: data.paid != null
-                                      ? const Color(0xFFBFDBFE)
-                                      : const Color(0xFFFECACA),
-                                  width: 0.8,
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    data.paid != null
-                                        ? Icons.check_circle_outline_rounded
-                                        : Icons.warning_amber_rounded,
-                                    size: 12,
-                                    color: data.paid != null
-                                        ? const Color(0xFF1D4ED8) // dark blue
-                                        : const Color(0xFFB91C1C), // dark red
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 6,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
                                   ),
-                                  const SizedBox(width: 5),
-                                  Text(
-                                    data.paid != null
-                                        ? 'Invoice Sudah Diinput'
-                                        : 'Belum Input Invoice',
-                                    style: TextStyle(
-                                      fontFamily: 'Poppins',
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w600,
+                                  decoration: BoxDecoration(
+                                    color: data.paid != null
+                                        ? const Color(0xFFEFF6FF) // light blue
+                                        : const Color(0xFFFEF2F2), // light red
+                                    borderRadius: BorderRadius.circular(6),
+                                    border: Border.all(
                                       color: data.paid != null
-                                          ? const Color(0xFF1D4ED8)
-                                          : const Color(0xFFB91C1C),
+                                          ? const Color(0xFFBFDBFE)
+                                          : const Color(0xFFFECACA),
+                                      width: 0.8,
                                     ),
                                   ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        data.paid != null
+                                            ? Icons.check_circle_outline_rounded
+                                            : Icons.warning_amber_rounded,
+                                        size: 12,
+                                        color: data.paid != null
+                                            ? const Color(0xFF1D4ED8) // dark blue
+                                            : const Color(0xFFB91C1C), // dark red
+                                      ),
+                                      const SizedBox(width: 5),
+                                      Text(
+                                        data.paid != null
+                                            ? 'Invoice Sudah Diinput'
+                                            : 'Belum Input Invoice',
+                                        style: TextStyle(
+                                          fontFamily: 'Poppins',
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w600,
+                                          color: data.paid != null
+                                              ? const Color(0xFF1D4ED8)
+                                              : const Color(0xFFB91C1C),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                if (data.paid == null) ...[
+                                  if (data.reqInvoiceAt == null)
+                                    Material(
+                                      color: Colors.transparent,
+                                      child: InkWell(
+                                        onTap: _isLoadingRequest ? null : _handleRequestInvoice,
+                                        borderRadius: BorderRadius.circular(6),
+                                        child: Ink(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 4,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFF0284C7).withValues(alpha: 0.1),
+                                            borderRadius: BorderRadius.circular(6),
+                                            border: Border.all(
+                                              color: const Color(0xFF0284C7).withValues(alpha: 0.3),
+                                              width: 0.8,
+                                            ),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              if (_isLoadingRequest)
+                                                const SizedBox(
+                                                  width: 10,
+                                                  height: 10,
+                                                  child: CircularProgressIndicator(
+                                                    strokeWidth: 1.5,
+                                                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF0284C7)),
+                                                  ),
+                                                )
+                                              else
+                                                const Icon(
+                                                  Icons.notification_add_rounded,
+                                                  size: 11,
+                                                  color: Color(0xFF0284C7),
+                                                ),
+                                              const SizedBox(width: 4),
+                                              const Text(
+                                                'Minta Invoice',
+                                                style: TextStyle(
+                                                  fontFamily: 'Poppins',
+                                                  fontSize: 9.5,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: Color(0xFF0284C7),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    )
+                                  else
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFF475569).withValues(alpha: 0.1),
+                                        borderRadius: BorderRadius.circular(6),
+                                        border: Border.all(
+                                          color: const Color(0xFF475569).withValues(alpha: 0.2),
+                                          width: 0.8,
+                                        ),
+                                      ),
+                                      child: const Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            Icons.watch_later_rounded,
+                                            size: 11,
+                                            color: Color(0xFF475569),
+                                          ),
+                                          SizedBox(width: 4),
+                                          Text(
+                                            'Invoice Diminta',
+                                            style: TextStyle(
+                                              fontFamily: 'Poppins',
+                                              fontSize: 9.5,
+                                              fontWeight: FontWeight.w600,
+                                              color: Color(0xFF475569),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
                                 ],
-                              ),
+                              ],
                             ),
                           ],
 

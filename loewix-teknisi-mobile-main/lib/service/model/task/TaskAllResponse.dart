@@ -44,6 +44,7 @@ class DataTask {
     String kode;
     dynamic paid;
     dynamic sales;
+    String? reqInvoiceAt;
     DateTime createdAt;
     DateTime updatedAt;
     dynamic deletedAt;
@@ -66,6 +67,7 @@ class DataTask {
         required this.kode,
         required this.paid,
         required this.sales,
+        this.reqInvoiceAt,
         required this.lat,
         required this.lon,
         required this.rad,
@@ -89,6 +91,7 @@ class DataTask {
         kode: json["kode"],
         paid: json["paid"],
         sales: json["sales"],
+        reqInvoiceAt: json["req_invoice_at"],
         lat: json["lat"],
         lon: json["lon"],
         rad: json["rad"],
@@ -111,6 +114,7 @@ class DataTask {
         "lanjutan_id": lanjutanId,
         "kode": kode,
         "paid": paid,
+        "req_invoice_at": reqInvoiceAt,
         "lat": lat,
         "lon": lon,
         "rad": rad,
