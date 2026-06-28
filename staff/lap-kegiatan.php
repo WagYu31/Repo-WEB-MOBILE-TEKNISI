@@ -195,26 +195,31 @@ if (!empty($allRows)) {
         .lk-badge-jenis.jenis-default { background: #f1f5f9; color: #475569; }
         .lk-badge-kode { font-size: 10px; color: #818cf8; font-family: 'SF Mono','Consolas',monospace; font-weight: 700; background: #eef2ff; padding: 2px 8px; border-radius: 4px; }
         .pulse-badge {
-            font-size: 9.5px;
-            color: #b91c1c;
+            font-size: 11px;
+            color: #ffffff;
             font-weight: 700;
-            background: #fee2e2;
-            border: 1.5px solid #fecaca;
-            padding: 3px 8px;
-            border-radius: 8px;
-            display: inline-block;
-            box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
-            animation: pulse-animation 2s infinite;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            border: 1px solid #dc2626;
+            padding: 4px 12px;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+            animation: pulse-animation 1.5s infinite;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
         }
         @keyframes pulse-animation {
             0% {
-                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6);
+                transform: scale(1);
             }
-            70% {
-                box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
+            50% {
+                transform: scale(1.05);
             }
             100% {
-                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+                box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
+                transform: scale(1);
             }
         }
         .lk-cust-name { font-size: 15px; font-weight: 700; color: #1e293b; text-decoration: none; display: block; margin-bottom: 4px; transition: color 0.15s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
