@@ -86,7 +86,7 @@ if (!function_exists('shortenTechnicianName_all')) {
     <?php
     $current_date = date("Y-m-d");
     $sql = "
-    SELECT k.*, t.nama_teknisi, c.nama AS nama_customer, c.telp AS cust_nomor
+    SELECT k.*, t.nama_teknisi, c.nama AS nama_customer, c.telp AS cust_nomor, req_inv.max_req_invoice_at AS req_invoice_at
     FROM kegiatan k
     INNER JOIN (
         SELECT sub_k.kode, MAX(sub_k.id) AS max_id
@@ -94,6 +94,12 @@ if (!function_exists('shortenTechnicianName_all')) {
     ) AS latest_kegiatan ON k.kode = latest_kegiatan.kode AND k.id = latest_kegiatan.max_id
     LEFT JOIN team_kegiatan t ON k.id = t.kegiatan_id
     LEFT JOIN customer c ON k.customer_id = c.id
+    LEFT JOIN (
+        SELECT kode, MAX(req_invoice_at) AS max_req_invoice_at
+        FROM kegiatan
+        WHERE deleted_at IS NULL
+        GROUP BY kode
+    ) req_inv ON k.kode = req_inv.kode
     WHERE k.status IN ('selesai', 'selesai by admin') AND k.deleted_at IS NULL
     GROUP BY k.kode
     ORDER BY COALESCE(k.jadwal, '9999-12-31') DESC";

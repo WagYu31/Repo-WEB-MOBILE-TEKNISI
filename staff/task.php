@@ -48,7 +48,7 @@ if ($is_search_triggered) {
     $types = '';
 
     // Optimized: removed unnecessary JOINs that caused DISTINCT overhead
-    $sql_kegiatan = "SELECT k.*, c.nama AS nama_customer, c.telp AS cust_nomor, c.alamat, inv.no_invoice, inv.nominal_invoice
+    $sql_kegiatan = "SELECT k.*, c.nama AS nama_customer, c.telp AS cust_nomor, c.alamat, inv.no_invoice, inv.nominal_invoice, req_inv.max_req_invoice_at AS req_invoice_at
                      FROM kegiatan k
                      LEFT JOIN customer c ON k.customer_id = c.id
                      LEFT JOIN (
@@ -57,6 +57,12 @@ if ($is_search_triggered) {
                          WHERE deleted_at IS NULL 
                          GROUP BY kode
                      ) inv ON k.kode = inv.kode
+                     LEFT JOIN (
+                         SELECT kode, MAX(req_invoice_at) AS max_req_invoice_at
+                         FROM kegiatan
+                         WHERE deleted_at IS NULL
+                         GROUP BY kode
+                     ) req_inv ON k.kode = req_inv.kode
                      WHERE k.status != 'waiting' AND k.deleted_at IS NULL";
 
     // If filtering by teknisi, use EXISTS subquery instead of JOIN (avoids duplicates)

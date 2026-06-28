@@ -28,7 +28,7 @@ $filterJenis = $_GET['jenis'] ?? '';
 $filterTeknisi = $_GET['teknisi'] ?? '';
 $filterPelaksanaan = $_GET['status_pelaksanaan'] ?? '';
 
-$sql_main = "SELECT k.id, k.kode AS kode_transaksi, k.keterangan, k.catatan_admin, k.kegiatan, k.created_at, k.status AS status_kegiatan, k.req_invoice_at, c.id AS id_cust, c.nama AS nama_cust
+$sql_main = "SELECT k.id, k.kode AS kode_transaksi, k.keterangan, k.catatan_admin, k.kegiatan, k.created_at, k.status AS status_kegiatan, req_inv.max_req_invoice_at AS req_invoice_at, c.id AS id_cust, c.nama AS nama_cust
              FROM kegiatan k
               INNER JOIN (
                   SELECT customer_id, kode, MAX(id) AS max_id 
@@ -37,6 +37,12 @@ $sql_main = "SELECT k.id, k.kode AS kode_transaksi, k.keterangan, k.catatan_admi
                   GROUP BY customer_id, kode
               ) latest ON k.id = latest.max_id AND k.customer_id = latest.customer_id
              LEFT JOIN customer c ON k.customer_id = c.id
+             LEFT JOIN (
+                 SELECT kode, MAX(req_invoice_at) AS max_req_invoice_at
+                 FROM kegiatan
+                 WHERE deleted_at IS NULL
+                 GROUP BY kode
+             ) req_inv ON k.kode = req_inv.kode
              WHERE k.status != 'waiting' AND (k.paid IS NULL OR k.paid = '')
              AND k.deleted_at IS NULL
              AND NOT EXISTS (
