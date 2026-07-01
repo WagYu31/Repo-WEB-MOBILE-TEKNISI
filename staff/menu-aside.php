@@ -248,7 +248,15 @@ function renderNavItem($pageNow, $targetPage, $url, $icon, $text) {
                 <?php renderNavHeader("Data Master"); ?>
                 <?php renderNavItem($pageNow, "Data Teknisi", "data-teknisi.php", "fa-solid fa-users-gear", "Teknisi"); ?>
                 <?php renderNavItem($pageNow, "Data Customer", "customer.php", "fa-solid fa-users", "Customer"); ?>
+
+                <?php renderNavHeader("Aplikasi Sales"); ?>
+                <?php renderNavItem($pageNow, "Dashboard Sales", "sales/index-sa.php", "fa-solid fa-chart-line", "Dashboard Sales"); ?>
+                <?php renderNavItem($pageNow, "Data Sales", "sales.php", "fa-solid fa-user-group", "Data Sales"); ?>
+                <?php renderNavItem($pageNow, "Kunjungan Sales", "sales/kegiatan-baru.php", "fa-solid fa-map-location-dot", "Jadwal Kunjungan"); ?>
+                <?php renderNavItem($pageNow, "Laporan Visit", "sales/laporan-cust.php", "fa-solid fa-file-contract", "Laporan Visit"); ?>
+                <?php renderNavItem($pageNow, "Customer Sales", "sales/customer.php", "fa-solid fa-address-book", "Customer Sales"); ?>
             <?php endif; ?>
+
 
             <?php if ($role == 'Sales Manager' || $role == 'Sales') : ?>
                 <?php renderNavHeader("Sales"); ?>
