@@ -6,8 +6,9 @@
  * HAPUS file ini setelah berhasil dijalankan!
  */
 session_start();
-if (!isset($_SESSION['id']) || ($_SESSION['role'] ?? '') !== 'Super Admin') {
-    die('❌ Akses ditolak. Login sebagai Super Admin terlebih dahulu.');
+$jabatan = $_SESSION['jabatan'] ?? $_SESSION['role'] ?? '';
+if (!isset($_SESSION['id']) || !in_array($jabatan, ['Super Admin', 'Admin'])) {
+    die('❌ Akses ditolak. Login sebagai Admin/Super Admin terlebih dahulu. (jabatan: ' . $jabatan . ')');
 }
 
 include 'conn.php'; // pakai conn.php yang sudah ada di server
