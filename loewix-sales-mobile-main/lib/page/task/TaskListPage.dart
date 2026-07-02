@@ -85,12 +85,7 @@ class _TaskCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.card,
           borderRadius: BorderRadius.circular(16),
-          border: Border(
-            left: BorderSide(color: statusColor, width: 4),
-            top: BorderSide(color: AppColors.border),
-            right: BorderSide(color: AppColors.border),
-            bottom: BorderSide(color: AppColors.border),
-          ),
+          border: Border.all(color: AppColors.border),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.2),
@@ -98,141 +93,161 @@ class _TaskCard extends StatelessWidget {
             ),
           ],
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(14),
+        child: IntrinsicHeight(
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Avatar
-              Container(
-                width: 44, height: 44,
-                decoration: BoxDecoration(
-                  color: statusColor.withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: statusColor.withOpacity(0.25)),
+              ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  bottomLeft: Radius.circular(16),
                 ),
-                child: Center(
-                  child: Text(initials, style: S.h3(statusColor)),
+                child: Container(
+                  width: 4,
+                  color: statusColor,
                 ),
               ),
-              const SizedBox(width: 12),
-
-              // Content
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Customer name + status badge
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            task.namaCustomer,
-                            style: S.bodyLg(),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Avatar
+                      Container(
+                        width: 44, height: 44,
+                        decoration: BoxDecoration(
+                          color: statusColor.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: statusColor.withOpacity(0.25)),
                         ),
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: statusColor.withOpacity(0.12),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                                color: statusColor.withOpacity(0.3)),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(statusIcon, size: 11, color: statusColor),
-                              const SizedBox(width: 3),
-                              Text(statusLabel, style: S.label(statusColor)),
-                            ],
-                          ),
+                        child: Center(
+                          child: Text(initials, style: S.h3(statusColor)),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
+                      ),
+                      const SizedBox(width: 12),
 
-                    // Address
-                    Row(
-                      children: [
-                        const Icon(Icons.location_on_outlined,
-                            size: 13, color: AppColors.textMuted),
-                        const SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            '${task.alamatCustomer}, ${task.kotaCustomer}',
-                            style: S.caption(),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-
-                    // Jadwal
-                    Row(
-                      children: [
-                        const Icon(Icons.access_time_rounded,
-                            size: 13, color: AppColors.textMuted),
-                        const SizedBox(width: 4),
-                        Text(jadwalStr, style: S.caption()),
-                      ],
-                    ),
-
-                    // Clock in/out chips
-                    if (task.sudahClockIn) ...[
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 8,
-                        children: [
-                          _TimeChip(
-                            icon: Icons.login_rounded,
-                            label: 'Masuk',
-                            time: _fmtTime(task.ciAt),
-                            color: AppColors.primary,
-                          ),
-                          if (task.sudahClockOut)
-                            _TimeChip(
-                              icon: Icons.logout_rounded,
-                              label: 'Keluar',
-                              time: _fmtTime(task.coAt),
-                              color: AppColors.success,
+                      // Content
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Customer name + status badge
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    task.namaCustomer,
+                                    style: S.bodyLg(),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: statusColor.withOpacity(0.12),
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(
+                                        color: statusColor.withOpacity(0.3)),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(statusIcon, size: 11, color: statusColor),
+                                      const SizedBox(width: 3),
+                                      Text(statusLabel, style: S.label(statusColor)),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ),
-                        ],
-                      ),
-                    ],
+                            const SizedBox(height: 6),
 
-                    // Keterangan
-                    if (task.keterangan.isNotEmpty) ...[
-                      const SizedBox(height: 6),
-                      Text(
-                        task.keterangan,
-                        style: S.caption(AppColors.textMuted),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                            // Address
+                            Row(
+                              children: [
+                                const Icon(Icons.location_on_outlined,
+                                    size: 13, color: AppColors.textMuted),
+                                const SizedBox(width: 4),
+                                Expanded(
+                                  child: Text(
+                                    '${task.alamatCustomer}, ${task.kotaCustomer}',
+                                    style: S.caption(),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+
+                            // Jadwal
+                            Row(
+                              children: [
+                                const Icon(Icons.access_time_rounded,
+                                    size: 13, color: AppColors.textMuted),
+                                const SizedBox(width: 4),
+                                Text(jadwalStr, style: S.caption()),
+                              ],
+                            ),
+
+                            // Clock in/out chips
+                            if (task.sudahClockIn) ...[
+                              const SizedBox(height: 8),
+                              Wrap(
+                                spacing: 8,
+                                children: [
+                                  _TimeChip(
+                                    icon: Icons.login_rounded,
+                                    label: 'Masuk',
+                                    time: _fmtTime(task.ciAt),
+                                    color: AppColors.primary,
+                                  ),
+                                  if (task.sudahClockOut)
+                                    _TimeChip(
+                                      icon: Icons.logout_rounded,
+                                      label: 'Keluar',
+                                      time: _fmtTime(task.coAt),
+                                      color: AppColors.success,
+                                    ),
+                                ],
+                              ),
+                            ],
+
+                            // Keterangan
+                            if (task.keterangan.isNotEmpty) ...[
+                              const SizedBox(height: 6),
+                              Text(
+                                task.keterangan,
+                                style: S.caption(AppColors.textMuted),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+
+                      // Chevron
+                      const Padding(
+                        padding: EdgeInsets.only(top: 10),
+                        child: Icon(Icons.chevron_right_rounded,
+                            color: AppColors.textMuted, size: 18),
                       ),
                     ],
-                  ],
+                  ),
                 ),
-              ),
-
-              // Chevron
-              const Padding(
-                padding: EdgeInsets.only(top: 10),
-                child: Icon(Icons.chevron_right_rounded,
-                    color: AppColors.textMuted, size: 18),
               ),
             ],
           ),
         ),
       ),
     );
+
   }
 
   String _fmtTime(String? dt) {
