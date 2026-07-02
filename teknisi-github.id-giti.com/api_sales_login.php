@@ -41,25 +41,25 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-$nik      = trim($_POST['nik']      ?? '');
+$username = trim($_POST['username'] ?? $_POST['nik'] ?? '');
 $password = trim($_POST['password'] ?? '');
 
-if (empty($nik) || empty($password)) {
+if (empty($username) || empty($password)) {
     http_response_code(400);
-    echo json_encode(['status' => 'error', 'message' => 'NIK dan password wajib diisi']);
+    echo json_encode(['status' => 'error', 'message' => 'Username dan password wajib diisi']);
     exit;
 }
 
-// Ambil data sales berdasarkan NIK
-$stmt = $conn->prepare("SELECT id, nik, nama, no_tlp, jabatan, password FROM sales WHERE nik = ? AND deleted_at IS NULL LIMIT 1");
-$stmt->bind_param('s', $nik);
+// Ambil data sales berdasarkan username (nama) ATAU nik
+$stmt = $conn->prepare("SELECT id, nik, nama, no_tlp, jabatan, password FROM sales WHERE (nama = ? OR nik = ?) AND deleted_at IS NULL LIMIT 1");
+$stmt->bind_param('ss', $username, $username);
 $stmt->execute();
 $result = $stmt->get_result();
 $sales  = $result->fetch_assoc();
 
 if (!$sales) {
     http_response_code(401);
-    echo json_encode(['status' => 'error', 'message' => 'NIK tidak ditemukan']);
+    echo json_encode(['status' => 'error', 'message' => 'Username tidak ditemukan']);
     exit;
 }
 
