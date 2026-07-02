@@ -8,57 +8,57 @@ import 'package:google_fonts/google_fonts.dart';
 class AppColors {
   AppColors._();
 
-  // Backgrounds (layered depth)
-  static const bg      = Color(0xFF070D1A); // deepest bg
-  static const surface = Color(0xFF0C1826); // elevated surface
-  static const card    = Color(0xFF0F1F36); // card bg
-  static const cardAlt = Color(0xFF132540); // slightly lighter card
+  // Backgrounds (layered depth) - Light Mode Slate
+  static const bg      = Color(0xFFF8FAFC); // Slate 50 (clean light bg)
+  static const surface = Color(0xFFFFFFFF); // White surface
+  static const card    = Color(0xFFFFFFFF); // White card bg
+  static const cardAlt = Color(0xFFF1F5F9); // Slate 100 card alt
 
-  // Borders
-  static const border      = Color(0xFF1A3155);
-  static const borderLight = Color(0xFF244468);
+  // Borders - Light Mode
+  static const border      = Color(0xFFE2E8F0); // Slate 200
+  static const borderLight = Color(0xFFCBD5E1); // Slate 300
 
-  // Brand — Premium Gold/Amber
-  static const primary      = Color(0xFFF59E0B);
-  static const primaryLight = Color(0xFFFBBF24);
-  static const primaryDark  = Color(0xFFD97706);
-  static const primaryGlow  = Color(0x40F59E0B);
+  // Brand — Bright Yellow/Amber (kuning cerah premium)
+  static const primary      = Color(0xFFEAB308); // Yellow 500
+  static const primaryLight = Color(0xFFFACC15); // Yellow 400
+  static const primaryDark  = Color(0xFFCA8A04); // Yellow 600
+  static const primaryGlow  = Color(0x25EAB308); // Glow
 
   // Status — semantic
-  static const success    = Color(0xFF22C55E);
-  static const successBg  = Color(0xFF052E16);
-  static const warning    = Color(0xFFF59E0B);
-  static const warningBg  = Color(0xFF1C1505);
-  static const error      = Color(0xFFEF4444);
-  static const errorBg    = Color(0xFF1F0808);
-  static const pending    = Color(0xFF64748B);
-  static const pendingBg  = Color(0xFF0F172A);
-  static const info       = Color(0xFF06B6D4);
+  static const success    = Color(0xFF16A34A); // Green 600
+  static const successBg  = Color(0xFFDCFCE7); // Green 100
+  static const warning    = Color(0xFFD97706); // Amber 600
+  static const warningBg  = Color(0xFFFEF3C7); // Amber 100
+  static const error      = Color(0xFFDC2626); // Red 600
+  static const errorBg    = Color(0xFFFEE2E2); // Red 100
+  static const pending    = Color(0xFF475569); // Slate 600
+  static const pendingBg  = Color(0xFFF1F5F9); // Slate 100
+  static const info       = Color(0xFF0891B2); // Cyan 600
 
-  // Text hierarchy
-  static const textPrimary   = Color(0xFFEDF3FF);
-  static const textSecondary = Color(0xFF8BA0C2);
-  static const textMuted     = Color(0xFF4A637E);
-  static const textHint      = Color(0xFF2D4260);
+  // Text hierarchy - Light Mode Dark Slate
+  static const textPrimary   = Color(0xFF0F172A); // Slate 900
+  static const textSecondary = Color(0xFF475569); // Slate 600
+  static const textMuted     = Color(0xFF64748B); // Slate 500
+  static const textHint      = Color(0xFF94A3B8); // Slate 400
 
   // Utility
-  static const divider = Color(0xFF132035);
-  static const overlay = Color(0xCC070D1A);
+  static const divider = Color(0xFFE2E8F0);
+  static const overlay = Color(0x50000000);
   static const white   = Colors.white;
 
-  // Gradients
+  // Gradients - Light Mode
   static const gradientPrimary = LinearGradient(
-    colors: [Color(0xFFE58E08), Color(0xFFF7B731)],
+    colors: [Color(0xFFEAB308), Color(0xFFFDE047)], // Bright yellow gradient
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
   static const gradientBg = LinearGradient(
-    colors: [Color(0xFF080F1E), Color(0xFF0B1828), Color(0xFF070F1B)],
+    colors: [Color(0xFFF8FAFC), Color(0xFFFFFFFF), Color(0xFFF1F5F9)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
   static const gradientHeader = LinearGradient(
-    colors: [Color(0xFF1A160A), Color(0xFF070D1A)],
+    colors: [Color(0xFFFEF9C3), Color(0xFFF8FAFC)], // Soft yellow-white header
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
   );
@@ -140,10 +140,10 @@ class S {
 class AppTheme {
   AppTheme._();
 
-  static ThemeData get dark => ThemeData(
-    brightness: Brightness.dark,
+  static ThemeData get light => ThemeData(
+    brightness: Brightness.light,
     scaffoldBackgroundColor: AppColors.bg,
-    colorScheme: ColorScheme.dark(
+    colorScheme: ColorScheme.light(
       primary: AppColors.primary,
       secondary: AppColors.primaryLight,
       surface: AppColors.surface,
@@ -160,7 +160,7 @@ class AppTheme {
       iconTheme: const IconThemeData(color: AppColors.textPrimary, size: 22),
       systemOverlayStyle: const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.light,
+        statusBarIconBrightness: Brightness.dark,
       ),
     ),
     bottomNavigationBarTheme: BottomNavigationBarThemeData(
@@ -176,7 +176,7 @@ class AppTheme {
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: AppColors.bg,
+      fillColor: AppColors.surface,
       hintStyle: S.body(AppColors.textHint),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       border: OutlineInputBorder(
@@ -203,6 +203,8 @@ class AppTheme {
     ),
   );
 
+  static ThemeData get dark => light;
+
   // ── Card Decoration ───────────────────────────────────
   static BoxDecoration cardDeco({
     Color? accentColor,
@@ -217,14 +219,14 @@ class AppTheme {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(elevated ? 0.35 : 0.22),
-            blurRadius: elevated ? 20 : 12,
+            color: Colors.black.withOpacity(elevated ? 0.12 : 0.05),
+            blurRadius: elevated ? 16 : 8,
             offset: const Offset(0, 4),
           ),
           if (accentColor != null)
             BoxShadow(
-              color: accentColor.withOpacity(0.08),
-              blurRadius: 24,
+              color: accentColor.withOpacity(0.04),
+              blurRadius: 16,
               spreadRadius: 1,
             ),
         ],
@@ -236,23 +238,23 @@ class AppTheme {
     borderRadius: BorderRadius.circular(radius),
     boxShadow: [
       BoxShadow(
-        color: AppColors.primary.withOpacity(0.4),
-        blurRadius: 18,
-        offset: const Offset(0, 6),
+        color: AppColors.primary.withOpacity(0.25),
+        blurRadius: 14,
+        offset: const Offset(0, 5),
       ),
     ],
   );
 
   // ── Glass Card ────────────────────────────────────────
   static BoxDecoration glassDeco({double radius = 20}) => BoxDecoration(
-    color: AppColors.card.withOpacity(0.8),
+    color: AppColors.card.withOpacity(0.9),
     borderRadius: BorderRadius.circular(radius),
-    border: Border.all(color: AppColors.borderLight.withOpacity(0.6)),
+    border: Border.all(color: AppColors.borderLight.withOpacity(0.4)),
     boxShadow: [
       BoxShadow(
-        color: Colors.black.withOpacity(0.3),
-        blurRadius: 20,
-        offset: const Offset(0, 8),
+        color: Colors.black.withOpacity(0.08),
+        blurRadius: 16,
+        offset: const Offset(0, 6),
       ),
     ],
   );

@@ -13,9 +13,9 @@ void main() async {
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
-    statusBarIconBrightness: Brightness.light,
+    statusBarIconBrightness: Brightness.dark,
     systemNavigationBarColor: AppColors.surface,
-    systemNavigationBarIconBrightness: Brightness.light,
+    systemNavigationBarIconBrightness: Brightness.dark,
   ));
   runApp(
     ChangeNotifierProvider(
@@ -33,7 +33,7 @@ class SalesApp extends StatelessWidget {
     return MaterialApp(
       title: 'Loewix Sales',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.dark,
+      theme: AppTheme.light,
       initialRoute: LoginPage.routeName,
       routes: {
         LoginPage.routeName: (_) => const _AuthGate(),
