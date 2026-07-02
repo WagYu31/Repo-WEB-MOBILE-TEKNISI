@@ -164,9 +164,19 @@ class _KunjunganTab extends StatelessWidget {
 
     return Column(
       children: [
-        // ── Gradient Header ──────────────────────────
+        // ── Rounded Premium Header ──────────────────────────
         Container(
-          decoration: const BoxDecoration(gradient: AppColors.gradientHeader),
+          decoration: BoxDecoration(
+            gradient: AppColors.gradientHeader,
+            borderRadius: const BorderRadius.vertical(bottom: Radius.circular(24)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
           child: SafeArea(
             bottom: false,
             child: Padding(
@@ -175,51 +185,84 @@ class _KunjunganTab extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
+                      // Circular Profile Avatar
+                      Container(
+                        width: 46, height: 46,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: AppColors.primary, width: 2),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primary.withOpacity(0.15),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: ClipOval(
+                          child: Image.network(
+                            'https://ui-avatars.com/api/?name=${Uri.encodeComponent(profile?.nama ?? "User")}&background=FEF9C3&color=CA8A04&bold=true',
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => const Icon(Icons.person, color: AppColors.primary),
+                          ),
+                        ),
+                      ).animate(delay: 50.ms).fadeIn(duration: 400.ms),
+                      const SizedBox(width: 12),
+
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text('$greeting,',
                                 style: S.caption(AppColors.textSecondary))
                                 .animate().fadeIn(duration: 500.ms),
                             Text(
                               profile?.nama ?? '—',
-                              style: S.h1(),
+                              style: S.h2(AppColors.textPrimary).copyWith(fontWeight: FontWeight.w700),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ).animate(delay: 100.ms).fadeIn(duration: 500.ms),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: 2),
                             Row(
                               children: [
                                 const Icon(Icons.calendar_today_outlined,
-                                    size: 13, color: AppColors.textMuted),
-                                const SizedBox(width: 5),
+                                    size: 11, color: AppColors.textMuted),
+                                const SizedBox(width: 4),
                                 Text(
                                   DateFormat('EEEE, dd MMMM yyyy', 'id')
                                       .format(DateTime.now()),
-                                  style: S.caption(),
+                                  style: S.caption(AppColors.textMuted),
                                 ),
                               ],
                             ).animate(delay: 150.ms).fadeIn(duration: 500.ms),
                           ],
                         ),
                       ),
-                      // Notification placeholder
+
+                      // Notification icon
                       Container(
-                        width: 44, height: 44,
+                        width: 42, height: 42,
                         decoration: BoxDecoration(
-                          color: AppColors.card,
-                          borderRadius: BorderRadius.circular(12),
+                          color: AppColors.surface,
+                          shape: BoxShape.circle,
                           border: Border.all(color: AppColors.border),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.03),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
                         child: const Icon(Icons.notifications_none_rounded,
-                            color: AppColors.textSecondary, size: 22),
+                            color: AppColors.textSecondary, size: 20),
                       ).animate(delay: 200.ms).fadeIn(duration: 400.ms),
                     ],
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 22),
 
                   // ── Stat Cards ─────────────────────
                   Row(
@@ -293,28 +336,50 @@ class _StatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: color.withOpacity(0.25)),
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.border),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.02),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, color: color, size: 20),
-            const SizedBox(height: 5),
+            // Circular Icon Badge
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.12),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: color, size: 16),
+            ),
+            const SizedBox(height: 8),
+            // Value
             TweenAnimationBuilder<int>(
               tween: IntTween(begin: 0, end: value),
               duration: const Duration(milliseconds: 600),
               curve: Curves.easeOut,
               builder: (_, v, __) => Text(
                 '$v',
-                style: S.h2(color),
+                style: S.h2(AppColors.textPrimary).copyWith(fontWeight: FontWeight.w700),
                 textAlign: TextAlign.center,
               ),
             ),
-            Text(label, style: S.label(color), textAlign: TextAlign.center),
+            const SizedBox(height: 2),
+            // Label
+            Text(
+              label,
+              style: S.label(AppColors.textSecondary),
+              textAlign: TextAlign.center,
+            ),
           ],
         ),
       ),
@@ -344,15 +409,15 @@ class _TabBtn extends StatelessWidget {
             borderRadius: BorderRadius.circular(10),
             boxShadow: active
                 ? [BoxShadow(
-                    color: AppColors.primary.withOpacity(0.3),
-                    blurRadius: 8, offset: const Offset(0, 2))]
+                    color: AppColors.primary.withOpacity(0.2),
+                    blurRadius: 6, offset: const Offset(0, 2))]
                 : [],
           ),
           child: Center(
             child: Text(label,
                 style: active
-                    ? S.btnSm(Colors.white)
-                    : S.btnSm(AppColors.textMuted)),
+                    ? S.btnSm(AppColors.textPrimary).copyWith(fontWeight: FontWeight.w700)
+                    : S.btnSm(AppColors.textSecondary)),
           ),
         ),
       ),
