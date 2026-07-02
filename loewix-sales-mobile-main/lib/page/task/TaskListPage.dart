@@ -56,12 +56,17 @@ class _TaskCard extends StatelessWidget {
     }
 
     // Avatar initials
-    final parts   = task.namaCustomer.split(' ');
-    final initials = parts.length >= 2
-        ? '${parts[0][0]}${parts[1][0]}'.toUpperCase()
-        : task.namaCustomer.isNotEmpty
-            ? task.namaCustomer[0].toUpperCase()
-            : '?';
+    String initials = '?';
+    try {
+      final cleanParts = task.namaCustomer.trim().split(RegExp(r'\s+')).where((s) => s.isNotEmpty).toList();
+      if (cleanParts.length >= 2 && cleanParts[0].isNotEmpty && cleanParts[1].isNotEmpty) {
+        initials = '${cleanParts[0][0]}${cleanParts[1][0]}'.toUpperCase();
+      } else if (cleanParts.isNotEmpty && cleanParts[0].isNotEmpty) {
+        initials = cleanParts[0][0].toUpperCase();
+      }
+    } catch (_) {
+      initials = '?';
+    }
 
     return GestureDetector(
       onTap: () => Navigator.push(
@@ -227,10 +232,7 @@ class _TaskCard extends StatelessWidget {
           ),
         ),
       ),
-    )
-        .animate(delay: Duration(milliseconds: index * 60))
-        .fadeIn(duration: 400.ms)
-        .slideX(begin: 0.05, end: 0, curve: Curves.easeOut);
+    );
   }
 
   String _fmtTime(String? dt) {
