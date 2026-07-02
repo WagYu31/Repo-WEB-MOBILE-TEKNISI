@@ -8,6 +8,9 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:geocoding/geocoding.dart';
 import '../../core/app_theme.dart';
 import '../../service/model/SalesModel.dart';
 import '../../service/provider/SalesProvider.dart';
@@ -28,10 +31,64 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   XFile? _capturedPhoto;
   final _picker = ImagePicker();
 
+  LatLng? _customerLatLng;
+  LatLng? _userLatLng;
+  bool _isGeocoding = false;
+  final MapController _mapController = MapController();
+
   @override
   void initState() {
     super.initState();
     _task = widget.task;
+    _geocodeAddress();
+    _initUserLocation();
+  }
+
+  Future<void> _initUserLocation() async {
+    try {
+      final lastPos = await Geolocator.getLastKnownPosition();
+      if (lastPos != null) {
+        setState(() {
+          _userLatLng = LatLng(lastPos.latitude, lastPos.longitude);
+        });
+      }
+      final freshPos = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+      setState(() {
+        _userLatLng = LatLng(freshPos.latitude, freshPos.longitude);
+      });
+    } catch (_) {}
+  }
+
+  Future<void> _geocodeAddress() async {
+    if (widget.task.alamatCustomer.isEmpty) return;
+    setState(() => _isGeocoding = true);
+    try {
+      final query = "${widget.task.alamatCustomer}, ${widget.task.kotaCustomer}";
+      final locations = await locationFromAddress(query);
+      if (locations.isNotEmpty) {
+        setState(() {
+          _customerLatLng = LatLng(locations.first.latitude, locations.first.longitude);
+          _isGeocoding = false;
+        });
+        _mapController.move(_customerLatLng!, 15.0);
+      }
+    } catch (e) {
+      debugPrint("Geocoding failed: $e");
+      // Fallback: try with only customer name and city
+      try {
+        final query = "${widget.task.namaCustomer}, ${widget.task.kotaCustomer}";
+        final locations = await locationFromAddress(query);
+        if (locations.isNotEmpty) {
+          setState(() {
+            _customerLatLng = LatLng(locations.first.latitude, locations.first.longitude);
+            _isGeocoding = false;
+          });
+          _mapController.move(_customerLatLng!, 15.0);
+        }
+      } catch (_) {
+        setState(() => _isGeocoding = false);
+      }
+    }
   }
 
   @override
@@ -397,6 +454,127 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                     ],
                   ),
                 ).animate(delay: 150.ms).fadeIn(duration: 400.ms).slideY(begin: 0.1, end: 0),
+
+                // ── Map Card ────────────────────────────
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(18),
+                  decoration: AppTheme.cardDeco(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.map_rounded,
+                                  size: 16, color: AppColors.primary),
+                              const SizedBox(width: 8),
+                              Text('Peta Lokasi', style: S.h3()),
+                            ],
+                          ),
+                          Row(
+                            children: [
+                              if (_customerLatLng != null)
+                                IconButton(
+                                  icon: const Icon(Icons.flag, color: Colors.red, size: 18),
+                                  onPressed: () => _mapController.move(_customerLatLng!, 15.0),
+                                  tooltip: 'Lokasi Toko',
+                                ),
+                              if (_userLatLng != null)
+                                IconButton(
+                                  icon: const Icon(Icons.my_location, color: Colors.blue, size: 18),
+                                  onPressed: () => _mapController.move(_userLatLng!, 15.0),
+                                  tooltip: 'Lokasi Saya',
+                                ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(14),
+                        child: Container(
+                          height: 200,
+                          color: AppColors.bg,
+                          child: Stack(
+                            children: [
+                              FlutterMap(
+                                mapController: _mapController,
+                                options: MapOptions(
+                                  initialCenter: _customerLatLng ?? _userLatLng ?? const LatLng(-6.200000, 106.816666),
+                                  initialZoom: 15.0,
+                                ),
+                                children: [
+                                  TileLayer(
+                                    urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                                    userAgentPackageName: 'com.loewix.sales',
+                                  ),
+                                  if (_customerLatLng != null)
+                                    MarkerLayer(
+                                      markers: [
+                                        Marker(
+                                          point: _customerLatLng!,
+                                          width: 40,
+                                          height: 40,
+                                          child: const Icon(Icons.location_on, color: Colors.red, size: 36),
+                                        ),
+                                      ],
+                                    ),
+                                  if (_userLatLng != null)
+                                    MarkerLayer(
+                                      markers: [
+                                        Marker(
+                                          point: _userLatLng!,
+                                          width: 30,
+                                          height: 30,
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                              color: Colors.blue.withOpacity(0.2),
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: Center(
+                                              child: Container(
+                                                width: 14,
+                                                height: 14,
+                                                decoration: const BoxDecoration(
+                                                  color: Colors.blue,
+                                                  shape: BoxShape.circle,
+                                                ),
+                                                child: Center(
+                                                  child: Container(
+                                                    width: 10,
+                                                    height: 10,
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.white,
+                                                      shape: BoxShape.circle,
+                                                      border: Border.all(color: Colors.blue, width: 2),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                ],
+                              ),
+                              if (_isGeocoding)
+                                Container(
+                                  color: Colors.white.withOpacity(0.7),
+                                  child: const Center(
+                                    child: CircularProgressIndicator(color: AppColors.primary),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ).animate(delay: 180.ms).fadeIn(duration: 400.ms).slideY(begin: 0.1, end: 0),
 
                 const SizedBox(height: 28),
 
