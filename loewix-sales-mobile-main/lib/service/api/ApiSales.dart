@@ -6,10 +6,10 @@ import '../model/SalesModel.dart';
 class ApiSales {
   final String _base = Api.Url;
 
-  Future<SalesProfile> login(String nik, String password) async {
+  Future<SalesProfile> login(String username, String password) async {
     final res = await http.post(
       Uri.parse('$_base/api_sales_login.php'),
-      body: {'nik': nik, 'password': password},
+      body: {'username': username, 'password': password},
     );
     final data = jsonDecode(res.body);
     if (res.statusCode == 200 && data['status'] == 'success') {

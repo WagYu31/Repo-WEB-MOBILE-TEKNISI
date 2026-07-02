@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../api/ApiSales.dart';
@@ -17,6 +18,43 @@ class SalesProvider extends ChangeNotifier {
   String get error => _error;
   bool get isLoggedIn => _profile != null;
 
+  // ─── Saved Accounts ──────────────────────────────────────
+  static const _kSavedAccounts = 'saved_accounts';
+
+  Future<List<SavedAccount>> getSavedAccounts() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw   = prefs.getString(_kSavedAccounts);
+    if (raw == null || raw.isEmpty) return [];
+    try {
+      final list = jsonDecode(raw) as List;
+      return list.map((e) => SavedAccount.fromJson(e)).toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  Future<void> _saveAccount(String nik, String nama) async {
+    final prefs    = await SharedPreferences.getInstance();
+    final accounts = await getSavedAccounts();
+    // Hapus duplikat NIK yang sama
+    accounts.removeWhere((a) => a.nik == nik);
+    // Tambahkan di posisi pertama (terbaru)
+    accounts.insert(0, SavedAccount(nik: nik, nama: nama));
+    // Batasi maksimal 5 akun tersimpan
+    final trimmed = accounts.take(5).toList();
+    await prefs.setString(
+        _kSavedAccounts, jsonEncode(trimmed.map((a) => a.toJson()).toList()));
+  }
+
+  Future<void> removeAccount(String nik) async {
+    final prefs    = await SharedPreferences.getInstance();
+    final accounts = await getSavedAccounts();
+    accounts.removeWhere((a) => a.nik == nik);
+    await prefs.setString(
+        _kSavedAccounts, jsonEncode(accounts.map((a) => a.toJson()).toList()));
+    notifyListeners();
+  }
+
   // ─── Login ───────────────────────────────────────────────
   Future<bool> login(String nik, String password) async {
     _isLoading = true;
@@ -29,6 +67,8 @@ class SalesProvider extends ChangeNotifier {
       await prefs.setString('sales_nama', _profile!.nama);
       await prefs.setString('sales_nik', _profile!.nik);
       await prefs.setString('sales_jabatan', _profile!.jabatan);
+      // Simpan akun ke daftar akun tersimpan
+      await _saveAccount(_profile!.nik, _profile!.nama);
       _isLoading = false;
       notifyListeners();
       return true;
@@ -59,7 +99,11 @@ class SalesProvider extends ChangeNotifier {
   // ─── Logout ───────────────────────────────────────────────
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
+    // Hapus sesi aktif TAPI jangan hapus saved accounts
+    await prefs.remove('sales_id');
+    await prefs.remove('sales_nama');
+    await prefs.remove('sales_nik');
+    await prefs.remove('sales_jabatan');
     _profile = null;
     _tasks = [];
     notifyListeners();
@@ -117,4 +161,17 @@ class SalesProvider extends ChangeNotifier {
     await fetchTasks();
     return res['message'] ?? 'Clock Out berhasil';
   }
+}
+
+// ─── Model: Akun Tersimpan ────────────────────────────────
+class SavedAccount {
+  final String nik;
+  final String nama;
+
+  const SavedAccount({required this.nik, required this.nama});
+
+  factory SavedAccount.fromJson(Map<String, dynamic> j) =>
+      SavedAccount(nik: j['nik'] ?? '', nama: j['nama'] ?? '');
+
+  Map<String, dynamic> toJson() => {'nik': nik, 'nama': nama};
 }

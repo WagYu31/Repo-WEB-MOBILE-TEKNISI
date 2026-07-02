@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'core/app_theme.dart';
 import 'service/provider/SalesProvider.dart';
 import 'page/login/LoginPage.dart';
 import 'page/home/HomePage.dart';
@@ -13,6 +14,8 @@ void main() async {
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
     statusBarIconBrightness: Brightness.light,
+    systemNavigationBarColor: AppColors.surface,
+    systemNavigationBarIconBrightness: Brightness.light,
   ));
   runApp(
     ChangeNotifierProvider(
@@ -30,23 +33,17 @@ class SalesApp extends StatelessWidget {
     return MaterialApp(
       title: 'Loewix Sales',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF3B82F6),
-          brightness: Brightness.dark,
-        ),
-        useMaterial3: true,
-      ),
+      theme: AppTheme.dark,
       initialRoute: LoginPage.routeName,
       routes: {
         LoginPage.routeName: (_) => const _AuthGate(),
-        HomePage.routeName: (_) => const HomePage(),
+        HomePage.routeName:  (_) => const HomePage(),
       },
     );
   }
 }
 
-// Cek jika sudah login, langsung ke Home
+// Cek session tersimpan → langsung ke Home
 class _AuthGate extends StatefulWidget {
   const _AuthGate();
   @override
@@ -64,13 +61,9 @@ class _AuthGateState extends State<_AuthGate> {
     final prov = context.read<SalesProvider>();
     final ok = await prov.loadFromPrefs();
     if (!mounted) return;
-    if (ok) {
-      Navigator.pushReplacementNamed(context, HomePage.routeName);
-    }
+    if (ok) Navigator.pushReplacementNamed(context, HomePage.routeName);
   }
 
   @override
-  Widget build(BuildContext context) {
-    return const LoginPage();
-  }
+  Widget build(BuildContext context) => const LoginPage();
 }

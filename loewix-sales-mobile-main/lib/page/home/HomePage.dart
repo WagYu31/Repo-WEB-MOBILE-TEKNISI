@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import '../../core/app_theme.dart';
 import '../../service/provider/SalesProvider.dart';
 import '../task/TaskListPage.dart';
-import '../login/LoginPage.dart';
+import '../rekap/RekapPage.dart';
+import '../profile/ProfilePage.dart';
 
 class HomePage extends StatefulWidget {
   static const routeName = '/home';
@@ -14,7 +16,8 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  int _tab = 0;
+  int _navIdx  = 0; // 0=Kunjungan, 1=Rekap, 2=Profil
+  int _taskTab = 0; // 0=Hari Ini, 1=Semua
 
   @override
   void initState() {
@@ -24,204 +27,387 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  String _greeting() {
+    final h = DateTime.now().hour;
+    if (h >= 5  && h < 11) return 'Selamat Pagi';
+    if (h >= 11 && h < 15) return 'Selamat Siang';
+    if (h >= 15 && h < 19) return 'Selamat Sore';
+    return 'Selamat Malam';
+  }
+
   @override
   Widget build(BuildContext context) {
     final prov = context.watch<SalesProvider>();
-    final profile = prov.profile;
-    final tasks = prov.tasks;
 
-    // Stats
-    final total   = tasks.length;
+    return Scaffold(
+      backgroundColor: AppColors.bg,
+      body: IndexedStack(
+        index: _navIdx,
+        children: [
+          _KunjunganTab(
+            taskTab: _taskTab,
+            greeting: _greeting(),
+            onTaskTabChange: (i) {
+              setState(() => _taskTab = i);
+              prov.fetchTasks(filter: i == 0 ? 'today' : 'all');
+            },
+          ),
+          const RekapPage(),
+          const ProfilePage(),
+        ],
+      ),
+      bottomNavigationBar: _BottomNavBar(
+        currentIndex: _navIdx,
+        onTap: (i) => setState(() => _navIdx = i),
+      ),
+    );
+  }
+}
+
+// ── Bottom Navigation Bar ────────────────────────────────
+class _BottomNavBar extends StatelessWidget {
+  final int currentIndex;
+  final ValueChanged<int> onTap;
+  const _BottomNavBar({required this.currentIndex, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        border: const Border(top: BorderSide(color: AppColors.border, width: 1)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.4),
+            blurRadius: 20, offset: const Offset(0, -4),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Row(
+            children: [
+              _navItem(0, Icons.home_rounded, Icons.home_outlined, 'Kunjungan'),
+              _navItem(1, Icons.bar_chart_rounded, Icons.bar_chart_outlined, 'Rekap'),
+              _navItem(2, Icons.person_rounded, Icons.person_outline_rounded, 'Profil'),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _navItem(int idx, IconData activeIcon, IconData inactiveIcon, String label) {
+    final active = currentIndex == idx;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => onTap(idx),
+        behavior: HitTestBehavior.opaque,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                decoration: BoxDecoration(
+                  color: active ? AppColors.primary.withOpacity(0.15) : Colors.transparent,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Icon(
+                  active ? activeIcon : inactiveIcon,
+                  color: active ? AppColors.primaryLight : AppColors.textMuted,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(height: 2),
+              AnimatedDefaultTextStyle(
+                duration: const Duration(milliseconds: 200),
+                style: active
+                    ? S.label(AppColors.primaryLight)
+                    : S.label(AppColors.textMuted),
+                child: Text(label),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Kunjungan Tab ────────────────────────────────────────
+class _KunjunganTab extends StatelessWidget {
+  final int taskTab;
+  final String greeting;
+  final ValueChanged<int> onTaskTabChange;
+  const _KunjunganTab({
+    required this.taskTab,
+    required this.greeting,
+    required this.onTaskTabChange,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final prov    = context.watch<SalesProvider>();
+    final profile = prov.profile;
+    final tasks   = prov.tasks;
+
+    final total    = tasks.length;
     final berjalan = tasks.where((t) => t.sedangBerjalan).length;
     final selesai  = tasks.where((t) => t.selesai).length;
     final belum    = tasks.where((t) => !t.sudahClockIn).length;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
-      body: SafeArea(
-        child: Column(
-          children: [
-            // ── Header ──────────────────────────────────────────
-            Container(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFF1E3A5F), Color(0xFF0F172A)],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                ),
-              ),
+    return Column(
+      children: [
+        // ── Gradient Header ──────────────────────────
+        Container(
+          decoration: const BoxDecoration(gradient: AppColors.gradientHeader),
+          child: SafeArea(
+            bottom: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Selamat Datang,',
-                              style: GoogleFonts.poppins(fontSize: 13, color: Colors.white54)),
-                          Text(profile?.nama ?? '—',
-                              style: GoogleFonts.poppins(
-                                  fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white)),
-                        ],
-                      ),
-                      GestureDetector(
-                        onTap: () async {
-                          await prov.logout();
-                          if (!mounted) return;
-                          Navigator.pushReplacementNamed(context, LoginPage.routeName);
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF1E293B),
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: const Color(0xFF334155)),
-                          ),
-                          child: const Icon(Icons.logout, color: Colors.white54, size: 20),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('$greeting,',
+                                style: S.caption(AppColors.textSecondary))
+                                .animate().fadeIn(duration: 500.ms),
+                            Text(
+                              profile?.nama ?? '—',
+                              style: S.h1(),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ).animate(delay: 100.ms).fadeIn(duration: 500.ms),
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                const Icon(Icons.calendar_today_outlined,
+                                    size: 13, color: AppColors.textMuted),
+                                const SizedBox(width: 5),
+                                Text(
+                                  DateFormat('EEEE, dd MMMM yyyy', 'id')
+                                      .format(DateTime.now()),
+                                  style: S.caption(),
+                                ),
+                              ],
+                            ).animate(delay: 150.ms).fadeIn(duration: 500.ms),
+                          ],
                         ),
                       ),
+                      // Notification placeholder
+                      Container(
+                        width: 44, height: 44,
+                        decoration: BoxDecoration(
+                          color: AppColors.card,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppColors.border),
+                        ),
+                        child: const Icon(Icons.notifications_none_rounded,
+                            color: AppColors.textSecondary, size: 22),
+                      ).animate(delay: 200.ms).fadeIn(duration: 400.ms),
                     ],
                   ),
-                  const SizedBox(height: 6),
-                  Text(
-                    DateFormat('EEEE, dd MMMM yyyy', 'id').format(DateTime.now()),
-                    style: GoogleFonts.poppins(fontSize: 12, color: Colors.white38),
-                  ),
+                  const SizedBox(height: 20),
+
+                  // ── Stat Cards ─────────────────────
+                  Row(
+                    children: [
+                      _StatCard('Total', total, Icons.list_alt_rounded, AppColors.primary),
+                      const SizedBox(width: 10),
+                      _StatCard('Berjalan', berjalan, Icons.directions_walk, AppColors.warning),
+                      const SizedBox(width: 10),
+                      _StatCard('Selesai', selesai, Icons.check_circle_rounded, AppColors.success),
+                      const SizedBox(width: 10),
+                      _StatCard('Belum', belum, Icons.schedule_rounded, AppColors.pending),
+                    ],
+                  ).animate(delay: 250.ms).fadeIn(duration: 500.ms).slideY(begin: 0.15, end: 0),
                 ],
               ),
             ),
-
-            // ── Stats Cards ─────────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Row(
-                children: [
-                  _statCard('Total', total.toString(), Icons.list_alt, const Color(0xFF3B82F6)),
-                  const SizedBox(width: 10),
-                  _statCard('Berjalan', berjalan.toString(), Icons.directions_walk, const Color(0xFFF59E0B)),
-                  const SizedBox(width: 10),
-                  _statCard('Selesai', selesai.toString(), Icons.check_circle, const Color(0xFF10B981)),
-                  const SizedBox(width: 10),
-                  _statCard('Belum', belum.toString(), Icons.schedule, const Color(0xFF6B7280)),
-                ],
-              ),
-            ),
-
-            // ── Tab Bar ─────────────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1E293B),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  children: [
-                    _tabBtn('Hari Ini', 0),
-                    _tabBtn('Semua', 1),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-
-            // ── Task List ────────────────────────────────────────
-            Expanded(
-              child: prov.isLoading
-                  ? const Center(
-                      child: CircularProgressIndicator(color: Color(0xFF3B82F6)))
-                  : tasks.isEmpty
-                      ? _emptyState()
-                      : RefreshIndicator(
-                          color: const Color(0xFF3B82F6),
-                          backgroundColor: const Color(0xFF1E293B),
-                          onRefresh: () => prov.fetchTasks(
-                              filter: _tab == 0 ? 'today' : 'all'),
-                          child: TaskListPage(tasks: tasks),
-                        ),
-            ),
-          ],
+          ),
         ),
-      ),
 
-      // ── Refresh FAB ─────────────────────────────────────────
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color(0xFF3B82F6),
-        child: const Icon(Icons.refresh, color: Colors.white),
-        onPressed: () =>
-            prov.fetchTasks(filter: _tab == 0 ? 'today' : 'all'),
-      ),
+        // ── Tab Bar ──────────────────────────────────
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+          child: Container(
+            height: 44,
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.border),
+            ),
+            child: Row(
+              children: [
+                _TabBtn('Hari Ini', 0, taskTab, onTaskTabChange),
+                _TabBtn('Semua', 1, taskTab, onTaskTabChange),
+              ],
+            ),
+          ),
+        ).animate(delay: 350.ms).fadeIn(duration: 400.ms),
+
+        // ── Task List ─────────────────────────────────
+        Expanded(
+          child: prov.isLoading
+              ? const Center(
+                  child: CircularProgressIndicator(color: AppColors.primary))
+              : tasks.isEmpty
+                  ? _EmptyKunjungan(
+                      onRefresh: () => prov.fetchTasks(
+                          filter: taskTab == 0 ? 'today' : 'all'),
+                    )
+                  : RefreshIndicator(
+                      onRefresh: () => prov.fetchTasks(
+                          filter: taskTab == 0 ? 'today' : 'all'),
+                      color: AppColors.primary,
+                      backgroundColor: AppColors.card,
+                      child: TaskListPage(tasks: tasks),
+                    ),
+        ),
+      ],
     );
   }
+}
 
-  Widget _statCard(String label, String value, IconData icon, Color color) {
+// ── Animated Stat Card ───────────────────────────────────
+class _StatCard extends StatelessWidget {
+  final String label;
+  final int value;
+  final IconData icon;
+  final Color color;
+  const _StatCard(this.label, this.value, this.icon, this.color);
+
+  @override
+  Widget build(BuildContext context) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
         decoration: BoxDecoration(
-          color: const Color(0xFF1E293B),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withOpacity(0.3)),
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: color.withOpacity(0.25)),
         ),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Icon(icon, color: color, size: 20),
-            const SizedBox(height: 4),
-            Text(value,
-                style: GoogleFonts.poppins(
-                    fontSize: 18, fontWeight: FontWeight.w700, color: color)),
-            Text(label,
-                style: GoogleFonts.poppins(fontSize: 9, color: Colors.white38),
-                textAlign: TextAlign.center),
+            const SizedBox(height: 5),
+            TweenAnimationBuilder<int>(
+              tween: IntTween(begin: 0, end: value),
+              duration: const Duration(milliseconds: 600),
+              curve: Curves.easeOut,
+              builder: (_, v, __) => Text(
+                '$v',
+                style: S.h2(color),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            Text(label, style: S.label(color), textAlign: TextAlign.center),
           ],
         ),
       ),
     );
   }
+}
 
-  Widget _tabBtn(String label, int idx) {
-    final active = _tab == idx;
+// ── Tab Button ───────────────────────────────────────────
+class _TabBtn extends StatelessWidget {
+  final String label;
+  final int idx;
+  final int current;
+  final ValueChanged<int> onTap;
+  const _TabBtn(this.label, this.idx, this.current, this.onTap);
+
+  @override
+  Widget build(BuildContext context) {
+    final active = current == idx;
     return Expanded(
       child: GestureDetector(
-        onTap: () {
-          setState(() => _tab = idx);
-          context.read<SalesProvider>().fetchTasks(
-              filter: idx == 0 ? 'today' : 'all');
-        },
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 10),
+        onTap: () => onTap(idx),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          margin: const EdgeInsets.all(3),
           decoration: BoxDecoration(
-            color: active ? const Color(0xFF3B82F6) : Colors.transparent,
-            borderRadius: BorderRadius.circular(12),
+            color: active ? AppColors.primary : Colors.transparent,
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: active
+                ? [BoxShadow(
+                    color: AppColors.primary.withOpacity(0.3),
+                    blurRadius: 8, offset: const Offset(0, 2))]
+                : [],
           ),
-          child: Text(label,
-              textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: active ? Colors.white : Colors.white38)),
+          child: Center(
+            child: Text(label,
+                style: active
+                    ? S.btnSm(Colors.white)
+                    : S.btnSm(AppColors.textMuted)),
+          ),
         ),
       ),
     );
   }
+}
 
-  Widget _emptyState() {
+// ── Empty Kunjungan ──────────────────────────────────────
+class _EmptyKunjungan extends StatelessWidget {
+  final VoidCallback onRefresh;
+  const _EmptyKunjungan({required this.onRefresh});
+
+  @override
+  Widget build(BuildContext context) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.event_available_outlined, size: 64, color: Colors.white12),
-          const SizedBox(height: 12),
-          Text('Tidak ada kunjungan',
-              style: GoogleFonts.poppins(fontSize: 16, color: Colors.white38)),
-          const SizedBox(height: 4),
-          Text('Tarik ke bawah untuk refresh',
-              style: GoogleFonts.poppins(fontSize: 12, color: Colors.white24)),
+          Container(
+            width: 80, height: 80,
+            decoration: BoxDecoration(
+              color: AppColors.card,
+              shape: BoxShape.circle,
+              border: Border.all(color: AppColors.border),
+            ),
+            child: const Icon(Icons.event_available_outlined,
+                size: 36, color: AppColors.textMuted),
+          ),
+          const SizedBox(height: 16),
+          Text('Tidak ada kunjungan', style: S.h3(AppColors.textSecondary)),
+          const SizedBox(height: 6),
+          Text('Tarik ke bawah untuk refresh', style: S.caption()),
+          const SizedBox(height: 24),
+          GestureDetector(
+            onTap: onRefresh,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.refresh_rounded,
+                      color: AppColors.primaryLight, size: 16),
+                  const SizedBox(width: 6),
+                  Text('Refresh', style: S.btnSm(AppColors.primaryLight)),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
-    );
+    ).animate().fadeIn(duration: 500.ms);
   }
 }
