@@ -89,10 +89,10 @@ $salesData = mysqli_query($conn, "
     /* ── Premium Styling ── */
     .card-premium {
       background: #fff;
-      border: 1px solid #e2e8f0;
-      border-radius: 12px;
+      border: none;
+      border-radius: 16px;
       overflow: hidden;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
       margin-bottom: 24px;
     }
     
@@ -117,7 +117,7 @@ $salesData = mysqli_query($conn, "
     }
     
     .card-body-premium {
-      padding: 28px 24px;
+      padding: 36px 40px;
     }
 
     /* ── Form inputs ── */
@@ -126,30 +126,103 @@ $salesData = mysqli_query($conn, "
     }
     
     .form-label-premium {
-      display: block;
-      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
       font-weight: 700;
-      color: #334155;
-      margin-bottom: 8px;
+      color: #64748b;
+      margin-bottom: 10px;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.08em;
     }
     
     .input-premium {
       width: 100%;
-      border: 1px solid #cbd5e1;
-      border-radius: 10px;
-      padding: 10px 16px !important;
+      height: 48px !important;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 12px 16px !important;
       font-size: 14px;
       color: #1e293b;
       background-color: #fff;
-      transition: all 0.2s ease;
+      transition: all 0.2s ease-in-out;
+      box-sizing: border-box;
     }
     
     .input-premium:focus {
       border-color: #3b82f6;
-      box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+      box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.08);
       outline: none;
+      background-color: #fff;
+    }
+
+    /* ── Custom Styled Select arrow ── */
+    select.input-premium {
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      background-size: 16px;
+      padding-right: 40px !important;
+      cursor: pointer;
+    }
+
+    /* ── Category Pill Group (Radio Switcher) ── */
+    .category-pill-group {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .category-pill-label {
+      cursor: pointer;
+      margin: 0;
+      flex: 1;
+    }
+    
+    .category-pill-input {
+      display: none;
+    }
+    
+    .category-pill-span {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 48px;
+      font-size: 12px;
+      font-weight: 700;
+      border-radius: 12px;
+      border: 1.5px solid #e2e8f0;
+      color: #64748b;
+      background: #fff;
+      transition: all 0.2s ease-in-out;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      box-sizing: border-box;
+    }
+    
+    /* Dealer checked style */
+    #kategori_dealer:checked + .span-dealer {
+      border-color: #3b82f6;
+      background: #eff6ff;
+      color: #1d4ed8;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.05);
+    }
+    /* Installer checked style */
+    #kategori_installer:checked + .span-installer {
+      border-color: #8b5cf6;
+      background: #f5f3ff;
+      color: #6d28d9;
+      box-shadow: 0 4px 12px rgba(139, 92, 246, 0.05);
+    }
+    /* User checked style */
+    #kategori_user:checked + .span-user {
+      border-color: #10b981;
+      background: #ecfdf5;
+      color: #047857;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.05);
     }
 
     /* ── Avatars in Table ── */
@@ -184,7 +257,7 @@ $salesData = mysqli_query($conn, "
     .badge-installer { background: #f3e8ff; color: #6b21a8; }
     .badge-user { background: #d1fae5; color: #065f46; }
     .badge-default { background: #f1f5f9; color: #475569; }
-
+ 
     /* ── Table custom styling ── */
     .premium-table {
       width: 100%;
@@ -235,23 +308,23 @@ $salesData = mysqli_query($conn, "
     .btn-act-edit:hover { background: #d97706; color: #fff; }
     .btn-act-delete { background: #fef2f2; color: #dc2626; border-color: #fee2e2; margin-left: 6px; }
     .btn-act-delete:hover { background: #dc2626; color: #fff; }
-
+ 
     .btn-submit-premium {
-      background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #2563eb 100%);
       color: #fff !important;
       border: none;
-      border-radius: 10px;
-      padding: 10px 24px;
-      font-size: 13px; font-weight: 700;
+      border-radius: 12px;
+      padding: 12px 28px;
+      font-size: 14px; font-weight: 700;
       display: inline-flex; align-items: center; gap: 6px;
-      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+      box-shadow: 0 4px 20px rgba(37, 99, 235, 0.25);
       transition: all 0.22s ease;
       cursor: pointer;
     }
     
     .btn-submit-premium:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+      box-shadow: 0 8px 28px rgba(37, 99, 235, 0.4);
     }
     
     .btn-submit-premium:active {
@@ -259,7 +332,7 @@ $salesData = mysqli_query($conn, "
     }
     
     .btn-submit-premium .material-symbols-outlined {
-      font-size: 16px;
+      font-size: 18px;
     }
 
     /* ── Modal Premium Styling ── */
@@ -271,7 +344,7 @@ $salesData = mysqli_query($conn, "
     }
     
     .modal-header-premium {
-      background: #1e293b;
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
       color: #fff;
       padding: 20px 24px;
       border-bottom: none;
@@ -325,40 +398,56 @@ $salesData = mysqli_query($conn, "
 
     <!-- Card Tambah Sales Customer -->
     <div class="card-premium">
-      <div class="section-header-premium">
-        <h6>
-          <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 8px;">person_add</span>
-          Tambah Sales Customer
-        </h6>
+      <!-- Premium Gradient Header -->
+      <div style="background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 40%,#2563eb 100%);padding:28px 36px;position:relative;overflow:hidden;">
+          <div style="position:absolute;top:-40px;right:-20px;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,0.04);"></div>
+          <div style="position:absolute;bottom:-50px;right:100px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,0.03);"></div>
+          <div style="position:absolute;top:10px;right:30px;width:60px;height:60px;border-radius:50%;background:rgba(59,130,246,0.2);"></div>
+          <div style="display:flex;align-items:center;gap:14px;position:relative;z-index:1;">
+              <div style="width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,0.12);backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,0.1);">
+                  <span class="material-symbols-outlined" style="color:#fff;font-size:22px;">person_add</span>
+              </div>
+              <div>
+                  <h5 style="color:#fff;margin:0;font-size:18px;font-weight:700;letter-spacing:-0.3px;">Tambah Sales Customer</h5>
+                  <p style="color:rgba(255,255,255,0.6);margin:0;font-size:12px;margin-top:2px;">Daftarkan toko, mitra, atau installer baru beserta wilayah kerjanya</p>
+              </div>
+          </div>
       </div>
+
       <div class="card-body-premium">
         <form method="POST">
           <div class="row">
             <div class="col-md-3 form-group-premium">
-              <label class="form-label-premium">Nama Toko / Mitra / Personal</label>
+              <label class="form-label-premium">
+                <span class="material-symbols-outlined" style="font-size:16px; color:#3b82f6;">store</span> Nama Toko / Mitra / Personal
+              </label>
               <input type="text" name="nama" class="input-premium" placeholder="Masukkan nama customer..." required>
             </div>
             
             <div class="col-md-4 form-group-premium">
-              <label class="form-label-premium">Kategori Customer</label>
-              <div class="d-flex align-items-center gap-3 mt-2">
-                <div class="form-check">
-                  <input class="form-check-input" type="radio" name="kategori" id="kategori_dealer" value="Dealer" required>
-                  <label class="form-check-label font-weight-bold text-sm text-dark" for="kategori_dealer">Dealer</label>
-                </div>
-                <div class="form-check">
-                  <input class="form-check-input" type="radio" name="kategori" id="kategori_installer" value="Installer">
-                  <label class="form-check-label font-weight-bold text-sm text-dark" for="kategori_installer">Installer</label>
-                </div>
-                <div class="form-check">
-                  <input class="form-check-input" type="radio" name="kategori" id="kategori_user" value="User">
-                  <label class="form-check-label font-weight-bold text-sm text-dark" for="kategori_user">User</label>
-                </div>
+              <label class="form-label-premium">
+                <span class="material-symbols-outlined" style="font-size:16px; color:#3b82f6;">category</span> Kategori Customer
+              </label>
+              <div class="category-pill-group">
+                <label class="category-pill-label" for="kategori_dealer">
+                  <input class="category-pill-input" type="radio" name="kategori" id="kategori_dealer" value="Dealer" required checked>
+                  <span class="category-pill-span span-dealer">Dealer</span>
+                </label>
+                <label class="category-pill-label" for="kategori_installer">
+                  <input class="category-pill-input" type="radio" name="kategori" id="kategori_installer" value="Installer">
+                  <span class="category-pill-span span-installer">Installer</span>
+                </label>
+                <label class="category-pill-label" for="kategori_user">
+                  <input class="category-pill-input" type="radio" name="kategori" id="kategori_user" value="User">
+                  <span class="category-pill-span span-user">User</span>
+                </label>
               </div>
             </div>
 
             <div class="col-md-2 form-group-premium">
-              <label class="form-label-premium">Wilayah Customer</label>
+              <label class="form-label-premium">
+                <span class="material-symbols-outlined" style="font-size:16px; color:#3b82f6;">map</span> Wilayah Customer
+              </label>
               <select name="id_wilayah" class="input-premium" required>
                 <option value="">-- Pilih Wilayah --</option>
                 <?php 
@@ -371,22 +460,30 @@ $salesData = mysqli_query($conn, "
             </div>
             
             <div class="col-md-3 form-group-premium">
-              <label class="form-label-premium">No. Telepon (WhatsApp)</label>
+              <label class="form-label-premium">
+                <span class="material-symbols-outlined" style="font-size:16px; color:#3b82f6;">call</span> No. Telepon (WhatsApp)
+              </label>
               <input type="text" name="telp" class="input-premium" placeholder="Contoh: 0812345678" required>
             </div>
             
             <div class="col-md-4 form-group-premium">
-              <label class="form-label-premium">Email Customer</label>
+              <label class="form-label-premium">
+                <span class="material-symbols-outlined" style="font-size:16px; color:#3b82f6;">mail</span> Email Customer
+              </label>
               <input type="email" name="email" class="input-premium" placeholder="Contoh: customer@loewix.com">
             </div>
             
             <div class="col-md-4 form-group-premium">
-              <label class="form-label-premium">Kota</label>
+              <label class="form-label-premium">
+                <span class="material-symbols-outlined" style="font-size:16px; color:#3b82f6;">location_city</span> Kota
+              </label>
               <input type="text" name="kota" class="input-premium" placeholder="Masukkan kota asal customer...">
             </div>
             
             <div class="col-md-12 form-group-premium">
-              <label class="form-label-premium">Alamat Lengkap</label>
+              <label class="form-label-premium">
+                <span class="material-symbols-outlined" style="font-size:16px; color:#3b82f6;">home_pin</span> Alamat Lengkap
+              </label>
               <input type="text" name="alamat" class="input-premium" placeholder="Masukkan alamat lengkap toko/mitra...">
             </div>
           </div>
