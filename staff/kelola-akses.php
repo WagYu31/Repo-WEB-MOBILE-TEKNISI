@@ -22,8 +22,7 @@ if ($checkTable && mysqli_num_rows($checkTable) == 0) {
         is_allowed TINYINT(1) NOT NULL DEFAULT 1,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        UNIQUE KEY unique_user_menu (user_id, menu_key),
-        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        UNIQUE KEY unique_user_menu (user_id, menu_key)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
     mysqli_query($conn, $createTable);
 }
