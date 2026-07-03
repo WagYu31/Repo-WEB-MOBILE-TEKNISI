@@ -2,6 +2,15 @@
 include "conn.php";
 include "session.php";
 include "get-user-data.php";
+
+include_once "menu-access-helper.php";
+if (!hasMenuAccess($conn, $idSesi, 'dashboard', ($role == 'Super Admin' || $role == 'Admin'))) {
+    if (hasMenuAccess($conn, $idSesi, 'dashboard_sales', ($role == 'Super Admin' || $role == 'Admin' || $role == 'Sales Manager' || $role == 'Sales'))) {
+        header("Location: sales/index-sa.php");
+        exit;
+    }
+}
+
 $pageNow = "Dashboard";
 $currentPage = "Today";
 
