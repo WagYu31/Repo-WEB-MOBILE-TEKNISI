@@ -616,15 +616,26 @@ $resultSales = mysqli_query($conn, $sqlSales);
                     </div>
                   <?php endif; ?>
 
-                  <!-- Dokumentasi Foto (Menggunakan path server api-teknisi.id-giti.com yang benar) -->
+                  <!-- Dokumentasi Foto & Video (Menggunakan path server api-teknisi.id-giti.com yang benar) -->
                   <?php if (!empty($row['image_1']) || !empty($row['image_2']) || !empty($row['image_3'])): ?>
                     <div style="margin-bottom: 20px;">
-                      <span class="info-label" style="font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; display: block; margin-bottom: 8px;">Foto Dokumentasi Lapangan</span>
+                      <span class="info-label" style="font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; display: block; margin-bottom: 8px;">Dokumentasi Foto &amp; Video Lapangan</span>
                       <div class="doc-photo-grid">
                         <?php foreach (['image_1', 'image_2', 'image_3'] as $img): ?>
-                          <?php if (!empty($row[$img])): ?>
-                            <a href="https://api-teknisi.id-giti.com/storage/image/<?php echo $row[$img]; ?>" target="_blank" class="doc-photo-wrapper">
-                              <img src="https://api-teknisi.id-giti.com/storage/image/<?php echo $row[$img]; ?>" alt="Dokumentasi">
+                          <?php if (!empty($row[$img])): 
+                            $ext = strtolower(pathinfo($row[$img], PATHINFO_EXTENSION));
+                            $is_video = in_array($ext, ['mp4', 'webm', 'mov', '3gp', 'avi', 'ogg']);
+                          ?>
+                            <a href="https://api-teknisi.id-giti.com/storage/image/<?php echo $row[$img]; ?>" target="_blank" class="doc-photo-wrapper" style="position: relative; display: block;">
+                              <?php if ($is_video): ?>
+                                <video src="https://api-teknisi.id-giti.com/storage/image/<?php echo $row[$img]; ?>" style="width: 100%; height: 100%; object-fit: cover;" muted playsinline></video>
+                                <!-- Video Play Overlay -->
+                                <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; border-radius: 8px;">
+                                  <span class="material-symbols-outlined" style="color: #fff; font-size: 28px; font-variation-settings: 'FILL' 1;">play_circle</span>
+                                </div>
+                              <?php else: ?>
+                                <img src="https://api-teknisi.id-giti.com/storage/image/<?php echo $row[$img]; ?>" alt="Dokumentasi">
+                              <?php endif; ?>
                             </a>
                           <?php endif; ?>
                         <?php endforeach; ?>
