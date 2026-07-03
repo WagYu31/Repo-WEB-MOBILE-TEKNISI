@@ -120,22 +120,36 @@ class _RekapContent extends StatelessWidget {
         delegate: SliverChildListDelegate([
           // ── Completion Rate Card ─────────────────────
           Container(
-            padding: const EdgeInsets.all(20),
-            decoration: AppTheme.cardDeco(accentColor: AppColors.primary),
+            padding: const EdgeInsets.all(22),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF0F172A), Color(0xFF1E293B)], // Premium Slate dark gradient
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF0F172A).withOpacity(0.2),
+                  blurRadius: 15,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
             child: Row(
               children: [
                 // Circle progress
                 SizedBox(
-                  width: 80, height: 80,
+                  width: 84, height: 84,
                   child: Stack(
                     alignment: Alignment.center,
                     children: [
                       SizedBox(
-                        width: 80, height: 80,
+                        width: 84, height: 84,
                         child: CircularProgressIndicator(
                           value: rate,
                           strokeWidth: 8,
-                          backgroundColor: AppColors.border,
+                          backgroundColor: Colors.white.withOpacity(0.08),
                           color: rate >= 0.8
                               ? AppColors.success
                               : rate >= 0.5
@@ -144,7 +158,7 @@ class _RekapContent extends StatelessWidget {
                         ),
                       ),
                       Text('${(rate * 100).toStringAsFixed(0)}%',
-                          style: S.h3(AppColors.textPrimary)),
+                          style: S.h2(Colors.white)),
                     ],
                   ),
                 ),
@@ -153,20 +167,20 @@ class _RekapContent extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Completion Rate', style: S.h3()),
+                      Text('Completion Rate', style: S.h3(Colors.white)),
                       const SizedBox(height: 4),
                       Text('$selesai dari $total kunjungan selesai',
-                          style: S.caption()),
-                      const SizedBox(height: 12),
+                          style: S.caption(Colors.white.withOpacity(0.6))),
+                      const SizedBox(height: 14),
                       Row(
                         children: [
                           _dot(AppColors.success),
                           const SizedBox(width: 4),
-                          Text('Selesai: $selesai', style: S.micro()),
-                          const SizedBox(width: 12),
+                          Text('Selesai: $selesai', style: S.micro(Colors.white.withOpacity(0.8))),
+                          const SizedBox(width: 14),
                           _dot(AppColors.warning),
                           const SizedBox(width: 4),
-                          Text('Aktif: $berjalan', style: S.micro()),
+                          Text('Aktif: $berjalan', style: S.micro(Colors.white.withOpacity(0.8))),
                         ],
                       ),
                     ],
@@ -176,7 +190,7 @@ class _RekapContent extends StatelessWidget {
             ),
           ).animate(delay: 200.ms).fadeIn(duration: 500.ms).slideY(begin: 0.1, end: 0),
 
-          const SizedBox(height: 14),
+          const SizedBox(height: 16),
 
           // ── Stat Cards Row ───────────────────────────
           Row(
@@ -191,11 +205,11 @@ class _RekapContent extends StatelessWidget {
             ],
           ).animate(delay: 300.ms).fadeIn(duration: 500.ms),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: 28),
 
           Text('Riwayat Kunjungan', style: S.h3())
               .animate(delay: 400.ms).fadeIn(duration: 400.ms),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
 
           // ── Grouped list ─────────────────────────────
           ...grouped.entries.toList().asMap().entries.map((entry) {
@@ -207,7 +221,7 @@ class _RekapContent extends StatelessWidget {
               children: [
                 // Date header
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.only(bottom: 12),
                   child: Row(
                     children: [
                       Container(
@@ -234,10 +248,10 @@ class _RekapContent extends StatelessWidget {
                   ),
                 ),
                 ...list.map((t) => Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.only(bottom: 10),
                   child: _RekapTaskItem(task: t),
                 )),
-                const SizedBox(height: 12),
+                const SizedBox(height: 14),
               ],
             ).animate(delay: Duration(milliseconds: 450 + idx * 80))
                 .fadeIn(duration: 400.ms)
@@ -256,20 +270,39 @@ class _RekapContent extends StatelessWidget {
   Widget _statCard(String label, int val, IconData icon, Color color) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 4),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.08),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withOpacity(0.25)),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.border),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.02),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Column(
           children: [
-            Icon(icon, color: color, size: 20),
-            const SizedBox(height: 4),
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.08),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: color, size: 18),
+            ),
+            const SizedBox(height: 8),
             Text('$val',
-                style: S.h2(color),
+                style: GoogleFonts.inter(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
+                ),
                 textAlign: TextAlign.center),
-            Text(label, style: S.label(color),
+            const SizedBox(height: 2),
+            Text(label, style: S.label(AppColors.textSecondary),
                 textAlign: TextAlign.center),
           ],
         ),
@@ -305,29 +338,57 @@ class _RekapTaskItem extends StatelessWidget {
     } catch (_) {}
 
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.card,
-        borderRadius: BorderRadius.circular(12),
-        border: Border(left: BorderSide(color: statusColor, width: 3)),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.18),
-              blurRadius: 8, offset: const Offset(0, 2)),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
         ],
       ),
       child: Row(
         children: [
+          // Vertical Indicator
+          Container(
+            width: 4, height: 38,
+            decoration: BoxDecoration(
+              color: statusColor,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(task.namaCustomer,
-                    style: S.bodyLg(), maxLines: 1,
+                    style: GoogleFonts.inter(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary,
+                    ),
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis),
-                const SizedBox(height: 2),
-                Text('${task.alamatCustomer}, ${task.kotaCustomer}',
-                    style: S.caption(), maxLines: 1,
-                    overflow: TextOverflow.ellipsis),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    const Icon(Icons.location_on_outlined, size: 12, color: AppColors.textMuted),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        '${task.alamatCustomer}, ${task.kotaCustomer}',
+                        style: S.caption(AppColors.textSecondary),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -336,15 +397,23 @@ class _RekapTaskItem extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: statusColor.withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(8),
+                  color: statusColor.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: statusColor.withOpacity(0.2)),
                 ),
-                child: Text(statusLabel, style: S.label(statusColor)),
+                child: Text(
+                  statusLabel,
+                  style: GoogleFonts.inter(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    color: statusColor,
+                  ),
+                ),
               ),
               if (task.sudahClockIn) ...[
-                const SizedBox(height: 4),
+                const SizedBox(height: 6),
                 Text('$ciTime → $coTime',
                     style: S.micro(AppColors.textSecondary)),
               ],
