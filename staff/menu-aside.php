@@ -95,23 +95,23 @@ function renderNavItem($isActive, $url, $icon, $text) {
         padding: 0.6rem 0.75rem !important;
         margin: 0 !important;
         border-radius: 0.375rem !important;
-        color: #9CA3AF !important;
+        color: #D1D5DB !important; /* Lighter gray for better contrast */
         background: transparent !important;
         box-shadow: none !important;
         white-space: nowrap !important;
         text-overflow: ellipsis !important;
         transition: background 0.15s ease, color 0.15s ease !important;
         position: relative !important;
-        font-weight: 400 !important;
+        font-weight: 500 !important; /* Emphasized weight */
     }
     #sidenav-main .nav-link:hover {
         background: #1F2937 !important;
         color: #FFFFFF !important;
     }
     #sidenav-main .nav-link.active {
-        background: rgba(59, 130, 246, 0.12) !important;
+        background: rgba(59, 130, 246, 0.18) !important; /* Slightly more visible background */
         color: #FFFFFF !important;
-        font-weight: 500 !important;
+        font-weight: 700 !important; /* Bold active state */
     }
     #sidenav-main .nav-link.active::before {
         content: "";
@@ -125,7 +125,7 @@ function renderNavItem($isActive, $url, $icon, $text) {
     }
     /* Kill framework gradient backgrounds on active */
     #sidenav-main .nav-link.active[class*="bg-gradient"] {
-        background: rgba(59, 130, 246, 0.12) !important;
+        background: rgba(59, 130, 246, 0.18) !important;
     }
 
     /* Icon */
@@ -135,7 +135,7 @@ function renderNavItem($isActive, $url, $icon, $text) {
         min-width: 1.25rem !important;
         text-align: center !important;
         margin-right: 0.625rem !important;
-        font-size: 0.85rem !important;
+        font-size: 0.9rem !important; /* Increased slightly */
         color: inherit !important;
         line-height: 1.5 !important;
     }
@@ -144,7 +144,7 @@ function renderNavItem($isActive, $url, $icon, $text) {
     #sidenav-main .nav-link p,
     #sidenav-main .nav-link span {
         margin: 0 !important;
-        font-size: 0.8125rem !important;
+        font-size: 0.875rem !important; /* Emphasized text size */
         color: inherit !important;
         white-space: nowrap !important;
         overflow: hidden !important;
@@ -154,12 +154,12 @@ function renderNavItem($isActive, $url, $icon, $text) {
 
     /* Section headers */
     #sidenav-main .nav-header {
-        padding: 1rem 0.75rem 0.375rem !important;
-        font-size: 0.65rem !important;
-        font-weight: 600 !important;
-        color: #6B7280 !important;
+        padding: 1.1rem 0.75rem 0.45rem !important;
+        font-size: 0.725rem !important; /* Emphasized font size */
+        font-weight: 700 !important; /* Bold headers */
+        color: #9CA3AF !important; /* More readable header color */
         text-transform: uppercase !important;
-        letter-spacing: 0.5px !important;
+        letter-spacing: 0.8px !important;
         background: transparent !important;
         list-style: none !important;
     }
@@ -179,12 +179,13 @@ function renderNavItem($isActive, $url, $icon, $text) {
         margin: 0 !important;
         margin-bottom: 2px !important;
         border-radius: 0.375rem !important;
-        color: #9CA3AF !important;
+        color: #D1D5DB !important; /* Lighter color */
         background: transparent !important;
         box-shadow: none !important;
         text-decoration: none !important;
         white-space: nowrap !important;
         transition: background 0.15s ease, color 0.15s ease !important;
+        font-weight: 500 !important;
     }
     #sidenav-main .sidenav-footer .nav-link:hover {
         background: #1F2937 !important;
@@ -196,17 +197,18 @@ function renderNavItem($isActive, $url, $icon, $text) {
         min-width: 1.25rem !important;
         text-align: center !important;
         margin-right: 0.625rem !important;
-        font-size: 0.85rem !important;
+        font-size: 0.9rem !important;
         color: inherit !important;
     }
     #sidenav-main .sidenav-footer .nav-link p,
     #sidenav-main .sidenav-footer .nav-link span {
         margin: 0 !important;
-        font-size: 0.8125rem !important;
+        font-size: 0.875rem !important; /* Emphasized size */
         color: inherit !important;
         display: inline !important;
         opacity: 1 !important;
         visibility: visible !important;
+        font-weight: 500 !important;
     }
 
     /* Kill framework text-dark/text-white overrides from JS darkMode() */
