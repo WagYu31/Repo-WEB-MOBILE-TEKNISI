@@ -251,22 +251,21 @@ foreach ($tab_meta as $k => $m) {
                     <span class="sales-name"><?php echo htmlspecialchars($sl['nama']); ?></span>
                     <div class="d-flex align-items-center gap-1 flex-wrap mt-1">
                       <span class="sales-status-badge <?php echo $sl['cls']; ?>"><?php echo $sl['lbl']; ?></span>
-                      <?php if (!empty($sl['ci_time'])): ?>
-                        <span class="badge bg-light text-success font-weight-bold" style="font-size: 9px; padding: 2px 6px; border: 1px solid #d1fae5; border-radius: 4px; font-family: monospace; text-transform: uppercase; display: inline-flex; align-items: center; gap: 2px;" title="Jam Clock In">
-                          📥 IN: <?php echo $sl['ci_time']; ?>
-                          <?php if (!empty($sl['lat_ci']) && !empty($sl['lon_ci'])): ?>
-                            <a href="https://www.google.com/maps?q=<?php echo $sl['lat_ci']; ?>,<?php echo $sl['lon_ci']; ?>" target="_blank" style="text-decoration: none; font-size:10px; line-height:1;" title="Lokasi Clock In">📍</a>
-                          <?php endif; ?>
-                        </span>
-                      <?php endif; ?>
-                      <?php if (!empty($sl['co_time'])): ?>
-                        <span class="badge bg-light text-danger font-weight-bold" style="font-size: 9px; padding: 2px 6px; border: 1px solid #fee2e2; border-radius: 4px; font-family: monospace; text-transform: uppercase; display: inline-flex; align-items: center; gap: 2px;" title="Jam Clock Out">
-                          📤 OUT: <?php echo $sl['co_time']; ?>
-                          <?php if (!empty($sl['lat_co']) && !empty($sl['lon_co'])): ?>
-                            <a href="https://www.google.com/maps?q=<?php echo $sl['lat_co']; ?>,<?php echo $sl['lon_co']; ?>" target="_blank" style="text-decoration: none; font-size:10px; line-height:1;" title="Lokasi Clock Out">📍</a>
-                          <?php endif; ?>
-                        </span>
-                      <?php endif; ?>
+                      <!-- Always Show Clock In -->
+                      <span class="badge bg-light <?php echo !empty($sl['ci_time']) ? 'text-success' : 'text-muted'; ?> font-weight-bold" style="font-size: 9px; padding: 2px 6px; border: 1px solid <?php echo !empty($sl['ci_time']) ? '#d1fae5' : '#e2e8f0'; ?>; border-radius: 4px; font-family: monospace; text-transform: uppercase; display: inline-flex; align-items: center; gap: 2px;" title="Jam Clock In">
+                        📥 IN: <?php echo !empty($sl['ci_time']) ? $sl['ci_time'] : '--:--'; ?>
+                        <?php if (!empty($sl['lat_ci']) && !empty($sl['lon_ci'])): ?>
+                          <a href="https://www.google.com/maps?q=<?php echo $sl['lat_ci']; ?>,<?php echo $sl['lon_ci']; ?>" target="_blank" style="text-decoration: none; font-size:10px; line-height:1;" title="Lokasi Clock In">📍</a>
+                        <?php endif; ?>
+                      </span>
+                      
+                      <!-- Always Show Clock Out -->
+                      <span class="badge bg-light <?php echo !empty($sl['co_time']) ? 'text-danger' : 'text-muted'; ?> font-weight-bold" style="font-size: 9px; padding: 2px 6px; border: 1px solid <?php echo !empty($sl['co_time']) ? '#fee2e2' : '#e2e8f0'; ?>; border-radius: 4px; font-family: monospace; text-transform: uppercase; display: inline-flex; align-items: center; gap: 2px;" title="Jam Clock Out">
+                        📤 OUT: <?php echo !empty($sl['co_time']) ? $sl['co_time'] : '--:--'; ?>
+                        <?php if (!empty($sl['lat_co']) && !empty($sl['lon_co'])): ?>
+                          <a href="https://www.google.com/maps?q=<?php echo $sl['lat_co']; ?>,<?php echo $sl['lon_co']; ?>" target="_blank" style="text-decoration: none; font-size:10px; line-height:1;" title="Lokasi Clock Out">📍</a>
+                        <?php endif; ?>
+                      </span>
                     </div>
                   </div>
                 </div>
