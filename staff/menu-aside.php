@@ -256,23 +256,23 @@ $salesPrefix = $isSalesDir ? '' : 'sales/';
 
                 <?php renderNavHeader("Aplikasi Sales"); ?>
                 <?php renderNavItem($pageNow, "Dashboard Sales", $salesPrefix . "index-sa.php", "fa-solid fa-chart-line", "Dashboard Sales"); ?>
-                <?php renderNavItem($pageNow, "Data Sales", $salesPrefix . "sales.php", "fa-solid fa-user-group", "Data Sales"); ?>
-                <?php renderNavItem($pageNow, "Kunjungan Sales", $salesPrefix . "kegiatan-baru.php", "fa-solid fa-map-location-dot", "Jadwal Kunjungan"); ?>
-                <?php renderNavItem($pageNow, "Laporan Visit", $salesPrefix . "laporan-cust.php", "fa-solid fa-file-contract", "Laporan Visit"); ?>
-                <?php renderNavItem($pageNow, "Customer Sales", $salesPrefix . "customer.php", "fa-solid fa-address-book", "Customer Sales"); ?>
+                <?php renderNavItem($pageNow, "Sales", $salesPrefix . "sales.php", "fa-solid fa-user-group", "Data Sales"); ?>
+                <?php renderNavItem($pageNow, "Kegiatan Baru", $salesPrefix . "kegiatan-baru.php", "fa-solid fa-map-location-dot", "Jadwal Kunjungan"); ?>
+                <?php renderNavItem($pageNow, "Laporan", $salesPrefix . "laporan-cust.php", "fa-solid fa-file-contract", "Laporan Visit"); ?>
+                <?php renderNavItem($pageNow, "Data Customer", $salesPrefix . "customer.php", "fa-solid fa-address-book", "Customer Sales"); ?>
             <?php endif; ?>
 
 
             <?php if ($role == 'Sales Manager' || $role == 'Sales') : ?>
                 <?php renderNavHeader("Sales"); ?>
-                <?php renderNavItem($pageNow, ($role == 'Sales Manager' ? "Dashboard" : "Dashboard Sales"), $salesPrefix . "index-sa.php", "fa-solid fa-chart-line", "Dashboard"); ?>
+                <?php renderNavItem($pageNow, "Dashboard Sales", $salesPrefix . "index-sa.php", "fa-solid fa-chart-line", "Dashboard"); ?>
                 <?php renderNavItem($pageNow, "Kegiatan Saya", $salesPrefix . "sales/index.php", "fa-solid fa-user-check", "Kegiatan Saya"); ?>
-                <?php renderNavItem($pageNow, "Kegiatan Sales", $salesPrefix . "kegiatan-baru.php", "fa-solid fa-map-location-dot", "Visit Customer"); ?>
+                <?php renderNavItem($pageNow, "Kegiatan Baru", $salesPrefix . "kegiatan-baru.php", "fa-solid fa-map-location-dot", "Visit Customer"); ?>
                 <?php renderNavItem($pageNow, "Data Customer", $salesPrefix . "customer.php", "fa-solid fa-address-book", "Customer"); ?>
                 
                 <?php if ($role == 'Sales Manager') : ?>
                     <?php renderNavItem($pageNow, "Laporan", $salesPrefix . "laporan-cust.php", "fa-solid fa-file-contract", "Laporan Visit"); ?>
-                    <?php renderNavItem($pageNow, "Data Sales", $salesPrefix . "sales.php", "fa-solid fa-user-group", "Tim Sales"); ?>
+                    <?php renderNavItem($pageNow, "Sales", $salesPrefix . "sales.php", "fa-solid fa-user-group", "Tim Sales"); ?>
                 <?php endif; ?>
                 
                 <?php renderNavHeader("Teknisi"); ?>
