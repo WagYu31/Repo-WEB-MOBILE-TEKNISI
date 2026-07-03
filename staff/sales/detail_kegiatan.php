@@ -22,7 +22,8 @@ $resultKegiatan = mysqli_query($conn, $sqlKegiatan);
 $data = mysqli_fetch_assoc($resultKegiatan);
 
 // Ambil tim sales
-$sqlSales = "SELECT s.nama AS nama_sales, ps.status, ps.keterangan, ps.image_1, ps.image_2, ps.image_3, ps.record 
+$sqlSales = "SELECT s.nama AS nama_sales, ps.status, ps.keterangan, ps.image_1, ps.image_2, ps.image_3, ps.record,
+                    ps.ci_at, ps.co_at, ps.lat_ci, ps.lon_ci, ps.lat_co, ps.lon_co, ps.catatan_visit 
              FROM team_kegiatan_sales tks
              LEFT JOIN sales s ON tks.id_sales = s.id
              LEFT JOIN pelaksanaan_sales ps ON ps.kegiatan_id = tks.id_kegiatan_sales AND ps.sales_id = tks.id_sales
@@ -285,11 +286,45 @@ $resultSales = mysqli_query($conn, $sqlSales);
                     </span>
                   </div>
 
-                  <?php if (!empty($row['keterangan'])): ?>
+                  <!-- Waktu Absensi (Clock In & Clock Out) -->
+                  <div class="row g-2 mb-3 p-3 rounded-3" style="background: #f8fafc; border: 1px solid #e2e8f0; margin-left: 0; margin-right: 0;">
+                    <div class="col-6" style="border-right: 1px solid #cbd5e1; padding-right: 10px;">
+                      <span class="info-label" style="margin-bottom: 2px; font-size: 9px; color: #10b981; gap: 4px; text-transform: uppercase;">
+                        <span class="material-symbols-outlined" style="font-size: 13px;">login</span> Clock In
+                      </span>
+                      <span style="font-size: 12.5px; font-weight: 700; color: #1e293b; display: block; font-family: monospace;">
+                        <?= !empty($row['ci_at']) ? date('d M, H:i', strtotime($row['ci_at'])) . ' WIB' : '<span class="text-muted font-weight-normal" style="font-family:sans-serif; font-size:11px;">Belum In</span>'; ?>
+                      </span>
+                      <?php if (!empty($row['lat_ci']) && !empty($row['lon_ci'])): ?>
+                        <a href="https://www.google.com/maps/search/?api=1&query=<?= $row['lat_ci']; ?>,<?= $row['lon_ci']; ?>" target="_blank" style="font-size: 10.5px; color: #2563eb; text-decoration: none; display: inline-flex; align-items: center; gap: 2px; margin-top: 4px; font-weight:700;">
+                          <span class="material-symbols-outlined" style="font-size:12px;">location_on</span> Lokasi CI
+                        </a>
+                      <?php endif; ?>
+                    </div>
+                    <div class="col-6" style="padding-left: 14px;">
+                      <span class="info-label" style="margin-bottom: 2px; font-size: 9px; color: #ef4444; gap: 4px; text-transform: uppercase;">
+                        <span class="material-symbols-outlined" style="font-size: 13px;">logout</span> Clock Out
+                      </span>
+                      <span style="font-size: 12.5px; font-weight: 700; color: #1e293b; display: block; font-family: monospace;">
+                        <?= !empty($row['co_at']) ? date('d M, H:i', strtotime($row['co_at'])) . ' WIB' : '<span class="text-muted font-weight-normal" style="font-family:sans-serif; font-size:11px;">Belum Out</span>'; ?>
+                      </span>
+                      <?php if (!empty($row['lat_co']) && !empty($row['lon_co'])): ?>
+                        <a href="https://www.google.com/maps/search/?api=1&query=<?= $row['lat_co']; ?>,<?= $row['lon_co']; ?>" target="_blank" style="font-size: 10.5px; color: #2563eb; text-decoration: none; display: inline-flex; align-items: center; gap: 2px; margin-top: 4px; font-weight:700;">
+                          <span class="material-symbols-outlined" style="font-size:12px;">location_on</span> Lokasi CO
+                        </a>
+                      <?php endif; ?>
+                    </div>
+                  </div>
+
+                  <!-- Catatan Kunjungan -->
+                  <?php 
+                  $catatan = !empty($row['catatan_visit']) ? $row['catatan_visit'] : (!empty($row['keterangan']) ? $row['keterangan'] : '');
+                  if (!empty($catatan)): 
+                  ?>
                     <div class="mb-3">
                       <span class="info-label" style="margin-bottom: 4px;">Catatan Kunjungan</span>
                       <div class="laporan-note">
-                        "<?= htmlspecialchars($row['keterangan']); ?>"
+                        "<?= htmlspecialchars($catatan); ?>"
                       </div>
                     </div>
                   <?php endif; ?>

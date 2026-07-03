@@ -183,7 +183,7 @@ foreach ($tab_meta as $k => $m) {
 
             // Ambil sales
             $salesList = [];
-            $sqlSales  = "SELECT s.nama AS nama_sales, ps.status AS status_pelaksanaan
+            $sqlSales  = "SELECT s.nama AS nama_sales, ps.status AS status_pelaksanaan, ps.ci_at, ps.co_at
                           FROM team_kegiatan_sales tks
                           LEFT JOIN sales s ON tks.id_sales = s.id
                           LEFT JOIN pelaksanaan_sales ps ON ps.kegiatan_id = tks.id_kegiatan_sales AND ps.sales_id = tks.id_sales
@@ -193,7 +193,16 @@ foreach ($tab_meta as $k => $m) {
               $st   = strtolower($s['status_pelaksanaan'] ?? 'dijadwalkan');
               $cls  = match($st) { 'berjalan'=>'status-running','selesai'=>'status-done', default=>'status-scheduled' };
               $lbl  = match($st) { 'berjalan'=>'Berjalan','selesai'=>'Selesai', default=>'Dijadwalkan' };
-              $salesList[] = ['nama'=>$s['nama_sales'],'cls'=>$cls,'lbl'=>$lbl];
+              $ci_time = !empty($s['ci_at']) ? date('H:i', strtotime($s['ci_at'])) : '';
+              $co_time = !empty($s['co_at']) ? date('H:i', strtotime($s['co_at'])) : '';
+              
+              $salesList[] = [
+                'nama' => $s['nama_sales'],
+                'cls' => $cls,
+                'lbl' => $lbl,
+                'ci_time' => $ci_time,
+                'co_time' => $co_time
+              ];
             }
           ?>
 
@@ -236,7 +245,19 @@ foreach ($tab_meta as $k => $m) {
                   </div>
                   <div class="d-flex flex-column">
                     <span class="sales-name"><?php echo htmlspecialchars($sl['nama']); ?></span>
-                    <span class="sales-status-badge <?php echo $sl['cls']; ?>"><?php echo $sl['lbl']; ?></span>
+                    <div class="d-flex align-items-center gap-1 flex-wrap mt-1">
+                      <span class="sales-status-badge <?php echo $sl['cls']; ?>"><?php echo $sl['lbl']; ?></span>
+                      <?php if (!empty($sl['ci_time'])): ?>
+                        <span class="badge bg-light text-success font-weight-bold" style="font-size: 9px; padding: 2px 6px; border: 1px solid #d1fae5; border-radius: 4px; font-family: monospace; text-transform: uppercase;" title="Jam Clock In">
+                          📥 IN: <?php echo $sl['ci_time']; ?>
+                        </span>
+                      <?php endif; ?>
+                      <?php if (!empty($sl['co_time'])): ?>
+                        <span class="badge bg-light text-danger font-weight-bold" style="font-size: 9px; padding: 2px 6px; border: 1px solid #fee2e2; border-radius: 4px; font-family: monospace; text-transform: uppercase;" title="Jam Clock Out">
+                          📤 OUT: <?php echo $sl['co_time']; ?>
+                        </span>
+                      <?php endif; ?>
+                    </div>
                   </div>
                 </div>
                 <?php endforeach; ?>
