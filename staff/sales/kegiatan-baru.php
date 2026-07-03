@@ -64,6 +64,73 @@ $currentPage = "Today";
       outline: none;
     }
 
+    /* ── Custom Dropdown styling matching technician flow ── */
+    .dropdown-container {
+      position: relative;
+    }
+    
+    .dropdown-button-cust {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 10px;
+      background: #fff;
+      text-align: left;
+      font-size: 14px;
+      color: #475569;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .dropdown-button-cust:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+      outline: none;
+    }
+    
+    .dropdown-menu-cust {
+      display: none;
+      position: absolute;
+      background: white;
+      border: 1.5px solid #cbd5e1;
+      width: 100%;
+      z-index: 1000;
+      max-height: 250px;
+      overflow-y: auto;
+      border-radius: 10px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+      margin-top: 4px;
+    }
+    
+    .dropdown-search-cust {
+      width: 100%;
+      padding: 10px 14px;
+      border: none;
+      border-bottom: 1.5px solid #e2e8f0;
+      position: sticky;
+      top: 0;
+      outline: none;
+      font-size: 13.5px;
+      background: #f8fafc;
+    }
+    
+    .dropdown-item-cust {
+      padding: 11px 16px;
+      cursor: pointer;
+      font-size: 13.5px;
+      color: #334155;
+      border-bottom: 1px solid #f1f5f9;
+      transition: background-color 0.15s ease;
+    }
+    
+    .dropdown-item-cust:hover {
+      background-color: #f0f7ff;
+      color: #1d4ed8;
+    }
+
     /* ── Map Container ── */
     #map {
       height: 300px;
@@ -110,8 +177,8 @@ $currentPage = "Today";
     .avatar-initials-small {
       width: 40px; height: 40px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
-      color: #475569;
+      background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+      color: #4338ca;
       font-size: 13px; font-weight: 700;
       display: flex; align-items: center; justify-content: center;
       transition: all 0.25s ease;
@@ -150,8 +217,17 @@ $currentPage = "Today";
       align-items: center;
     }
     
+    .sales-card-checkbox span {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      font-size: 22px;
+    }
+    
     .sales-select-input:checked + .sales-card-content .sales-card-checkbox {
       color: #3b82f6;
+    }
+    
+    .sales-select-input:checked + .sales-card-content .sales-card-checkbox span {
+      font-variation-settings: 'FILL' 1, 'wght' 700, 'GRAD' 0, 'opsz' 24;
     }
 
     /* ── Submit Button ── */
@@ -329,18 +405,27 @@ $currentPage = "Today";
                   <textarea class="input-premium" name="visit" rows="4" placeholder="Tuliskan keterangan detail rencana kunjungan sales..." required></textarea>
                 </div>
 
+                <!-- Custom Searchable Dropdown for Customers -->
                 <div class="form-group-premium">
-                  <label for="id_customer" class="form-label-premium">
+                  <label class="form-label-premium">
                     <span class="material-symbols-outlined" style="font-size:16px; color:#3b82f6;">person</span> Pilih Customer (Toko/Mitra)
                   </label>
-                  <select class="input-premium" id="id_customer" name="id_customer" required>
-                    <option value="">-- Pilih Customer --</option>
-                    <?php while ($c = mysqli_fetch_assoc($customerResult)): ?>
-                      <option value="<?php echo $c['id']; ?>" data-id-wilayah="<?php echo $c['id_wilayah']; ?>">
-                        <?php echo htmlspecialchars($c['nama'] . ' - [' . ($c['nama_wilayah'] ?? 'Tanpa Wilayah') . ']'); ?>
-                      </option>
-                    <?php endwhile; ?>
-                  </select>
+                  <div class="dropdown-container">
+                    <button type="button" class="dropdown-button-cust" id="dropdownCustBtn">
+                      <span>-- Pilih Customer --</span>
+                      <span class="material-symbols-outlined" style="font-size:18px; color:#64748b;">expand_more</span>
+                    </button>
+                    <div class="dropdown-menu-cust" id="dropdownCustMenu">
+                      <input type="text" class="dropdown-search-cust" id="dropdownCustSearch" placeholder="Cari nama atau wilayah customer...">
+                      <?php while ($c = mysqli_fetch_assoc($customerResult)): ?>
+                        <?php $cRegion = $c['nama_wilayah'] ?? 'Tanpa Wilayah'; ?>
+                        <div class="dropdown-item-cust" data-id="<?php echo $c['id']; ?>" data-id-wilayah="<?php echo $c['id_wilayah']; ?>">
+                          <?php echo htmlspecialchars($c['nama'] . ' - [' . $cRegion . ']'); ?>
+                        </div>
+                      <?php endwhile; ?>
+                    </div>
+                  </div>
+                  <input type="hidden" id="id_customer" name="id_customer" required>
                 </div>
 
                 <div class="form-group-premium">
@@ -469,10 +554,7 @@ $currentPage = "Today";
   <!-- Auto-Filter & Map Script -->
   <script>
     // ── Auto-Filter Sales based on Customer Region ──
-    document.getElementById('id_customer').addEventListener('change', function() {
-      const selectedOption = this.options[this.selectedIndex];
-      const customerWilayah = selectedOption.getAttribute('data-id-wilayah');
-      
+    function filterSales(customerWilayah) {
       document.querySelectorAll('.sales-checkbox-item').forEach(item => {
         const salesWilayah = item.getAttribute('data-id-wilayah');
         if (!customerWilayah || customerWilayah === "" || salesWilayah === customerWilayah) {
@@ -483,10 +565,52 @@ $currentPage = "Today";
           if (checkbox) checkbox.checked = false;
         }
       });
-    });
+    }
 
-    // ── Interactive Leaflet Map Logic ──
+    // ── Custom Dropdown Event Listeners ──
     document.addEventListener('DOMContentLoaded', function() {
+      const custBtn = document.getElementById('dropdownCustBtn');
+      const custMenu = document.getElementById('dropdownCustMenu');
+      const custSearch = document.getElementById('dropdownCustSearch');
+      const idCustInput = document.getElementById('id_customer');
+
+      custBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        custMenu.style.display = custMenu.style.display === 'block' ? 'none' : 'block';
+        if (custMenu.style.display === 'block') {
+          custSearch.focus();
+        }
+      });
+
+      custSearch.addEventListener('keyup', function() {
+        const filter = custSearch.value.toUpperCase();
+        document.querySelectorAll('.dropdown-item-cust').forEach(item => {
+          const txtValue = item.textContent || item.innerText;
+          item.style.display = txtValue.toUpperCase().indexOf(filter) > -1 ? '' : 'none';
+        });
+      });
+
+      document.querySelectorAll('.dropdown-item-cust').forEach(item => {
+        item.addEventListener('click', function() {
+          custBtn.querySelector('span:first-child').innerText = this.innerText;
+          idCustInput.value = this.dataset.id;
+          custMenu.style.display = 'none';
+
+          // Run the filter
+          const customerWilayah = this.dataset.idWilayah;
+          filterSales(customerWilayah);
+        });
+      });
+
+      // Close dropdown when clicking outside
+      window.addEventListener('click', function() {
+        custMenu.style.display = 'none';
+      });
+
+      custMenu.addEventListener('click', function(e) {
+        e.stopPropagation();
+      });
+
       // ── Populate Hour Select ──
       const hourSelect = document.getElementById('visit_hour');
       for (let i = 0; i < 24; i++) {
