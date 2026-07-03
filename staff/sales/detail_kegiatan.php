@@ -573,7 +573,7 @@ $left_col_class = $has_coords ? "col-lg-7" : "col-lg-12";
                       if ($sales_count > 1) {
                           $card_grid_class = "col-md-6";
                       } else {
-                          $card_grid_class = "col-md-8 mx-auto";
+                          $card_grid_class = "col-12";
                       }
                   }
                 ?>
