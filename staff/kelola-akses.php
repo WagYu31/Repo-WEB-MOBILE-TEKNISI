@@ -26,6 +26,39 @@ if ($checkTable && mysqli_num_rows($checkTable) == 0) {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
     mysqli_query($conn, $createTable);
 }
+
+// Controller: Tambah User Baru
+$alertMsg = "";
+$alertType = "";
+if (isset($_POST['tambah_user'])) {
+    $name = mysqli_real_escape_string($conn, $_POST['name']);
+    $email = mysqli_real_escape_string($conn, $_POST['email']);
+    $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+    $jabatan = mysqli_real_escape_string($conn, $_POST['jabatan']);
+    $date = date('Y-m-d H:i:s');
+
+    // Cek apakah email sudah terdaftar
+    $checkEmail = $conn->prepare("SELECT id FROM users WHERE email = ?");
+    $checkEmail->bind_param("s", $email);
+    $checkEmail->execute();
+    $resCheck = $checkEmail->get_result();
+    if ($resCheck->num_rows > 0) {
+        $alertMsg = "Gagal menambah user: Email / Username sudah terdaftar!";
+        $alertType = "danger";
+    } else {
+        $stmt = $conn->prepare("INSERT INTO users (name, email, password, jabatan, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("ssssss", $name, $email, $password, $jabatan, $date, $date);
+        if ($stmt->execute()) {
+            $alertMsg = "User baru berhasil ditambahkan!";
+            $alertType = "success";
+        } else {
+            $alertMsg = "Gagal menambah user: " . $stmt->error;
+            $alertType = "danger";
+        }
+        $stmt->close();
+    }
+    $checkEmail->close();
+}
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -58,9 +91,24 @@ if ($checkTable && mysqli_num_rows($checkTable) == 0) {
         <?php include "nav-top.php"; ?>
         
         <div class="container-fluid py-4">
+            
+            <?php if (!empty($alertMsg)) : ?>
+                <div class="alert alert-<?php echo $alertType; ?> alert-dismissible fade show text-white font-weight-bold" role="alert" style="border-radius: 8px;">
+                    <span class="alert-text text-sm"><i class="fa-solid <?php echo ($alertType === 'success') ? 'fa-circle-check' : 'fa-circle-xmark'; ?> me-2"></i><?php echo $alertMsg; ?></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" style="color: white; filter: brightness(0) invert(1);"></button>
+                </div>
+            <?php endif; ?>
+
             <div class="d-sm-flex justify-content-between align-items-center mb-4">
-                <h4 class="mb-2 mb-sm-0 text-uppercase font-weight-bold">Kelola Akses Menu</h4>
-                <p class="text-secondary text-sm mb-0">Atur hak akses menu navigasi untuk masing-masing user secara dinamis</p>
+                <div>
+                    <h4 class="mb-2 mb-sm-0 text-uppercase font-weight-bold">Kelola Akses Menu</h4>
+                    <p class="text-secondary text-sm mb-0">Atur hak akses menu navigasi untuk masing-masing user secara dinamis</p>
+                </div>
+                <div class="d-flex mt-3 mt-sm-0">
+                    <button class="btn btn-primary font-weight-bold px-4 py-2" data-bs-toggle="modal" data-bs-target="#tambahUserModal">
+                        <i class="fa-solid fa-user-plus me-2"></i>Tambah User Baru
+                    </button>
+                </div>
             </div>
             
             <div class="card premium-card mt-4">
@@ -114,6 +162,48 @@ if ($checkTable && mysqli_num_rows($checkTable) == 0) {
         </div>
         <?php include "footer.php"; ?>
     </main>
+
+    <!-- Modal: Tambah User Baru -->
+    <div class="modal fade" id="tambahUserModal" tabindex="-1" aria-labelledby="tambahUserModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 16px;">
+                <div class="modal-header border-bottom py-3">
+                    <h5 class="modal-title font-weight-bold text-dark" id="tambahUserModalLabel"><i class="fa-solid fa-user-plus me-2 text-primary"></i>Tambah Pengguna Baru</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="post" action="">
+                    <div class="modal-body py-4">
+                        <div class="mb-3">
+                            <label class="form-label text-dark font-weight-bold text-xs text-uppercase">Nama Lengkap</label>
+                            <input type="text" name="name" class="form-control px-3" placeholder="Masukkan nama lengkap user..." required style="border: 1px solid #ced4da; border-radius: 8px;">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-dark font-weight-bold text-xs text-uppercase">Username / Email</label>
+                            <input type="text" name="email" class="form-control px-3" placeholder="Masukkan email atau username login..." required style="border: 1px solid #ced4da; border-radius: 8px;">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-dark font-weight-bold text-xs text-uppercase">Password</label>
+                            <input type="password" name="password" class="form-control px-3" placeholder="Masukkan password login..." required style="border: 1px solid #ced4da; border-radius: 8px;">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-dark font-weight-bold text-xs text-uppercase">Jabatan / Peran</label>
+                            <select name="jabatan" class="form-select px-3" required style="border: 1px solid #ced4da; border-radius: 8px;">
+                                <option value="Admin">Admin</option>
+                                <option value="Sales Manager">Sales Manager</option>
+                                <option value="Sales">Sales</option>
+                                <option value="Teknisi">Teknisi</option>
+                                <option value="Super Admin">Super Admin</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-top py-3">
+                        <button type="button" class="btn btn-secondary mb-0 px-4 py-2 font-weight-bold text-xs" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" name="tambah_user" class="btn btn-primary mb-0 px-4 py-2 font-weight-bold text-xs">Simpan User</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <!-- Modal Kelola Akses Menu -->
     <div class="modal fade" id="aksesModal" tabindex="-1" aria-labelledby="aksesModalLabel" aria-hidden="true">
