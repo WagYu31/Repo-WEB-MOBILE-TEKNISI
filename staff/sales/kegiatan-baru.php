@@ -19,58 +19,40 @@ $currentPage = "Today";
     /* ── Premium Form Card Styling ── */
     .card-premium {
       background: #fff;
-      border: 1px solid #e2e8f0;
-      border-radius: 12px;
+      border: none;
+      border-radius: 16px;
       overflow: hidden;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
       margin-bottom: 24px;
     }
     
-    .section-header-premium {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 16px 24px;
-      background: #1e293b;
-      color: #fff;
-    }
-    
-    .section-header-premium h6 {
-      margin: 0;
-      font-size: 14px;
-      font-weight: 700;
-      color: #fff;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      display: flex;
-      align-items: center;
-    }
-    
     .card-body-premium {
-      padding: 32px;
+      padding: 36px 40px;
     }
 
     /* ── Form Inputs ── */
     .form-group-premium {
-      margin-bottom: 20px;
+      margin-bottom: 22px;
     }
     
     .form-label-premium {
-      display: block;
-      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
       font-weight: 700;
-      color: #334155;
+      color: #475569;
       margin-bottom: 8px;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.08em;
     }
     
     .input-premium {
       width: 100%;
-      border: 1px solid #cbd5e1;
+      border: 1.5px solid #e2e8f0;
       border-radius: 10px;
-      padding: 11px 16px !important;
-      font-size: 13.5px;
+      padding: 12px 16px !important;
+      font-size: 14px;
       color: #1e293b;
       background-color: #fff;
       transition: all 0.2s ease;
@@ -84,11 +66,11 @@ $currentPage = "Today";
 
     /* ── Map Container ── */
     #map {
-      height: 280px;
+      height: 300px;
       width: 100%;
-      border-radius: 12px;
-      border: 1.5px solid #cbd5e1;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      border-radius: 14px;
+      border: 1.5px solid #e2e8f0;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.02);
       margin-top: 10px;
     }
 
@@ -104,39 +86,40 @@ $currentPage = "Today";
       display: flex;
       align-items: center;
       gap: 12px;
-      padding: 12px 16px;
+      padding: 14px 18px;
       background: #fff;
-      border: 1px solid #e2e8f0;
-      border-radius: 12px;
-      transition: all 0.22s ease;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 14px;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       position: relative;
     }
     
     .sales-card-content:hover {
       border-color: #cbd5e1;
       background: #f8fafc;
-      transform: translateY(-1px);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
     }
     
     .sales-select-input:checked + .sales-card-content {
       background: #f0f7ff;
       border-color: #3b82f6;
-      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.05);
+      box-shadow: 0 6px 16px rgba(59, 130, 246, 0.08);
     }
     
     .avatar-initials-small {
-      width: 36px; height: 36px;
+      width: 40px; height: 40px;
       border-radius: 50%;
-      background: #f1f5f9;
-      color: #64748b;
-      font-size: 12px; font-weight: 700;
+      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+      color: #475569;
+      font-size: 13px; font-weight: 700;
       display: flex; align-items: center; justify-content: center;
-      transition: all 0.2s ease;
+      transition: all 0.25s ease;
       flex-shrink: 0;
     }
     
     .sales-select-input:checked + .sales-card-content .avatar-initials-small {
-      background: #3b82f6;
+      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
       color: #fff;
     }
     
@@ -146,7 +129,7 @@ $currentPage = "Today";
     }
     
     .sales-card-name {
-      font-size: 13px; font-weight: 700;
+      font-size: 13.5px; font-weight: 700;
       color: #1e293b;
       line-height: 1.2;
     }
@@ -156,7 +139,7 @@ $currentPage = "Today";
       margin-top: 4px;
       display: flex;
       align-items: center;
-      gap: 4px;
+      gap: 6px;
     }
     
     .sales-card-checkbox {
@@ -173,21 +156,21 @@ $currentPage = "Today";
 
     /* ── Submit Button ── */
     .btn-submit-premium {
-      background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #2563eb 100%);
       color: #fff !important;
       border: none;
-      border-radius: 10px;
-      padding: 12px 28px;
+      border-radius: 12px;
+      padding: 14px 32px;
       font-size: 14px; font-weight: 700;
       display: inline-flex; align-items: center; gap: 8px;
-      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-      transition: all 0.22s ease;
+      box-shadow: 0 4px 20px rgba(37, 99, 235, 0.25);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       cursor: pointer;
     }
     
     .btn-submit-premium:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+      box-shadow: 0 8px 28px rgba(37, 99, 235, 0.4);
     }
     
     .btn-submit-premium:active {
@@ -195,7 +178,7 @@ $currentPage = "Today";
     }
     
     .btn-submit-premium .material-symbols-outlined {
-      font-size: 18px;
+      font-size: 20px;
     }
 
     input[type="checkbox"] {
@@ -221,11 +204,20 @@ $currentPage = "Today";
 
       <div class="card-premium">
         
-        <div class="section-header-premium">
-          <h6>
-            <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 8px;">add_task</span>
-            Form Tambah Kegiatan Sales Baru
-          </h6>
+        <!-- Premium Gradient Header -->
+        <div style="background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 40%,#2563eb 100%);padding:28px 36px;position:relative;overflow:hidden;">
+            <div style="position:absolute;top:-40px;right:-20px;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,0.04);"></div>
+            <div style="position:absolute;bottom:-50px;right:100px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,0.03);"></div>
+            <div style="position:absolute;top:10px;right:30px;width:60px;height:60px;border-radius:50%;background:rgba(59,130,246,0.2);"></div>
+            <div style="display:flex;align-items:center;gap:14px;position:relative;z-index:1;">
+                <div style="width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,0.12);backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,0.1);">
+                    <span class="material-symbols-outlined" style="color:#fff;font-size:22px;">add_task</span>
+                </div>
+                <div>
+                    <h5 style="color:#fff;margin:0;font-size:18px;font-weight:700;letter-spacing:-0.3px;">Form Tambah Kegiatan Sales Baru</h5>
+                    <p style="color:rgba(255,255,255,0.6);margin:0;font-size:12px;margin-top:2px;">Buat, jadwalkan, dan tentukan lokasi geofence kunjungan sales</p>
+                </div>
+            </div>
         </div>
 
         <div class="card-body-premium">
@@ -265,7 +257,7 @@ $currentPage = "Today";
               $status = 'dijadwalkan';
               $selectedSales = $_POST['sales'] ?? [];
 
-              // Insert ke kegiatan_sales (mendukung kolom koordinat baru)
+              // Insert ke kegiatan_sales
               $stmt = $conn->prepare("
                   INSERT INTO kegiatan_sales (jadwal, keterangan, id_customer, status, lat, lon, rad, alamat_lokasi, created_at, updated_at) 
                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
@@ -300,24 +292,30 @@ $currentPage = "Today";
             <div class="row">
               
               <!-- LEFT COLUMN: Form Fields -->
-              <div class="col-lg-7" style="border-right: 1px solid #f1f5f9; padding-right: 28px;">
-                <div style="display:flex;align-items:center;gap:8px;margin-bottom:20px;">
+              <div class="col-lg-7" style="border-right: 1px solid #f1f5f9; padding-right: 32px;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:24px;">
                     <div style="width:3px;height:16px;background:#3b82f6;border-radius:2px;"></div>
-                    <span style="font-size:13px;font-weight:700;color:#1e293b;text-transform: uppercase;">Informasi Kegiatan</span>
+                    <span style="font-size:12px;font-weight:800;color:#1e293b;text-transform: uppercase; letter-spacing: 0.05em;">Informasi Kegiatan</span>
                 </div>
 
                 <div class="form-group-premium">
-                  <label for="jadwal" class="form-label-premium">Jadwal Visit</label>
+                  <label for="jadwal" class="form-label-premium">
+                    <span class="material-symbols-outlined" style="font-size:16px; color:#3b82f6;">event</span> Jadwal Visit
+                  </label>
                   <input type="datetime-local" class="input-premium" name="jadwal" required>
                 </div>
 
                 <div class="form-group-premium">
-                  <label for="visit" class="form-label-premium">Keperluan Kunjungan</label>
+                  <label for="visit" class="form-label-premium">
+                    <span class="material-symbols-outlined" style="font-size:16px; color:#3b82f6;">notes</span> Keperluan Kunjungan
+                  </label>
                   <textarea class="input-premium" name="visit" rows="4" placeholder="Tuliskan keterangan detail rencana kunjungan sales..." required></textarea>
                 </div>
 
                 <div class="form-group-premium">
-                  <label for="id_customer" class="form-label-premium">Pilih Customer (Toko/Mitra)</label>
+                  <label for="id_customer" class="form-label-premium">
+                    <span class="material-symbols-outlined" style="font-size:16px; color:#3b82f6;">person</span> Pilih Customer (Toko/Mitra)
+                  </label>
                   <select class="input-premium" id="id_customer" name="id_customer" required>
                     <option value="">-- Pilih Customer --</option>
                     <?php while ($c = mysqli_fetch_assoc($customerResult)): ?>
@@ -329,9 +327,25 @@ $currentPage = "Today";
                 </div>
 
                 <div class="form-group-premium">
-                  <label class="form-label-premium">Pilih Sales Agent Terlibat</label>
+                  <label class="form-label-premium">
+                    <span class="material-symbols-outlined" style="font-size:16px; color:#3b82f6;">group</span> Pilih Sales Agent Terlibat
+                  </label>
                   <div class="row g-3" id="sales-list-container">
                     <?php while ($s = mysqli_fetch_assoc($salesResult)): ?>
+                      <?php
+                        $regionName = $s['nama_wilayah'] ?? 'Tanpa Wilayah';
+                        if (stripos($regionName, 'Jabodetabek') !== false) {
+                            $badgeStyle = 'background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: #fff;';
+                        } elseif (stripos($regionName, 'Jawa Timur') !== false) {
+                            $badgeStyle = 'background: linear-gradient(135deg, #7c2d12, #ea580c); color: #fff;';
+                        } elseif (stripos($regionName, 'Jawa Tengah') !== false) {
+                            $badgeStyle = 'background: linear-gradient(135deg, #065f46, #10b981); color: #fff;';
+                        } elseif (stripos($regionName, 'Jawa Barat') !== false) {
+                            $badgeStyle = 'background: linear-gradient(135deg, #5b21b6, #8b5cf6); color: #fff;';
+                        } else {
+                            $badgeStyle = 'background: linear-gradient(135deg, #374151, #4b5563); color: #fff;';
+                        }
+                      ?>
                       <div class="col-md-6 sales-checkbox-item" data-id-wilayah="<?php echo $s['id_wilayah']; ?>">
                         <label class="sales-select-card" for="sales<?php echo $s['id']; ?>">
                           <input class="sales-select-input d-none" type="checkbox" name="sales[]" value="<?php echo $s['id']; ?>" id="sales<?php echo $s['id']; ?>">
@@ -346,8 +360,8 @@ $currentPage = "Today";
                               <span class="sales-card-name"><?php echo htmlspecialchars($s['nama']); ?></span>
                               <span class="sales-card-role">
                                 Sales Agent 
-                                <span class="badge bg-secondary text-capitalize" style="font-size: 8px; padding: 2px 6px; letter-spacing: 0.05em; font-weight: 700;">
-                                  <?php echo htmlspecialchars($s['nama_wilayah'] ?? 'Tanpa Wilayah'); ?>
+                                <span class="badge" style="font-size: 8px; padding: 3px 6px; letter-spacing: 0.05em; font-weight: 700; text-transform: uppercase; <?= $badgeStyle; ?>">
+                                  <?php echo htmlspecialchars($regionName); ?>
                                 </span>
                               </span>
                             </div>
@@ -363,18 +377,20 @@ $currentPage = "Today";
               </div>
 
               <!-- RIGHT COLUMN: Map Selector -->
-              <div class="col-lg-5" style="padding-left: 28px;">
-                <div style="display:flex;align-items:center;gap:8px;margin-bottom:20px;">
+              <div class="col-lg-5" style="padding-left: 32px;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:24px;">
                     <div style="width:3px;height:16px;background:#10b981;border-radius:2px;"></div>
-                    <span style="font-size:13px;font-weight:700;color:#1e293b;text-transform: uppercase;">Lokasi &amp; Peta</span>
-                    <span style="font-size:11px;color:#94a3b8;font-weight:400;">(Opsional)</span>
+                    <span style="font-size:12px;font-weight:800;color:#1e293b;text-transform: uppercase; letter-spacing: 0.05em;">Lokasi &amp; Peta</span>
+                    <span style="font-size:11px;color:#94a3b8;font-weight:400;margin-left:4px;">(Opsional)</span>
                 </div>
 
                 <div class="form-group-premium">
-                  <label class="form-label-premium">Cari Koordinat / Alamat</label>
+                  <label class="form-label-premium">
+                    <span class="material-symbols-outlined" style="font-size:16px; color:#10b981;">search</span> Cari Koordinat / Alamat
+                  </label>
                   <div class="d-flex gap-2">
-                    <input type="text" id="gmap_search" class="input-premium" placeholder="Masukkan koordinat atau alamat...">
-                    <button type="button" id="gmap_search_btn" class="btn bg-gradient-info text-white font-weight-bold" style="border-radius:10px; padding: 10px 16px; font-size:11px; display:inline-flex; align-items:center; gap:4px; margin-bottom:0;">
+                    <input type="text" id="gmap_search" class="input-premium" placeholder="Contoh: Jawa Timur atau -6.175, 106.827...">
+                    <button type="button" id="gmap_search_btn" class="btn bg-gradient-info text-white font-weight-bold" style="border-radius:10px; padding: 12px 18px; font-size:11px; display:inline-flex; align-items:center; gap:4px; margin-bottom:0;">
                       <span class="material-symbols-outlined" style="font-size:16px;">search</span>CARI
                     </button>
                   </div>
@@ -385,15 +401,15 @@ $currentPage = "Today";
 
                 <div class="row g-2 mt-3">
                   <div class="col-5">
-                    <label class="form-label-premium" style="font-size: 9px;">Latitude</label>
+                    <label class="form-label-premium" style="font-size: 9px; color:#64748b;">Latitude</label>
                     <input type="text" id="lat_display" class="input-premium" placeholder="-6.xxxxx" style="font-family: monospace; font-size:12px; padding: 8px 12px !important; background:#f8fafc;" readonly>
                   </div>
                   <div class="col-5">
-                    <label class="form-label-premium" style="font-size: 9px;">Longitude</label>
+                    <label class="form-label-premium" style="font-size: 9px; color:#64748b;">Longitude</label>
                     <input type="text" id="lon_display" class="input-premium" placeholder="106.xxxxx" style="font-family: monospace; font-size:12px; padding: 8px 12px !important; background:#f8fafc;" readonly>
                   </div>
                   <div class="col-2">
-                    <label class="form-label-premium" style="font-size: 9px;">Radius</label>
+                    <label class="form-label-premium" style="font-size: 9px; color:#64748b;">Radius</label>
                     <input type="number" id="radius_input" class="input-premium" value="100" style="font-size:12px; padding: 8px 6px !important; text-align:center;">
                   </div>
                 </div>
