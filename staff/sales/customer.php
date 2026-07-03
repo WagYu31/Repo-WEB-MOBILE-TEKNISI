@@ -273,13 +273,17 @@ $salesData = mysqli_query($conn, "
     }
 
     /* ── Maps containers ── */
-    #map_create, #map_edit {
+    #map_create, #map_edit, #map_detail {
       height: 290px;
       width: 100%;
       border-radius: 14px;
       border: 1.5px solid #e2e8f0;
       box-shadow: 0 4px 12px rgba(0,0,0,0.02);
       margin-top: 10px;
+    }
+    
+    #map_detail {
+      height: 320px;
     }
 
     /* ── Drag & Drop Zone ── */
@@ -572,7 +576,9 @@ $salesData = mysqli_query($conn, "
     }
     .btn-act:hover { transform: scale(1.1); }
     .btn-act .material-symbols-outlined { font-size: 18px; }
-    .btn-act-edit { background: #fffbeb; color: #d97706; border-color: #fef3c7; }
+    .btn-act-view { background: #e0f2fe; color: #0369a1; border-color: #bae6fd; }
+    .btn-act-view:hover { background: #0369a1; color: #fff; box-shadow: 0 4px 10px rgba(3, 105, 161, 0.2); }
+    .btn-act-edit { background: #fffbeb; color: #d97706; border-color: #fef3c7; margin-left: 8px; }
     .btn-act-edit:hover { background: #d97706; color: #fff; box-shadow: 0 4px 10px rgba(217, 119, 6, 0.2); }
     .btn-act-delete { background: #fef2f2; color: #dc2626; border-color: #fee2e2; margin-left: 8px; }
     .btn-act-delete:hover { background: #dc2626; color: #fff; box-shadow: 0 4px 10px rgba(220, 38, 38, 0.2); }
@@ -647,6 +653,52 @@ $salesData = mysqli_query($conn, "
       appearance: checkbox;
     }
     
+    /* Detail View Styling */
+    .detail-info-row {
+      display: flex;
+      border-bottom: 1.5px solid #f1f5f9;
+      padding: 12px 0;
+      align-items: center;
+    }
+    .detail-info-label {
+      width: 140px;
+      font-size: 11px;
+      font-weight: 800;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      flex-shrink: 0;
+    }
+    .detail-info-value {
+      font-size: 14px;
+      color: #1e293b;
+      font-weight: 600;
+    }
+    
+    .detail-photo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+      gap: 14px;
+    }
+    
+    .detail-photo-card {
+      height: 110px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1.5px solid #e2e8f0;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+      transition: all 0.22s;
+    }
+    .detail-photo-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 18px rgba(0,0,0,0.1);
+      border-color: #3b82f6;
+    }
+    .detail-photo-card img {
+      width: 100%; height: 100%; object-fit: cover;
+    }
+
     <?php include "css/floating-menu2.css"; ?>
   </style>
 </head>
@@ -861,7 +913,7 @@ $salesData = mysqli_query($conn, "
               <th style="width: 200px;">Kontak Utama</th>
               <th>Alamat &amp; Kota</th>
               <th style="width: 70px; text-align: center;">Geofence</th>
-              <th style="width: 120px; text-align: center;">Aksi</th>
+              <th style="width: 160px; text-align: center;">Aksi</th>
             </tr>
           </thead>
           <tbody>
@@ -943,8 +995,8 @@ $salesData = mysqli_query($conn, "
                 <div style="display:flex; flex-direction:column; gap:6px;">
                   <?php if (!empty($row['telp_pribadi'])): ?>
                   <a href="https://wa.me/<?= htmlspecialchars($row['telp_pribadi'] ?? ''); ?>" target="_blank" class="wa-pill">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 24 24" style="vertical-align: middle; margin-top: -2px;">
-                      <path d="M12.004 0C5.378 0 0 5.378 0 12.004c0 2.115.546 4.102 1.502 5.834L0 24l6.336-1.631c1.672.913 3.585 1.439 5.668 1.439C18.63 23.808 24 18.43 24 11.802 24 5.176 18.63 0 12.004 0zm6.086 16.943c-.272.761-1.582 1.485-2.194 1.548-.514.052-1.012.07-2.01-.115-4.07-.748-7.219-4.9-7.219-9.17 0-1.577.818-2.684 2.002-2.684.214 0 .39.009.537.014.272.009.423.023.596.377.264.54.896 2.179.977 2.348.082.169.043.342-.047.52-.09.18-.152.274-.299.449-.145.171-.313.356-.145.641.766 1.282 1.884 2.274 3.218 2.943.361.18.591.12.788-.103.227-.256.969-1.127 1.226-1.51.103-.153.284-.132.484-.055.201.077 1.296.611 1.52 1.134.223.523.223.974.12 1.21-.103.238-.238.44-.55.602z"/>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-whatsapp" viewBox="0 0 16 16">
+                      <path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.949h.004c4.368 0 7.927-3.558 7.93-7.93a7.9 7.9 0 0 0 -2.327-5.607zM7.994 14.52a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592m3.69-3.186c-.202-.1-.444-.201-.645-.299-.202-.1-.303-.05-.444.1l-.273.333c-.11.14-.22.15-.42.05-.2-.1-.843-.312-1.605-.985-.59-.525-.989-1.177-1.105-1.378-.11-.2-.011-.307.09-.407.09-.09.202-.233.303-.352.1-.11.14-.19.202-.32.06-.13.03-.242-.015-.342-.045-.1-.403-.974-.552-1.332-.146-.352-.295-.302-.404-.307-.105-.005-.227-.005-.35-.005-.122 0-.323.046-.492.23-.169.183-.645.63-.645 1.537 0 .907.66 1.784.75 1.907.09.124 1.3 1.982 3.148 2.776.44.19.784.303 1.05.388.442.14.843.12 1.16.073.352-.053 1.082-.442 1.233-.87.152-.427.152-.792.107-.87-.046-.078-.169-.124-.37-.224"/>
                     </svg>
                     <?= htmlspecialchars(preg_replace('/^62/', '0', $row['telp_pribadi'] ?? '')); ?>
                   </a>
@@ -990,6 +1042,25 @@ $salesData = mysqli_query($conn, "
               </td>
               
               <td style="text-align: center;">
+                <!-- VIEW DETAIL BUTTON -->
+                <button type="button" class="btn-act btn-act-view viewDetailBtn"
+                  data-id="<?= $row['id']; ?>"
+                  data-nama="<?= htmlspecialchars($row['nama'] ?? ''); ?>"
+                  data-kategori="<?= htmlspecialchars($row['kategori'] ?? ''); ?>"
+                  data-telp="<?= htmlspecialchars($row['telp_pribadi'] ?? ''); ?>"
+                  data-email="<?= htmlspecialchars($row['email'] ?? ''); ?>"
+                  data-alamat="<?= htmlspecialchars($row['alamat'] ?? ''); ?>"
+                  data-kota="<?= htmlspecialchars($row['kota'] ?? ''); ?>"
+                  data-foto='<?= htmlspecialchars(json_encode($photos)); ?>'
+                  data-id-wilayah="<?= $row['id_wilayah']; ?>"
+                  data-wilayah="<?= htmlspecialchars($regionName); ?>"
+                  data-lat="<?= htmlspecialchars($row['lat'] ?? ''); ?>"
+                  data-lon="<?= htmlspecialchars($row['lon'] ?? ''); ?>"
+                  data-rad="<?= htmlspecialchars($row['rad'] ?? ''); ?>"
+                  data-alamat-lokasi="<?= htmlspecialchars($row['alamat_lokasi'] ?? ''); ?>"
+                  data-bs-toggle="modal" data-bs-target="#detailModal" title="Lihat Detail Customer">
+                  <span class="material-symbols-outlined">visibility</span>
+                </button>
                 <button type="button" class="btn-act btn-act-edit editBtn"
                   data-id="<?= $row['id']; ?>"
                   data-nama="<?= htmlspecialchars($row['nama'] ?? ''); ?>"
@@ -1020,6 +1091,94 @@ $salesData = mysqli_query($conn, "
             <?php endif; ?>
           </tbody>
         </table>
+      </div>
+    </div>
+
+    <!-- Modal View Detail Customer -->
+    <div class="modal fade" id="detailModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-xl">
+        <div class="modal-content modal-content-premium">
+          <div class="modal-header modal-header-premium" style="background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);">
+            <h5 class="modal-title modal-title-premium">
+              <span class="material-symbols-outlined">storefront</span>
+              Detail Sales Customer
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body modal-body-premium" style="background: #f8fafc;">
+            <div class="row">
+              
+              <!-- Left Side: Core Info -->
+              <div class="col-lg-6">
+                <div class="card border-0 shadow-sm rounded-4 p-4 mb-4" style="background: #fff;">
+                  <div style="display:flex; align-items:center; gap:16px; margin-bottom:24px;">
+                    <div id="detail_avatar_container" class="avatar-initials-table" style="width: 54px; height: 54px; font-size:18px; margin:0; cursor:default; box-shadow:none;"></div>
+                    <div>
+                      <h4 id="detail_nama" style="margin:0; font-size:18px; font-weight:800; color:#0f172a;">-</h4>
+                      <div style="display:flex; gap:6px; margin-top:4px; align-items:center;">
+                        <span id="detail_kategori" class="category-badge">-</span>
+                        <span id="detail_wilayah" class="badge" style="font-size: 8.5px; padding: 4px 10px; border-radius:30px; background:#475569; color:#fff; text-transform:uppercase; font-weight:700;">-</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="detail-info-row">
+                    <div class="detail-info-label">WhatsApp</div>
+                    <div class="detail-info-value" id="detail_telp_container">
+                      <a href="#" target="_blank" id="detail_telp_link" class="wa-pill">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M12.004 0C5.378 0 0 5.378 0 12.004c0 2.115.546 4.102 1.502 5.834L0 24l6.336-1.631c1.672.913 3.585 1.439 5.668 1.439C18.63 23.808 24 18.43 24 11.802 24 5.176 18.63 0 12.004 0zm6.086 16.943c-.272.761-1.582 1.485-2.194 1.548-.514.052-1.012.07-2.01-.115-4.07-.748-7.219-4.9-7.219-9.17 0-1.577.818-2.684 2.002-2.684.214 0 .39.009.537.014.272.009.423.023.596.377.264.54.896 2.179.977 2.348.082.169.043.342-.047.52-.09.18-.152.274-.299.449-.145.171-.313.356-.145.641.766 1.282 1.884 2.274 3.218 2.943.361.18.591.12.788-.103.227-.256.969-1.127 1.226-1.51.103-.153.284-.132.484-.055.201.077 1.296.611 1.52 1.134.223.523.223.974.12 1.21-.103.238-.238.44-.55.602z"/>
+                        </svg>
+                        <span id="detail_telp">-</span>
+                      </a>
+                    </div>
+                  </div>
+
+                  <div class="detail-info-row">
+                    <div class="detail-info-label">Email</div>
+                    <div class="detail-info-value" id="detail_email">-</div>
+                  </div>
+
+                  <div class="detail-info-row">
+                    <div class="detail-info-label">Kota</div>
+                    <div class="detail-info-value" id="detail_kota">-</div>
+                  </div>
+
+                  <div class="detail-info-row" style="border-bottom:none;">
+                    <div class="detail-info-label">Alamat</div>
+                    <div class="detail-info-value" id="detail_alamat" style="line-height:1.4;">-</div>
+                  </div>
+                </div>
+
+                <!-- Photos Documentation Grid inside Detail -->
+                <div class="card border-0 shadow-sm rounded-4 p-4" style="background: #fff;">
+                  <h6 style="font-size:12px; font-weight:800; color:#64748b; text-transform:uppercase; margin-bottom:16px; letter-spacing:0.05em;">Foto Dokumentasi Mitra</h6>
+                  <div class="detail-photo-grid" id="detail_photos_container">
+                    <!-- photos injected via JS -->
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right Side: Live Leaflet Geofence Map -->
+              <div class="col-lg-6">
+                <div class="card border-0 shadow-sm rounded-4 p-4 h-100" style="background: #fff; min-height:480px; display:flex; flex-direction:column;">
+                  <h6 style="font-size:12px; font-weight:800; color:#64748b; text-transform:uppercase; margin-bottom:12px; letter-spacing:0.05em;">Peta Geofence Lokasi Toko</h6>
+                  
+                  <div id="map_detail" style="flex: 1; min-height: 320px; border-radius:12px; border:1.5px solid #e2e8f0;"></div>
+                  
+                  <div class="mt-3 p-3 bg-light rounded-3" style="font-size:12.5px; color:#475569; line-height:1.4;">
+                    <span style="font-weight:700; color:#0f172a; display:block; margin-bottom:2px;">Alamat Geocoder Peta:</span>
+                    <span id="detail_alamat_peta">-</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+          <div class="modal-footer modal-footer-premium">
+            <button type="button" class="btn bg-gradient-secondary font-weight-bold" data-bs-dismiss="modal" style="border-radius:10px; padding:10px 20px; margin:0;">Tutup</button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1327,12 +1486,8 @@ $salesData = mysqli_query($conn, "
   const uploaderCreate = setupDragAndDrop('dropzone_create', 'foto_input_create', 'preview_grid_create', 5);
   const uploaderEdit = setupDragAndDrop('dropzone_edit', 'foto_input_edit', 'preview_grid_edit', 5);
 
-  // ── Gallery Slideshow Logic ──
-  document.querySelectorAll('.openGalleryBtn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const photos = JSON.parse(btn.dataset.photos || '[]');
-      const name = btn.dataset.name;
-      
+  // Helper function to trigger gallery slideshow
+  function openGallerySlideshow(photos, name) {
       document.getElementById('galleryTitle').innerText = 'Dokumentasi Foto: ' + name;
       const carouselInner = document.getElementById('galleryCarouselInner');
       carouselInner.innerHTML = '';
@@ -1354,6 +1509,14 @@ $salesData = mysqli_query($conn, "
       
       const galleryModal = new bootstrap.Modal(document.getElementById('galleryModal'));
       galleryModal.show();
+  }
+
+  // ── Gallery Slideshow Logic ──
+  document.querySelectorAll('.openGalleryBtn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const photos = JSON.parse(btn.dataset.photos || '[]');
+      const name = btn.dataset.name;
+      openGallerySlideshow(photos, name);
     });
   });
 
@@ -1624,6 +1787,116 @@ $salesData = mysqli_query($conn, "
       document.querySelectorAll('input[name="edit_kategori"]').forEach(radio => {
         radio.checked = (radio.value === kategori);
       });
+    });
+  });
+
+  // ── Detail Modal View Logic ──
+  let mapDetailInstance = null;
+  let markerDetail = null;
+  let circleDetail = null;
+
+  document.querySelectorAll('.viewDetailBtn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.id;
+      const nama = btn.dataset.nama;
+      const kategori = btn.dataset.kategori;
+      const telp = btn.dataset.telp;
+      const email = btn.dataset.email || "-";
+      const alamat = btn.dataset.alamat || "-";
+      const kota = btn.dataset.kota || "-";
+      const wilayah = btn.dataset.wilayah || "Tanpa Wilayah";
+      const photos = JSON.parse(btn.dataset.foto || '[]');
+      
+      const latVal = parseFloat(btn.dataset.lat);
+      const lonVal = parseFloat(btn.dataset.lon);
+      const radVal = parseInt(btn.dataset.rad) || 100;
+      const alamatPeta = btn.dataset.alamatLokasi || "Koordinat lokasi belum diset.";
+
+      // Populate details
+      document.getElementById('detail_nama').innerText = nama;
+      document.getElementById('detail_email').innerText = email;
+      document.getElementById('detail_alamat').innerText = alamat;
+      document.getElementById('detail_kota').innerText = kota;
+      document.getElementById('detail_wilayah').innerText = wilayah;
+      document.getElementById('detail_alamat_peta').innerText = alamatPeta;
+
+      // Populate category badge style
+      const catBadge = document.getElementById('detail_kategori');
+      catBadge.innerText = kategori;
+      catBadge.className = 'category-badge ' + (
+        kategori === 'Dealer' ? 'badge-dealer' :
+        kategori === 'Installer' ? 'badge-installer' :
+        kategori === 'User' ? 'badge-user' : 'badge-default'
+      );
+
+      // Populate avatar initials
+      const avatarContainer = document.getElementById('detail_avatar_container');
+      const avatarBg = kategori === 'Dealer' ? '#3b82f6' : (kategori === 'Installer' ? '#8b5cf6' : (kategori === 'User' ? '#10b981' : '#64748b'));
+      avatarContainer.style.background = avatarBg;
+      
+      const firstPhoto = photos.length > 0 ? photos[0] : '';
+      if (firstPhoto) {
+        avatarContainer.innerHTML = `<img src="../uploads/customer/${firstPhoto}" style="width: 100%; height: 100%; object-fit: cover; border-radius:50%;">`;
+      } else {
+        const words = nama.split(' ');
+        const initials = (words[0] ? words[0][0] : '') + (words[1] ? words[1][0] : '');
+        avatarContainer.innerHTML = initials.toUpperCase();
+      }
+
+      // Populate WA link
+      if (telp) {
+        document.getElementById('detail_telp_container').style.display = 'block';
+        document.getElementById('detail_telp').innerText = '0' + telp.replace(/^62/, '');
+        document.getElementById('detail_telp_link').href = 'https://wa.me/' + telp;
+      } else {
+        document.getElementById('detail_telp_container').style.display = 'none';
+      }
+
+      // Populate photos documentation grid
+      const photosGrid = document.getElementById('detail_photos_container');
+      photosGrid.innerHTML = '';
+      if (photos.length > 0) {
+        photos.forEach(photo => {
+          const card = document.createElement('div');
+          card.className = 'detail-photo-card';
+          card.innerHTML = `<img src="../uploads/customer/${photo}">`;
+          card.addEventListener('click', () => {
+            openGallerySlideshow(photos, nama);
+          });
+          photosGrid.appendChild(card);
+        });
+      } else {
+        photosGrid.innerHTML = '<span class="text-muted" style="font-size: 12.5px;">Belum ada dokumentasi foto toko.</span>';
+      }
+
+      // Handle map setup on modal show
+      const detailModalEl = document.getElementById('detailModal');
+      const onModalShown = () => {
+        if (!isNaN(latVal) && !isNaN(lonVal)) {
+          document.getElementById('map_detail').style.display = 'block';
+          const latlng = L.latLng(latVal, lonVal);
+
+          if (!mapDetailInstance) {
+            mapDetailInstance = L.map('map_detail').setView(latlng, 16);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+              maxZoom: 19,
+              attribution: '© OpenStreetMap contributors'
+            }).addTo(mapDetailInstance);
+
+            markerDetail = L.marker(latlng).addTo(mapDetailInstance);
+            circleDetail = L.circle(latlng, { radius: radVal, color: '#2563eb', fillColor: '#2563eb', fillOpacity: 0.15 }).addTo(mapDetailInstance);
+          } else {
+            mapDetailInstance.setView(latlng, 16);
+            markerDetail.setLatLng(latlng);
+            circleDetail.setLatLng(latlng).setRadius(radVal);
+            mapDetailInstance.invalidateSize();
+          }
+        } else {
+          document.getElementById('map_detail').style.display = 'none';
+        }
+        detailModalEl.removeEventListener('shown.bs.modal', onModalShown);
+      };
+      detailModalEl.addEventListener('shown.bs.modal', onModalShown);
     });
   });
 </script>
