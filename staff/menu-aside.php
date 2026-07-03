@@ -214,12 +214,16 @@ function renderNavItem($pageNow, $targetPage, $url, $icon, $text) {
     #sidenav-main .text-white {
         color: inherit !important;
     }
-</style>
-
+</style<?php
+// Calculate directory prefix dynamically to share the same menu-aside.php between root and sales subdirectory
+$isSalesDir = (basename(getcwd()) === 'sales');
+$rootPrefix = $isSalesDir ? '../' : '';
+$salesPrefix = $isSalesDir ? '' : 'sales/';
+?>
 <aside class="sidenav navbar navbar-vertical navbar-expand-xs fixed-start ms-3 my-3" id="sidenav-main">
     <div class="sidenav-header">
         <a class="navbar-brand m-0" href="#">
-            <img src="assets/img/logo/lwx-logo.png" class="navbar-brand-img mt-3 mb-2" style="width:auto; max-height:2.5em;" alt="main_logo">
+            <img src="<?php echo $rootPrefix; ?>assets/img/logo/lwx-logo.png" class="navbar-brand-img mt-3 mb-2" style="width:auto; max-height:2.5em;" alt="main_logo">
         </a>
     </div>
 
@@ -230,49 +234,49 @@ function renderNavItem($pageNow, $targetPage, $url, $icon, $text) {
 
             <?php if ($role == 'Super Admin' || $role == 'Admin') : ?>
                 <?php renderNavHeader("Operasional"); ?>
-                <?php renderNavItem($pageNow, "Dashboard", "index-sa.php", "fa-solid fa-chart-pie", "Dashboard"); ?>
-                <?php renderNavItem($pageNow, "Kegiatan Baru", "kegiatan-baru.php", "fa-solid fa-file-circle-plus", "Tambah Kegiatan"); ?>
-                <?php renderNavItem($pageNow, "Waiting List", "waiting-list.php", "fa-solid fa-hourglass-half", "Waiting List"); ?>
+                <?php renderNavItem($pageNow, "Dashboard", $rootPrefix . "index-sa.php", "fa-solid fa-chart-pie", "Dashboard"); ?>
+                <?php renderNavItem($pageNow, "Kegiatan Baru", $rootPrefix . "kegiatan-baru.php", "fa-solid fa-file-circle-plus", "Tambah Kegiatan"); ?>
+                <?php renderNavItem($pageNow, "Waiting List", $rootPrefix . "waiting-list.php", "fa-solid fa-hourglass-half", "Waiting List"); ?>
 
                 <?php renderNavHeader("Laporan"); ?>
-                <?php renderNavItem($pageNow, "Task", "task.php", "fa-solid fa-person-digging", "Kegiatan Teknisi"); ?>
-                <?php renderNavItem($pageNow, "Laporan", "lap-kegiatan.php", "fa-solid fa-file-invoice", "Laporan Kegiatan"); ?>
-                <?php renderNavItem($pageNow, "Target Tercapai", "laporan.php", "fa-solid fa-hand-holding-dollar", "Target Tercapai Teknisi"); ?>
-                <?php renderNavItem($pageNow, "Progress Kegiatan", "lap-progress.php", "fa-solid fa-bars-progress", "Progress Kegiatan"); ?>
+                <?php renderNavItem($pageNow, "Task", $rootPrefix . "task.php", "fa-solid fa-person-digging", "Kegiatan Teknisi"); ?>
+                <?php renderNavItem($pageNow, "Laporan", $rootPrefix . "lap-kegiatan.php", "fa-solid fa-file-invoice", "Laporan Kegiatan"); ?>
+                <?php renderNavItem($pageNow, "Target Tercapai", $rootPrefix . "laporan.php", "fa-solid fa-hand-holding-dollar", "Target Tercapai Teknisi"); ?>
+                <?php renderNavItem($pageNow, "Progress Kegiatan", $rootPrefix . "lap-progress.php", "fa-solid fa-bars-progress", "Progress Kegiatan"); ?>
 
                 <?php renderNavHeader("Manajemen Aset"); ?>
-                <?php renderNavItem($pageNow, "Inventory", "inventory.php", "fa-solid fa-boxes-stacked", "Stok Barang"); ?>
-                <?php renderNavItem($pageNow, "Peminjaman", "peminjaman.php", "fa-solid fa-right-left", "Peminjaman"); ?>
-                <?php renderNavItem($pageNow, "Tutorial", "tutorial.php", "fa-solid fa-book", "Tutorial"); ?>
+                <?php renderNavItem($pageNow, "Inventory", $rootPrefix . "inventory.php", "fa-solid fa-boxes-stacked", "Stok Barang"); ?>
+                <?php renderNavItem($pageNow, "Peminjaman", $rootPrefix . "peminjaman.php", "fa-solid fa-right-left", "Peminjaman"); ?>
+                <?php renderNavItem($pageNow, "Tutorial", $rootPrefix . "tutorial.php", "fa-solid fa-book", "Tutorial"); ?>
 
                 <?php renderNavHeader("Data Master"); ?>
-                <?php renderNavItem($pageNow, "Data Teknisi", "data-teknisi.php", "fa-solid fa-users-gear", "Teknisi"); ?>
-                <?php renderNavItem($pageNow, "Data Customer", "customer.php", "fa-solid fa-users", "Customer"); ?>
+                <?php renderNavItem($pageNow, "Data Teknisi", $rootPrefix . "data-teknisi.php", "fa-solid fa-users-gear", "Teknisi"); ?>
+                <?php renderNavItem($pageNow, "Data Customer", $rootPrefix . "customer.php", "fa-solid fa-users", "Customer"); ?>
 
                 <?php renderNavHeader("Aplikasi Sales"); ?>
-                <?php renderNavItem($pageNow, "Dashboard Sales", "sales/index-sa.php", "fa-solid fa-chart-line", "Dashboard Sales"); ?>
-                <?php renderNavItem($pageNow, "Data Sales", "sales.php", "fa-solid fa-user-group", "Data Sales"); ?>
-                <?php renderNavItem($pageNow, "Kunjungan Sales", "sales/kegiatan-baru.php", "fa-solid fa-map-location-dot", "Jadwal Kunjungan"); ?>
-                <?php renderNavItem($pageNow, "Laporan Visit", "sales/laporan-cust.php", "fa-solid fa-file-contract", "Laporan Visit"); ?>
-                <?php renderNavItem($pageNow, "Customer Sales", "sales/customer.php", "fa-solid fa-address-book", "Customer Sales"); ?>
+                <?php renderNavItem($pageNow, "Dashboard Sales", $salesPrefix . "index-sa.php", "fa-solid fa-chart-line", "Dashboard Sales"); ?>
+                <?php renderNavItem($pageNow, "Data Sales", $rootPrefix . "sales.php", "fa-solid fa-user-group", "Data Sales"); ?>
+                <?php renderNavItem($pageNow, "Kunjungan Sales", $salesPrefix . "kegiatan-baru.php", "fa-solid fa-map-location-dot", "Jadwal Kunjungan"); ?>
+                <?php renderNavItem($pageNow, "Laporan Visit", $salesPrefix . "laporan-cust.php", "fa-solid fa-file-contract", "Laporan Visit"); ?>
+                <?php renderNavItem($pageNow, "Customer Sales", $salesPrefix . "customer.php", "fa-solid fa-address-book", "Customer Sales"); ?>
             <?php endif; ?>
 
 
             <?php if ($role == 'Sales Manager' || $role == 'Sales') : ?>
                 <?php renderNavHeader("Sales"); ?>
-                <?php renderNavItem($pageNow, ($role == 'Sales Manager' ? "Dashboard" : "Dashboard Sales"), "sales/index-sa.php", "fa-solid fa-chart-line", "Dashboard"); ?>
-                <?php renderNavItem($pageNow, "Kegiatan Saya", "sales/sales/index.php", "fa-solid fa-user-check", "Kegiatan Saya"); ?>
-                <?php renderNavItem($pageNow, "Kegiatan Sales", "sales/kegiatan-baru.php", "fa-solid fa-map-location-dot", "Visit Customer"); ?>
-                <?php renderNavItem($pageNow, "Data Customer", "sales/customer.php", "fa-solid fa-address-book", "Customer"); ?>
+                <?php renderNavItem($pageNow, ($role == 'Sales Manager' ? "Dashboard" : "Dashboard Sales"), $salesPrefix . "index-sa.php", "fa-solid fa-chart-line", "Dashboard"); ?>
+                <?php renderNavItem($pageNow, "Kegiatan Saya", $salesPrefix . "sales/index.php", "fa-solid fa-user-check", "Kegiatan Saya"); ?>
+                <?php renderNavItem($pageNow, "Kegiatan Sales", $salesPrefix . "kegiatan-baru.php", "fa-solid fa-map-location-dot", "Visit Customer"); ?>
+                <?php renderNavItem($pageNow, "Data Customer", $salesPrefix . "customer.php", "fa-solid fa-address-book", "Customer"); ?>
                 
                 <?php if ($role == 'Sales Manager') : ?>
-                    <?php renderNavItem($pageNow, "Laporan", "sales/laporan-cust.php", "fa-solid fa-file-contract", "Laporan Visit"); ?>
-                    <?php renderNavItem($pageNow, "Data Sales", "sales/sales.php", "fa-solid fa-user-group", "Tim Sales"); ?>
+                    <?php renderNavItem($pageNow, "Laporan", $salesPrefix . "laporan-cust.php", "fa-solid fa-file-contract", "Laporan Visit"); ?>
+                    <?php renderNavItem($pageNow, "Data Sales", $salesPrefix . "sales.php", "fa-solid fa-user-group", "Tim Sales"); ?>
                 <?php endif; ?>
                 
                 <?php renderNavHeader("Teknisi"); ?>
-                <?php renderNavItem($pageNow, "Dashboard Teknisi", "index-sales.php", "fa-solid fa-chart-pie", "Dashboard Teknisi"); ?>
-                <?php renderNavItem($pageNow, "Kegiatan Baru", "kegiatan-baru.php", "fa-solid fa-bell-concierge", "Buat Request"); ?>
+                <?php renderNavItem($pageNow, "Dashboard Teknisi", $rootPrefix . "index-sales.php", "fa-solid fa-chart-pie", "Dashboard Teknisi"); ?>
+                <?php renderNavItem($pageNow, "Kegiatan Baru", $rootPrefix . "kegiatan-baru.php", "fa-solid fa-bell-concierge", "Buat Request"); ?>
             <?php endif; ?>
             
             <?php if ($role == 'Teknisi') : ?>
@@ -281,15 +285,15 @@ function renderNavItem($pageNow, $targetPage, $url, $icon, $text) {
     </div>
     
     <div class="sidenav-footer">
-        <a class="nav-link" href="data-admin.php">
+        <a class="nav-link" href="<?php echo $rootPrefix; ?>data-admin.php">
              <i class="nav-icon fa-fw fa-solid fa-user"></i>
              <p>Data Admin</p>
         </a>
-        <a class="nav-link" href="change_password.php">
+        <a class="nav-link" href="<?php echo $rootPrefix; ?>change_password.php">
              <i class="nav-icon fa-fw fa-solid fa-key"></i>
              <p>Ganti Password</p>
         </a>
-        <a class="nav-link" href="../logout.php">
+        <a class="nav-link" href="<?php echo $rootPrefix; ?>../logout.php">
              <i class="nav-icon fa-fw fa-solid fa-right-from-bracket"></i>
              <p>Sign Out</p>
         </a>

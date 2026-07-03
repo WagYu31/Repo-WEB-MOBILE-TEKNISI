@@ -6,6 +6,6 @@ $isMobile = preg_match('/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry
 if ($isMobile) {
     include "menu-bottom.php";
 } else {
-    include "menu-aside.php";
+    include "../menu-aside.php";
 }
 ?>
