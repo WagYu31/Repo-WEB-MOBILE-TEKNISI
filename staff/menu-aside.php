@@ -256,7 +256,7 @@ $salesPrefix = $isSalesDir ? '' : 'sales/';
 
                 <?php renderNavHeader("Aplikasi Sales"); ?>
                 <?php renderNavItem($pageNow, "Dashboard Sales", $salesPrefix . "index-sa.php", "fa-solid fa-chart-line", "Dashboard Sales"); ?>
-                <?php renderNavItem($pageNow, "Data Sales", $rootPrefix . "sales.php", "fa-solid fa-user-group", "Data Sales"); ?>
+                <?php renderNavItem($pageNow, "Data Sales", $salesPrefix . "sales.php", "fa-solid fa-user-group", "Data Sales"); ?>
                 <?php renderNavItem($pageNow, "Kunjungan Sales", $salesPrefix . "kegiatan-baru.php", "fa-solid fa-map-location-dot", "Jadwal Kunjungan"); ?>
                 <?php renderNavItem($pageNow, "Laporan Visit", $salesPrefix . "laporan-cust.php", "fa-solid fa-file-contract", "Laporan Visit"); ?>
                 <?php renderNavItem($pageNow, "Customer Sales", $salesPrefix . "customer.php", "fa-solid fa-address-book", "Customer Sales"); ?>
