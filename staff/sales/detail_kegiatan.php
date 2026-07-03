@@ -13,9 +13,10 @@ if (!isset($_GET['id'])) {
 $idKegiatan = $_GET['id'];
 
 // Ambil data kegiatan
-$sqlKegiatan = "SELECT ks.*, c.nama AS nama_customer, c.telp_pribadi, c.alamat 
+$sqlKegiatan = "SELECT ks.*, c.nama AS nama_customer, c.telp_pribadi, c.alamat, w.nama AS nama_wilayah, c.kategori AS kategori_customer
                 FROM kegiatan_sales ks
                 LEFT JOIN sales_customer c ON ks.id_customer = c.id
+                LEFT JOIN wilayah w ON c.id_wilayah = w.id
                 WHERE ks.id = '$idKegiatan' AND ks.deleted_at IS NULL";
 
 $resultKegiatan = mysqli_query($conn, $sqlKegiatan);
@@ -38,12 +39,20 @@ $resultSales = mysqli_query($conn, $sqlSales);
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <?php include "head.php"; ?>
+  
+  <!-- Premium Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
   <style>
-    /* ── Premium Detail Styling ── */
+    /* ── Premium Styling Refinements ── */
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    }
+    
     .card-premium {
       background: #fff;
-      border: 1px solid #e2e8f0;
-      border-radius: 12px;
+      border: none;
+      border-radius: 16px;
       overflow: hidden;
       box-shadow: 0 4px 20px rgba(0,0,0,0.02);
       margin-bottom: 24px;
@@ -53,128 +62,332 @@ $resultSales = mysqli_query($conn, $sqlSales);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 16px 24px;
-      background: #1e293b;
+      padding: 20px 28px;
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
       color: #fff;
     }
     
     .section-header-premium h6 {
       margin: 0;
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 700;
       color: #fff;
       text-transform: uppercase;
       letter-spacing: 0.05em;
       display: flex;
       align-items: center;
-    }
-    
-    .card-body-premium {
-      padding: 28px 24px;
-    }
-
-    /* ── Detail Grid ── */
-    .info-label {
-      font-size: 11px;
-      font-weight: 700;
-      color: #64748b;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 4px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    
-    .info-value {
-      font-size: 15px;
-      font-weight: 700;
-      color: #1e293b;
-    }
-
-    .wa-link {
-      color: #10b981;
-      text-decoration: none;
-      font-weight: 700;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-    }
-    .wa-link:hover { text-decoration: underline; }
-
-    /* ── Sales Laporan Cards ── */
-    .sales-laporan-card {
-      background: #fff;
-      border: 1px solid #e2e8f0;
-      border-radius: 12px;
-      padding: 24px;
-      height: 100%;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.01);
-      border-left: 5px solid #64748b;
-      transition: all 0.22s ease;
-    }
-    .sales-laporan-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(0,0,0,0.04);
-    }
-    
-    .sales-name-title {
-      font-size: 15px;
-      font-weight: 700;
-      color: #1e293b;
-      display: flex;
-      align-items: center;
       gap: 8px;
     }
     
-    .status-badge-sales {
+    .card-body-premium {
+      padding: 32px 36px;
+    }
+
+    /* ── Hero Details Layout ── */
+    .hero-detail-card {
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+      border-radius: 20px;
+      padding: 32px 36px;
+      color: #fff;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15);
+      margin-bottom: 24px;
+    }
+    .hero-decor-circle {
+      position: absolute;
+      top: -60px;
+      right: -40px;
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.04);
+      z-index: 1;
+    }
+    .hero-decor-circle-2 {
+      position: absolute;
+      bottom: -80px;
+      right: 120px;
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.03);
+      z-index: 1;
+    }
+
+    .hero-avatar {
+      width: 68px;
+      height: 68px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      font-weight: 800;
+      color: #fff;
+      border: 2px solid rgba(255,255,255,0.25);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+      flex-shrink: 0;
+    }
+    
+    .hero-info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 24px;
+      margin-top: 24px;
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      padding-top: 24px;
+    }
+
+    .hero-info-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .hero-info-label {
       font-size: 10px;
+      font-weight: 800;
+      color: rgba(255, 255, 255, 0.5);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .hero-info-value {
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .category-badge {
+      font-size: 9.5px;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      display: inline-block;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+      border: 1px solid rgba(0,0,0,0.03);
+    }
+    .badge-dealer { background: #eff6ff; color: #1e40af; border-color: #dbeafe; }
+    .badge-installer { background: #faf5ff; color: #6b21a8; border-color: #f3e8ff; }
+    .badge-user { background: #ecfdf5; color: #065f46; border-color: #d1fae5; }
+    .badge-default { background: #f8fafc; color: #475569; border-color: #e2e8f0; }
+
+    /* ── Laporan Card Redesign ── */
+    .sales-laporan-card {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.01);
+      transition: all 0.25s ease;
+      position: relative;
+    }
+    .sales-laporan-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.04);
+      border-color: #cbd5e1;
+    }
+    
+    .sales-header-strip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1.5px solid #f1f5f9;
+      padding-bottom: 18px;
+      margin-bottom: 20px;
+    }
+
+    .sales-profile {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .sales-initial {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       font-weight: 700;
-      padding: 3px 10px;
+      font-size: 13px;
+      color: #fff;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+
+    .sales-name-label {
+      font-size: 15px;
+      font-weight: 800;
+      color: #0f172a;
+      line-height: 1.2;
+    }
+    
+    .status-badge-sales {
+      font-size: 9.5px;
+      font-weight: 800;
+      padding: 4px 12px;
       border-radius: 20px;
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
-    .badge-selesai { background: #d1fae5; color: #065f46; }
-    .badge-berjalan { background: #dbeafe; color: #1e40af; }
-    .badge-dijadwalkan { background: #f1f5f9; color: #475569; }
+    .badge-selesai { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+    .badge-berjalan { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
+    .badge-dijadwalkan { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
 
-    .laporan-note {
+    /* Absensi Timeline Box */
+    .timeline-absensi-box {
       background: #f8fafc;
-      border-radius: 8px;
-      padding: 12px 16px;
-      border-left: 3px solid #cbd5e1;
-      font-style: italic;
-      color: #475569;
-      font-size: 13.5px;
-    }
-
-    /* ── Documentation Photos ── */
-    .doc-img-wrapper {
-      position: relative;
-      border-radius: 8px;
-      overflow: hidden;
       border: 1px solid #e2e8f0;
-      transition: all 0.22s ease;
-      cursor: pointer;
-    }
-    .doc-img-wrapper:hover {
-      transform: scale(1.03);
-      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+      border-radius: 12px;
+      padding: 18px 20px;
+      display: flex;
+      position: relative;
+      margin-bottom: 20px;
     }
     
-    .doc-img {
-      width: 100%;
-      height: 120px;
-      object-fit: cover;
+    .timeline-divider {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 1px;
+      height: 70%;
+      background: #cbd5e1;
+    }
+    
+    .timeline-node {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .node-header {
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+    
+    .node-time {
+      font-size: 13.5px;
+      font-weight: 800;
+      color: #1e293b;
+      font-family: monospace;
+    }
+    
+    .node-map-btn {
+      font-size: 11px;
+      font-weight: 700;
+      color: #2563eb;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 8px;
+      width: fit-content;
+      transition: color 0.15s;
+    }
+    .node-map-btn:hover {
+      color: #1d4ed8;
+      text-decoration: underline;
+    }
+    
+    /* Laporan Note Styling */
+    .laporan-note-container {
+      background: #f8fafc;
+      border-left: 4px solid #3b82f6;
+      border-radius: 0 12px 12px 0;
+      padding: 16px 20px;
+      margin-bottom: 20px;
+    }
+    
+    .laporan-note-title {
+      font-size: 10px;
+      font-weight: 800;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 6px;
+    }
+    
+    .laporan-note-text {
+      font-size: 13.5px;
+      color: #334155;
+      font-weight: 500;
+      line-height: 1.5;
+      font-style: italic;
     }
 
-    /* ── Audio Player Style ── */
-    .premium-audio {
+    /* Photos Grid styling */
+    .doc-photo-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    
+    .doc-photo-wrapper {
+      position: relative;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1.5px solid #e2e8f0;
+      height: 90px;
+      cursor: pointer;
+      transition: all 0.22s;
+    }
+    .doc-photo-wrapper img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .doc-photo-wrapper:hover {
+      transform: scale(1.04);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      border-color: #3b82f6;
+    }
+
+    .audio-player-wrapper {
+      background: #f8fafc;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    audio.premium-audio {
       width: 100%;
       border-radius: 30px;
-      background: #f8fafc;
       outline: none;
+    }
+    
+    .wa-pill-hero {
+      background: #25D366;
+      color: #fff !important;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 6px 14px;
+      border-radius: 30px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 12px rgba(37, 211, 102, 0.25);
+      transition: all 0.2s;
+      width: fit-content;
+      margin-top: 4px;
+    }
+    
+    .wa-pill-hero:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(37, 211, 102, 0.35);
+      background: #20ba59;
     }
 
     <?php include "css/floating-menu2.css";?>
@@ -189,67 +402,94 @@ $resultSales = mysqli_query($conn, $sqlSales);
 
     <div class="container-fluid py-4">
 
-      <!-- Detail Kegiatan Card -->
-      <div class="card-premium">
-        <div class="section-header-premium">
-          <h6>
-            <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 8px;">info</span>
-            Informasi Rencana Kunjungan
-          </h6>
-        </div>
-        <div class="card-body-premium">
-          <div class="row g-4">
-            
-            <div class="col-md-6 col-lg-3">
-              <span class="info-label">
-                <span class="material-symbols-outlined" style="font-size: 15px;">storefront</span>
-                Nama Customer / Toko
-              </span>
-              <span class="info-value"><?php echo htmlspecialchars($data['nama_customer'] ?? '-'); ?></span>
+      <!-- Hero Header Card (Premium Redesign) -->
+      <div class="hero-detail-card">
+        <div class="hero-decor-circle"></div>
+        <div class="hero-decor-circle-2"></div>
+        
+        <div style="display:flex; align-items:center; gap:20px; position:relative; z-index:2;">
+          <div class="hero-avatar">
+            <?php 
+              $words = explode(' ', $data['nama_customer'] ?? '');
+              echo strtoupper(substr($words[0] ?? '', 0, 1) . (isset($words[1]) ? substr($words[1], 0, 1) : ''));
+            ?>
+          </div>
+          <div>
+            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+              <h2 style="color:#fff; margin:0; font-size:22px; font-weight:800; letter-spacing:-0.4px;"><?php echo htmlspecialchars($data['nama_customer'] ?? '-'); ?></h2>
+              <?php 
+                $kat = htmlspecialchars($data['kategori_customer'] ?? '');
+                $badgeClass = match($kat) {
+                  'Dealer' => 'badge-dealer',
+                  'Installer' => 'badge-installer',
+                  'User' => 'badge-user',
+                  default => 'badge-default'
+                };
+              ?>
+              <span class="category-badge <?= $badgeClass; ?>"><?= $kat; ?></span>
             </div>
-
-            <div class="col-md-6 col-lg-3">
-              <span class="info-label">
-                <span class="material-symbols-outlined" style="font-size: 15px;">call</span>
-                No. Telepon WhatsApp
-              </span>
-              <span class="info-value">
-                <?php if (!empty($data['telp_pribadi'])): ?>
-                <a href="https://wa.me/<?php echo htmlspecialchars($data['telp_pribadi']); ?>" target="_blank" class="wa-link">
-                  <i class="fab fa-whatsapp" style="font-size: 16px;"></i> 
+            
+            <p style="color:rgba(255,255,255,0.7); margin:4px 0 0 0; font-size:12px; font-weight:500;">
+              Wilayah: <strong style="color:#fff;"><?= htmlspecialchars($data['nama_wilayah'] ?? 'Tanpa Wilayah'); ?></strong>
+            </p>
+          </div>
+        </div>
+        
+        <div class="hero-info-grid">
+          <div class="hero-info-item">
+            <span class="hero-info-label">Jadwal Kunjungan</span>
+            <span class="hero-info-value" style="display:inline-flex; align-items:center; gap:4px; font-family:monospace; font-size:13.5px;">
+              📅 <?php echo date('d M Y, H:i', strtotime($data['jadwal'])); ?> WIB
+            </span>
+          </div>
+          
+          <div class="hero-info-item">
+            <span class="hero-info-label">Nomor Telepon Whatsapp</span>
+            <span class="hero-info-value">
+              <?php if (!empty($data['telp_pribadi'])): ?>
+                <a href="https://wa.me/<?php echo htmlspecialchars($data['telp_pribadi']); ?>" target="_blank" class="wa-pill-hero">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.949h.004c4.368 0 7.927-3.558 7.93-7.93a7.9 7.9 0 0 0 -2.327-5.607z"/>
+                  </svg>
                   <?php echo htmlspecialchars(preg_replace('/^62/', '0', $data['telp_pribadi'])); ?>
                 </a>
-                <?php else: ?>
+              <?php else: ?>
                 -
-                <?php endif; ?>
-              </span>
-            </div>
-
-            <div class="col-md-6 col-lg-3">
-              <span class="info-label">
-                <span class="material-symbols-outlined" style="font-size: 15px;">schedule</span>
-                Jadwal Kunjungan
-              </span>
-              <span class="info-value"><?php echo date('d M Y, H:i', strtotime($data['jadwal'])); ?> WIB</span>
-            </div>
-
-            <div class="col-md-6 col-lg-3">
-              <span class="info-label">
-                <span class="material-symbols-outlined" style="font-size: 15px;">location_on</span>
-                Alamat Toko
-              </span>
-              <span class="info-value" style="font-size:13.5px; font-weight: 500; color: #475569;"><?php echo htmlspecialchars($data['alamat'] ?? '-'); ?></span>
-            </div>
-
+              <?php endif; ?>
+            </span>
+          </div>
+          
+          <div class="hero-info-item" style="grid-column: span 2;">
+            <span class="hero-info-label">Alamat Toko Customer</span>
+            <span class="hero-info-value" style="font-weight: 500; opacity: 0.95; line-height: 1.4;">
+              📍 <?php echo htmlspecialchars($data['alamat'] ?? '-'); ?>
+            </span>
           </div>
         </div>
       </div>
 
-      <!-- Tim Sales & Laporan Section -->
+      <!-- Detail Kunjungan Plan Card (visit) -->
+      <?php if (!empty($data['visit'])): ?>
+      <div class="card-premium">
+        <div class="section-header-premium" style="background:#0f172a;">
+          <h6>
+            <span class="material-symbols-outlined">notes</span>
+            Keperluan &amp; Keterangan Rencana Kunjungan
+          </h6>
+        </div>
+        <div class="card-body-premium">
+          <div style="font-size:14.5px; color:#334155; line-height:1.6; font-weight:500;">
+            <?php echo nl2br(htmlspecialchars($data['visit'])); ?>
+          </div>
+        </div>
+      </div>
+      <?php endif; ?>
+
+      <!-- Tim Sales & Laporan Lapangan Section -->
       <div class="card-premium">
         <div class="section-header-premium">
           <h6>
-            <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 8px;">groups</span>
+            <span class="material-symbols-outlined">groups</span>
             Tim Sales &amp; Laporan Lapangan
           </h6>
         </div>
@@ -263,86 +503,94 @@ $resultSales = mysqli_query($conn, $sqlSales);
                 'berjalan' => 'badge-berjalan',
                 default => 'badge-dijadwalkan'
               };
-              $borderLeftColor = match($status) {
+              $colorTheme = match($status) {
                 'selesai' => '#10b981',
                 'berjalan' => '#3b82f6',
-                default => '#cbd5e1'
+                default => '#64748b'
               };
             ?>
-              <div class="col-md-6">
-                <div class="sales-laporan-card" style="border-left-color: <?= $borderLeftColor; ?>;">
-                  <div class="d-flex justify-content-between align-items-center mb-3">
-                    <span class="sales-name-title">
-                      <div class="avatar-initials-table" style="background: <?= $borderLeftColor; ?>; width: 32px; height: 32px; box-shadow: none; font-size:11px;">
+              <div class="col-lg-6">
+                <div class="sales-laporan-card">
+                  
+                  <!-- Card Header: Sales & Status -->
+                  <div class="sales-header-strip">
+                    <div class="sales-profile">
+                      <div class="sales-initial" style="background: <?= $colorTheme; ?>;">
                         <?php 
                           $words = explode(' ', $row['nama_sales'] ?? '');
                           echo strtoupper(substr($words[0] ?? '', 0, 1) . (isset($words[1]) ? substr($words[1], 0, 1) : ''));
                         ?>
                       </div>
-                      <?= htmlspecialchars($row['nama_sales'] ?? '-'); ?>
-                    </span>
+                      <span class="sales-name-label"><?= htmlspecialchars($row['nama_sales'] ?? '-'); ?></span>
+                    </div>
                     <span class="status-badge-sales <?= $badgeClass; ?>">
                       <?= htmlspecialchars($row['status'] ?? 'Dijadwalkan'); ?>
                     </span>
                   </div>
 
-                  <!-- Waktu Absensi (Clock In & Clock Out) -->
-                  <div class="row g-2 mb-3 p-3 rounded-3" style="background: #f8fafc; border: 1px solid #e2e8f0; margin-left: 0; margin-right: 0;">
-                    <div class="col-6" style="border-right: 1px solid #cbd5e1; padding-right: 10px;">
-                      <span class="info-label" style="margin-bottom: 2px; font-size: 9px; color: #10b981; gap: 4px; text-transform: uppercase;">
-                        <span class="material-symbols-outlined" style="font-size: 13px;">login</span> Clock In
+                  <!-- ABSENSI TIMELINE BOX -->
+                  <div class="timeline-absensi-box">
+                    <div class="timeline-divider"></div>
+                    
+                    <!-- Clock In Node -->
+                    <div class="timeline-node">
+                      <span class="node-header" style="color: #10b981;">
+                        <span class="material-symbols-outlined" style="font-size:13px; font-variation-settings:'FILL' 1;">login</span>
+                        Clock In
                       </span>
-                      <span style="font-size: 12.5px; font-weight: 700; color: #1e293b; display: block; font-family: monospace;">
-                        <?= !empty($row['ci_at']) ? date('d M, H:i', strtotime($row['ci_at'])) . ' WIB' : '<span class="text-muted font-weight-normal" style="font-family:sans-serif; font-size:11px;">Belum In</span>'; ?>
+                      <span class="node-time">
+                        <?= !empty($row['ci_at']) ? date('d M, H:i', strtotime($row['ci_at'])) . ' WIB' : '<span class="text-muted font-weight-normal" style="font-size:11px; font-family:sans-serif;">Belum In</span>'; ?>
                       </span>
                       <?php if (!empty($row['lat_ci']) && !empty($row['lon_ci'])): ?>
-                        <a href="https://www.google.com/maps/search/?api=1&query=<?= $row['lat_ci']; ?>,<?= $row['lon_ci']; ?>" target="_blank" style="font-size: 10.5px; color: #2563eb; text-decoration: none; display: inline-flex; align-items: center; gap: 2px; margin-top: 4px; font-weight:700;">
-                          <span class="material-symbols-outlined" style="font-size:12px;">location_on</span> Lokasi CI
+                        <a href="https://www.google.com/maps/search/?api=1&query=<?= $row['lat_ci']; ?>,<?= $row['lon_ci']; ?>" target="_blank" class="node-map-btn">
+                          <span class="material-symbols-outlined" style="font-size:13px;">explore</span> Lokasi CI
                         </a>
                       <?php endif; ?>
                     </div>
-                    <div class="col-6" style="padding-left: 14px;">
-                      <span class="info-label" style="margin-bottom: 2px; font-size: 9px; color: #ef4444; gap: 4px; text-transform: uppercase;">
-                        <span class="material-symbols-outlined" style="font-size: 13px;">logout</span> Clock Out
+                    
+                    <!-- Clock Out Node -->
+                    <div class="timeline-node" style="padding-left: 20px;">
+                      <span class="node-header" style="color: #ef4444;">
+                        <span class="material-symbols-outlined" style="font-size:13px; font-variation-settings:'FILL' 1;">logout</span>
+                        Clock Out
                       </span>
-                      <span style="font-size: 12.5px; font-weight: 700; color: #1e293b; display: block; font-family: monospace;">
-                        <?= !empty($row['co_at']) ? date('d M, H:i', strtotime($row['co_at'])) . ' WIB' : '<span class="text-muted font-weight-normal" style="font-family:sans-serif; font-size:11px;">Belum Out</span>'; ?>
+                      <span class="node-time">
+                        <?= !empty($row['co_at']) ? date('d M, H:i', strtotime($row['co_at'])) . ' WIB' : '<span class="text-muted font-weight-normal" style="font-size:11px; font-family:sans-serif;">Belum Out</span>'; ?>
                       </span>
                       <?php if (!empty($row['lat_co']) && !empty($row['lon_co'])): ?>
-                        <a href="https://www.google.com/maps/search/?api=1&query=<?= $row['lat_co']; ?>,<?= $row['lon_co']; ?>" target="_blank" style="font-size: 10.5px; color: #2563eb; text-decoration: none; display: inline-flex; align-items: center; gap: 2px; margin-top: 4px; font-weight:700;">
-                          <span class="material-symbols-outlined" style="font-size:12px;">location_on</span> Lokasi CO
+                        <a href="https://www.google.com/maps/search/?api=1&query=<?= $row['lat_co']; ?>,<?= $row['lon_co']; ?>" target="_blank" class="node-map-btn">
+                          <span class="material-symbols-outlined" style="font-size:13px;">explore</span> Lokasi CO
                         </a>
                       <?php endif; ?>
                     </div>
                   </div>
 
-                  <!-- Catatan Kunjungan -->
+                  <!-- Notes field -->
                   <?php 
                   $catatan = !empty($row['catatan_visit']) ? $row['catatan_visit'] : (!empty($row['keterangan']) ? $row['keterangan'] : '');
                   if (!empty($catatan)): 
                   ?>
-                    <div class="mb-3">
-                      <span class="info-label" style="margin-bottom: 4px;">Catatan Kunjungan</span>
-                      <div class="laporan-note">
-                        "<?= htmlspecialchars($catatan); ?>"
-                      </div>
+                    <div class="laporan-note-container">
+                      <div class="laporan-note-title">Catatan Kunjungan</div>
+                      <div class="laporan-note-text">"<?= htmlspecialchars($catatan); ?>"</div>
+                    </div>
+                  <?php else: ?>
+                    <div class="laporan-note-container" style="border-left-color: #e2e8f0;">
+                      <div class="laporan-note-title">Catatan Kunjungan</div>
+                      <div class="laporan-note-text text-muted" style="font-size:12px;">Tidak ada catatan lapangan.</div>
                     </div>
                   <?php endif; ?>
 
                   <!-- Dokumentasi Foto (Menggunakan path server api-teknisi.id-giti.com yang benar) -->
                   <?php if (!empty($row['image_1']) || !empty($row['image_2']) || !empty($row['image_3'])): ?>
-                    <div class="mb-3">
-                      <span class="info-label" style="margin-bottom: 6px;">Foto Dokumentasi Lapangan</span>
-                      <div class="row g-2">
+                    <div style="margin-bottom: 20px;">
+                      <span class="info-label" style="font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; display: block; margin-bottom: 8px;">Foto Dokumentasi Lapangan</span>
+                      <div class="doc-photo-grid">
                         <?php foreach (['image_1', 'image_2', 'image_3'] as $img): ?>
                           <?php if (!empty($row[$img])): ?>
-                            <div class="col-4">
-                              <a href="https://api-teknisi.id-giti.com/storage/image/<?php echo $row[$img]; ?>" target="_blank" title="Buka Foto Ukuran Penuh">
-                                <div class="doc-img-wrapper">
-                                  <img src="https://api-teknisi.id-giti.com/storage/image/<?php echo $row[$img]; ?>" class="doc-img" alt="Dokumentasi">
-                                </div>
-                              </a>
-                            </div>
+                            <a href="https://api-teknisi.id-giti.com/storage/image/<?php echo $row[$img]; ?>" target="_blank" class="doc-photo-wrapper">
+                              <img src="https://api-teknisi.id-giti.com/storage/image/<?php echo $row[$img]; ?>" alt="Dokumentasi">
+                            </a>
                           <?php endif; ?>
                         <?php endforeach; ?>
                       </div>
@@ -352,24 +600,27 @@ $resultSales = mysqli_query($conn, $sqlSales);
                   <!-- Rekaman Audio (Menggunakan path server api-teknisi.id-giti.com yang benar) -->
                   <?php if (!empty($row['record'])): ?>
                     <div>
-                      <span class="info-label" style="margin-bottom: 6px;">Rekaman Laporan Suara</span>
-                      <audio controls class="premium-audio">
-                        <source src="https://api-teknisi.id-giti.com/storage/record/<?php echo $row['record']; ?>" type="audio/mpeg">
-                        <source src="https://api-teknisi.id-giti.com/storage/record/<?php echo $row['record']; ?>" type="audio/aac">
-                        <source src="https://api-teknisi.id-giti.com/storage/record/<?php echo $row['record']; ?>" type="audio/x-aac">
-                        <source src="https://api-teknisi.id-giti.com/storage/record/<?php echo $row['record']; ?>" type="audio/mp4">
-                        Browser Anda tidak mendukung pemutar suara.
-                      </audio>
+                      <span class="info-label" style="font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; display: block; margin-bottom: 8px;">Rekaman Laporan Suara</span>
+                      <div class="audio-player-wrapper">
+                        <audio controls class="premium-audio">
+                          <source src="https://api-teknisi.id-giti.com/storage/record/<?php echo $row['record']; ?>" type="audio/mpeg">
+                          <source src="https://api-teknisi.id-giti.com/storage/record/<?php echo $row['record']; ?>" type="audio/aac">
+                          <source src="https://api-teknisi.id-giti.com/storage/record/<?php echo $row['record']; ?>" type="audio/x-aac">
+                          <source src="https://api-teknisi.id-giti.com/storage/record/<?php echo $row['record']; ?>" type="audio/mp4">
+                          Browser Anda tidak mendukung pemutar suara.
+                        </audio>
+                      </div>
                     </div>
                   <?php endif; ?>
+                  
                 </div>
               </div>
             <?php endwhile; ?>
           </div>
           <?php else: ?>
-            <div class="text-center py-4 text-muted">
-              <span class="material-symbols-outlined" style="font-size: 40px; color: #cbd5e1; display: block; margin-bottom: 8px;">groups</span>
-              Belum ada sales terdaftar untuk kegiatan kunjungan ini.
+            <div class="text-center py-5 text-muted">
+              <span class="material-symbols-outlined" style="font-size: 44px; color: #cbd5e1; display: block; margin-bottom: 8px;">groups</span>
+              <p style="font-size: 14px; font-weight: 600; color:#64748b; margin: 0;">Belum ada sales terdaftar untuk kegiatan kunjungan ini.</p>
             </div>
           <?php endif; ?>
         </div>
