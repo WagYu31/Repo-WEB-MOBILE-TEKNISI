@@ -718,9 +718,9 @@ $salesData = mysqli_query($conn, "
 
     <!-- Card Tambah Sales Customer (COLLAPSIBLE / Buka Tutup Drawer) -->
     <div class="card-premium">
-      <!-- Premium Gradient Header with Collapse Trigger -->
+      <!-- Premium Gradient Header with Manual Click Trigger -->
       <div style="background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 40%,#2563eb 100%);padding:24px 36px;position:relative;overflow:hidden;cursor:pointer;"
-           data-bs-toggle="collapse" data-bs-target="#collapseTambahCustomer" aria-expanded="false" aria-controls="collapseTambahCustomer">
+           id="tambahCustomerHeader">
           <div style="position:absolute;top:-40px;right:-20px;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,0.04);"></div>
           <div style="position:absolute;bottom:-50px;right:100px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,0.03);"></div>
           <div style="position:absolute;top:10px;right:30px;width:60px;height:60px;border-radius:50%;background:rgba(59,130,246,0.2);"></div>
@@ -742,9 +742,9 @@ $salesData = mysqli_query($conn, "
           </div>
       </div>
 
-      <!-- Collapsible Container (Collapsed by Default to keep page clean) -->
-      <div class="collapse" id="collapseTambahCustomer">
-        <div class="card-body-premium" style="border-top: 1px solid #f1f5f9;">
+      <!-- Collapsible Container (Collapsed by Default via inline style display: none) -->
+      <div id="collapseTambahCustomer" style="display: none; border-top: 1px solid #f1f5f9;">
+        <div class="card-body-premium">
           <form method="POST" enctype="multipart/form-data" id="createCustomerForm">
             <div class="row">
               
@@ -1647,25 +1647,27 @@ $salesData = mysqli_query($conn, "
   // Init create map
   updateCreateMapData(L.latLng(defaultLat, defaultLon), defaultRad);
 
-  // ── Collapse Tambah Customer Map Fix ──
+  // ── Manual Toggle Tambah Customer Map Fix ──
+  const toggleHeader = document.getElementById('tambahCustomerHeader');
   const collapseEl = document.getElementById('collapseTambahCustomer');
   const toggleText = document.getElementById('toggleText');
   const toggleChevron = document.getElementById('toggleChevron');
 
-  collapseEl.addEventListener('show.bs.collapse', function () {
-      toggleText.innerText = 'Sembunyikan Form';
-      toggleChevron.style.transform = 'rotate(180deg)';
-  });
-
-  collapseEl.addEventListener('shown.bs.collapse', function () {
-      if (mapCreate) {
-          mapCreate.invalidateSize();
+  toggleHeader.addEventListener('click', function () {
+      if (collapseEl.style.display === 'none' || collapseEl.style.display === '') {
+          collapseEl.style.display = 'block';
+          toggleText.innerText = 'Sembunyikan Form';
+          toggleChevron.style.transform = 'rotate(180deg)';
+          if (mapCreate) {
+              setTimeout(() => {
+                  mapCreate.invalidateSize();
+              }, 150);
+          }
+      } else {
+          collapseEl.style.display = 'none';
+          toggleText.innerText = 'Tampilkan Form';
+          toggleChevron.style.transform = 'rotate(0deg)';
       }
-  });
-
-  collapseEl.addEventListener('hide.bs.collapse', function () {
-      toggleText.innerText = 'Tampilkan Form';
-      toggleChevron.style.transform = 'rotate(0deg)';
   });
 
 
