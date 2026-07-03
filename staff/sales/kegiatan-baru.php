@@ -22,46 +22,81 @@ $currentPage = "Today";
       border: none;
       border-radius: 16px;
       overflow: hidden;
-      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
       margin-bottom: 24px;
     }
     
     .card-body-premium {
-      padding: 36px 40px;
+      padding: 40px;
     }
 
     /* ── Form Inputs ── */
     .form-group-premium {
-      margin-bottom: 22px;
+      margin-bottom: 24px;
     }
     
     .form-label-premium {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
       font-size: 11px;
       font-weight: 700;
-      color: #475569;
-      margin-bottom: 8px;
+      color: #64748b;
+      margin-bottom: 10px;
       text-transform: uppercase;
       letter-spacing: 0.08em;
     }
     
     .input-premium {
       width: 100%;
+      height: 48px !important;
       border: 1.5px solid #e2e8f0;
-      border-radius: 10px;
-      padding: 12px 16px !important;
+      border-radius: 12px;
+      padding: 10px 16px !important;
       font-size: 14px;
       color: #1e293b;
       background-color: #fff;
-      transition: all 0.2s ease;
+      transition: all 0.2s ease-in-out;
+      box-sizing: border-box;
     }
     
     .input-premium:focus {
       border-color: #3b82f6;
-      box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+      box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.08);
       outline: none;
+      background-color: #fff;
+    }
+
+    /* ── Custom Styled Select arrow to match inputs ── */
+    select.input-premium {
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      background-size: 16px;
+      padding-right: 40px !important;
+      cursor: pointer;
+    }
+
+    textarea.input-premium {
+      height: auto !important;
+      min-height: 120px;
+      line-height: 1.6;
+      resize: vertical;
+    }
+
+    /* ── Date/Time Group alignment ── */
+    .datetime-row {
+      display: flex;
+      gap: 12px;
+    }
+    .datetime-col-date {
+      flex: 2;
+    }
+    .datetime-col-time {
+      flex: 1;
     }
 
     /* ── Custom Dropdown styling matching technician flow ── */
@@ -71,23 +106,25 @@ $currentPage = "Today";
     
     .dropdown-button-cust {
       width: 100%;
-      padding: 12px 16px;
+      height: 48px;
+      padding: 10px 16px;
       border: 1.5px solid #e2e8f0;
-      border-radius: 10px;
+      border-radius: 12px;
       background: #fff;
       text-align: left;
       font-size: 14px;
-      color: #475569;
+      color: #1e293b;
       cursor: pointer;
       transition: all 0.2s;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      box-sizing: border-box;
     }
     
     .dropdown-button-cust:focus {
       border-color: #3b82f6;
-      box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+      box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.08);
       outline: none;
     }
     
@@ -100,27 +137,27 @@ $currentPage = "Today";
       z-index: 1000;
       max-height: 250px;
       overflow-y: auto;
-      border-radius: 10px;
+      border-radius: 12px;
       box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-      margin-top: 4px;
+      margin-top: 6px;
     }
     
     .dropdown-search-cust {
       width: 100%;
-      padding: 10px 14px;
+      padding: 12px 16px;
       border: none;
       border-bottom: 1.5px solid #e2e8f0;
       position: sticky;
       top: 0;
       outline: none;
-      font-size: 13.5px;
+      font-size: 14px;
       background: #f8fafc;
     }
     
     .dropdown-item-cust {
-      padding: 11px 16px;
+      padding: 12px 16px;
       cursor: pointer;
-      font-size: 13.5px;
+      font-size: 14px;
       color: #334155;
       border-bottom: 1px solid #f1f5f9;
       transition: background-color 0.15s ease;
@@ -133,7 +170,7 @@ $currentPage = "Today";
 
     /* ── Map Container ── */
     #map {
-      height: 300px;
+      height: 310px;
       width: 100%;
       border-radius: 14px;
       border: 1.5px solid #e2e8f0;
@@ -378,15 +415,15 @@ $currentPage = "Today";
                   <label class="form-label-premium">
                     <span class="material-symbols-outlined" style="font-size:16px; color:#3b82f6;">event</span> Jadwal Visit
                   </label>
-                  <div class="row g-2">
-                    <div class="col-6">
+                  <div class="datetime-row">
+                    <div class="datetime-col-date">
                       <input type="date" class="input-premium" id="visit_date" required>
                     </div>
-                    <div class="col-3">
-                      <select class="input-premium" id="visit_hour" required style="text-align: center; padding-left: 8px !important; padding-right: 8px !important;"></select>
+                    <div class="datetime-col-time">
+                      <select class="input-premium" id="visit_hour" required></select>
                     </div>
-                    <div class="col-3">
-                      <select class="input-premium" id="visit_minute" required style="text-align: center; padding-left: 8px !important; padding-right: 8px !important;">
+                    <div class="datetime-col-time">
+                      <select class="input-premium" id="visit_minute" required>
                         <option value="00">00</option>
                         <option value="15">15</option>
                         <option value="30">30</option>
