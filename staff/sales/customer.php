@@ -10,6 +10,19 @@ date_default_timezone_set('Asia/Jakarta');
 // Soft Delete
 if (isset($_GET['delete_id'])) {
     $id = $_GET['delete_id'];
+    
+    // Get current photo to delete file
+    $getFoto = $conn->prepare("SELECT foto FROM sales_customer WHERE id = ?");
+    $getFoto->bind_param("i", $id);
+    $getFoto->execute();
+    $resFoto = $getFoto->get_result()->fetch_assoc();
+    $foto_name = $resFoto['foto'] ?? NULL;
+    $getFoto->close();
+    
+    if (!empty($foto_name)) {
+        @unlink('../uploads/customer/' . $foto_name);
+    }
+
     $conn->query("UPDATE sales_customer SET deleted_at = NOW() WHERE id = '$id'");
     header("Location: " . $_SERVER['PHP_SELF']);
     exit();
@@ -35,8 +48,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_id'])) {
         $telp = '62' . $telp;
     }
 
-    $stmt = $conn->prepare("UPDATE sales_customer SET nama = ?, kategori = ?, telp_pribadi = ?, email = ?, alamat = ?, kota = ?, id_wilayah = ?, updated_at = NOW() WHERE id = ?");
-    $stmt->bind_param("ssssssii", $nama, $kategori, $telp, $email, $alamat, $kota, $id_wilayah, $id);
+    // Get current photo
+    $getFoto = $conn->prepare("SELECT foto FROM sales_customer WHERE id = ?");
+    $getFoto->bind_param("i", $id);
+    $getFoto->execute();
+    $resFoto = $getFoto->get_result()->fetch_assoc();
+    $foto_name = $resFoto['foto'] ?? NULL;
+    $getFoto->close();
+
+    // Handle file upload
+    if (isset($_FILES['edit_foto']) && $_FILES['edit_foto']['error'] === UPLOAD_ERR_OK) {
+        $fileTmpPath = $_FILES['edit_foto']['tmp_name'];
+        $fileName = $_FILES['edit_foto']['name'];
+        $fileExtension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+        $newFileName = 'cust_' . time() . '_' . rand(1000, 9999) . '.' . $fileExtension;
+        
+        $uploadFileDir = '../uploads/customer/';
+        if (!is_dir($uploadFileDir)) {
+            mkdir($uploadFileDir, 0755, true);
+        }
+        $dest_path = $uploadFileDir . $newFileName;
+        if(move_uploaded_file($fileTmpPath, $dest_path)) {
+            // Delete old file if exists
+            if (!empty($foto_name) && file_exists($uploadFileDir . $foto_name)) {
+                @unlink($uploadFileDir . $foto_name);
+            }
+            $foto_name = $newFileName;
+        }
+    }
+
+    $stmt = $conn->prepare("UPDATE sales_customer SET nama = ?, kategori = ?, telp_pribadi = ?, email = ?, alamat = ?, kota = ?, id_wilayah = ?, foto = ?, updated_at = NOW() WHERE id = ?");
+    $stmt->bind_param("ssssssisi", $nama, $kategori, $telp, $email, $alamat, $kota, $id_wilayah, $foto_name, $id);
     $stmt->execute();
     $stmt->close();
 
@@ -61,8 +103,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['update_id'])) {
         $telp = '62' . $telp;
     }
 
-    $stmt = $conn->prepare("INSERT INTO sales_customer (kategori, nama, telp_pribadi, email, alamat, kota, id_wilayah, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())");
-    $stmt->bind_param("ssssssi", $kategori, $nama, $telp, $email, $alamat, $kota, $id_wilayah);
+    // Handle file upload
+    $foto_name = NULL;
+    if (isset($_FILES['foto']) && $_FILES['foto']['error'] === UPLOAD_ERR_OK) {
+        $fileTmpPath = $_FILES['foto']['tmp_name'];
+        $fileName = $_FILES['foto']['name'];
+        $fileExtension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+        $newFileName = 'cust_' . time() . '_' . rand(1000, 9999) . '.' . $fileExtension;
+        
+        $uploadFileDir = '../uploads/customer/';
+        if (!is_dir($uploadFileDir)) {
+            mkdir($uploadFileDir, 0755, true);
+        }
+        $dest_path = $uploadFileDir . $newFileName;
+        if(move_uploaded_file($fileTmpPath, $dest_path)) {
+            $foto_name = $newFileName;
+        }
+    }
+
+    $stmt = $conn->prepare("INSERT INTO sales_customer (kategori, nama, telp_pribadi, email, alamat, kota, id_wilayah, foto, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())");
+    $stmt->bind_param("ssssssis", $kategori, $nama, $telp, $email, $alamat, $kota, $id_wilayah, $foto_name);
     $stmt->execute();
     $stmt->close();
 
@@ -227,10 +287,10 @@ $salesData = mysqli_query($conn, "
 
     /* ── Avatars in Table ── */
     .avatar-initials-table {
-      width: 36px; height: 36px;
+      width: 40px; height: 40px;
       border-radius: 50%;
       color: #fff;
-      font-size: 12px; font-weight: 700;
+      font-size: 13px; font-weight: 700;
       display: inline-flex; align-items: center; justify-content: center;
       margin-right: 12px;
       vertical-align: middle;
@@ -415,7 +475,7 @@ $salesData = mysqli_query($conn, "
       </div>
 
       <div class="card-body-premium">
-        <form method="POST">
+        <form method="POST" enctype="multipart/form-data">
           <div class="row">
             <div class="col-md-3 form-group-premium">
               <label class="form-label-premium">
@@ -478,6 +538,14 @@ $salesData = mysqli_query($conn, "
                 <span class="material-symbols-outlined" style="font-size:16px; color:#3b82f6;">location_city</span> Kota
               </label>
               <input type="text" name="kota" class="input-premium" placeholder="Masukkan kota asal customer...">
+            </div>
+
+            <!-- Upload Photo Input -->
+            <div class="col-md-4 form-group-premium">
+              <label class="form-label-premium">
+                <span class="material-symbols-outlined" style="font-size:16px; color:#3b82f6;">image</span> Foto Toko / Gudang / Logo
+              </label>
+              <input type="file" name="foto" class="input-premium" accept="image/*" style="padding-top: 10px !important;">
             </div>
             
             <div class="col-md-12 form-group-premium">
@@ -543,11 +611,18 @@ $salesData = mysqli_query($conn, "
               <td><span class="category-badge <?= $badgeClass; ?>"><?= $kat; ?></span></td>
               <td>
                 <div class="customer-identity-cell">
-                  <div class="avatar-initials-table" style="background: <?= $avatarBg; ?>;">
-                    <?php 
-                      $words = explode(' ', $row['nama'] ?? '');
-                      echo strtoupper(substr($words[0] ?? '', 0, 1) . (isset($words[1]) ? substr($words[1], 0, 1) : ''));
-                    ?>
+                  <!-- Avatar initials or image thumbnail -->
+                  <div class="avatar-initials-table" style="background: <?= $avatarBg; ?>; overflow: hidden; padding: 0;">
+                    <?php if (!empty($row['foto']) && file_exists("../uploads/customer/" . $row['foto'])): ?>
+                      <a href="../uploads/customer/<?= htmlspecialchars($row['foto']); ?>" target="_blank" style="display:block; width:100%; height:100%;">
+                        <img src="../uploads/customer/<?= htmlspecialchars($row['foto']); ?>" style="width: 100%; height: 100%; object-fit: cover;">
+                      </a>
+                    <?php else: ?>
+                      <?php 
+                        $words = explode(' ', $row['nama'] ?? '');
+                        echo strtoupper(substr($words[0] ?? '', 0, 1) . (isset($words[1]) ? substr($words[1], 0, 1) : ''));
+                      ?>
+                    <?php endif; ?>
                   </div>
                   <span style="font-weight: 700; color: #1e293b;"><?= htmlspecialchars($row['nama'] ?? ''); ?></span>
                 </div>
@@ -579,6 +654,7 @@ $salesData = mysqli_query($conn, "
                   data-email="<?= htmlspecialchars($row['email'] ?? ''); ?>"
                   data-alamat="<?= htmlspecialchars($row['alamat'] ?? ''); ?>"
                   data-kota="<?= htmlspecialchars($row['kota'] ?? ''); ?>"
+                  data-foto="<?= htmlspecialchars($row['foto'] ?? ''); ?>"
                   data-id-wilayah="<?= $row['id_wilayah']; ?>"
                   data-bs-toggle="modal" data-bs-target="#editModal" title="Ubah Data Customer">
                   <span class="material-symbols-outlined">edit</span>
@@ -602,7 +678,7 @@ $salesData = mysqli_query($conn, "
     <!-- Modal Edit -->
     <div class="modal fade" id="editModal" tabindex="-1">
       <div class="modal-dialog modal-lg">
-        <form method="POST" class="modal-content modal-content-premium">
+        <form method="POST" class="modal-content modal-content-premium" enctype="multipart/form-data">
           <div class="modal-header modal-header-premium">
             <h5 class="modal-title modal-title-premium">
               <span class="material-symbols-outlined">manage_accounts</span>
@@ -664,7 +740,18 @@ $salesData = mysqli_query($conn, "
               <input type="text" name="edit_kota" id="edit_kota" class="input-premium">
             </div>
             
+            <!-- Edit Photo Input -->
             <div class="col-md-8 form-group-premium">
+              <label class="form-label-premium">Ubah Foto Toko / Gudang / Logo</label>
+              <div class="d-flex align-items-center gap-3">
+                <div id="edit_foto_preview_container" style="display:none; width: 48px; height: 48px; border-radius: 10px; overflow: hidden; border: 1.5px solid #e2e8f0; flex-shrink: 0;">
+                  <img id="edit_foto_preview" src="" style="width:100%; height:100%; object-fit:cover;">
+                </div>
+                <input type="file" name="edit_foto" class="input-premium" accept="image/*" style="padding-top: 10px !important; flex:1;">
+              </div>
+            </div>
+
+            <div class="col-md-12 form-group-premium">
               <label class="form-label-premium">Alamat Lengkap</label>
               <input type="text" name="edit_alamat" id="edit_alamat" class="input-premium">
             </div>
@@ -696,6 +783,17 @@ $salesData = mysqli_query($conn, "
       document.getElementById('edit_alamat').value = btn.dataset.alamat;
       document.getElementById('edit_kota').value = btn.dataset.kota;
       document.getElementById('edit_id_wilayah').value = btn.dataset.idWilayah || "";
+
+      // Preview current photo
+      const foto = btn.dataset.foto;
+      const previewContainer = document.getElementById('edit_foto_preview_container');
+      const previewImg = document.getElementById('edit_foto_preview');
+      if (foto && foto !== "") {
+        previewImg.src = "../uploads/customer/" + foto;
+        previewContainer.style.display = 'block';
+      } else {
+        previewContainer.style.display = 'none';
+      }
 
       const kategori = btn.dataset.kategori;
       document.querySelectorAll('input[name="edit_kategori"]').forEach(radio => {
