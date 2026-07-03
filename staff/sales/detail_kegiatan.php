@@ -13,7 +13,7 @@ if (!isset($_GET['id'])) {
 $idKegiatan = $_GET['id'];
 
 // Ambil data kegiatan
-$sqlKegiatan = "SELECT ks.*, c.nama AS nama_customer, c.telp_pribadi, c.alamat, w.nama AS nama_wilayah, c.kategori AS kategori_customer
+$sqlKegiatan = "SELECT ks.*, c.nama AS nama_customer, c.telp_pribadi, c.alamat, w.nama AS nama_wilayah, c.kategori AS kategori_customer, c.foto AS foto_customer
                 FROM kegiatan_sales ks
                 LEFT JOIN sales_customer c ON ks.id_customer = c.id
                 LEFT JOIN wilayah w ON c.id_wilayah = w.id
@@ -467,6 +467,41 @@ $resultSales = mysqli_query($conn, $sqlSales);
           </div>
         </div>
       </div>
+
+      <!-- Dokumentasi Toko / Customer (Up to 5 Photos) -->
+      <?php 
+      $foto_json = $data['foto_customer'] ?? '';
+      $customer_photos = [];
+      if (!empty($foto_json)) {
+          $customer_photos = json_decode($foto_json, true);
+          if (!is_array($customer_photos)) {
+              $customer_photos = [];
+          }
+      }
+      if (!empty($customer_photos)):
+      ?>
+      <div class="card-premium">
+        <div class="section-header-premium" style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%);">
+          <h6>
+            <span class="material-symbols-outlined" style="font-size:18px;">photo_library</span>
+            Dokumentasi Toko / Lokasi Customer
+          </h6>
+        </div>
+        <div class="card-body-premium">
+          <div class="row g-3">
+            <?php foreach ($customer_photos as $p): ?>
+              <?php if (file_exists("../uploads/customer/" . $p)): ?>
+                <div class="col-6 col-md-3 col-lg-2">
+                  <a href="../uploads/customer/<?= htmlspecialchars($p); ?>" target="_blank" style="display:block; border-radius:12px; overflow:hidden; border:1.5px solid #e2e8f0; box-shadow: 0 4px 10px rgba(0,0,0,0.02); transition:all 0.22s;" onmouseover="this.style.transform='scale(1.04)'; this.style.borderColor='#3b82f6';" onmouseout="this.style.transform='scale(1)'; this.style.borderColor='#e2e8f0';">
+                    <img src="../uploads/customer/<?= htmlspecialchars($p); ?>" style="width:100%; height:120px; object-fit:cover;">
+                  </a>
+                </div>
+              <?php endif; ?>
+            <?php endforeach; ?>
+          </div>
+        </div>
+      </div>
+      <?php endif; ?>
 
       <!-- Detail Kunjungan Plan Card (visit) -->
       <?php if (!empty($data['visit'])): ?>
