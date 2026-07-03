@@ -287,10 +287,10 @@ foreach ($tab_meta as $k => $m) {
 
             <!-- Aksi -->
             <div class="keg-cell keg-actions">
-              <a href="detail_kegiatan.php?id=<?php echo $row['id']; ?>" target="_blank" class="btn-action btn-view" title="Lihat Detail">
+              <a href="detail_kegiatan.php?id=<?php echo $row['id']; ?>" class="btn-action btn-view" title="Lihat Detail">
                 <span class="material-symbols-outlined">visibility</span>
               </a>
-              <a href="edit_kegiatan.php?id=<?php echo $row['id']; ?>" target="_blank" class="btn-action btn-edit" title="Edit Jadwal">
+              <a href="edit_kegiatan.php?id=<?php echo $row['id']; ?>" class="btn-action btn-edit" title="Edit Jadwal">
                 <span class="material-symbols-outlined">edit</span>
               </a>
             </div>
