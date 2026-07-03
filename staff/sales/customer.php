@@ -437,16 +437,17 @@ $salesData = mysqli_query($conn, "
 
     /* ── Avatars in Table ── */
     .avatar-initials-table {
-      width: 42px; height: 42px;
+      width: 44px; height: 44px;
       border-radius: 50%;
       color: #fff;
-      font-size: 13px; font-weight: 700;
+      font-size: 14px; font-weight: 700;
       display: inline-flex; align-items: center; justify-content: center;
       margin-right: 14px;
       vertical-align: middle;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.25s;
+      flex-shrink: 0;
     }
 
     .avatar-initials-table:hover {
@@ -462,10 +463,10 @@ $salesData = mysqli_query($conn, "
 
     /* ── Category Badges ── */
     .category-badge {
-      font-size: 10px;
-      font-weight: 700;
-      padding: 6px 12px;
-      border-radius: 20px;
+      font-size: 9.5px;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 8px;
       text-transform: uppercase;
       letter-spacing: 0.06em;
       display: inline-block;
@@ -497,7 +498,7 @@ $salesData = mysqli_query($conn, "
     }
     
     .premium-table td {
-      padding: 16px 20px;
+      padding: 18px 20px;
       border-bottom: 1px solid #f1f5f9;
       color: #334155;
       font-size: 13.5px;
@@ -517,8 +518,8 @@ $salesData = mysqli_query($conn, "
       background: #ecfdf5;
       border: 1px solid #a7f3d0;
       color: #065f46;
-      font-size: 12.5px; 
-      font-weight: 700;
+      font-size: 12px; 
+      font-weight: 800;
       padding: 6px 12px;
       border-radius: 30px;
       text-decoration: none;
@@ -526,15 +527,17 @@ $salesData = mysqli_query($conn, "
       align-items: center;
       gap: 6px;
       transition: all 0.2s;
+      width: fit-content;
+      box-shadow: 0 2px 4px rgba(16, 185, 129, 0.05);
     }
     .wa-pill:hover {
       background: #10b981;
-      color: #fff;
+      color: #fff !important;
       transform: translateY(-1px);
       box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);
     }
-    .wa-pill i {
-      font-size: 15px;
+    .wa-pill svg {
+      flex-shrink: 0;
     }
 
     /* Map Pin Button */
@@ -542,11 +545,12 @@ $salesData = mysqli_query($conn, "
       background: #eff6ff;
       border: 1px solid #bfdbfe;
       color: #2563eb;
-      width: 34px; height: 34px;
+      width: 36px; height: 36px;
       border-radius: 50%;
       display: inline-flex; align-items: center; justify-content: center;
       transition: all 0.2s;
       cursor: pointer;
+      box-shadow: 0 2px 4px rgba(37, 99, 235, 0.05);
     }
     .btn-map-pin:hover {
       background: #2563eb;
@@ -852,15 +856,12 @@ $salesData = mysqli_query($conn, "
           <thead>
             <tr>
               <th style="width: 60px; text-align: center;">No</th>
-              <th style="width: 130px;">Kategori</th>
-              <th>Nama Toko / Personal</th>
-              <th style="width: 160px;">Wilayah</th>
-              <th style="width: 170px;">No. Telepon</th>
-              <th>Email</th>
-              <th>Alamat</th>
-              <th style="width: 140px;">Kota</th>
-              <th style="width: 50px; text-align: center;">Peta</th>
-              <th style="width: 130px; text-align: center;">Aksi</th>
+              <!-- Consolidated Customer Details -->
+              <th style="min-width: 250px;">Customer / Toko</th>
+              <th style="width: 200px;">Kontak Utama</th>
+              <th>Alamat &amp; Kota</th>
+              <th style="width: 70px; text-align: center;">Geofence</th>
+              <th style="width: 120px; text-align: center;">Aksi</th>
             </tr>
           </thead>
           <tbody>
@@ -906,7 +907,8 @@ $salesData = mysqli_query($conn, "
             ?>
             <tr>
               <td style="text-align: center; font-weight: 700; color: #64748b; font-size:12px;"><?= $no++; ?></td>
-              <td><span class="category-badge <?= $badgeClass; ?>"><?= $kat; ?></span></td>
+              
+              <!-- CONSOLIDATED: Store Details with Category & Wilayah Badges -->
               <td>
                 <div class="customer-identity-cell">
                   <!-- Gallery Trigger Avatar -->
@@ -925,27 +927,56 @@ $salesData = mysqli_query($conn, "
                       ?>
                     </div>
                   <?php endif; ?>
-                  <span style="font-weight: 700; color: #0f172a; font-size:13.5px;"><?= htmlspecialchars($row['nama'] ?? ''); ?></span>
+                  
+                  <div style="display:flex; flex-direction:column; gap:4px;">
+                    <span style="font-weight: 700; color: #0f172a; font-size:14px; line-height:1.2;"><?= htmlspecialchars($row['nama'] ?? ''); ?></span>
+                    <div style="display:flex; gap:6px; align-items:center;">
+                      <span class="category-badge <?= $badgeClass; ?>"><?= $kat; ?></span>
+                      <span class="badge text-capitalize" style="font-size: 8.5px; padding: 3px 8px; font-weight: 700; letter-spacing: 0.05em; border-radius:30px; text-transform: uppercase; <?= $wBadge; ?>">
+                        <?= htmlspecialchars($regionName); ?>
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </td>
+              
+              <!-- CONSOLIDATED: Contact Info -->
               <td>
-                <span class="badge text-capitalize" style="font-size: 9px; padding: 4px 10px; font-weight: 700; letter-spacing: 0.05em; border-radius:30px; text-transform: uppercase; <?= $wBadge; ?>">
-                  <?= htmlspecialchars($regionName); ?>
-                </span>
+                <div style="display:flex; flex-direction:column; gap:6px;">
+                  <?php if (!empty($row['telp_pribadi'])): ?>
+                  <a href="https://wa.me/<?= htmlspecialchars($row['telp_pribadi'] ?? ''); ?>" target="_blank" class="wa-pill">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-whatsapp" viewBox="0 0 16 16">
+                      <path d="M13.601 2.326A7.85 7.85 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.9 7.9 0 0 0 3.79.949h.004c4.368 0 7.927-3.558 7.93-7.93a7.9 7.9 0 0 0 -2.327-5.607zM7.994 14.52a6.6 6.6 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.56 6.56 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592m3.69-3.186c-.202-.1-.1.198-.102-.333-.37-.186-.645-.279-.84-.279-.149 0-.256.082-.361.229-.117.164-.265.413-.325.474-.06.06-.12.063-.223.012-.114-.056-.481-.177-.916-.565-.337-.3-.564-.67-.63-.782-.06-.1-.008-.153.04-.202.043-.045.1-.115.146-.172.046-.057.06-.099.09-.164.03-.064.015-.12-.008-.17-.023-.05-.205-.494-.28-.679-.074-.18-.15-.156-.206-.159-.052-.002-.113-.002-.173-.002-.06 0-.158.022-.24.114-.082.09-.313.307-.313.75s.322.87.367.93c.045.06.634.969 1.536 1.36.215.093.382.15.514.192.216.069.413.06.568.037.174-.027.536-.22.611-.433.075-.213.075-.397.053-.434-.022-.038-.083-.058-.19-.108z"/>
+                    </svg>
+                    <?= htmlspecialchars(preg_replace('/^62/', '0', $row['telp_pribadi'] ?? '')); ?>
+                  </a>
+                  <?php else: ?>
+                  <span class="text-muted" style="font-size:12px;">-</span>
+                  <?php endif; ?>
+                  
+                  <?php if (!empty($row['email']) && $row['email'] !== '-'): ?>
+                  <span style="color: #64748b; font-size:12px; font-family: monospace; overflow:hidden; text-overflow:ellipsis; max-width:180px; display:block;" title="<?= htmlspecialchars($row['email']); ?>">
+                    <?= htmlspecialchars($row['email']); ?>
+                  </span>
+                  <?php endif; ?>
+                </div>
               </td>
+              
+              <!-- CONSOLIDATED: Address & City -->
               <td>
-                <?php if (!empty($row['telp_pribadi'])): ?>
-                <a href="https://wa.me/<?= htmlspecialchars($row['telp_pribadi'] ?? ''); ?>" target="_blank" class="wa-pill">
-                  <i class="fab fa-whatsapp"></i> 
-                  <?= htmlspecialchars(preg_replace('/^62/', '0', $row['telp_pribadi'] ?? '')); ?>
-                </a>
-                <?php else: ?>
-                <span class="text-muted">-</span>
-                <?php endif; ?>
+                <div style="display:flex; flex-direction:column; gap:4px;">
+                  <span style="font-size: 12.5px; color: #475569; font-weight:500; line-height: 1.4; display:block; max-width:280px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="<?= htmlspecialchars($row['alamat'] ?? ''); ?>">
+                    <?= htmlspecialchars($row['alamat'] ?? '-'); ?>
+                  </span>
+                  <?php if (!empty($row['kota']) && $row['kota'] !== '-'): ?>
+                  <span style="font-weight: 700; color: #1e293b; font-size:11px; text-transform:uppercase; letter-spacing:0.02em;">
+                    📍 <?= htmlspecialchars($row['kota']); ?>
+                  </span>
+                  <?php endif; ?>
+                </div>
               </td>
-              <td style="color: #64748b; font-size:12.5px; font-family: monospace;"><?= htmlspecialchars($row['email'] ?? '-'); ?></td>
-              <td><span style="font-size: 12px; color: #64748b; font-weight:500; line-height: 1.4; display:block; max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="<?= htmlspecialchars($row['alamat'] ?? ''); ?>"><?= htmlspecialchars($row['alamat'] ?? '-'); ?></span></td>
-              <td><span style="font-weight: 700; color: #475569; font-size:12.5px;"><?= htmlspecialchars($row['kota'] ?? '-'); ?></span></td>
+              
+              <!-- Geofence Column -->
               <td style="text-align: center;">
                 <?php if (!empty($row['lat']) && !empty($row['lon'])): ?>
                   <button type="button" class="btn-map-pin openMapModalBtn" 
@@ -955,12 +986,13 @@ $salesData = mysqli_query($conn, "
                           data-name="<?= htmlspecialchars($row['nama'] ?? ''); ?>"
                           data-alamat="<?= htmlspecialchars($row['alamat_lokasi'] ?? ''); ?>"
                           title="Lihat Peta Lokasi Toko">
-                    <span class="material-symbols-outlined">location_on</span>
+                    <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1, 'wght' 700;">location_on</span>
                   </button>
                 <?php else: ?>
-                  <span class="material-symbols-outlined text-muted" style="font-size: 18px;" title="Lokasi Belum Diset">location_off</span>
+                  <span class="material-symbols-outlined text-muted" style="font-size: 20px; opacity:0.35;" title="Lokasi Belum Diset">location_off</span>
                 <?php endif; ?>
               </td>
+              
               <td style="text-align: center;">
                 <button type="button" class="btn-act btn-act-edit editBtn"
                   data-id="<?= $row['id']; ?>"
@@ -987,7 +1019,7 @@ $salesData = mysqli_query($conn, "
             <?php endwhile; ?>
             <?php if (mysqli_num_rows($salesData) == 0): ?>
               <tr>
-                <td colspan="10" class="text-center text-muted" style="padding: 40px;">Belum ada customer terdaftar.</td>
+                <td colspan="6" class="text-center text-muted" style="padding: 40px;">Belum ada customer terdaftar.</td>
               </tr>
             <?php endif; ?>
           </tbody>
