@@ -297,10 +297,10 @@ if ($isSalesDir) {
                 if ($showDashboardSales || $showDataSales || $showJadwalKunjungan || $showLaporanVisit || $showCustomerSales) {
                     renderNavHeader("Aplikasi Sales");
                     if ($showDashboardSales) renderNavItem(($pageNow == "Dashboard Sales" || ($pageNow == "Dashboard" && $isSalesDir)), $salesPrefix . "index-sa.php", "fa-solid fa-chart-line", "Dashboard Sales");
-                    if ($showDataSales) renderNavItem(($pageNow == "Sales" && $isSalesDir), $salesPrefix . "sales.php", "fa-solid fa-user-group", "Data Sales");
                     if ($showJadwalKunjungan) renderNavItem(($pageNow == "Kegiatan Baru" && $isSalesDir), $salesPrefix . "kegiatan-baru.php", "fa-solid fa-map-location-dot", "Jadwal Kunjungan");
                     if ($showLaporanVisit) renderNavItem(($pageNow == "Laporan" && $isSalesDir), $salesPrefix . "laporan-cust.php", "fa-solid fa-file-contract", "Laporan Visit");
                     if ($showCustomerSales) renderNavItem(($pageNow == "Data Customer" && $isSalesDir), $salesPrefix . "customer.php", "fa-solid fa-address-book", "Customer Sales");
+                    if ($showDataSales) renderNavItem(($pageNow == "Sales" && $isSalesDir), $salesPrefix . "sales.php", "fa-solid fa-user-group", "Data Sales");
                 }
             } elseif ($role == 'Sales Manager' || $role == 'Sales') {
                 if ($showKegiatanSaya || $showDashboardSales || $showJadwalKunjungan || $showCustomerSales) {
@@ -308,12 +308,9 @@ if ($isSalesDir) {
                     if ($showDashboardSales) renderNavItem(($pageNow == "Dashboard Sales" || ($pageNow == "Dashboard" && $isSalesDir)), $salesPrefix . "index-sa.php", "fa-solid fa-chart-line", "Dashboard");
                     if ($showKegiatanSaya) renderNavItem(($pageNow == "Kegiatan Saya" && $isSalesDir), $salesPrefix . "sales/index.php", "fa-solid fa-user-check", "Kegiatan Saya");
                     if ($showJadwalKunjungan) renderNavItem(($pageNow == "Kegiatan Baru" && $isSalesDir), $salesPrefix . "kegiatan-baru.php", "fa-solid fa-map-location-dot", "Visit Customer");
+                    if ($role == 'Sales Manager' && $showLaporanVisit) renderNavItem(($pageNow == "Laporan" && $isSalesDir), $salesPrefix . "laporan-cust.php", "fa-solid fa-file-contract", "Laporan Visit");
                     if ($showCustomerSales) renderNavItem(($pageNow == "Data Customer" && $isSalesDir), $salesPrefix . "customer.php", "fa-solid fa-address-book", "Customer");
-                    
-                    if ($role == 'Sales Manager') {
-                        if ($showLaporanVisit) renderNavItem(($pageNow == "Laporan" && $isSalesDir), $salesPrefix . "laporan-cust.php", "fa-solid fa-file-contract", "Laporan Visit");
-                        if ($showDataSales) renderNavItem(($pageNow == "Sales" && $isSalesDir), $salesPrefix . "sales.php", "fa-solid fa-user-group", "Tim Sales");
-                    }
+                    if ($role == 'Sales Manager' && $showDataSales) renderNavItem(($pageNow == "Sales" && $isSalesDir), $salesPrefix . "sales.php", "fa-solid fa-user-group", "Tim Sales");
                 }
 
                 if ($showDashboardTeknisi || $showBuatRequest) {
