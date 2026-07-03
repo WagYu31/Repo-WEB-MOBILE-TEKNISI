@@ -12,8 +12,9 @@ if (!isset($_GET['id'])) {
 
 $idKegiatan = $_GET['id'];
 
-// Ambil data kegiatan
-$sqlKegiatan = "SELECT ks.*, c.nama AS nama_customer, c.telp_pribadi, c.alamat, w.nama AS nama_wilayah, c.kategori AS kategori_customer, c.foto AS foto_customer
+// Ambil data kegiatan beserta koordinat customer
+$sqlKegiatan = "SELECT ks.*, c.nama AS nama_customer, c.telp_pribadi, c.alamat, w.nama AS nama_wilayah, c.kategori AS kategori_customer, c.foto AS foto_customer,
+                       c.lat AS cust_lat, c.lon AS cust_lon, c.rad AS cust_rad, c.alamat_lokasi AS cust_alamat_lokasi
                 FROM kegiatan_sales ks
                 LEFT JOIN sales_customer c ON ks.id_customer = c.id
                 LEFT JOIN wilayah w ON c.id_wilayah = w.id
@@ -31,6 +32,11 @@ $sqlSales = "SELECT s.nama AS nama_sales, ps.status, ps.keterangan, ps.image_1, 
              WHERE tks.id_kegiatan_sales = '$idKegiatan' AND tks.deleted_at IS NULL";
 
 $resultSales = mysqli_query($conn, $sqlSales);
+$sales_count = mysqli_num_rows($resultSales);
+
+// Cek apakah lokasi koordinat customer tersedia
+$has_coords = !empty($data['cust_lat']) && !empty($data['cust_lon']);
+$left_col_class = $has_coords ? "col-lg-7" : "col-lg-12";
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -39,6 +45,9 @@ $resultSales = mysqli_query($conn, $sqlSales);
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <?php include "head.php"; ?>
+  
+  <!-- Leaflet Map CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   
   <!-- Premium Font -->
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -390,6 +399,14 @@ $resultSales = mysqli_query($conn, $sqlSales);
       background: #20ba59;
     }
 
+    /* Maps style */
+    #map_detail {
+      height: 380px;
+      width: 100%;
+      border-radius: 12px;
+      border: 1.5px solid #e2e8f0;
+    }
+
     <?php include "css/floating-menu2.css";?>
   </style>
 </head>
@@ -468,208 +485,252 @@ $resultSales = mysqli_query($conn, $sqlSales);
         </div>
       </div>
 
-      <!-- Dokumentasi Toko / Customer (Up to 5 Photos) -->
-      <?php 
-      $foto_json = $data['foto_customer'] ?? '';
-      $customer_photos = [];
-      if (!empty($foto_json)) {
-          $customer_photos = json_decode($foto_json, true);
-          if (!is_array($customer_photos)) {
-              $customer_photos = [];
+      <!-- MAIN CONTENT ROW: Split into left (form details/report) and right (interactive map) -->
+      <div class="row">
+        
+        <!-- Left Column: Details & Reports -->
+        <div class="<?= $left_col_class; ?>">
+          
+          <!-- Dokumentasi Toko / Customer (Up to 5 Photos) -->
+          <?php 
+          $foto_json = $data['foto_customer'] ?? '';
+          $customer_photos = [];
+          if (!empty($foto_json)) {
+              $customer_photos = json_decode($foto_json, true);
+              if (!is_array($customer_photos)) {
+                  $customer_photos = [];
+              }
           }
-      }
-      if (!empty($customer_photos)):
-      ?>
-      <div class="card-premium">
-        <div class="section-header-premium" style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%);">
-          <h6>
-            <span class="material-symbols-outlined" style="font-size:18px;">photo_library</span>
-            Dokumentasi Toko / Lokasi Customer
-          </h6>
-        </div>
-        <div class="card-body-premium">
-          <div class="row g-3">
-            <?php foreach ($customer_photos as $p): ?>
-              <?php if (file_exists("../uploads/customer/" . $p)): ?>
-                <div class="col-6 col-md-3 col-lg-2">
-                  <a href="../uploads/customer/<?= htmlspecialchars($p); ?>" target="_blank" style="display:block; border-radius:12px; overflow:hidden; border:1.5px solid #e2e8f0; box-shadow: 0 4px 10px rgba(0,0,0,0.02); transition:all 0.22s;" onmouseover="this.style.transform='scale(1.04)'; this.style.borderColor='#3b82f6';" onmouseout="this.style.transform='scale(1)'; this.style.borderColor='#e2e8f0';">
-                    <img src="../uploads/customer/<?= htmlspecialchars($p); ?>" style="width:100%; height:120px; object-fit:cover;">
-                  </a>
-                </div>
-              <?php endif; ?>
-            <?php endforeach; ?>
-          </div>
-        </div>
-      </div>
-      <?php endif; ?>
-
-      <!-- Detail Kunjungan Plan Card (visit) -->
-      <?php if (!empty($data['visit'])): ?>
-      <div class="card-premium">
-        <div class="section-header-premium" style="background:#0f172a;">
-          <h6>
-            <span class="material-symbols-outlined">notes</span>
-            Keperluan &amp; Keterangan Rencana Kunjungan
-          </h6>
-        </div>
-        <div class="card-body-premium">
-          <div style="font-size:14.5px; color:#334155; line-height:1.6; font-weight:500;">
-            <?php echo nl2br(htmlspecialchars($data['visit'])); ?>
-          </div>
-        </div>
-      </div>
-      <?php endif; ?>
-
-      <!-- Tim Sales & Laporan Lapangan Section -->
-      <div class="card-premium">
-        <div class="section-header-premium">
-          <h6>
-            <span class="material-symbols-outlined">groups</span>
-            Tim Sales &amp; Laporan Lapangan
-          </h6>
-        </div>
-        <div class="card-body-premium">
-          <?php if (mysqli_num_rows($resultSales) > 0): ?>
-          <div class="row g-4">
-            <?php while ($row = mysqli_fetch_assoc($resultSales)): 
-              $status = strtolower($row['status'] ?? 'dijadwalkan');
-              $badgeClass = match($status) {
-                'selesai' => 'badge-selesai',
-                'berjalan' => 'badge-berjalan',
-                default => 'badge-dijadwalkan'
-              };
-              $colorTheme = match($status) {
-                'selesai' => '#10b981',
-                'berjalan' => '#3b82f6',
-                default => '#64748b'
-              };
-            ?>
-              <div class="col-lg-6">
-                <div class="sales-laporan-card">
-                  
-                  <!-- Card Header: Sales & Status -->
-                  <div class="sales-header-strip">
-                    <div class="sales-profile">
-                      <div class="sales-initial" style="background: <?= $colorTheme; ?>;">
-                        <?php 
-                          $words = explode(' ', $row['nama_sales'] ?? '');
-                          echo strtoupper(substr($words[0] ?? '', 0, 1) . (isset($words[1]) ? substr($words[1], 0, 1) : ''));
-                        ?>
-                      </div>
-                      <span class="sales-name-label"><?= htmlspecialchars($row['nama_sales'] ?? '-'); ?></span>
-                    </div>
-                    <span class="status-badge-sales <?= $badgeClass; ?>">
-                      <?= htmlspecialchars($row['status'] ?? 'Dijadwalkan'); ?>
-                    </span>
-                  </div>
-
-                  <!-- ABSENSI TIMELINE BOX -->
-                  <div class="timeline-absensi-box">
-                    <div class="timeline-divider"></div>
-                    
-                    <!-- Clock In Node -->
-                    <div class="timeline-node">
-                      <span class="node-header" style="color: #10b981;">
-                        <span class="material-symbols-outlined" style="font-size:13px; font-variation-settings:'FILL' 1;">login</span>
-                        Clock In
-                      </span>
-                      <span class="node-time">
-                        <?= !empty($row['ci_at']) ? date('d M, H:i', strtotime($row['ci_at'])) . ' WIB' : '<span class="text-muted font-weight-normal" style="font-size:11px; font-family:sans-serif;">Belum In</span>'; ?>
-                      </span>
-                      <?php if (!empty($row['lat_ci']) && !empty($row['lon_ci'])): ?>
-                        <a href="https://www.google.com/maps/search/?api=1&query=<?= $row['lat_ci']; ?>,<?= $row['lon_ci']; ?>" target="_blank" class="node-map-btn">
-                          <span class="material-symbols-outlined" style="font-size:13px;">explore</span> Lokasi CI
-                        </a>
-                      <?php endif; ?>
-                    </div>
-                    
-                    <!-- Clock Out Node -->
-                    <div class="timeline-node" style="padding-left: 20px;">
-                      <span class="node-header" style="color: #ef4444;">
-                        <span class="material-symbols-outlined" style="font-size:13px; font-variation-settings:'FILL' 1;">logout</span>
-                        Clock Out
-                      </span>
-                      <span class="node-time">
-                        <?= !empty($row['co_at']) ? date('d M, H:i', strtotime($row['co_at'])) . ' WIB' : '<span class="text-muted font-weight-normal" style="font-size:11px; font-family:sans-serif;">Belum Out</span>'; ?>
-                      </span>
-                      <?php if (!empty($row['lat_co']) && !empty($row['lon_co'])): ?>
-                        <a href="https://www.google.com/maps/search/?api=1&query=<?= $row['lat_co']; ?>,<?= $row['lon_co']; ?>" target="_blank" class="node-map-btn">
-                          <span class="material-symbols-outlined" style="font-size:13px;">explore</span> Lokasi CO
-                        </a>
-                      <?php endif; ?>
-                    </div>
-                  </div>
-
-                  <!-- Notes field -->
-                  <?php 
-                  $catatan = !empty($row['catatan_visit']) ? $row['catatan_visit'] : (!empty($row['keterangan']) ? $row['keterangan'] : '');
-                  if (!empty($catatan)): 
-                  ?>
-                    <div class="laporan-note-container">
-                      <div class="laporan-note-title">Catatan Kunjungan</div>
-                      <div class="laporan-note-text">"<?= htmlspecialchars($catatan); ?>"</div>
-                    </div>
-                  <?php else: ?>
-                    <div class="laporan-note-container" style="border-left-color: #e2e8f0;">
-                      <div class="laporan-note-title">Catatan Kunjungan</div>
-                      <div class="laporan-note-text text-muted" style="font-size:12px;">Tidak ada catatan lapangan.</div>
+          if (!empty($customer_photos)):
+          ?>
+          <div class="card-premium">
+            <div class="section-header-premium" style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%);">
+              <h6>
+                <span class="material-symbols-outlined" style="font-size:18px;">photo_library</span>
+                Dokumentasi Toko / Lokasi Customer
+              </h6>
+            </div>
+            <div class="card-body-premium">
+              <div class="row g-3">
+                <?php foreach ($customer_photos as $p): ?>
+                  <?php if (file_exists("../uploads/customer/" . $p)): ?>
+                    <div class="col-6 col-md-3">
+                      <a href="../uploads/customer/<?= htmlspecialchars($p); ?>" target="_blank" style="display:block; border-radius:12px; overflow:hidden; border:1.5px solid #e2e8f0; box-shadow: 0 4px 10px rgba(0,0,0,0.02); transition:all 0.22s;" onmouseover="this.style.transform='scale(1.04)'; this.style.borderColor='#3b82f6';" onmouseout="this.style.transform='scale(1)'; this.style.borderColor='#e2e8f0';">
+                        <img src="../uploads/customer/<?= htmlspecialchars($p); ?>" style="width:100%; height:120px; object-fit:cover;">
+                      </a>
                     </div>
                   <?php endif; ?>
+                <?php endforeach; ?>
+              </div>
+            </div>
+          </div>
+          <?php endif; ?>
 
-                  <!-- Dokumentasi Foto & Video (Menggunakan path server api-teknisi.id-giti.com yang benar) -->
-                  <?php if (!empty($row['image_1']) || !empty($row['image_2']) || !empty($row['image_3'])): ?>
-                    <div style="margin-bottom: 20px;">
-                      <span class="info-label" style="font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; display: block; margin-bottom: 8px;">Dokumentasi Foto &amp; Video Lapangan</span>
-                      <div class="doc-photo-grid">
-                        <?php foreach (['image_1', 'image_2', 'image_3'] as $img): ?>
-                          <?php if (!empty($row[$img])): 
-                            $ext = strtolower(pathinfo($row[$img], PATHINFO_EXTENSION));
-                            $is_video = in_array($ext, ['mp4', 'webm', 'mov', '3gp', 'avi', 'ogg']);
-                          ?>
-                            <a href="https://api-teknisi.id-giti.com/storage/image/<?php echo $row[$img]; ?>" target="_blank" class="doc-photo-wrapper" style="position: relative; display: block;">
-                              <?php if ($is_video): ?>
-                                <video src="https://api-teknisi.id-giti.com/storage/image/<?php echo $row[$img]; ?>" style="width: 100%; height: 100%; object-fit: cover;" muted playsinline></video>
-                                <!-- Video Play Overlay -->
-                                <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; border-radius: 8px;">
-                                  <span class="material-symbols-outlined" style="color: #fff; font-size: 28px; font-variation-settings: 'FILL' 1;">play_circle</span>
-                                </div>
-                              <?php else: ?>
-                                <img src="https://api-teknisi.id-giti.com/storage/image/<?php echo $row[$img]; ?>" alt="Dokumentasi">
-                              <?php endif; ?>
+          <!-- Detail Kunjungan Plan Card (visit) -->
+          <?php if (!empty($data['visit'])): ?>
+          <div class="card-premium">
+            <div class="section-header-premium" style="background:#0f172a;">
+              <h6>
+                <span class="material-symbols-outlined">notes</span>
+                Keperluan &amp; Keterangan Rencana Kunjungan
+              </h6>
+            </div>
+            <div class="card-body-premium">
+              <div style="font-size:14.5px; color:#334155; line-height:1.6; font-weight:500;">
+                <?php echo nl2br(htmlspecialchars($data['visit'])); ?>
+              </div>
+            </div>
+          </div>
+          <?php endif; ?>
+
+          <!-- Tim Sales & Laporan Lapangan Section -->
+          <div class="card-premium">
+            <div class="section-header-premium">
+              <h6>
+                <span class="material-symbols-outlined">groups</span>
+                Tim Sales &amp; Laporan Lapangan
+              </h6>
+            </div>
+            <div class="card-body-premium">
+              <?php if ($sales_count > 0): ?>
+              <div class="row g-4">
+                <?php while ($row = mysqli_fetch_assoc($resultSales)): 
+                  $status = strtolower($row['status'] ?? 'dijadwalkan');
+                  $badgeClass = match($status) {
+                    'selesai' => 'badge-selesai',
+                    'berjalan' => 'badge-berjalan',
+                    default => 'badge-dijadwalkan'
+                  };
+                  $colorTheme = match($status) {
+                    'selesai' => '#10b981',
+                    'berjalan' => '#3b82f6',
+                    default => '#64748b'
+                  };
+                  
+                  // Hitung grid class untuk laci sales
+                  $card_grid_class = "col-12";
+                  if (!$has_coords) {
+                      if ($sales_count > 1) {
+                          $card_grid_class = "col-md-6";
+                      } else {
+                          $card_grid_class = "col-md-8 mx-auto";
+                      }
+                  }
+                ?>
+                  <div class="<?= $card_grid_class; ?>">
+                    <div class="sales-laporan-card">
+                      
+                      <!-- Card Header: Sales & Status -->
+                      <div class="sales-header-strip">
+                        <div class="sales-profile">
+                          <div class="sales-initial" style="background: <?= $colorTheme; ?>;">
+                            <?php 
+                              $words = explode(' ', $row['nama_sales'] ?? '');
+                              echo strtoupper(substr($words[0] ?? '', 0, 1) . (isset($words[1]) ? substr($words[1], 0, 1) : ''));
+                            ?>
+                          </div>
+                          <span class="sales-name-label"><?= htmlspecialchars($row['nama_sales'] ?? '-'); ?></span>
+                        </div>
+                        <span class="status-badge-sales <?= $badgeClass; ?>">
+                          <?= htmlspecialchars($row['status'] ?? 'Dijadwalkan'); ?>
+                        </span>
+                      </div>
+
+                      <!-- ABSENSI TIMELINE BOX -->
+                      <div class="timeline-absensi-box">
+                        <div class="timeline-divider"></div>
+                        
+                        <!-- Clock In Node -->
+                        <div class="timeline-node">
+                          <span class="node-header" style="color: #10b981;">
+                            <span class="material-symbols-outlined" style="font-size:13px; font-variation-settings:'FILL' 1;">login</span>
+                            Clock In
+                          </span>
+                          <span class="node-time">
+                            <?= !empty($row['ci_at']) ? date('d M, H:i', strtotime($row['ci_at'])) . ' WIB' : '<span class="text-muted font-weight-normal" style="font-size:11px; font-family:sans-serif;">Belum In</span>'; ?>
+                          </span>
+                          <?php if (!empty($row['lat_ci']) && !empty($row['lon_ci'])): ?>
+                            <a href="https://www.google.com/maps/search/?api=1&query=<?= $row['lat_ci']; ?>,<?= $row['lon_ci']; ?>" target="_blank" class="node-map-btn">
+                              <span class="material-symbols-outlined" style="font-size:13px;">explore</span> Lokasi CI
                             </a>
                           <?php endif; ?>
-                        <?php endforeach; ?>
+                        </div>
+                        
+                        <!-- Clock Out Node -->
+                        <div class="timeline-node" style="padding-left: 20px;">
+                          <span class="node-header" style="color: #ef4444;">
+                            <span class="material-symbols-outlined" style="font-size:13px; font-variation-settings:'FILL' 1;">logout</span>
+                            Clock Out
+                          </span>
+                          <span class="node-time">
+                            <?= !empty($row['co_at']) ? date('d M, H:i', strtotime($row['co_at'])) . ' WIB' : '<span class="text-muted font-weight-normal" style="font-size:11px; font-family:sans-serif;">Belum Out</span>'; ?>
+                          </span>
+                          <?php if (!empty($row['lat_co']) && !empty($row['lon_co'])): ?>
+                            <a href="https://www.google.com/maps/search/?api=1&query=<?= $row['lat_co']; ?>,<?= $row['lon_co']; ?>" target="_blank" class="node-map-btn">
+                              <span class="material-symbols-outlined" style="font-size:13px;">explore</span> Lokasi CO
+                            </a>
+                          <?php endif; ?>
+                        </div>
                       </div>
-                    </div>
-                  <?php endif; ?>
 
-                  <!-- Rekaman Audio (Menggunakan path server api-teknisi.id-giti.com yang benar) -->
-                  <?php if (!empty($row['record'])): ?>
-                    <div>
-                      <span class="info-label" style="font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; display: block; margin-bottom: 8px;">Rekaman Laporan Suara</span>
-                      <div class="audio-player-wrapper">
-                        <audio controls class="premium-audio">
-                          <source src="https://api-teknisi.id-giti.com/storage/record/<?php echo $row['record']; ?>" type="audio/mpeg">
-                          <source src="https://api-teknisi.id-giti.com/storage/record/<?php echo $row['record']; ?>" type="audio/aac">
-                          <source src="https://api-teknisi.id-giti.com/storage/record/<?php echo $row['record']; ?>" type="audio/x-aac">
-                          <source src="https://api-teknisi.id-giti.com/storage/record/<?php echo $row['record']; ?>" type="audio/mp4">
-                          Browser Anda tidak mendukung pemutar suara.
-                        </audio>
-                      </div>
+                      <!-- Notes field -->
+                      <?php 
+                      $catatan = !empty($row['catatan_visit']) ? $row['catatan_visit'] : (!empty($row['keterangan']) ? $row['keterangan'] : '');
+                      if (!empty($catatan)): 
+                      ?>
+                        <div class="laporan-note-container">
+                          <div class="laporan-note-title">Catatan Kunjungan</div>
+                          <div class="laporan-note-text">"<?= htmlspecialchars($catatan); ?>"</div>
+                        </div>
+                      <?php else: ?>
+                        <div class="laporan-note-container" style="border-left-color: #e2e8f0;">
+                          <div class="laporan-note-title">Catatan Kunjungan</div>
+                          <div class="laporan-note-text text-muted" style="font-size:12px;">Tidak ada catatan lapangan.</div>
+                        </div>
+                      <?php endif; ?>
+
+                      <!-- Dokumentasi Foto & Video -->
+                      <?php if (!empty($row['image_1']) || !empty($row['image_2']) || !empty($row['image_3'])): ?>
+                        <div style="margin-bottom: 20px;">
+                          <span class="info-label" style="font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; display: block; margin-bottom: 8px;">Dokumentasi Foto &amp; Video Lapangan</span>
+                          <div class="doc-photo-grid">
+                            <?php foreach (['image_1', 'image_2', 'image_3'] as $img): ?>
+                              <?php if (!empty($row[$img])): 
+                                $ext = strtolower(pathinfo($row[$img], PATHINFO_EXTENSION));
+                                $is_video = in_array($ext, ['mp4', 'webm', 'mov', '3gp', 'avi', 'ogg']);
+                              ?>
+                                <a href="https://api-teknisi.id-giti.com/storage/image/<?php echo $row[$img]; ?>" target="_blank" class="doc-photo-wrapper" style="position: relative; display: block;">
+                                  <?php if ($is_video): ?>
+                                    <video src="https://api-teknisi.id-giti.com/storage/image/<?php echo $row[$img]; ?>" style="width: 100%; height: 100%; object-fit: cover;" muted playsinline></video>
+                                    <!-- Video Play Overlay -->
+                                    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; border-radius: 8px;">
+                                      <span class="material-symbols-outlined" style="color: #fff; font-size: 28px; font-variation-settings: 'FILL' 1;">play_circle</span>
+                                    </div>
+                                  <?php else: ?>
+                                    <img src="https://api-teknisi.id-giti.com/storage/image/<?php echo $row[$img]; ?>" alt="Dokumentasi">
+                                  <?php endif; ?>
+                                </a>
+                              <?php endif; ?>
+                            <?php endforeach; ?>
+                          </div>
+                        </div>
+                      <?php endif; ?>
+
+                      <!-- Rekaman Audio -->
+                      <?php if (!empty($row['record'])): ?>
+                        <div>
+                          <span class="info-label" style="font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; display: block; margin-bottom: 8px;">Rekaman Laporan Suara</span>
+                          <div class="audio-player-wrapper">
+                            <audio controls class="premium-audio">
+                              <source src="https://api-teknisi.id-giti.com/storage/record/<?php echo $row['record']; ?>" type="audio/mpeg">
+                              <source src="https://api-teknisi.id-giti.com/storage/record/<?php echo $row['record']; ?>" type="audio/aac">
+                              <source src="https://api-teknisi.id-giti.com/storage/record/<?php echo $row['record']; ?>" type="audio/x-aac">
+                              <source src="https://api-teknisi.id-giti.com/storage/record/<?php echo $row['record']; ?>" type="audio/mp4">
+                              Browser Anda tidak mendukung pemutar suara.
+                            </audio>
+                          </div>
+                        </div>
+                      <?php endif; ?>
+                      
                     </div>
-                  <?php endif; ?>
-                  
-                </div>
+                  </div>
+                <?php endwhile; ?>
               </div>
-            <?php endwhile; ?>
-          </div>
-          <?php else: ?>
-            <div class="text-center py-5 text-muted">
-              <span class="material-symbols-outlined" style="font-size: 44px; color: #cbd5e1; display: block; margin-bottom: 8px;">groups</span>
-              <p style="font-size: 14px; font-weight: 600; color:#64748b; margin: 0;">Belum ada sales terdaftar untuk kegiatan kunjungan ini.</p>
+              <?php else: ?>
+                <div class="text-center py-5 text-muted">
+                  <span class="material-symbols-outlined" style="font-size: 44px; color: #cbd5e1; display: block; margin-bottom: 8px;">groups</span>
+                  <p style="font-size: 14px; font-weight: 600; color:#64748b; margin: 0;">Belum ada sales terdaftar untuk kegiatan kunjungan ini.</p>
+                </div>
+              <?php endif; ?>
             </div>
-          <?php endif; ?>
+          </div>
+
         </div>
+
+        <!-- Right Column: Interactive Map -->
+        <?php if ($has_coords): ?>
+        <div class="col-lg-5">
+          <div class="card-premium h-100" style="min-height: 480px; display: flex; flex-direction: column;">
+            <div class="section-header-premium" style="background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);">
+              <h6>
+                <span class="material-symbols-outlined" style="font-size:18px;">map</span>
+                Peta Geofence Lokasi Customer
+              </h6>
+            </div>
+            <div class="card-body-premium" style="flex: 1; display: flex; flex-direction: column; padding: 24px;">
+              <!-- Map Div -->
+              <div id="map_detail" style="flex: 1; min-height: 380px;"></div>
+              
+              <!-- Address Details geocoder -->
+              <div class="mt-3 p-3 bg-light rounded-3" style="font-size: 13px; color: #475569; line-height: 1.4;">
+                <span style="font-weight: 700; color: #0f172a; display: block; margin-bottom: 4px;">Alamat Peta Geofence:</span>
+                <span><?= htmlspecialchars($data['cust_alamat_lokasi'] ?? 'Alamat geocoder tidak tersedia.'); ?></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <?php endif; ?>
+
       </div>
 
       <?php
@@ -681,6 +742,10 @@ $resultSales = mysqli_query($conn, $sqlSales);
   </main>
   
   <?php include "js-include.php"; ?>
+  
+  <!-- Leaflet Map JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  
   <script>
     var win = navigator.platform.indexOf('Win') > -1;
     if (win && document.querySelector('#sidenav-scrollbar')) {
@@ -692,6 +757,27 @@ $resultSales = mysqli_query($conn, $sqlSales);
   </script>
 
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+  <!-- Map Initialization -->
+  <?php if ($has_coords): ?>
+  <script>
+    setTimeout(() => {
+        const lat = <?= floatval($data['cust_lat']); ?>;
+        const lon = <?= floatval($data['cust_lon']); ?>;
+        const rad = <?= intval($data['cust_rad'] ?? 100); ?>;
+        const latlng = L.latLng(lat, lon);
+        
+        const map = L.map('map_detail').setView(latlng, 16);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+        
+        L.marker(latlng).addTo(map);
+        L.circle(latlng, { radius: rad, color: '#2563eb', fillColor: '#2563eb', fillOpacity: 0.15 }).addTo(map);
+    }, 250);
+  </script>
+  <?php endif; ?>
 
 </body>
 
