@@ -1,5 +1,6 @@
 <?php
 $current_date = date("Y-m-d");
+$selectedWilayah = $_SESSION['selected_wilayah'] ?? 'all';
 
 // ── Hitung summary per tab ─────────────────────────────────────────────────
 $tab_meta = [
@@ -11,7 +12,15 @@ $tab_meta = [
 
 $counts = [];
 foreach ($tab_meta as $k => $m) {
-  $r = mysqli_query($conn, "SELECT COUNT(*) AS c FROM kegiatan_sales ks WHERE ks.status != 'waiting' AND ks.deleted_at IS NULL AND {$m['condition']}");
+  $queryStr = "SELECT COUNT(ks.id) AS c FROM kegiatan_sales ks ";
+  if ($selectedWilayah !== 'all') {
+      $queryStr .= "LEFT JOIN sales_customer c ON ks.id_customer = c.id ";
+      $queryStr .= "WHERE ks.status != 'waiting' AND ks.deleted_at IS NULL AND c.id_wilayah = '$selectedWilayah' AND {$m['condition']}";
+  } else {
+      $queryStr .= "WHERE ks.status != 'waiting' AND ks.deleted_at IS NULL AND {$m['condition']}";
+  }
+  
+  $r = mysqli_query($conn, $queryStr);
   $counts[$k] = ($r && ($row = mysqli_fetch_assoc($r))) ? (int)$row['c'] : 0;
 }
 ?>
@@ -130,8 +139,13 @@ foreach ($tab_meta as $k => $m) {
       $sql = "SELECT ks.*, c.nama AS nama_customer, c.telp_pribadi AS cust_nomor, c.alamat, c.id AS customer_id
               FROM kegiatan_sales ks
               LEFT JOIN sales_customer c ON ks.id_customer = c.id
-              WHERE ks.status != 'waiting' AND ks.deleted_at IS NULL AND {$m['condition']}
-              ORDER BY ks.jadwal ASC";
+              WHERE ks.status != 'waiting' AND ks.deleted_at IS NULL AND {$m['condition']} ";
+      
+      if ($selectedWilayah !== 'all') {
+          $sql .= "AND c.id_wilayah = '$selectedWilayah' ";
+      }
+      
+      $sql .= "ORDER BY ks.jadwal ASC";
       $result = mysqli_query($conn, $sql);
       $borderColor = $m['color'];
     ?>

@@ -24,6 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_id'])) {
     $email = $_POST['edit_email'];
     $alamat = $_POST['edit_alamat'];
     $kota = $_POST['edit_kota'];
+    $id_wilayah = intval($_POST['edit_id_wilayah'] ?? 0);
     $telp = preg_replace('/\D/', '', $_POST['edit_telp']);
 
     if (substr($telp, 0, 1) === '0') {
@@ -34,8 +35,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_id'])) {
         $telp = '62' . $telp;
     }
 
-    $stmt = $conn->prepare("UPDATE sales_customer SET nama = ?, kategori = ?, telp_pribadi = ?, email = ?, alamat = ?, kota = ?, updated_at = NOW() WHERE id = ?");
-    $stmt->bind_param("ssssssi", $nama, $kategori, $telp, $email, $alamat, $kota, $id);
+    $stmt = $conn->prepare("UPDATE sales_customer SET nama = ?, kategori = ?, telp_pribadi = ?, email = ?, alamat = ?, kota = ?, id_wilayah = ?, updated_at = NOW() WHERE id = ?");
+    $stmt->bind_param("ssssssii", $nama, $kategori, $telp, $email, $alamat, $kota, $id_wilayah, $id);
     $stmt->execute();
     $stmt->close();
 
@@ -49,6 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['update_id'])) {
     $email = $_POST['email'];
     $alamat = $_POST['alamat'];
     $kota = $_POST['kota'];
+    $id_wilayah = intval($_POST['id_wilayah'] ?? 0);
     $telp = preg_replace('/\D/', '', $_POST['telp']);
 
     if (substr($telp, 0, 1) === '0') {
@@ -59,15 +61,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['update_id'])) {
         $telp = '62' . $telp;
     }
 
-    $stmt = $conn->prepare("INSERT INTO sales_customer (kategori, nama, telp_pribadi, email, alamat, kota, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())");
-    $stmt->bind_param("ssssss", $kategori, $nama, $telp, $email, $alamat, $kota);
+    $stmt = $conn->prepare("INSERT INTO sales_customer (kategori, nama, telp_pribadi, email, alamat, kota, id_wilayah, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())");
+    $stmt->bind_param("ssssssi", $kategori, $nama, $telp, $email, $alamat, $kota, $id_wilayah);
     $stmt->execute();
     $stmt->close();
 
     $successMsg = "Customer baru berhasil ditambahkan!";
 }
 
-$salesData = mysqli_query($conn, "SELECT * FROM sales_customer WHERE deleted_at IS NULL ORDER BY id DESC");
+// Ambil data customer beserta wilayah
+$salesData = mysqli_query($conn, "
+    SELECT c.*, w.nama AS nama_wilayah 
+    FROM sales_customer c 
+    LEFT JOIN wilayah w ON c.id_wilayah = w.id 
+    WHERE c.deleted_at IS NULL 
+    ORDER BY c.id DESC
+");
 ?>
 
 <!DOCTYPE html>
@@ -325,14 +334,14 @@ $salesData = mysqli_query($conn, "SELECT * FROM sales_customer WHERE deleted_at 
       <div class="card-body-premium">
         <form method="POST">
           <div class="row">
-            <div class="col-md-4 form-group-premium">
+            <div class="col-md-3 form-group-premium">
               <label class="form-label-premium">Nama Toko / Mitra / Personal</label>
               <input type="text" name="nama" class="input-premium" placeholder="Masukkan nama customer..." required>
             </div>
             
-            <div class="col-md-5 form-group-premium">
+            <div class="col-md-4 form-group-premium">
               <label class="form-label-premium">Kategori Customer</label>
-              <div class="d-flex align-items-center gap-4 mt-2">
+              <div class="d-flex align-items-center gap-3 mt-2">
                 <div class="form-check">
                   <input class="form-check-input" type="radio" name="kategori" id="kategori_dealer" value="Dealer" required>
                   <label class="form-check-label font-weight-bold text-sm text-dark" for="kategori_dealer">Dealer</label>
@@ -346,6 +355,19 @@ $salesData = mysqli_query($conn, "SELECT * FROM sales_customer WHERE deleted_at 
                   <label class="form-check-label font-weight-bold text-sm text-dark" for="kategori_user">User</label>
                 </div>
               </div>
+            </div>
+
+            <div class="col-md-2 form-group-premium">
+              <label class="form-label-premium">Wilayah Customer</label>
+              <select name="id_wilayah" class="input-premium" required>
+                <option value="">-- Pilih Wilayah --</option>
+                <?php 
+                $wQuery = mysqli_query($conn, "SELECT * FROM wilayah WHERE deleted_at IS NULL ORDER BY nama ASC");
+                while ($w = mysqli_fetch_assoc($wQuery)) {
+                    echo "<option value='{$w['id']}'>" . htmlspecialchars($w['nama']) . "</option>";
+                }
+                ?>
+              </select>
             </div>
             
             <div class="col-md-3 form-group-premium">
@@ -395,6 +417,7 @@ $salesData = mysqli_query($conn, "SELECT * FROM sales_customer WHERE deleted_at 
               <th style="width: 60px; text-align: center;">No</th>
               <th style="width: 120px;">Kategori</th>
               <th>Nama Toko / Personal</th>
+              <th style="width: 150px;">Wilayah</th>
               <th style="width: 180px;">No. Telepon</th>
               <th>Email</th>
               <th>Alamat</th>
@@ -433,6 +456,11 @@ $salesData = mysqli_query($conn, "SELECT * FROM sales_customer WHERE deleted_at 
                 </div>
               </td>
               <td>
+                <span class="badge bg-gradient-dark text-capitalize" style="font-size: 10px; font-weight: 600;">
+                  <?= htmlspecialchars($row['nama_wilayah'] ?? 'Tanpa Wilayah'); ?>
+                </span>
+              </td>
+              <td>
                 <?php if (!empty($row['telp_pribadi'])): ?>
                 <a href="https://wa.me/<?= htmlspecialchars($row['telp_pribadi'] ?? ''); ?>" target="_blank" class="wa-link">
                   <i class="fab fa-whatsapp" style="font-size: 16px;"></i> 
@@ -454,6 +482,7 @@ $salesData = mysqli_query($conn, "SELECT * FROM sales_customer WHERE deleted_at 
                   data-email="<?= htmlspecialchars($row['email'] ?? ''); ?>"
                   data-alamat="<?= htmlspecialchars($row['alamat'] ?? ''); ?>"
                   data-kota="<?= htmlspecialchars($row['kota'] ?? ''); ?>"
+                  data-id-wilayah="<?= $row['id_wilayah']; ?>"
                   data-bs-toggle="modal" data-bs-target="#editModal" title="Ubah Data Customer">
                   <span class="material-symbols-outlined">edit</span>
                 </button>
@@ -465,7 +494,7 @@ $salesData = mysqli_query($conn, "SELECT * FROM sales_customer WHERE deleted_at 
             <?php endwhile; ?>
             <?php if (mysqli_num_rows($salesData) == 0): ?>
               <tr>
-                <td colspan="8" class="text-center text-muted" style="padding: 40px;">Belum ada customer terdaftar.</td>
+                <td colspan="9" class="text-center text-muted" style="padding: 40px;">Belum ada customer terdaftar.</td>
               </tr>
             <?php endif; ?>
           </tbody>
@@ -509,6 +538,19 @@ $salesData = mysqli_query($conn, "SELECT * FROM sales_customer WHERE deleted_at 
                 </div>
               </div>
             </div>
+
+            <div class="col-md-4 form-group-premium">
+              <label class="form-label-premium">Wilayah Customer</label>
+              <select name="edit_id_wilayah" id="edit_id_wilayah" class="input-premium" required>
+                <option value="">-- Pilih Wilayah --</option>
+                <?php 
+                $wQuery2 = mysqli_query($conn, "SELECT * FROM wilayah WHERE deleted_at IS NULL ORDER BY nama ASC");
+                while ($w2 = mysqli_fetch_assoc($wQuery2)) {
+                    echo "<option value='{$w2['id']}'>" . htmlspecialchars($w2['nama']) . "</option>";
+                }
+                ?>
+              </select>
+            </div>
             
             <div class="col-md-4 form-group-premium">
               <label class="form-label-premium">No. Telepon</label>
@@ -525,7 +567,7 @@ $salesData = mysqli_query($conn, "SELECT * FROM sales_customer WHERE deleted_at 
               <input type="text" name="edit_kota" id="edit_kota" class="input-premium">
             </div>
             
-            <div class="col-md-12 form-group-premium">
+            <div class="col-md-8 form-group-premium">
               <label class="form-label-premium">Alamat Lengkap</label>
               <input type="text" name="edit_alamat" id="edit_alamat" class="input-premium">
             </div>
@@ -556,6 +598,7 @@ $salesData = mysqli_query($conn, "SELECT * FROM sales_customer WHERE deleted_at 
       document.getElementById('edit_email').value = btn.dataset.email;
       document.getElementById('edit_alamat').value = btn.dataset.alamat;
       document.getElementById('edit_kota').value = btn.dataset.kota;
+      document.getElementById('edit_id_wilayah').value = btn.dataset.idWilayah || "";
 
       const kategori = btn.dataset.kategori;
       document.querySelectorAll('input[name="edit_kategori"]').forEach(radio => {

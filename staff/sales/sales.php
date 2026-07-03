@@ -23,6 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_id'])) {
     $nik = $_POST['edit_nik'];
     $telp = preg_replace('/\D/', '', $_POST['edit_telp']);
     $editPassword = $_POST['edit_password'] ?? '';
+    $id_wilayah = intval($_POST['edit_id_wilayah'] ?? 0);
 
     if (substr($telp, 0, 1) === '0') {
         $telp = '62' . substr($telp, 1);
@@ -34,11 +35,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_id'])) {
 
     if (!empty($editPassword)) {
         $hashedPassword = password_hash($editPassword, PASSWORD_DEFAULT);
-        $stmt = $conn->prepare("UPDATE sales SET nama = ?, nik = ?, telp = ?, password = ?, updated_at = NOW() WHERE id = ?");
-        $stmt->bind_param("ssssi", $nama, $nik, $telp, $hashedPassword, $id);
+        $stmt = $conn->prepare("UPDATE sales SET nama = ?, nik = ?, telp = ?, password = ?, id_wilayah = ?, updated_at = NOW() WHERE id = ?");
+        $stmt->bind_param("ssssii", $nama, $nik, $telp, $hashedPassword, $id_wilayah, $id);
     } else {
-        $stmt = $conn->prepare("UPDATE sales SET nama = ?, nik = ?, telp = ?, updated_at = NOW() WHERE id = ?");
-        $stmt->bind_param("sssi", $nama, $nik, $telp, $id);
+        $stmt = $conn->prepare("UPDATE sales SET nama = ?, nik = ?, telp = ?, id_wilayah = ?, updated_at = NOW() WHERE id = ?");
+        $stmt->bind_param("sssii", $nama, $nik, $telp, $id_wilayah, $id);
     }
     $stmt->execute();
     $stmt->close();
@@ -52,6 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['update_id'])) {
     $nik = $_POST['nik'];
     $rawTelp = $_POST['telp'];
     $password = $_POST['password'] ?? '';
+    $id_wilayah = intval($_POST['id_wilayah'] ?? 0);
     $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
     $telp = preg_replace('/\D/', '', $rawTelp);
@@ -64,15 +66,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['update_id'])) {
         $telp = '62' . $telp;
     }
 
-    $stmt = $conn->prepare("INSERT INTO sales (nik, nama, telp, password, created_at, updated_at) VALUES (?, ?, ?, ?, NOW(), NOW())");
-    $stmt->bind_param("ssss", $nik, $nama, $telp, $hashedPassword);
+    $stmt = $conn->prepare("INSERT INTO sales (nik, nama, telp, password, id_wilayah, created_at, updated_at) VALUES (?, ?, ?, ?, ?, NOW(), NOW())");
+    $stmt->bind_param("ssssi", $nik, $nama, $telp, $hashedPassword, $id_wilayah);
     $stmt->execute();
     $stmt->close();
 
     $successMsg = "Sales baru berhasil ditambahkan!";
 }
 
-$salesData = mysqli_query($conn, "SELECT * FROM sales WHERE deleted_at IS NULL ORDER BY id DESC");
+// Ambil data sales beserta wilayah
+$salesData = mysqli_query($conn, "
+    SELECT s.*, w.nama AS nama_wilayah 
+    FROM sales s 
+    LEFT JOIN wilayah w ON s.id_wilayah = w.id 
+    WHERE s.deleted_at IS NULL 
+    ORDER BY s.id DESC
+");
 ?>
 
 <!DOCTYPE html>
@@ -338,11 +347,23 @@ $salesData = mysqli_query($conn, "SELECT * FROM sales WHERE deleted_at IS NULL O
               <label class="form-label-premium">NIK / Username</label>
               <input type="text" name="nik" class="input-premium" placeholder="Masukkan NIK unik..." required>
             </div>
-            <div class="col-md-3 form-group-premium">
+            <div class="col-md-2 form-group-premium">
               <label class="form-label-premium">No. Telepon (WhatsApp)</label>
               <input type="text" name="telp" class="input-premium" placeholder="Contoh: 08123456789" required>
             </div>
-            <div class="col-md-4 form-group-premium">
+            <div class="col-md-2 form-group-premium">
+              <label class="form-label-premium">Wilayah Operasional</label>
+              <select name="id_wilayah" class="input-premium" required>
+                <option value="">-- Pilih Wilayah --</option>
+                <?php 
+                $wQuery = mysqli_query($conn, "SELECT * FROM wilayah WHERE deleted_at IS NULL ORDER BY nama ASC");
+                while ($w = mysqli_fetch_assoc($wQuery)) {
+                    echo "<option value='{$w['id']}'>" . htmlspecialchars($w['nama']) . "</option>";
+                }
+                ?>
+              </select>
+            </div>
+            <div class="col-md-3 form-group-premium">
               <label class="form-label-premium">Kata Sandi (Password Awal)</label>
               <input type="password" name="password" class="input-premium" placeholder="Sandi masuk aplikasi mobile..." required>
             </div>
@@ -374,6 +395,7 @@ $salesData = mysqli_query($conn, "SELECT * FROM sales WHERE deleted_at IS NULL O
               <th style="width: 70px; text-align: center;">No</th>
               <th style="width: 140px;">NIK / Username</th>
               <th>Nama Lengkap</th>
+              <th style="width: 160px;">Wilayah</th>
               <th style="width: 200px;">No. Telepon</th>
               <th style="width: 120px; text-align: center;">Aksi</th>
             </tr>
@@ -395,6 +417,11 @@ $salesData = mysqli_query($conn, "SELECT * FROM sales WHERE deleted_at IS NULL O
                 </div>
               </td>
               <td>
+                <span class="badge bg-gradient-dark text-capitalize" style="font-size: 10px; font-weight: 600;">
+                  <?= htmlspecialchars($row['nama_wilayah'] ?? 'Tanpa Wilayah'); ?>
+                </span>
+              </td>
+              <td>
                 <?php if (!empty($row['telp'])): ?>
                 <a href="https://wa.me/<?= htmlspecialchars($row['telp']); ?>" target="_blank" class="wa-link">
                   <i class="fab fa-whatsapp" style="font-size: 16px;"></i> 
@@ -410,6 +437,7 @@ $salesData = mysqli_query($conn, "SELECT * FROM sales WHERE deleted_at IS NULL O
                   data-nama="<?= htmlspecialchars($row['nama']); ?>" 
                   data-nik="<?= htmlspecialchars($row['nik']); ?>" 
                   data-telp="<?= htmlspecialchars($row['telp']); ?>" 
+                  data-id-wilayah="<?= $row['id_wilayah']; ?>"
                   data-bs-toggle="modal" data-bs-target="#editModal" title="Ubah Data & Sandi">
                   <span class="material-symbols-outlined">edit</span>
                 </button>
@@ -421,7 +449,7 @@ $salesData = mysqli_query($conn, "SELECT * FROM sales WHERE deleted_at IS NULL O
             <?php endwhile; ?>
             <?php if (mysqli_num_rows($salesData) == 0): ?>
               <tr>
-                <td colspan="5" class="text-center text-muted" style="padding: 40px;">Belum ada data sales terdaftar.</td>
+                <td colspan="6" class="text-center text-muted" style="padding: 40px;">Belum ada data sales terdaftar.</td>
               </tr>
             <?php endif; ?>
           </tbody>
@@ -457,8 +485,21 @@ $salesData = mysqli_query($conn, "SELECT * FROM sales WHERE deleted_at IS NULL O
               <label class="form-label-premium">No. Telepon</label>
               <input type="text" name="edit_telp" id="edit_telp" class="input-premium" required>
             </div>
+
+            <div class="col-md-6 form-group-premium mt-2">
+              <label class="form-label-premium">Wilayah Operasional</label>
+              <select name="edit_id_wilayah" id="edit_id_wilayah" class="input-premium" required>
+                <option value="">-- Pilih Wilayah --</option>
+                <?php 
+                $wQuery2 = mysqli_query($conn, "SELECT * FROM wilayah WHERE deleted_at IS NULL ORDER BY nama ASC");
+                while ($w2 = mysqli_fetch_assoc($wQuery2)) {
+                    echo "<option value='{$w2['id']}'>" . htmlspecialchars($w2['nama']) . "</option>";
+                }
+                ?>
+              </select>
+            </div>
             
-            <div class="col-md-12 form-group-premium mt-2">
+            <div class="col-md-6 form-group-premium mt-2">
               <label class="form-label-premium">Kata Sandi Baru (Ubah Sandi)</label>
               <input type="password" name="edit_password" class="input-premium" placeholder="Masukkan password baru jika ingin mengubah, atau kosongkan saja...">
               <small class="text-muted" style="font-size: 11px; margin-top: 4px; display: block;">
@@ -490,6 +531,7 @@ $salesData = mysqli_query($conn, "SELECT * FROM sales WHERE deleted_at IS NULL O
       document.getElementById('edit_nama').value = btn.dataset.nama;
       document.getElementById('edit_nik').value = btn.dataset.nik;
       document.getElementById('edit_telp').value = btn.dataset.telp;
+      document.getElementById('edit_id_wilayah').value = btn.dataset.idWilayah || "";
     });
   });
 </script>

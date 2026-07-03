@@ -9,6 +9,12 @@ $currentPage = "Today";
 $hour = (int)date('H');
 $greeting = $hour < 12 ? 'Selamat Pagi' : ($hour < 15 ? 'Selamat Siang' : ($hour < 18 ? 'Selamat Sore' : 'Selamat Malam'));
 $todayFormatted = date('d F Y');
+
+// Simpan/baca pilihan wilayah dari session/query
+if (isset($_GET['wilayah'])) {
+    $_SESSION['selected_wilayah'] = $_GET['wilayah'] === 'all' ? 'all' : intval($_GET['wilayah']);
+}
+$selectedWilayah = $_SESSION['selected_wilayah'] ?? 'all';
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -59,6 +65,28 @@ $todayFormatted = date('d F Y');
             <div class="user-name"><?php echo htmlspecialchars($nmUser ?? 'Admin'); ?></div>
             <div class="today-date">📅 <?php echo $todayFormatted; ?></div>
             <span class="material-symbols-outlined header-icon">bar_chart</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Region Selector Dropdown ───────────────────────────────── -->
+      <div class="row mb-4">
+        <div class="col-12 col-md-4">
+          <div class="card p-3 shadow-sm border-0" style="border-radius: 12px; border: 1px solid #e2e8f0 !important;">
+            <label class="form-label font-weight-bold text-dark text-xs text-uppercase mb-2 d-flex align-items-center gap-1" style="letter-spacing: 0.05em;">
+              <span class="material-symbols-outlined" style="font-size: 16px; color: #3b82f6;">map</span>
+              Filter Wilayah Operasional
+            </label>
+            <select class="form-select border p-2 text-sm" style="border-radius: 8px; font-weight: 600; outline: none; background: #fff;" onchange="window.location.href='index-sa.php?wilayah=' + this.value">
+              <option value="all" <?php echo $selectedWilayah === 'all' ? 'selected' : ''; ?>>Tampilkan Semua Wilayah</option>
+              <?php
+              $wQuery = mysqli_query($conn, "SELECT * FROM wilayah WHERE deleted_at IS NULL ORDER BY nama ASC");
+              while ($w = mysqli_fetch_assoc($wQuery)) {
+                  $selected = ($selectedWilayah !== 'all' && (int)$selectedWilayah === (int)$w['id']) ? 'selected' : '';
+                  echo "<option value='{$w['id']}' $selected>" . htmlspecialchars($w['nama']) . "</option>";
+              }
+              ?>
+            </select>
           </div>
         </div>
       </div>

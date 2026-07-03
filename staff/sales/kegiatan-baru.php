@@ -220,11 +220,11 @@ $currentPage = "Today";
 
         <div class="card-body-premium">
           <?php
-          // Ambil customer
-          $customerResult = mysqli_query($conn, "SELECT id, nama FROM sales_customer WHERE deleted_at IS NULL");
+          // Ambil customer beserta wilayah
+          $customerResult = mysqli_query($conn, "SELECT id, nama, id_wilayah FROM sales_customer WHERE deleted_at IS NULL ORDER BY nama ASC");
 
-          // Ambil sales
-          $salesResult = mysqli_query($conn, "SELECT id, nama FROM sales WHERE deleted_at IS NULL");
+          // Ambil sales beserta wilayah
+          $salesResult = mysqli_query($conn, "SELECT id, nama, id_wilayah FROM sales WHERE deleted_at IS NULL ORDER BY nama ASC");
 
           // Set timezone ke Jakarta
           date_default_timezone_set('Asia/Jakarta');
@@ -260,7 +260,7 @@ $currentPage = "Today";
                   $stmtTeam->close();
               }
 
-              echo "<div class='alert alert-success text-white font-weight-bold mb-4' style='background: #10b981; border: none; border-radius: 10px;'>
+              echo "<div class='alert alert-success text-white font-weight-bold mb-4' style='background: #10b981; border: none; border-radius: 10px; padding: 14px 20px;'>
                       <span class='material-symbols-outlined' style='vertical-align: middle; margin-right: 8px;'>check_circle</span>
                       Kegiatan kunjungan sales berhasil ditambahkan!
                     </div>";
@@ -280,19 +280,21 @@ $currentPage = "Today";
 
             <div class="form-group-premium">
               <label for="id_customer" class="form-label-premium">Pilih Customer (Toko/Mitra)</label>
-              <select class="input-premium" name="id_customer" required>
+              <select class="input-premium" id="id_customer" name="id_customer" required>
                 <option value="">-- Pilih Customer --</option>
                 <?php while ($c = mysqli_fetch_assoc($customerResult)): ?>
-                  <option value="<?php echo $c['id']; ?>"><?php echo htmlspecialchars($c['nama']); ?></option>
+                  <option value="<?php echo $c['id']; ?>" data-id-wilayah="<?php echo $c['id_wilayah']; ?>">
+                    <?php echo htmlspecialchars($c['nama']); ?>
+                  </option>
                 <?php endwhile; ?>
               </select>
             </div>
 
             <div class="form-group-premium">
               <label class="form-label-premium">Pilih Sales Agent Terlibat</label>
-              <div class="row g-3">
+              <div class="row g-3" id="sales-list-container">
                 <?php while ($s = mysqli_fetch_assoc($salesResult)): ?>
-                  <div class="col-md-4">
+                  <div class="col-md-4 sales-checkbox-item" data-id-wilayah="<?php echo $s['id_wilayah']; ?>">
                     <label class="sales-select-card" for="sales<?php echo $s['id']; ?>">
                       <input class="sales-select-input d-none" type="checkbox" name="sales[]" value="<?php echo $s['id']; ?>" id="sales<?php echo $s['id']; ?>">
                       <div class="sales-card-content">
@@ -349,6 +351,28 @@ $currentPage = "Today";
   </script>
 
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+  <!-- Auto-Filter Script -->
+  <script>
+    document.getElementById('id_customer').addEventListener('change', function() {
+      const selectedOption = this.options[this.selectedIndex];
+      const customerWilayah = selectedOption.getAttribute('data-id-wilayah');
+      
+      document.querySelectorAll('.sales-checkbox-item').forEach(item => {
+        const salesWilayah = item.getAttribute('data-id-wilayah');
+        // Jika belum pilih customer, tampilkan semua sales. Jika sudah pilih, saring berdasarkan wilayah customer.
+        if (!customerWilayah || customerWilayah === "" || salesWilayah === customerWilayah) {
+          item.style.display = 'block';
+        } else {
+          item.style.display = 'none';
+          
+          // Uncheck checkbox yang disembunyikan agar tidak ter-submit
+          const checkbox = item.querySelector('.sales-select-input');
+          if (checkbox) checkbox.checked = false;
+        }
+      });
+    });
+  </script>
 
 </body>
 
