@@ -220,6 +220,12 @@ function renderNavItem($isActive, $url, $icon, $text) {
 $isSalesDir = (basename(getcwd()) === 'sales');
 $rootPrefix = $isSalesDir ? '../' : '';
 $salesPrefix = $isSalesDir ? '' : 'sales/';
+
+if ($isSalesDir) {
+    include_once "../menu-access-helper.php";
+} else {
+    include_once "menu-access-helper.php";
+}
 ?>
 <aside class="sidenav navbar navbar-vertical navbar-expand-xs fixed-start ms-3 my-3" id="sidenav-main">
     <div class="sidenav-header">
@@ -230,62 +236,103 @@ $salesPrefix = $isSalesDir ? '' : 'sales/';
 
     <div class="collapse navbar-collapse w-auto" id="sidenav-collapse-main">
         <ul class="navbar-nav">
-            <?php if ($role == 'Super Admin') : ?>
-            <?php endif; ?>
+            <?php
+            // Check menu access permissions dynamically
+            $showDashboard = hasMenuAccess($conn, $idSesi, 'dashboard', ($role == 'Super Admin' || $role == 'Admin'));
+            $showTambahKegiatan = hasMenuAccess($conn, $idSesi, 'tambah_kegiatan', ($role == 'Super Admin' || $role == 'Admin'));
+            $showWaitingList = hasMenuAccess($conn, $idSesi, 'waiting_list', ($role == 'Super Admin' || $role == 'Admin'));
 
-            <?php if ($role == 'Super Admin' || $role == 'Admin') : ?>
-                <?php renderNavHeader("Operasional"); ?>
-                <?php renderNavItem(($pageNow == "Dashboard" && !$isSalesDir), $rootPrefix . "index-sa.php", "fa-solid fa-chart-pie", "Dashboard"); ?>
-                <?php renderNavItem(($pageNow == "Kegiatan Baru" && !$isSalesDir), $rootPrefix . "kegiatan-baru.php", "fa-solid fa-file-circle-plus", "Tambah Kegiatan"); ?>
-                <?php renderNavItem(($pageNow == "Waiting List" && !$isSalesDir), $rootPrefix . "waiting-list.php", "fa-solid fa-hourglass-half", "Waiting List"); ?>
+            $showKegiatanTeknisi = hasMenuAccess($conn, $idSesi, 'kegiatan_teknisi', ($role == 'Super Admin' || $role == 'Admin'));
+            $showLaporanKegiatan = hasMenuAccess($conn, $idSesi, 'laporan_kegiatan', ($role == 'Super Admin' || $role == 'Admin'));
+            $showTargetTercapai = hasMenuAccess($conn, $idSesi, 'target_tercapai', ($role == 'Super Admin' || $role == 'Admin'));
+            $showProgressKegiatan = hasMenuAccess($conn, $idSesi, 'progress_kegiatan', ($role == 'Super Admin' || $role == 'Admin'));
 
-                <?php renderNavHeader("Laporan"); ?>
-                <?php renderNavItem(($pageNow == "Task" && !$isSalesDir), $rootPrefix . "task.php", "fa-solid fa-person-digging", "Kegiatan Teknisi"); ?>
-                <?php renderNavItem(($pageNow == "Laporan" && !$isSalesDir), $rootPrefix . "lap-kegiatan.php", "fa-solid fa-file-invoice", "Laporan Kegiatan"); ?>
-                <?php renderNavItem(($pageNow == "Target Tercapai" && !$isSalesDir), $rootPrefix . "laporan.php", "fa-solid fa-hand-holding-dollar", "Target Tercapai Teknisi"); ?>
-                <?php renderNavItem(($pageNow == "Progress Kegiatan" && !$isSalesDir), $rootPrefix . "lap-progress.php", "fa-solid fa-bars-progress", "Progress Kegiatan"); ?>
+            $showStokBarang = hasMenuAccess($conn, $idSesi, 'stok_barang', ($role == 'Super Admin' || $role == 'Admin'));
+            $showPeminjaman = hasMenuAccess($conn, $idSesi, 'peminjaman', ($role == 'Super Admin' || $role == 'Admin'));
+            $showTutorial = hasMenuAccess($conn, $idSesi, 'tutorial', ($role == 'Super Admin' || $role == 'Admin'));
 
-                <?php renderNavHeader("Manajemen Aset"); ?>
-                <?php renderNavItem(($pageNow == "Inventory" && !$isSalesDir), $rootPrefix . "inventory.php", "fa-solid fa-boxes-stacked", "Stok Barang"); ?>
-                <?php renderNavItem(($pageNow == "Peminjaman" && !$isSalesDir), $rootPrefix . "peminjaman.php", "fa-solid fa-right-left", "Peminjaman"); ?>
-                <?php renderNavItem(($pageNow == "Tutorial" && !$isSalesDir), $rootPrefix . "tutorial.php", "fa-solid fa-book", "Tutorial"); ?>
+            $showTeknisi = hasMenuAccess($conn, $idSesi, 'teknisi', ($role == 'Super Admin' || $role == 'Admin'));
+            $showCustomer = hasMenuAccess($conn, $idSesi, 'customer', ($role == 'Super Admin' || $role == 'Admin'));
 
-                <?php renderNavHeader("Data Master"); ?>
-                <?php renderNavItem(($pageNow == "Data Teknisi" && !$isSalesDir), $rootPrefix . "data-teknisi.php", "fa-solid fa-users-gear", "Teknisi"); ?>
-                <?php renderNavItem(($pageNow == "Data Customer" && !$isSalesDir), $rootPrefix . "customer.php", "fa-solid fa-users", "Customer"); ?>
+            $showDashboardSales = hasMenuAccess($conn, $idSesi, 'dashboard_sales', ($role == 'Super Admin' || $role == 'Admin' || $role == 'Sales Manager' || $role == 'Sales'));
+            $showDataSales = hasMenuAccess($conn, $idSesi, 'data_sales', ($role == 'Super Admin' || $role == 'Admin' || $role == 'Sales Manager'));
+            $showJadwalKunjungan = hasMenuAccess($conn, $idSesi, 'jadwal_kunjungan', ($role == 'Super Admin' || $role == 'Admin' || $role == 'Sales Manager' || $role == 'Sales'));
+            $showLaporanVisit = hasMenuAccess($conn, $idSesi, 'laporan_visit', ($role == 'Super Admin' || $role == 'Admin' || $role == 'Sales Manager'));
+            $showCustomerSales = hasMenuAccess($conn, $idSesi, 'customer_sales', ($role == 'Super Admin' || $role == 'Admin' || $role == 'Sales Manager' || $role == 'Sales'));
 
-                <?php renderNavHeader("Aplikasi Sales"); ?>
-                <?php renderNavItem(($pageNow == "Dashboard Sales" || ($pageNow == "Dashboard" && $isSalesDir)), $salesPrefix . "index-sa.php", "fa-solid fa-chart-line", "Dashboard Sales"); ?>
-                <?php renderNavItem(($pageNow == "Sales" && $isSalesDir), $salesPrefix . "sales.php", "fa-solid fa-user-group", "Data Sales"); ?>
-                <?php renderNavItem(($pageNow == "Kegiatan Baru" && $isSalesDir), $salesPrefix . "kegiatan-baru.php", "fa-solid fa-map-location-dot", "Jadwal Kunjungan"); ?>
-                <?php renderNavItem(($pageNow == "Laporan" && $isSalesDir), $salesPrefix . "laporan-cust.php", "fa-solid fa-file-contract", "Laporan Visit"); ?>
-                <?php renderNavItem(($pageNow == "Data Customer" && $isSalesDir), $salesPrefix . "customer.php", "fa-solid fa-address-book", "Customer Sales"); ?>
-            <?php endif; ?>
+            $showKegiatanSaya = hasMenuAccess($conn, $idSesi, 'kegiatan_saya', ($role == 'Sales Manager' || $role == 'Sales'));
+            $showDashboardTeknisi = hasMenuAccess($conn, $idSesi, 'dashboard_teknisi', ($role == 'Sales Manager' || $role == 'Sales'));
+            $showBuatRequest = hasMenuAccess($conn, $idSesi, 'buat_request', ($role == 'Sales Manager' || $role == 'Sales'));
 
+            // Render menus according to user permissions
+            if ($role == 'Super Admin' || $role == 'Admin') {
+                if ($showDashboard || $showTambahKegiatan || $showWaitingList) {
+                    renderNavHeader("Operasional");
+                    if ($showDashboard) renderNavItem(($pageNow == "Dashboard" && !$isSalesDir), $rootPrefix . "index-sa.php", "fa-solid fa-chart-pie", "Dashboard");
+                    if ($showTambahKegiatan) renderNavItem(($pageNow == "Kegiatan Baru" && !$isSalesDir), $rootPrefix . "kegiatan-baru.php", "fa-solid fa-file-circle-plus", "Tambah Kegiatan");
+                    if ($showWaitingList) renderNavItem(($pageNow == "Waiting List" && !$isSalesDir), $rootPrefix . "waiting-list.php", "fa-solid fa-hourglass-half", "Waiting List");
+                }
 
-            <?php if ($role == 'Sales Manager' || $role == 'Sales') : ?>
-                <?php renderNavHeader("Sales"); ?>
-                <?php renderNavItem(($pageNow == "Dashboard Sales" || ($pageNow == "Dashboard" && $isSalesDir)), $salesPrefix . "index-sa.php", "fa-solid fa-chart-line", "Dashboard"); ?>
-                <?php renderNavItem(($pageNow == "Kegiatan Saya" && $isSalesDir), $salesPrefix . "sales/index.php", "fa-solid fa-user-check", "Kegiatan Saya"); ?>
-                <?php renderNavItem(($pageNow == "Kegiatan Baru" && $isSalesDir), $salesPrefix . "kegiatan-baru.php", "fa-solid fa-map-location-dot", "Visit Customer"); ?>
-                <?php renderNavItem(($pageNow == "Data Customer" && $isSalesDir), $salesPrefix . "customer.php", "fa-solid fa-address-book", "Customer"); ?>
-                
-                <?php if ($role == 'Sales Manager') : ?>
-                    <?php renderNavItem(($pageNow == "Laporan" && $isSalesDir), $salesPrefix . "laporan-cust.php", "fa-solid fa-file-contract", "Laporan Visit"); ?>
-                    <?php renderNavItem(($pageNow == "Sales" && $isSalesDir), $salesPrefix . "sales.php", "fa-solid fa-user-group", "Tim Sales"); ?>
-                <?php endif; ?>
-                
-                <?php renderNavHeader("Teknisi"); ?>
-                <?php renderNavItem(($pageNow == "Dashboard Teknisi" && !$isSalesDir), $rootPrefix . "index-sales.php", "fa-solid fa-chart-pie", "Dashboard Teknisi"); ?>
-                <?php renderNavItem(($pageNow == "Kegiatan Baru" && !$isSalesDir), $rootPrefix . "kegiatan-baru.php", "fa-solid fa-bell-concierge", "Buat Request"); ?>
-            <?php endif; ?>
-            
-            <?php if ($role == 'Teknisi') : ?>
-            <?php endif; ?>
+                if ($showKegiatanTeknisi || $showLaporanKegiatan || $showTargetTercapai || $showProgressKegiatan) {
+                    renderNavHeader("Laporan");
+                    if ($showKegiatanTeknisi) renderNavItem(($pageNow == "Task" && !$isSalesDir), $rootPrefix . "task.php", "fa-solid fa-person-digging", "Kegiatan Teknisi");
+                    if ($showLaporanKegiatan) renderNavItem(($pageNow == "Laporan" && !$isSalesDir), $rootPrefix . "lap-kegiatan.php", "fa-solid fa-file-invoice", "Laporan Kegiatan");
+                    if ($showTargetTercapai) renderNavItem(($pageNow == "Target Tercapai" && !$isSalesDir), $rootPrefix . "laporan.php", "fa-solid fa-hand-holding-dollar", "Target Tercapai Teknisi");
+                    if ($showProgressKegiatan) renderNavItem(($pageNow == "Progress Kegiatan" && !$isSalesDir), $rootPrefix . "lap-progress.php", "fa-solid fa-bars-progress", "Progress Kegiatan");
+                }
+
+                if ($showStokBarang || $showPeminjaman || $showTutorial) {
+                    renderNavHeader("Manajemen Aset");
+                    if ($showStokBarang) renderNavItem(($pageNow == "Inventory" && !$isSalesDir), $rootPrefix . "inventory.php", "fa-solid fa-boxes-stacked", "Stok Barang");
+                    if ($showPeminjaman) renderNavItem(($pageNow == "Peminjaman" && !$isSalesDir), $rootPrefix . "peminjaman.php", "fa-solid fa-right-left", "Peminjaman");
+                    if ($showTutorial) renderNavItem(($pageNow == "Tutorial" && !$isSalesDir), $rootPrefix . "tutorial.php", "fa-solid fa-book", "Tutorial");
+                }
+
+                if ($showTeknisi || $showCustomer) {
+                    renderNavHeader("Data Master");
+                    if ($showTeknisi) renderNavItem(($pageNow == "Data Teknisi" && !$isSalesDir), $rootPrefix . "data-teknisi.php", "fa-solid fa-users-gear", "Teknisi");
+                    if ($showCustomer) renderNavItem(($pageNow == "Data Customer" && !$isSalesDir), $rootPrefix . "customer.php", "fa-solid fa-users", "Customer");
+                }
+
+                if ($showDashboardSales || $showDataSales || $showJadwalKunjungan || $showLaporanVisit || $showCustomerSales) {
+                    renderNavHeader("Aplikasi Sales");
+                    if ($showDashboardSales) renderNavItem(($pageNow == "Dashboard Sales" || ($pageNow == "Dashboard" && $isSalesDir)), $salesPrefix . "index-sa.php", "fa-solid fa-chart-line", "Dashboard Sales");
+                    if ($showDataSales) renderNavItem(($pageNow == "Sales" && $isSalesDir), $salesPrefix . "sales.php", "fa-solid fa-user-group", "Data Sales");
+                    if ($showJadwalKunjungan) renderNavItem(($pageNow == "Kegiatan Baru" && $isSalesDir), $salesPrefix . "kegiatan-baru.php", "fa-solid fa-map-location-dot", "Jadwal Kunjungan");
+                    if ($showLaporanVisit) renderNavItem(($pageNow == "Laporan" && $isSalesDir), $salesPrefix . "laporan-cust.php", "fa-solid fa-file-contract", "Laporan Visit");
+                    if ($showCustomerSales) renderNavItem(($pageNow == "Data Customer" && $isSalesDir), $salesPrefix . "customer.php", "fa-solid fa-address-book", "Customer Sales");
+                }
+            } elseif ($role == 'Sales Manager' || $role == 'Sales') {
+                if ($showKegiatanSaya || $showDashboardSales || $showJadwalKunjungan || $showCustomerSales) {
+                    renderNavHeader("Sales");
+                    if ($showDashboardSales) renderNavItem(($pageNow == "Dashboard Sales" || ($pageNow == "Dashboard" && $isSalesDir)), $salesPrefix . "index-sa.php", "fa-solid fa-chart-line", "Dashboard");
+                    if ($showKegiatanSaya) renderNavItem(($pageNow == "Kegiatan Saya" && $isSalesDir), $salesPrefix . "sales/index.php", "fa-solid fa-user-check", "Kegiatan Saya");
+                    if ($showJadwalKunjungan) renderNavItem(($pageNow == "Kegiatan Baru" && $isSalesDir), $salesPrefix . "kegiatan-baru.php", "fa-solid fa-map-location-dot", "Visit Customer");
+                    if ($showCustomerSales) renderNavItem(($pageNow == "Data Customer" && $isSalesDir), $salesPrefix . "customer.php", "fa-solid fa-address-book", "Customer");
+                    
+                    if ($role == 'Sales Manager') {
+                        if ($showLaporanVisit) renderNavItem(($pageNow == "Laporan" && $isSalesDir), $salesPrefix . "laporan-cust.php", "fa-solid fa-file-contract", "Laporan Visit");
+                        if ($showDataSales) renderNavItem(($pageNow == "Sales" && $isSalesDir), $salesPrefix . "sales.php", "fa-solid fa-user-group", "Tim Sales");
+                    }
+                }
+
+                if ($showDashboardTeknisi || $showBuatRequest) {
+                    renderNavHeader("Teknisi");
+                    if ($showDashboardTeknisi) renderNavItem(($pageNow == "Dashboard Teknisi" && !$isSalesDir), $rootPrefix . "index-sales.php", "fa-solid fa-chart-pie", "Dashboard Teknisi");
+                    if ($showBuatRequest) renderNavItem(($pageNow == "Kegiatan Baru" && !$isSalesDir), $rootPrefix . "kegiatan-baru.php", "fa-solid fa-bell-concierge", "Buat Request");
+                }
+            }
+            ?>
         </ul>
     </div>
     
     <div class="sidenav-footer">
+        <?php if ($role == 'Super Admin') : ?>
+            <a class="nav-link" href="<?php echo $rootPrefix; ?>kelola-akses.php">
+                 <i class="nav-icon fa-fw fa-solid fa-user-shield"></i>
+                 <p>Kelola Akses Menu</p>
+            </a>
+        <?php endif; ?>
         <a class="nav-link" href="<?php echo $rootPrefix; ?>data-admin.php">
              <i class="nav-icon fa-fw fa-solid fa-user"></i>
              <p>Data Admin</p>
