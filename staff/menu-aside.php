@@ -214,7 +214,8 @@ function renderNavItem($pageNow, $targetPage, $url, $icon, $text) {
     #sidenav-main .text-white {
         color: inherit !important;
     }
-</style<?php
+</style>
+<?php
 // Calculate directory prefix dynamically to share the same menu-aside.php between root and sales subdirectory
 $isSalesDir = (basename(getcwd()) === 'sales');
 $rootPrefix = $isSalesDir ? '../' : '';
