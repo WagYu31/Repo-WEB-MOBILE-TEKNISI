@@ -31,144 +31,324 @@ $sqlSales = "SELECT s.nama AS nama_sales, ps.status, ps.keterangan, ps.image_1, 
 $resultSales = mysqli_query($conn, $sqlSales);
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <?php
-  include "head.php";
-  ?>
+  <?php include "head.php"; ?>
   <style>
-    ul#data-tek li:nth-child(odd) {
-      background-color: white;
+    /* ── Premium Detail Styling ── */
+    .card-premium {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+      margin-bottom: 24px;
+    }
+    
+    .section-header-premium {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      background: #1e293b;
+      color: #fff;
+    }
+    
+    .section-header-premium h6 {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: flex;
+      align-items: center;
+    }
+    
+    .card-body-premium {
+      padding: 28px 24px;
     }
 
-    ul#data-tek li:nth-child(even) {
-      background-color: #efefef;
-      border-radius: 0;
+    /* ── Detail Grid ── */
+    .info-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .info-value {
+      font-size: 15px;
+      font-weight: 700;
+      color: #1e293b;
     }
 
-    #toggleLoadMore,
-    #toggleLoadMore1,
-    #toggleLoadMore2 {
-      border-bottom-left-radius: 0;
-      border-bottom-right-radius: 0;
+    .wa-link {
+      color: #10b981;
+      text-decoration: none;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .wa-link:hover { text-decoration: underline; }
+
+    /* ── Sales Laporan Cards ── */
+    .sales-laporan-card {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 24px;
+      height: 100%;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.01);
+      border-left: 5px solid #64748b;
+      transition: all 0.22s ease;
+    }
+    .sales-laporan-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.04);
+    }
+    
+    .sales-name-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #1e293b;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .status-badge-sales {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .badge-selesai { background: #d1fae5; color: #065f46; }
+    .badge-berjalan { background: #dbeafe; color: #1e40af; }
+    .badge-dijadwalkan { background: #f1f5f9; color: #475569; }
+
+    .laporan-note {
+      background: #f8fafc;
+      border-radius: 8px;
+      padding: 12px 16px;
+      border-left: 3px solid #cbd5e1;
+      font-style: italic;
+      color: #475569;
+      font-size: 13.5px;
     }
 
-    input[type="checkbox"] {
-      -webkit-appearance: checkbox;
-      -moz-appearance: checkbox;
-      appearance: checkbox;
+    /* ── Documentation Photos ── */
+    .doc-img-wrapper {
+      position: relative;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid #e2e8f0;
+      transition: all 0.22s ease;
+      cursor: pointer;
     }
-        <?php include "css/floating-menu2.css";?>
+    .doc-img-wrapper:hover {
+      transform: scale(1.03);
+      box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+    }
+    
+    .doc-img {
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
+    }
+
+    /* ── Audio Player Style ── */
+    .premium-audio {
+      width: 100%;
+      border-radius: 30px;
+      background: #f8fafc;
+      outline: none;
+    }
+
+    <?php include "css/floating-menu2.css";?>
   </style>
 </head>
 
-<body class="g-sidenav-show  bg-gray-200">
-  <?php
-  include "cek-menu.php";
-  ?>
+<body class="g-sidenav-show bg-gray-200">
+  <?php include "cek-menu.php"; ?>
 
   <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg ">
+    <?php include "nav-top.php"; ?>
 
-    <?php
-    include "nav-top.php";
-    $todayDate = formatTanggal('dd MMMM yyyy');
-    ?>
+    <div class="container-fluid py-4">
 
-<div class="container-fluid py-4">
-  <h3 class="mb-4">Detail Kegiatan</h3>
-
-  <div class="card p-4 mb-4 shadow-sm">
-    <div class="row">
-      <!--<div class="col-md-6 mb-3">-->
-      <!--  <strong>Kode:</strong> <br><?php echo $data['kode']; ?>-->
-      <!--</div>-->
-      <!--<div class="col-md-6 mb-3">-->
-      <!--  <strong>Status:</strong> <br><span class="badge bg-primary"><?php echo ucfirst($data['status']); ?></span>-->
-      <!--</div>-->
-      <div class="col-md-6 mb-3">
-        <strong>Customer:</strong> <br><?php echo $data['nama_customer']; ?>
-      </div>
-      <div class="col-md-6 mb-3">
-        <strong>Telepon:</strong> <br><?php echo $data['telp_pribadi']; ?>
-      </div>
-      <div class="col-md-6 mb-3">
-        <strong>Alamat:</strong> <br><?php echo $data['alamat']; ?>
-      </div>
-      <div class="col-md-6 mb-3">
-        <strong>Jadwal:</strong> <br><?php echo date('d/m/Y H:i', strtotime($data['jadwal'])); ?>
-      </div>
-    </div>
-  </div>
-
-  <h5 class="mb-3">Tim Sales & Laporan</h5>
-
-  <?php if (mysqli_num_rows($resultSales) > 0): ?>
-  <div class="row">
-    <?php while ($row = mysqli_fetch_assoc($resultSales)): ?>
-      <div class="col-md-6 mb-4">
-        <div class="card p-4 h-100 shadow-sm border-start">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <h6 class="mb-0"><?php echo $row['nama_sales']; ?></h6>
-            <span class="badge bg-<?php echo $row['status'] == 'Selesai' ? 'success' : ($row['status'] == 'Berjalan' ? 'info' : 'secondary'); ?>">
-              <?php echo $row['status'] ?? 'Dijadwalkan'; ?>
-            </span>
-          </div>
-
-          <?php if (!empty($row['keterangan'])): ?>
-            <p class="mb-2">
-              <strong>Keterangan:</strong> <?php echo $row['keterangan']; ?>
-            </p>
-          <?php endif; ?>
-
-          <?php if ($row['image_1'] || $row['image_2'] || $row['image_3']): ?>
-            <div class="row mb-3">
-              <?php foreach (['image_1', 'image_2', 'image_3'] as $img): ?>
-                <?php if (!empty($row[$img])): ?>
-                  <div class="col-4 mb-2">
-                    <img src="https://grav-tech.com/jadwal-3/api/storage/app/image/<?php echo $row[$img]; ?>" class="img-fluid rounded border" alt="Dokumentasi">
-                  </div>
-                <?php endif; ?>
-              <?php endforeach; ?>
+      <!-- Detail Kegiatan Card -->
+      <div class="card-premium">
+        <div class="section-header-premium">
+          <h6>
+            <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 8px;">info</span>
+            Informasi Rencana Kunjungan
+          </h6>
+        </div>
+        <div class="card-body-premium">
+          <div class="row g-4">
+            
+            <div class="col-md-6 col-lg-3">
+              <span class="info-label">
+                <span class="material-symbols-outlined" style="font-size: 15px;">storefront</span>
+                Nama Customer / Toko
+              </span>
+              <span class="info-value"><?php echo htmlspecialchars($data['nama_customer'] ?? '-'); ?></span>
             </div>
-          <?php endif; ?>
 
-          <?php if (!empty($row['record'])): ?>
-            <p class="mb-1"><strong>Rekaman:</strong></p>
-            <audio controls class="w-100">
-              <source src="https://grav-tech.com/jadwal-3/api/storage/app/record/<?php echo $row['record']; ?>" type="audio/mpeg">
-              <source src="https://grav-tech.com/jadwal-3/api/storage/app/record/<?php echo $row['record']; ?>" type="audio/aac">
-              <source src="https://grav-tech.com/jadwal-3/api/storage/app/record/<?php echo $row['record']; ?>" type="audio/x-aac">
-              <source src="https://grav-tech.com/jadwal-3/api/storage/app/record/<?php echo $row['record']; ?>" type="audio/mp4">
-              Browser Anda tidak mendukung elemen audio.
-            </audio>
+            <div class="col-md-6 col-lg-3">
+              <span class="info-label">
+                <span class="material-symbols-outlined" style="font-size: 15px;">call</span>
+                No. Telepon WhatsApp
+              </span>
+              <span class="info-value">
+                <?php if (!empty($data['telp_pribadi'])): ?>
+                <a href="https://wa.me/<?php echo htmlspecialchars($data['telp_pribadi']); ?>" target="_blank" class="wa-link">
+                  <i class="fab fa-whatsapp" style="font-size: 16px;"></i> 
+                  <?php echo htmlspecialchars(preg_replace('/^62/', '0', $data['telp_pribadi'])); ?>
+                </a>
+                <?php else: ?>
+                -
+                <?php endif; ?>
+              </span>
+            </div>
+
+            <div class="col-md-6 col-lg-3">
+              <span class="info-label">
+                <span class="material-symbols-outlined" style="font-size: 15px;">schedule</span>
+                Jadwal Kunjungan
+              </span>
+              <span class="info-value"><?php echo date('d M Y, H:i', strtotime($data['jadwal'])); ?> WIB</span>
+            </div>
+
+            <div class="col-md-6 col-lg-3">
+              <span class="info-label">
+                <span class="material-symbols-outlined" style="font-size: 15px;">location_on</span>
+                Alamat Toko
+              </span>
+              <span class="info-value" style="font-size:13.5px; font-weight: 500; color: #475569;"><?php echo htmlspecialchars($data['alamat'] ?? '-'); ?></span>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- Tim Sales & Laporan Section -->
+      <div class="card-premium">
+        <div class="section-header-premium">
+          <h6>
+            <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 8px;">groups</span>
+            Tim Sales &amp; Laporan Lapangan
+          </h6>
+        </div>
+        <div class="card-body-premium">
+          <?php if (mysqli_num_rows($resultSales) > 0): ?>
+          <div class="row g-4">
+            <?php while ($row = mysqli_fetch_assoc($resultSales)): 
+              $status = strtolower($row['status'] ?? 'dijadwalkan');
+              $badgeClass = match($status) {
+                'selesai' => 'badge-selesai',
+                'berjalan' => 'badge-berjalan',
+                default => 'badge-dijadwalkan'
+              };
+              $borderLeftColor = match($status) {
+                'selesai' => '#10b981',
+                'berjalan' => '#3b82f6',
+                default => '#cbd5e1'
+              };
+            ?>
+              <div class="col-md-6">
+                <div class="sales-laporan-card" style="border-left-color: <?= $borderLeftColor; ?>;">
+                  <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="sales-name-title">
+                      <div class="avatar-initials-table" style="background: <?= $borderLeftColor; ?>; width: 32px; height: 32px; box-shadow: none; font-size:11px;">
+                        <?php 
+                          $words = explode(' ', $row['nama_sales'] ?? '');
+                          echo strtoupper(substr($words[0] ?? '', 0, 1) . (isset($words[1]) ? substr($words[1], 0, 1) : ''));
+                        ?>
+                      </div>
+                      <?= htmlspecialchars($row['nama_sales'] ?? '-'); ?>
+                    </span>
+                    <span class="status-badge-sales <?= $badgeClass; ?>">
+                      <?= htmlspecialchars($row['status'] ?? 'Dijadwalkan'); ?>
+                    </span>
+                  </div>
+
+                  <?php if (!empty($row['keterangan'])): ?>
+                    <div class="mb-3">
+                      <span class="info-label" style="margin-bottom: 4px;">Catatan Kunjungan</span>
+                      <div class="laporan-note">
+                        "<?= htmlspecialchars($row['keterangan']); ?>"
+                      </div>
+                    </div>
+                  <?php endif; ?>
+
+                  <!-- Dokumentasi Foto (Menggunakan path server api-teknisi.id-giti.com yang benar) -->
+                  <?php if (!empty($row['image_1']) || !empty($row['image_2']) || !empty($row['image_3'])): ?>
+                    <div class="mb-3">
+                      <span class="info-label" style="margin-bottom: 6px;">Foto Dokumentasi Lapangan</span>
+                      <div class="row g-2">
+                        <?php foreach (['image_1', 'image_2', 'image_3'] as $img): ?>
+                          <?php if (!empty($row[$img])): ?>
+                            <div class="col-4">
+                              <a href="https://api-teknisi.id-giti.com/storage/image/<?php echo $row[$img]; ?>" target="_blank" title="Buka Foto Ukuran Penuh">
+                                <div class="doc-img-wrapper">
+                                  <img src="https://api-teknisi.id-giti.com/storage/image/<?php echo $row[$img]; ?>" class="doc-img" alt="Dokumentasi">
+                                </div>
+                              </a>
+                            </div>
+                          <?php endif; ?>
+                        <?php endforeach; ?>
+                      </div>
+                    </div>
+                  <?php endif; ?>
+
+                  <!-- Rekaman Audio (Menggunakan path server api-teknisi.id-giti.com yang benar) -->
+                  <?php if (!empty($row['record'])): ?>
+                    <div>
+                      <span class="info-label" style="margin-bottom: 6px;">Rekaman Laporan Suara</span>
+                      <audio controls class="premium-audio">
+                        <source src="https://api-teknisi.id-giti.com/storage/record/<?php echo $row['record']; ?>" type="audio/mpeg">
+                        <source src="https://api-teknisi.id-giti.com/storage/record/<?php echo $row['record']; ?>" type="audio/aac">
+                        <source src="https://api-teknisi.id-giti.com/storage/record/<?php echo $row['record']; ?>" type="audio/x-aac">
+                        <source src="https://api-teknisi.id-giti.com/storage/record/<?php echo $row['record']; ?>" type="audio/mp4">
+                        Browser Anda tidak mendukung pemutar suara.
+                      </audio>
+                    </div>
+                  <?php endif; ?>
+                </div>
+              </div>
+            <?php endwhile; ?>
+          </div>
+          <?php else: ?>
+            <div class="text-center py-4 text-muted">
+              <span class="material-symbols-outlined" style="font-size: 40px; color: #cbd5e1; display: block; margin-bottom: 8px;">groups</span>
+              Belum ada sales terdaftar untuk kegiatan kunjungan ini.
+            </div>
           <?php endif; ?>
         </div>
       </div>
-    <?php endwhile; ?>
-  </div>
-<?php else: ?>
-  <p class="text-muted">Belum ada sales terdaftar untuk kegiatan ini.</p>
-<?php endif; ?>
 
-
-  <?php
-  include "floating-menu.php";
-  include "footer.php";
-  ?>
-</div>
-
-    <?php
-    // }
-    ?>
-
+      <?php
+      include "floating-menu.php";
+      include "footer.php";
+      ?>
+    </div>
 
   </main>
-  <?php
-  include "js-include.php";
-  ?>
+  
+  <?php include "js-include.php"; ?>
   <script>
     var win = navigator.platform.indexOf('Win') > -1;
     if (win && document.querySelector('#sidenav-scrollbar')) {
@@ -180,9 +360,6 @@ $resultSales = mysqli_query($conn, $sqlSales);
   </script>
 
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-
-
 
 </body>
 
