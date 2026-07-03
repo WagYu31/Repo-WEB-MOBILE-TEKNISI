@@ -1,10 +1,9 @@
 <?php
-include "../conn.php";
-include "../session.php";
-include "../get-user-data.php";
+include "conn.php";
+include "session.php";
+include "get-user-data.php";
 $pageNow = "Laporan";
 $currentPage = "Today";
-$role = $_SESSION['role'];
 ?>
 <!DOCTYPE html>
 <html lang="en">
