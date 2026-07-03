@@ -299,10 +299,27 @@ $currentPage = "Today";
                 </div>
 
                 <div class="form-group-premium">
-                  <label for="jadwal" class="form-label-premium">
+                  <label class="form-label-premium">
                     <span class="material-symbols-outlined" style="font-size:16px; color:#3b82f6;">event</span> Jadwal Visit
                   </label>
-                  <input type="datetime-local" class="input-premium" name="jadwal" required>
+                  <div class="row g-2">
+                    <div class="col-6">
+                      <input type="date" class="input-premium" id="visit_date" required>
+                    </div>
+                    <div class="col-3">
+                      <select class="input-premium" id="visit_hour" required style="text-align: center; padding-left: 8px !important; padding-right: 8px !important;"></select>
+                    </div>
+                    <div class="col-3">
+                      <select class="input-premium" id="visit_minute" required style="text-align: center; padding-left: 8px !important; padding-right: 8px !important;">
+                        <option value="00">00</option>
+                        <option value="15">15</option>
+                        <option value="30">30</option>
+                        <option value="45">45</option>
+                      </select>
+                    </div>
+                  </div>
+                  <!-- Hidden field to submit combined datetime -->
+                  <input type="hidden" id="jadwal" name="jadwal">
                 </div>
 
                 <div class="form-group-premium">
@@ -470,6 +487,38 @@ $currentPage = "Today";
 
     // ── Interactive Leaflet Map Logic ──
     document.addEventListener('DOMContentLoaded', function() {
+      // ── Populate Hour Select ──
+      const hourSelect = document.getElementById('visit_hour');
+      for (let i = 0; i < 24; i++) {
+        let h = i.toString().padStart(2, '0');
+        hourSelect.add(new Option(h, h));
+      }
+
+      // ── Set default date/time values ──
+      const today = new Date();
+      const dd = String(today.getDate()).padStart(2, '0');
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const yyyy = today.getFullYear();
+      document.getElementById('visit_date').value = `${yyyy}-${mm}-${dd}`;
+      document.getElementById('visit_hour').value = "09";
+      document.getElementById('visit_minute').value = "00";
+
+      // Combine Date, Hour, and Minute
+      function combineDateTime() {
+        const d = document.getElementById('visit_date').value;
+        const h = document.getElementById('visit_hour').value;
+        const m = document.getElementById('visit_minute').value;
+        document.getElementById('jadwal').value = d ? `${d} ${h}:${m}:00` : '';
+      }
+
+      // Initial combination
+      combineDateTime();
+
+      // Listen to changes
+      ['visit_date', 'visit_hour', 'visit_minute'].forEach(id => {
+        document.getElementById(id).addEventListener('change', combineDateTime);
+      });
+
       const defaultLat = -6.13037113;
       const defaultLon = 106.75144230;
       const defaultRad = 100;
