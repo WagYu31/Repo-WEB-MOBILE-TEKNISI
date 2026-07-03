@@ -57,13 +57,14 @@ if ($checkCustCol->num_rows == 0) {
     echo "<p style='color: blue;'>ℹ Kolom 'id_wilayah' sudah ada di tabel 'sales_customer'.</p>";
 }
 
-// 5. Tambah kolom foto di tabel sales_customer jika belum ada
+// 5. Tambah kolom foto di tabel sales_customer (MODIFY ke TEXT untuk muat banyak foto)
 $checkCustFoto = $conn->query("SHOW COLUMNS FROM sales_customer LIKE 'foto'");
 if ($checkCustFoto->num_rows == 0) {
-    $conn->query("ALTER TABLE sales_customer ADD COLUMN foto VARCHAR(255) NULL");
-    echo "<p style='color: green;'>✔ Kolom 'foto' berhasil ditambahkan ke tabel 'sales_customer'.</p>";
+    $conn->query("ALTER TABLE sales_customer ADD COLUMN foto TEXT NULL");
+    echo "<p style='color: green;'>✔ Kolom 'foto' (TEXT) berhasil ditambahkan ke tabel 'sales_customer'.</p>";
 } else {
-    echo "<p style='color: blue;'>ℹ Kolom 'foto' sudah ada di tabel 'sales_customer'.</p>";
+    $conn->query("ALTER TABLE sales_customer MODIFY COLUMN foto TEXT NULL");
+    echo "<p style='color: blue;'>ℹ Kolom 'foto' berhasil dimodifikasi ke tipe TEXT.</p>";
 }
 
 // 6. Tambah kolom lokasi di tabel kegiatan_sales jika belum ada

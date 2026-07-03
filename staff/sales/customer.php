@@ -11,16 +11,21 @@ date_default_timezone_set('Asia/Jakarta');
 if (isset($_GET['delete_id'])) {
     $id = $_GET['delete_id'];
     
-    // Get current photo to delete file
+    // Get current photos and delete files
     $getFoto = $conn->prepare("SELECT foto FROM sales_customer WHERE id = ?");
     $getFoto->bind_param("i", $id);
     $getFoto->execute();
     $resFoto = $getFoto->get_result()->fetch_assoc();
-    $foto_name = $resFoto['foto'] ?? NULL;
+    $foto_json = $resFoto['foto'] ?? '';
     $getFoto->close();
     
-    if (!empty($foto_name)) {
-        @unlink('../uploads/customer/' . $foto_name);
+    if (!empty($foto_json)) {
+        $photos = json_decode($foto_json, true);
+        if (is_array($photos)) {
+            foreach ($photos as $p) {
+                @unlink('../uploads/customer/' . $p);
+            }
+        }
     }
 
     $conn->query("UPDATE sales_customer SET deleted_at = NOW() WHERE id = '$id'");
@@ -48,37 +53,67 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_id'])) {
         $telp = '62' . $telp;
     }
 
-    // Get current photo
+    // Get current photos
     $getFoto = $conn->prepare("SELECT foto FROM sales_customer WHERE id = ?");
     $getFoto->bind_param("i", $id);
     $getFoto->execute();
     $resFoto = $getFoto->get_result()->fetch_assoc();
-    $foto_name = $resFoto['foto'] ?? NULL;
+    $foto_json = $resFoto['foto'] ?? '';
     $getFoto->close();
 
-    // Handle file upload
-    if (isset($_FILES['edit_foto']) && $_FILES['edit_foto']['error'] === UPLOAD_ERR_OK) {
-        $fileTmpPath = $_FILES['edit_foto']['tmp_name'];
-        $fileName = $_FILES['edit_foto']['name'];
-        $fileExtension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
-        $newFileName = 'cust_' . time() . '_' . rand(1000, 9999) . '.' . $fileExtension;
-        
+    $existing_photos = [];
+    if (!empty($foto_json)) {
+        $existing_photos = json_decode($foto_json, true);
+        if (!is_array($existing_photos)) {
+            $existing_photos = [];
+        }
+    }
+
+    // Process deleted existing photos
+    $deleted_photos_str = $_POST['deleted_existing_photos'] ?? '';
+    if (!empty($deleted_photos_str)) {
+        $deleted_photos = explode(',', $deleted_photos_str);
+        foreach ($deleted_photos as $dp) {
+            $dp = trim($dp);
+            if (in_array($dp, $existing_photos)) {
+                @unlink('../uploads/customer/' . $dp);
+                $existing_photos = array_diff($existing_photos, [$dp]);
+            }
+        }
+        $existing_photos = array_values($existing_photos);
+    }
+
+    // Handle new file uploads
+    $new_filenames = [];
+    if (isset($_FILES['edit_foto'])) {
+        $files = $_FILES['edit_foto'];
         $uploadFileDir = '../uploads/customer/';
         if (!is_dir($uploadFileDir)) {
             mkdir($uploadFileDir, 0755, true);
         }
-        $dest_path = $uploadFileDir . $newFileName;
-        if(move_uploaded_file($fileTmpPath, $dest_path)) {
-            // Delete old file if exists
-            if (!empty($foto_name) && file_exists($uploadFileDir . $foto_name)) {
-                @unlink($uploadFileDir . $foto_name);
+
+        for ($i = 0; $i < count($files['name']); $i++) {
+            if ($files['error'][$i] === UPLOAD_ERR_OK) {
+                $fileTmpPath = $files['tmp_name'][$i];
+                $fileName = $files['name'][$i];
+                $fileExtension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+                $newFileName = 'cust_' . time() . '_' . rand(1000, 9999) . '_edit_' . $i . '.' . $fileExtension;
+                $dest_path = $uploadFileDir . $newFileName;
+                if (move_uploaded_file($fileTmpPath, $dest_path)) {
+                    $new_filenames[] = $newFileName;
+                }
             }
-            $foto_name = $newFileName;
         }
     }
 
+    // Merge existing and new photos
+    $merged_photos = array_merge($existing_photos, $new_filenames);
+    // Limit to max 10 for safety, though user asked for at least 5
+    $merged_photos = array_slice($merged_photos, 0, 10);
+    $foto_json_updated = !empty($merged_photos) ? json_encode($merged_photos) : NULL;
+
     $stmt = $conn->prepare("UPDATE sales_customer SET nama = ?, kategori = ?, telp_pribadi = ?, email = ?, alamat = ?, kota = ?, id_wilayah = ?, foto = ?, updated_at = NOW() WHERE id = ?");
-    $stmt->bind_param("ssssssisi", $nama, $kategori, $telp, $email, $alamat, $kota, $id_wilayah, $foto_name, $id);
+    $stmt->bind_param("ssssssisi", $nama, $kategori, $telp, $email, $alamat, $kota, $id_wilayah, $foto_json_updated, $id);
     $stmt->execute();
     $stmt->close();
 
@@ -103,26 +138,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['update_id'])) {
         $telp = '62' . $telp;
     }
 
-    // Handle file upload
-    $foto_name = NULL;
-    if (isset($_FILES['foto']) && $_FILES['foto']['error'] === UPLOAD_ERR_OK) {
-        $fileTmpPath = $_FILES['foto']['tmp_name'];
-        $fileName = $_FILES['foto']['name'];
-        $fileExtension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
-        $newFileName = 'cust_' . time() . '_' . rand(1000, 9999) . '.' . $fileExtension;
-        
+    // Handle multiple files upload
+    $filenames = [];
+    if (isset($_FILES['foto'])) {
+        $files = $_FILES['foto'];
         $uploadFileDir = '../uploads/customer/';
         if (!is_dir($uploadFileDir)) {
             mkdir($uploadFileDir, 0755, true);
         }
-        $dest_path = $uploadFileDir . $newFileName;
-        if(move_uploaded_file($fileTmpPath, $dest_path)) {
-            $foto_name = $newFileName;
+
+        for ($i = 0; $i < count($files['name']); $i++) {
+            if ($files['error'][$i] === UPLOAD_ERR_OK) {
+                $fileTmpPath = $files['tmp_name'][$i];
+                $fileName = $files['name'][$i];
+                $fileExtension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+                $newFileName = 'cust_' . time() . '_' . rand(1000, 9999) . '_' . $i . '.' . $fileExtension;
+                $dest_path = $uploadFileDir . $newFileName;
+                if (move_uploaded_file($fileTmpPath, $dest_path)) {
+                    $filenames[] = $newFileName;
+                }
+            }
         }
     }
+    
+    $foto_json = !empty($filenames) ? json_encode($filenames) : NULL;
 
     $stmt = $conn->prepare("INSERT INTO sales_customer (kategori, nama, telp_pribadi, email, alamat, kota, id_wilayah, foto, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())");
-    $stmt->bind_param("ssssssis", $kategori, $nama, $telp, $email, $alamat, $kota, $id_wilayah, $foto_name);
+    $stmt->bind_param("ssssssis", $kategori, $nama, $telp, $email, $alamat, $kota, $id_wilayah, $foto_json);
     $stmt->execute();
     $stmt->close();
 
@@ -145,6 +187,8 @@ $salesData = mysqli_query($conn, "
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <?php include "head.php"; ?>
+  <!-- Leaflet Map CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
     /* ── Premium Styling ── */
     .card-premium {
@@ -215,6 +259,91 @@ $salesData = mysqli_query($conn, "
       box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.08);
       outline: none;
       background-color: #fff;
+    }
+
+    /* ── Drag & Drop Zone ── */
+    .dropzone-area {
+      border: 2px dashed #cbd5e1;
+      border-radius: 14px;
+      background: #f8fafc;
+      padding: 24px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease-in-out;
+      user-select: none;
+    }
+    
+    .dropzone-area:hover, .dropzone-area.dragover {
+      border-color: #3b82f6;
+      background: #f0f7ff;
+    }
+    
+    .dropzone-icon {
+      font-size: 32px;
+      color: #64748b;
+      margin-bottom: 6px;
+    }
+    
+    .dropzone-text {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: #475569;
+      margin: 0;
+    }
+
+    .preview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+    
+    .preview-item {
+      position: relative;
+      width: 80px;
+      height: 80px;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1.5px solid #e2e8f0;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    }
+    
+    .preview-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .preview-remove {
+      position: absolute;
+      top: 3px;
+      right: 3px;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: rgba(220, 38, 38, 0.95);
+      color: #fff;
+      font-size: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border: none;
+      font-weight: 700;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+
+    /* Existing Photos List in Edit */
+    .edit-photo-thumb {
+      position: relative;
+      width: 72px;
+      height: 72px;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1.5px solid #e2e8f0;
+    }
+    .edit-photo-thumb img {
+      width: 100%; height: 100%; object-fit: cover;
     }
 
     /* ── Custom Styled Select arrow ── */
@@ -295,6 +424,13 @@ $salesData = mysqli_query($conn, "
       margin-right: 12px;
       vertical-align: middle;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .avatar-initials-table:hover {
+      transform: scale(1.08);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
     }
     
     .customer-identity-cell {
@@ -475,7 +611,7 @@ $salesData = mysqli_query($conn, "
       </div>
 
       <div class="card-body-premium">
-        <form method="POST" enctype="multipart/form-data">
+        <form method="POST" enctype="multipart/form-data" id="createCustomerForm">
           <div class="row">
             <div class="col-md-3 form-group-premium">
               <label class="form-label-premium">
@@ -526,26 +662,31 @@ $salesData = mysqli_query($conn, "
               <input type="text" name="telp" class="input-premium" placeholder="Contoh: 0812345678" required>
             </div>
             
-            <div class="col-md-4 form-group-premium">
+            <div class="col-md-6 form-group-premium">
               <label class="form-label-premium">
                 <span class="material-symbols-outlined" style="font-size:16px; color:#3b82f6;">mail</span> Email Customer
               </label>
               <input type="email" name="email" class="input-premium" placeholder="Contoh: customer@loewix.com">
             </div>
             
-            <div class="col-md-4 form-group-premium">
+            <div class="col-md-6 form-group-premium">
               <label class="form-label-premium">
                 <span class="material-symbols-outlined" style="font-size:16px; color:#3b82f6;">location_city</span> Kota
               </label>
               <input type="text" name="kota" class="input-premium" placeholder="Masukkan kota asal customer...">
             </div>
 
-            <!-- Upload Photo Input -->
-            <div class="col-md-4 form-group-premium">
+            <!-- Drag & Drop Multiple Photos -->
+            <div class="col-md-12 form-group-premium">
               <label class="form-label-premium">
-                <span class="material-symbols-outlined" style="font-size:16px; color:#3b82f6;">image</span> Foto Toko / Gudang / Logo
+                <span class="material-symbols-outlined" style="font-size:16px; color:#3b82f6;">image</span> Foto Dokumentasi Toko / Gudang / Pabrik (Maksimal 5 Foto)
               </label>
-              <input type="file" name="foto" class="input-premium" accept="image/*" style="padding-top: 10px !important;">
+              <div class="dropzone-area" id="dropzone_create">
+                <span class="material-symbols-outlined dropzone-icon">cloud_upload</span>
+                <p class="dropzone-text">Drag &amp; drop file foto di sini, atau klik untuk memilih</p>
+                <input type="file" id="foto_input_create" name="foto[]" multiple accept="image/*" class="d-none">
+              </div>
+              <div class="preview-grid" id="preview_grid_create"></div>
             </div>
             
             <div class="col-md-12 form-group-premium">
@@ -605,25 +746,39 @@ $salesData = mysqli_query($conn, "
                 'User' => '#10b981',
                 default => '#64748b'
               };
+              
+              // Parse multiple photos JSON
+              $photos = [];
+              $foto_json = $row['foto'] ?? '';
+              if (!empty($foto_json)) {
+                  $photos = json_decode($foto_json, true);
+                  if (!is_array($photos)) {
+                      $photos = [];
+                  }
+              }
+              $firstPhoto = !empty($photos) ? $photos[0] : '';
             ?>
             <tr>
               <td style="text-align: center; font-weight: 600; color: #64748b;"><?= $no++; ?></td>
               <td><span class="category-badge <?= $badgeClass; ?>"><?= $kat; ?></span></td>
               <td>
                 <div class="customer-identity-cell">
-                  <!-- Avatar initials or image thumbnail -->
-                  <div class="avatar-initials-table" style="background: <?= $avatarBg; ?>; overflow: hidden; padding: 0;">
-                    <?php if (!empty($row['foto']) && file_exists("../uploads/customer/" . $row['foto'])): ?>
-                      <a href="../uploads/customer/<?= htmlspecialchars($row['foto']); ?>" target="_blank" style="display:block; width:100%; height:100%;">
-                        <img src="../uploads/customer/<?= htmlspecialchars($row['foto']); ?>" style="width: 100%; height: 100%; object-fit: cover;">
-                      </a>
-                    <?php else: ?>
+                  <!-- Gallery Trigger Avatar -->
+                  <?php if (!empty($firstPhoto) && file_exists("../uploads/customer/" . $firstPhoto)): ?>
+                    <div class="avatar-initials-table openGalleryBtn" 
+                         style="background: <?= $avatarBg; ?>; overflow: hidden; padding: 0;"
+                         data-photos='<?= htmlspecialchars(json_encode($photos)); ?>'
+                         data-name="<?= htmlspecialchars($row['nama'] ?? ''); ?>">
+                      <img src="../uploads/customer/<?= htmlspecialchars($firstPhoto); ?>" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                  <?php else: ?>
+                    <div class="avatar-initials-table" style="background: <?= $avatarBg; ?>; cursor: default;">
                       <?php 
                         $words = explode(' ', $row['nama'] ?? '');
                         echo strtoupper(substr($words[0] ?? '', 0, 1) . (isset($words[1]) ? substr($words[1], 0, 1) : ''));
                       ?>
-                    <?php endif; ?>
-                  </div>
+                    </div>
+                  <?php endif; ?>
                   <span style="font-weight: 700; color: #1e293b;"><?= htmlspecialchars($row['nama'] ?? ''); ?></span>
                 </div>
               </td>
@@ -654,7 +809,7 @@ $salesData = mysqli_query($conn, "
                   data-email="<?= htmlspecialchars($row['email'] ?? ''); ?>"
                   data-alamat="<?= htmlspecialchars($row['alamat'] ?? ''); ?>"
                   data-kota="<?= htmlspecialchars($row['kota'] ?? ''); ?>"
-                  data-foto="<?= htmlspecialchars($row['foto'] ?? ''); ?>"
+                  data-foto='<?= htmlspecialchars(json_encode($photos)); ?>'
                   data-id-wilayah="<?= $row['id_wilayah']; ?>"
                   data-bs-toggle="modal" data-bs-target="#editModal" title="Ubah Data Customer">
                   <span class="material-symbols-outlined">edit</span>
@@ -678,7 +833,7 @@ $salesData = mysqli_query($conn, "
     <!-- Modal Edit -->
     <div class="modal fade" id="editModal" tabindex="-1">
       <div class="modal-dialog modal-lg">
-        <form method="POST" class="modal-content modal-content-premium" enctype="multipart/form-data">
+        <form method="POST" class="modal-content modal-content-premium" enctype="multipart/form-data" id="editCustomerForm">
           <div class="modal-header modal-header-premium">
             <h5 class="modal-title modal-title-premium">
               <span class="material-symbols-outlined">manage_accounts</span>
@@ -739,21 +894,27 @@ $salesData = mysqli_query($conn, "
               <label class="form-label-premium">Kota</label>
               <input type="text" name="edit_kota" id="edit_kota" class="input-premium">
             </div>
-            
-            <!-- Edit Photo Input -->
-            <div class="col-md-8 form-group-premium">
-              <label class="form-label-premium">Ubah Foto Toko / Gudang / Logo</label>
-              <div class="d-flex align-items-center gap-3">
-                <div id="edit_foto_preview_container" style="display:none; width: 48px; height: 48px; border-radius: 10px; overflow: hidden; border: 1.5px solid #e2e8f0; flex-shrink: 0;">
-                  <img id="edit_foto_preview" src="" style="width:100%; height:100%; object-fit:cover;">
-                </div>
-                <input type="file" name="edit_foto" class="input-premium" accept="image/*" style="padding-top: 10px !important; flex:1;">
-              </div>
-            </div>
 
-            <div class="col-md-12 form-group-premium">
+            <div class="col-md-8 form-group-premium">
               <label class="form-label-premium">Alamat Lengkap</label>
               <input type="text" name="edit_alamat" id="edit_alamat" class="input-premium">
+            </div>
+
+            <!-- Existing Photos with Delete options -->
+            <div class="col-md-12 form-group-premium mt-3">
+              <label class="form-label-premium">Foto Dokumentasi Saat Ini (Klik ❌ untuk Menghapus)</label>
+              <div class="d-flex flex-wrap gap-3 mb-3" id="edit_existing_photos_container">
+                <!-- JS will inject existing photo previews here -->
+              </div>
+              <input type="hidden" name="deleted_existing_photos" id="deleted_existing_photos">
+              
+              <label class="form-label-premium">Tambah Foto Dokumentasi Baru (Drag &amp; Drop / Klik)</label>
+              <div class="dropzone-area" id="dropzone_edit">
+                <span class="material-symbols-outlined dropzone-icon">cloud_upload</span>
+                <p class="dropzone-text">Drag &amp; drop file baru di sini, atau klik untuk memilih</p>
+                <input type="file" id="foto_input_edit" name="edit_foto[]" multiple accept="image/*" class="d-none">
+              </div>
+              <div class="preview-grid" id="preview_grid_edit"></div>
             </div>
           </div>
           <div class="modal-footer modal-footer-premium">
@@ -767,6 +928,34 @@ $salesData = mysqli_query($conn, "
       </div>
     </div>
 
+    <!-- Gallery slideshow modal -->
+    <div class="modal fade" id="galleryModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="border-radius:16px; overflow:hidden; border:none; background:#0f172a;">
+          <div class="modal-header border-0 text-white" style="padding: 16px 24px; background: rgba(255,255,255,0.03);">
+            <h6 class="modal-title text-white font-weight-bold" id="galleryTitle">Dokumentasi Toko</h6>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" style="filter: invert(1) grayscale(1) brightness(2);"></button>
+          </div>
+          <div class="modal-body text-center" style="padding: 30px;">
+            <!-- Carousel -->
+            <div id="galleryCarousel" class="carousel slide" data-bs-ride="carousel">
+              <div class="carousel-inner" id="galleryCarouselInner" style="max-height: 480px; border-radius:12px; overflow:hidden; border: 2px solid rgba(255,255,255,0.1);">
+                <!-- slides inject -->
+              </div>
+              <button class="carousel-control-prev" type="button" data-bs-target="#galleryCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));"></span>
+                <span class="visually-hidden">Previous</span>
+              </button>
+              <button class="carousel-control-next" type="button" data-bs-target="#galleryCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));"></span>
+                <span class="visually-hidden">Next</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <?php include "floating-menu.php"; ?>
     <?php include "footer.php"; ?>
   </div>
@@ -774,8 +963,149 @@ $salesData = mysqli_query($conn, "
 
 <?php include "js-include.php"; ?>
 <script>
+  // ── Drag & Drop Uploader Script ──
+  function setupDragAndDrop(dropzoneId, inputId, previewGridId, maxFiles = 5) {
+    const dropzone = document.getElementById(dropzoneId);
+    const input = document.getElementById(inputId);
+    const previewGrid = document.getElementById(previewGridId);
+    let selectedFiles = [];
+
+    // Trigger click on dropzone
+    dropzone.addEventListener('click', () => input.click());
+
+    // Drag events
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropzone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        dropzone.classList.add('dragover');
+      }, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropzone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('dragover');
+      }, false);
+    });
+
+    // Handle dropped files
+    dropzone.addEventListener('drop', (e) => {
+      const dt = e.dataTransfer;
+      const files = dt.files;
+      handleFiles(files);
+    });
+
+    // Handle file selection
+    input.addEventListener('change', () => {
+      handleFiles(input.files);
+    });
+
+    function handleFiles(files) {
+      // Convert FileList to array
+      const filesArr = Array.from(files).filter(file => file.type.startsWith('image/'));
+      
+      // Limit count
+      if (selectedFiles.length + filesArr.length > maxFiles) {
+        alert(`Maksimal hanya dapat mengunggah ${maxFiles} foto dokumentasi.`);
+        return;
+      }
+
+      filesArr.forEach(file => {
+        selectedFiles.push(file);
+        
+        // Render preview
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const previewItem = document.createElement('div');
+          previewItem.className = 'preview-item';
+          
+          const img = document.createElement('img');
+          img.src = e.target.result;
+          
+          const removeBtn = document.createElement('button');
+          removeBtn.type = 'button';
+          removeBtn.className = 'preview-remove';
+          removeBtn.innerHTML = '❌';
+          removeBtn.addEventListener('click', (ev) => {
+            ev.stopPropagation();
+            // Remove from array
+            const idx = selectedFiles.indexOf(file);
+            if (idx > -1) {
+              selectedFiles.splice(idx, 1);
+            }
+            // Remove preview element
+            previewItem.remove();
+            updateFileInput();
+          });
+          
+          previewItem.appendChild(img);
+          previewItem.appendChild(removeBtn);
+          previewGrid.appendChild(previewItem);
+        };
+        reader.readAsDataURL(file);
+      });
+
+      updateFileInput();
+    }
+
+    function updateFileInput() {
+      const dt = new DataTransfer();
+      selectedFiles.forEach(file => dt.items.add(file));
+      input.files = dt.files;
+    }
+
+    // Reset method helper
+    return {
+      reset: () => {
+        selectedFiles = [];
+        previewGrid.innerHTML = '';
+        input.value = '';
+      }
+    };
+  }
+
+  // Setup uploader zones
+  const uploaderCreate = setupDragAndDrop('dropzone_create', 'foto_input_create', 'preview_grid_create', 5);
+  const uploaderEdit = setupDragAndDrop('dropzone_edit', 'foto_input_edit', 'preview_grid_edit', 5);
+
+  // ── Gallery Slideshow Logic ──
+  document.querySelectorAll('.openGalleryBtn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const photos = JSON.parse(btn.dataset.photos || '[]');
+      const name = btn.dataset.name;
+      
+      document.getElementById('galleryTitle').innerText = 'Dokumentasi Foto: ' + name;
+      const carouselInner = document.getElementById('galleryCarouselInner');
+      carouselInner.innerHTML = '';
+      
+      photos.forEach((photo, idx) => {
+        const item = document.createElement('div');
+        item.className = 'carousel-item' + (idx === 0 ? ' active' : '');
+        
+        const img = document.createElement('img');
+        img.src = '../uploads/customer/' + photo;
+        img.className = 'd-block w-100';
+        img.style.height = '420px';
+        img.style.objectFit = 'contain';
+        img.style.background = '#020617';
+        
+        item.appendChild(img);
+        carouselInner.appendChild(item);
+      });
+      
+      const galleryModal = new bootstrap.Modal(document.getElementById('galleryModal'));
+      galleryModal.show();
+    });
+  });
+
+  // ── Edit Modal Population ──
+  let deletedExistingPhotos = [];
   document.querySelectorAll('.editBtn').forEach(btn => {
     btn.addEventListener('click', () => {
+      deletedExistingPhotos = [];
+      document.getElementById('deleted_existing_photos').value = '';
+      uploaderEdit.reset();
+
       document.getElementById('edit_id').value = btn.dataset.id;
       document.getElementById('edit_nama').value = btn.dataset.nama;
       document.getElementById('edit_telp').value = btn.dataset.telp;
@@ -784,15 +1114,35 @@ $salesData = mysqli_query($conn, "
       document.getElementById('edit_kota').value = btn.dataset.kota;
       document.getElementById('edit_id_wilayah').value = btn.dataset.idWilayah || "";
 
-      // Preview current photo
-      const foto = btn.dataset.foto;
-      const previewContainer = document.getElementById('edit_foto_preview_container');
-      const previewImg = document.getElementById('edit_foto_preview');
-      if (foto && foto !== "") {
-        previewImg.src = "../uploads/customer/" + foto;
-        previewContainer.style.display = 'block';
+      // Existing photos preview with delete
+      const existingContainer = document.getElementById('edit_existing_photos_container');
+      existingContainer.innerHTML = '';
+      
+      const photos = JSON.parse(btn.dataset.foto || '[]');
+      if (photos.length > 0) {
+        photos.forEach(photo => {
+          const wrapper = document.createElement('div');
+          wrapper.className = 'edit-photo-thumb';
+          
+          const img = document.createElement('img');
+          img.src = '../uploads/customer/' + photo;
+          
+          const delBtn = document.createElement('button');
+          delBtn.type = 'button';
+          delBtn.className = 'preview-remove';
+          delBtn.innerHTML = '❌';
+          delBtn.addEventListener('click', () => {
+            deletedExistingPhotos.push(photo);
+            document.getElementById('deleted_existing_photos').value = deletedExistingPhotos.join(',');
+            wrapper.remove();
+          });
+          
+          wrapper.appendChild(img);
+          wrapper.appendChild(delBtn);
+          existingContainer.appendChild(wrapper);
+        });
       } else {
-        previewContainer.style.display = 'none';
+        existingContainer.innerHTML = '<span class="text-muted" style="font-size: 12px;">Belum ada dokumentasi foto.</span>';
       }
 
       const kategori = btn.dataset.kategori;
