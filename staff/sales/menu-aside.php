@@ -78,6 +78,19 @@
             <span class="nav-link-text ms-1">Customer</span>
           </a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link text-white 
+        <?php
+        if ($pageNow == "Wilayah") {
+          echo "bg-gradient-info";
+        }
+        ?>" href="wilayah.php">
+            <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
+              <i class="material-icons opacity-10">map</i>
+            </div>
+            <span class="nav-link-text ms-1">Wilayah</span>
+          </a>
+        </li>
 
       <?php
       }
@@ -161,6 +174,19 @@
               <i class="material-icons opacity-10">support_agent</i>
             </div>
             <span class="nav-link-text ms-1">Sales</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-white 
+        <?php
+        if ($pageNow == "Wilayah") {
+          echo "bg-gradient-info";
+        }
+        ?>" href="sales/wilayah.php">
+            <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
+              <i class="material-icons opacity-10">map</i>
+            </div>
+            <span class="nav-link-text ms-1">Wilayah</span>
           </a>
         </li>
       <?php
