@@ -14,8 +14,7 @@ function renderNavItem($isActive, $url, $icon, $text) {
     </li>';
 }
 ?>
-
-<!-- Font Awesome sudah dimuat di head.php -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" />
 
 <style>
     /* ==========================================================
