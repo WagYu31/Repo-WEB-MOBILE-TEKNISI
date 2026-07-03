@@ -20,11 +20,11 @@ if (isset($_GET['cariTgl']) && !empty($_GET['cariTgl'])) {
         </div>
         <?php
         // Kueri SQL untuk memilih data kegiatan sales dan customer
-        $sql = "SELECT ks.id, ks.kode AS kode_transaksi, ks.jadwal AS tgl_visits, sc.nama AS nama_cust, sc.id AS id_cust
+        $sql = "SELECT ks.id, ks.id AS kode_transaksi, ks.jadwal AS tgl_visits, sc.nama AS nama_cust, sc.id AS id_cust
                 FROM kegiatan_sales ks
                 INNER JOIN sales_customer sc ON ks.id_customer = sc.id
                 WHERE ks.deleted_at IS NULL
-                GROUP BY ks.kode
+                
                 ORDER BY ks.jadwal DESC";
 
         $result = mysqli_query($conn, $sql);
@@ -71,7 +71,7 @@ if (isset($_GET['cariTgl']) && !empty($_GET['cariTgl'])) {
                                 $sqlLapTek = "SELECT tks.*, s.nama AS nama_sales, tks.id_sales,
                                                      IFNULL(ps.status, 'dijadwalkan') AS status,
                                                      ps.ci_at AS tgl_mulai, ps.co_at AS tgl_selesai,
-                                                     ks.kode AS kode_transaksi, ks.jadwal AS tgl_visits,
+                                                     ks.id AS kode_transaksi, ks.jadwal AS tgl_visits,
                                                      ps.keterangan AS hasil_visits
                                               FROM team_kegiatan_sales tks
                                               JOIN sales s ON tks.id_sales = s.id

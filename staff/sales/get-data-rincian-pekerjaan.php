@@ -19,7 +19,7 @@ if (isset($_POST['id_sales']) && isset($_POST['kode_transaksi'])) {
             JOIN kegiatan_sales ks ON tks.id_kegiatan_sales = ks.id
             JOIN sales_customer sc ON ks.id_customer = sc.id
             LEFT JOIN pelaksanaan_sales ps ON ps.kegiatan_id = tks.id_kegiatan_sales AND ps.sales_id = tks.id_sales
-            WHERE tks.id_sales = ? AND ks.kode = ? AND tks.deleted_at IS NULL";
+            WHERE tks.id_sales = ? AND ks.id = ? AND tks.deleted_at IS NULL";
 
     $stmt = mysqli_prepare($conn, $sql);
 
