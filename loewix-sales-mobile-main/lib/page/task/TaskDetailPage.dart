@@ -244,8 +244,9 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   }
 
   void _openMaps() {
-    final q = Uri.encodeComponent(
-        '${_task.alamatCustomer}, ${_task.kotaCustomer}');
+    final q = _customerLatLng != null
+        ? '${_customerLatLng!.latitude},${_customerLatLng!.longitude}'
+        : Uri.encodeComponent('${_task.alamatCustomer}, ${_task.kotaCustomer}');
     launchUrl(Uri.parse('https://www.google.com/maps/search/?api=1&query=$q'),
         mode: LaunchMode.externalApplication);
   }
@@ -488,6 +489,11 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                                   onPressed: () => _mapController.move(_userLatLng!, 15.0),
                                   tooltip: 'Lokasi Saya',
                                 ),
+                              IconButton(
+                                icon: const Icon(Icons.directions_rounded, color: Colors.green, size: 20),
+                                onPressed: _openMaps,
+                                tooltip: 'Petunjuk Arah (Google Maps)',
+                              ),
                             ],
                           ),
                         ],
