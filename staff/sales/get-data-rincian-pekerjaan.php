@@ -7,7 +7,7 @@ if (isset($_POST['id_sales']) && isset($_POST['kode_transaksi'])) {
 
     // Query untuk mengambil data dari database
     $sql = "SELECT tks.*, s.nama, tks.id_sales, sc.nama AS nama_cust, sc.id AS id_cust,
-                   ks.kode AS kode_transaksi, ks.jadwal AS tgl_visits,
+                   ks.id AS kode_transaksi, ks.jadwal AS tgl_visits,
                    IFNULL(ps.status, 'dijadwalkan') AS status,
                    ps.ci_at AS tgl_mulai, ps.co_at AS tgl_selesai,
                    CONCAT(IFNULL(ps.lat_ci, ''), ',', IFNULL(ps.lon_ci, '')) AS lokasi_mulai,
