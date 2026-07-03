@@ -12,9 +12,9 @@ $currentPage = "Today";
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <?php
-  include "head.php";
-  ?>
+  <?php include "head.php"; ?>
+  <!-- Leaflet Map CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
     /* ── Premium Form Card Styling ── */
     .card-premium {
@@ -52,12 +52,12 @@ $currentPage = "Today";
 
     /* ── Form Inputs ── */
     .form-group-premium {
-      margin-bottom: 24px;
+      margin-bottom: 20px;
     }
     
     .form-label-premium {
       display: block;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 700;
       color: #334155;
       margin-bottom: 8px;
@@ -69,8 +69,8 @@ $currentPage = "Today";
       width: 100%;
       border: 1px solid #cbd5e1;
       border-radius: 10px;
-      padding: 12px 16px !important;
-      font-size: 14px;
+      padding: 11px 16px !important;
+      font-size: 13.5px;
       color: #1e293b;
       background-color: #fff;
       transition: all 0.2s ease;
@@ -80,6 +80,16 @@ $currentPage = "Today";
       border-color: #3b82f6;
       box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
       outline: none;
+    }
+
+    /* ── Map Container ── */
+    #map {
+      height: 280px;
+      width: 100%;
+      border-radius: 12px;
+      border: 1.5px solid #cbd5e1;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      margin-top: 10px;
     }
 
     /* ── Sales Select Card Grid ── */
@@ -199,12 +209,9 @@ $currentPage = "Today";
 </head>
 
 <body class="g-sidenav-show bg-gray-200">
-  <?php
-  include "cek-menu.php";
-  ?>
+  <?php include "cek-menu.php"; ?>
 
-  <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg ">
-
+  <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg">
     <?php
     include "nav-top.php";
     $todayDate = formatTanggal('dd MMMM yyyy');
@@ -248,15 +255,22 @@ $currentPage = "Today";
               $jadwal = $_POST['jadwal'];
               $visit = $_POST['visit'];
               $id_customer = $_POST['id_customer'];
+              
+              // Kolom Lokasi
+              $lat = !empty($_POST['lat']) ? $_POST['lat'] : NULL;
+              $lon = !empty($_POST['lon']) ? $_POST['lon'] : NULL;
+              $rad = !empty($_POST['radius']) ? $_POST['radius'] : NULL;
+              $location_address = !empty($_POST['location_address']) ? $_POST['location_address'] : NULL;
+
               $status = 'dijadwalkan';
               $selectedSales = $_POST['sales'] ?? [];
 
-              // Insert ke kegiatan_sales
+              // Insert ke kegiatan_sales (mendukung kolom koordinat baru)
               $stmt = $conn->prepare("
-                  INSERT INTO kegiatan_sales (jadwal, keterangan, id_customer, status, created_at, updated_at) 
-                  VALUES (?, ?, ?, ?, NOW(), NOW())
+                  INSERT INTO kegiatan_sales (jadwal, keterangan, id_customer, status, lat, lon, rad, alamat_lokasi, created_at, updated_at) 
+                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
               ");
-              $stmt->bind_param("ssis", $jadwal, $visit, $id_customer, $status);
+              $stmt->bind_param("ssisssss", $jadwal, $visit, $id_customer, $status, $lat, $lon, $rad, $location_address);
               $stmt->execute();
               $kegiatanId = $stmt->insert_id;
               $stmt->close();
@@ -283,65 +297,120 @@ $currentPage = "Today";
           ?>
 
           <form method="POST">
-            <div class="form-group-premium">
-              <label for="jadwal" class="form-label-premium">Jadwal Visit</label>
-              <input type="datetime-local" class="input-premium" name="jadwal" required>
-            </div>
+            <div class="row">
+              
+              <!-- LEFT COLUMN: Form Fields -->
+              <div class="col-lg-7" style="border-right: 1px solid #f1f5f9; padding-right: 28px;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:20px;">
+                    <div style="width:3px;height:16px;background:#3b82f6;border-radius:2px;"></div>
+                    <span style="font-size:13px;font-weight:700;color:#1e293b;text-transform: uppercase;">Informasi Kegiatan</span>
+                </div>
 
-            <div class="form-group-premium">
-              <label for="visit" class="form-label-premium">Keterangan Visit / Keperluan Kunjungan</label>
-              <textarea class="input-premium" name="visit" rows="4" placeholder="Tuliskan keterangan detail rencana kunjungan sales..." required></textarea>
-            </div>
+                <div class="form-group-premium">
+                  <label for="jadwal" class="form-label-premium">Jadwal Visit</label>
+                  <input type="datetime-local" class="input-premium" name="jadwal" required>
+                </div>
 
-            <div class="form-group-premium">
-              <label for="id_customer" class="form-label-premium">Pilih Customer (Toko/Mitra)</label>
-              <select class="input-premium" id="id_customer" name="id_customer" required>
-                <option value="">-- Pilih Customer --</option>
-                <?php while ($c = mysqli_fetch_assoc($customerResult)): ?>
-                  <option value="<?php echo $c['id']; ?>" data-id-wilayah="<?php echo $c['id_wilayah']; ?>">
-                    <?php echo htmlspecialchars($c['nama'] . ' - [' . ($c['nama_wilayah'] ?? 'Tanpa Wilayah') . ']'); ?>
-                  </option>
-                <?php endwhile; ?>
-              </select>
-            </div>
+                <div class="form-group-premium">
+                  <label for="visit" class="form-label-premium">Keperluan Kunjungan</label>
+                  <textarea class="input-premium" name="visit" rows="4" placeholder="Tuliskan keterangan detail rencana kunjungan sales..." required></textarea>
+                </div>
 
-            <div class="form-group-premium">
-              <label class="form-label-premium">Pilih Sales Agent Terlibat</label>
-              <div class="row g-3" id="sales-list-container">
-                <?php while ($s = mysqli_fetch_assoc($salesResult)): ?>
-                  <div class="col-md-4 sales-checkbox-item" data-id-wilayah="<?php echo $s['id_wilayah']; ?>">
-                    <label class="sales-select-card" for="sales<?php echo $s['id']; ?>">
-                      <input class="sales-select-input d-none" type="checkbox" name="sales[]" value="<?php echo $s['id']; ?>" id="sales<?php echo $s['id']; ?>">
-                      <div class="sales-card-content">
-                        <div class="avatar-initials-small">
-                          <?php 
-                            $words = explode(' ', $s['nama']);
-                            echo strtoupper(substr($words[0], 0, 1) . (isset($words[1]) ? substr($words[1], 0, 1) : ''));
-                          ?>
-                        </div>
-                        <div class="sales-card-details">
-                          <span class="sales-card-name"><?php echo htmlspecialchars($s['nama']); ?></span>
-                          <span class="sales-card-role">
-                            Sales Agent 
-                            <span class="badge bg-secondary text-capitalize" style="font-size: 8px; padding: 2px 6px; letter-spacing: 0.05em; font-weight: 700;">
-                              <?php echo htmlspecialchars($s['nama_wilayah'] ?? 'Tanpa Wilayah'); ?>
-                            </span>
-                          </span>
-                        </div>
-                        <div class="sales-card-checkbox">
-                          <span class="material-symbols-outlined">check_circle</span>
-                        </div>
+                <div class="form-group-premium">
+                  <label for="id_customer" class="form-label-premium">Pilih Customer (Toko/Mitra)</label>
+                  <select class="input-premium" id="id_customer" name="id_customer" required>
+                    <option value="">-- Pilih Customer --</option>
+                    <?php while ($c = mysqli_fetch_assoc($customerResult)): ?>
+                      <option value="<?php echo $c['id']; ?>" data-id-wilayah="<?php echo $c['id_wilayah']; ?>">
+                        <?php echo htmlspecialchars($c['nama'] . ' - [' . ($c['nama_wilayah'] ?? 'Tanpa Wilayah') . ']'); ?>
+                      </option>
+                    <?php endwhile; ?>
+                  </select>
+                </div>
+
+                <div class="form-group-premium">
+                  <label class="form-label-premium">Pilih Sales Agent Terlibat</label>
+                  <div class="row g-3" id="sales-list-container">
+                    <?php while ($s = mysqli_fetch_assoc($salesResult)): ?>
+                      <div class="col-md-6 sales-checkbox-item" data-id-wilayah="<?php echo $s['id_wilayah']; ?>">
+                        <label class="sales-select-card" for="sales<?php echo $s['id']; ?>">
+                          <input class="sales-select-input d-none" type="checkbox" name="sales[]" value="<?php echo $s['id']; ?>" id="sales<?php echo $s['id']; ?>">
+                          <div class="sales-card-content">
+                            <div class="avatar-initials-small">
+                              <?php 
+                                $words = explode(' ', $s['nama']);
+                                echo strtoupper(substr($words[0], 0, 1) . (isset($words[1]) ? substr($words[1], 0, 1) : ''));
+                              ?>
+                            </div>
+                            <div class="sales-card-details">
+                              <span class="sales-card-name"><?php echo htmlspecialchars($s['nama']); ?></span>
+                              <span class="sales-card-role">
+                                Sales Agent 
+                                <span class="badge bg-secondary text-capitalize" style="font-size: 8px; padding: 2px 6px; letter-spacing: 0.05em; font-weight: 700;">
+                                  <?php echo htmlspecialchars($s['nama_wilayah'] ?? 'Tanpa Wilayah'); ?>
+                                </span>
+                              </span>
+                            </div>
+                            <div class="sales-card-checkbox">
+                              <span class="material-symbols-outlined">check_circle</span>
+                            </div>
+                          </div>
+                        </label>
                       </div>
-                    </label>
+                    <?php endwhile; ?>
                   </div>
-                <?php endwhile; ?>
+                </div>
               </div>
+
+              <!-- RIGHT COLUMN: Map Selector -->
+              <div class="col-lg-5" style="padding-left: 28px;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:20px;">
+                    <div style="width:3px;height:16px;background:#10b981;border-radius:2px;"></div>
+                    <span style="font-size:13px;font-weight:700;color:#1e293b;text-transform: uppercase;">Lokasi &amp; Peta</span>
+                    <span style="font-size:11px;color:#94a3b8;font-weight:400;">(Opsional)</span>
+                </div>
+
+                <div class="form-group-premium">
+                  <label class="form-label-premium">Cari Koordinat / Alamat</label>
+                  <div class="d-flex gap-2">
+                    <input type="text" id="gmap_search" class="input-premium" placeholder="Masukkan koordinat atau alamat...">
+                    <button type="button" id="gmap_search_btn" class="btn bg-gradient-info text-white font-weight-bold" style="border-radius:10px; padding: 10px 16px; font-size:11px; display:inline-flex; align-items:center; gap:4px; margin-bottom:0;">
+                      <span class="material-symbols-outlined" style="font-size:16px;">search</span>CARI
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Leaflet Map widget -->
+                <div id="map"></div>
+
+                <div class="row g-2 mt-3">
+                  <div class="col-5">
+                    <label class="form-label-premium" style="font-size: 9px;">Latitude</label>
+                    <input type="text" id="lat_display" class="input-premium" placeholder="-6.xxxxx" style="font-family: monospace; font-size:12px; padding: 8px 12px !important; background:#f8fafc;" readonly>
+                  </div>
+                  <div class="col-5">
+                    <label class="form-label-premium" style="font-size: 9px;">Longitude</label>
+                    <input type="text" id="lon_display" class="input-premium" placeholder="106.xxxxx" style="font-family: monospace; font-size:12px; padding: 8px 12px !important; background:#f8fafc;" readonly>
+                  </div>
+                  <div class="col-2">
+                    <label class="form-label-premium" style="font-size: 9px;">Radius</label>
+                    <input type="number" id="radius_input" class="input-premium" value="100" style="font-size:12px; padding: 8px 6px !important; text-align:center;">
+                  </div>
+                </div>
+
+                <!-- Hidden parameters to submit -->
+                <input type="hidden" id="lat" name="lat">
+                <input type="hidden" id="lon" name="lon">
+                <input type="hidden" id="radius" name="radius" value="100">
+                <input type="hidden" id="location_address" name="location_address">
+              </div>
+
             </div>
 
             <div class="mt-5">
-              <button type="submit" class="btn-submit-premium">
+              <button type="submit" class="btn-submit-premium" style="width: 100%; justify-content: center;">
                 <span class="material-symbols-outlined">save</span>
-                Simpan Rencana Kegiatan
+                Simpan Rencana Kegiatan &amp; Lokasi
               </button>
             </div>
           </form>
@@ -357,40 +426,118 @@ $currentPage = "Today";
 
   </main>
   
-  <?php
-  include "js-include.php";
-  ?>
-  <script>
-    var win = navigator.platform.indexOf('Win') > -1;
-    if (win && document.querySelector('#sidenav-scrollbar')) {
-      var options = {
-        damping: '0.5'
-      }
-      Scrollbar.init(document.querySelector('#sidenav-scrollbar'), options);
-    }
-  </script>
+  <?php include "js-include.php"; ?>
+  
+  <!-- Leaflet Map JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-  <!-- Auto-Filter Script -->
+  <!-- Auto-Filter & Map Script -->
   <script>
+    // ── Auto-Filter Sales based on Customer Region ──
     document.getElementById('id_customer').addEventListener('change', function() {
       const selectedOption = this.options[this.selectedIndex];
       const customerWilayah = selectedOption.getAttribute('data-id-wilayah');
       
       document.querySelectorAll('.sales-checkbox-item').forEach(item => {
         const salesWilayah = item.getAttribute('data-id-wilayah');
-        // Jika belum pilih customer, tampilkan semua sales. Jika sudah pilih, saring berdasarkan wilayah customer.
         if (!customerWilayah || customerWilayah === "" || salesWilayah === customerWilayah) {
           item.style.display = 'block';
         } else {
           item.style.display = 'none';
-          
-          // Uncheck checkbox yang disembunyikan agar tidak ter-submit
           const checkbox = item.querySelector('.sales-select-input');
           if (checkbox) checkbox.checked = false;
         }
       });
+    });
+
+    // ── Interactive Leaflet Map Logic ──
+    document.addEventListener('DOMContentLoaded', function() {
+      const defaultLat = -6.13037113;
+      const defaultLon = 106.75144230;
+      const defaultRad = 100;
+
+      // Init Map
+      const map = L.map('map').setView([defaultLat, defaultLon], 13);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap contributors'
+      }).addTo(map);
+
+      let marker = L.marker([defaultLat, defaultLon], { draggable: true }).addTo(map);
+      let circle = L.circle([defaultLat, defaultLon], { radius: defaultRad, color: '#10b981', fillColor: '#10b981', fillOpacity: 0.15 }).addTo(map);
+
+      function updateAllData(latlng, rad) {
+        const r = parseInt(rad) || defaultRad;
+        marker.setLatLng(latlng);
+        circle.setLatLng(latlng).setRadius(r);
+        map.setView(latlng, 16);
+
+        // Populate Form Fields
+        document.getElementById('lat').value = latlng.lat;
+        document.getElementById('lon').value = latlng.lng;
+        document.getElementById('lat_display').value = latlng.lat.toFixed(6);
+        document.getElementById('lon_display').value = latlng.lng.toFixed(6);
+        document.getElementById('radius').value = r;
+        document.getElementById('radius_input').value = r;
+
+        // Reverse Geocoding via Nominatim API
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latlng.lat}&lon=${latlng.lng}&accept-language=id`)
+          .then(res => res.json())
+          .then(data => {
+            document.getElementById('location_address').value = data?.display_name || '';
+          })
+          .catch(() => {
+            document.getElementById('location_address').value = '';
+          });
+      }
+
+      // Map click event
+      map.on('click', function(e) {
+        updateAllData(e.latlng, document.getElementById('radius_input').value);
+      });
+
+      // Marker drag event
+      marker.on('dragend', function() {
+        updateAllData(marker.getLatLng(), document.getElementById('radius_input').value);
+      });
+
+      // Radius input change event
+      document.getElementById('radius_input').addEventListener('input', function() {
+        updateAllData(marker.getLatLng(), this.value);
+      });
+
+      // Address / Coordinates Search
+      document.getElementById('gmap_search_btn').addEventListener('click', function() {
+        const query = document.getElementById('gmap_search').value.trim();
+        if (query === "") return;
+
+        // Check if query is latitude, longitude
+        const coordsRegex = /^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?),\s*[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$/;
+        if (coordsRegex.test(query)) {
+          const parts = query.split(',');
+          const lat = parseFloat(parts[0]);
+          const lon = parseFloat(parts[1]);
+          updateAllData(L.latLng(lat, lon), document.getElementById('radius_input').value);
+        } else {
+          // Geocode Search Nominatim
+          fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1&countrycodes=id&accept-language=id`)
+            .then(res => res.json())
+            .then(data => {
+              if (data && data.length > 0) {
+                const lat = parseFloat(data[0].lat);
+                const lon = parseFloat(data[0].lon);
+                updateAllData(L.latLng(lat, lon), document.getElementById('radius_input').value);
+              } else {
+                alert("Alamat atau koordinat tidak ditemukan.");
+              }
+            });
+        }
+      });
+
+      // Init inputs with default values
+      updateAllData(L.latLng(defaultLat, defaultLon), defaultRad);
     });
   </script>
 
