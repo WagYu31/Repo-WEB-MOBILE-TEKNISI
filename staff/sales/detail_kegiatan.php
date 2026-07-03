@@ -337,29 +337,32 @@ $left_col_class = $has_coords ? "col-lg-7" : "col-lg-12";
 
     /* Photos Grid styling */
     .doc-photo-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
       margin-bottom: 20px;
     }
     
     .doc-photo-wrapper {
       position: relative;
-      border-radius: 10px;
+      border-radius: 12px;
       overflow: hidden;
       border: 1.5px solid #e2e8f0;
-      height: 90px;
+      width: 110px;
+      height: 110px;
       cursor: pointer;
-      transition: all 0.22s;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      background: #f8fafc;
     }
-    .doc-photo-wrapper img {
+    .doc-photo-wrapper img, .doc-photo-wrapper video {
       width: 100%;
       height: 100%;
       object-fit: cover;
     }
     .doc-photo-wrapper:hover {
-      transform: scale(1.04);
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      transform: translateY(-4px);
+      box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.2), 0 4px 6px -4px rgba(59, 130, 246, 0.2);
       border-color: #3b82f6;
     }
 
@@ -653,7 +656,7 @@ $left_col_class = $has_coords ? "col-lg-7" : "col-lg-12";
                       <?php if (!empty($row['image_1']) || !empty($row['image_2']) || !empty($row['image_3']) || !empty($row['image_4']) || !empty($row['image_5'])): ?>
                         <div style="margin-bottom: 20px;">
                           <span class="info-label" style="font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; display: block; margin-bottom: 8px;">Dokumentasi Foto &amp; Video Lapangan</span>
-                          <div class="doc-photo-grid" style="grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));">
+                          <div class="doc-photo-grid">
                             <?php foreach (['image_1', 'image_2', 'image_3', 'image_4', 'image_5'] as $img): ?>
                               <?php if (!empty($row[$img])): 
                                 $ext = strtolower(pathinfo($row[$img], PATHINFO_EXTENSION));
