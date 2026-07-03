@@ -335,9 +335,9 @@ $currentPage = "Today";
 
         <div class="card-body-premium">
           <?php
-          // Ambil customer beserta nama wilayahnya
+          // Ambil customer beserta nama wilayahnya dan lokasi GPS
           $customerResult = mysqli_query($conn, "
-              SELECT c.id, c.nama, c.id_wilayah, w.nama AS nama_wilayah 
+              SELECT c.id, c.nama, c.id_wilayah, c.lat, c.lon, c.rad, c.alamat_lokasi, w.nama AS nama_wilayah 
               FROM sales_customer c 
               LEFT JOIN wilayah w ON c.id_wilayah = w.id 
               WHERE c.deleted_at IS NULL 
@@ -456,7 +456,13 @@ $currentPage = "Today";
                       <input type="text" class="dropdown-search-cust" id="dropdownCustSearch" placeholder="Cari nama atau wilayah customer...">
                       <?php while ($c = mysqli_fetch_assoc($customerResult)): ?>
                         <?php $cRegion = $c['nama_wilayah'] ?? 'Tanpa Wilayah'; ?>
-                        <div class="dropdown-item-cust" data-id="<?php echo $c['id']; ?>" data-id-wilayah="<?php echo $c['id_wilayah']; ?>">
+                        <div class="dropdown-item-cust" 
+                             data-id="<?php echo $c['id']; ?>" 
+                             data-id-wilayah="<?php echo $c['id_wilayah']; ?>"
+                             data-lat="<?php echo htmlspecialchars($c['lat'] ?? ''); ?>"
+                             data-lon="<?php echo htmlspecialchars($c['lon'] ?? ''); ?>"
+                             data-rad="<?php echo htmlspecialchars($c['rad'] ?? ''); ?>"
+                             data-alamat="<?php echo htmlspecialchars($c['alamat_lokasi'] ?? ''); ?>">
                           <?php echo htmlspecialchars($c['nama'] . ' - [' . $cRegion . ']'); ?>
                         </div>
                       <?php endwhile; ?>
@@ -636,6 +642,16 @@ $currentPage = "Today";
           // Run the filter
           const customerWilayah = this.dataset.idWilayah;
           filterSales(customerWilayah);
+
+          // Autofill location from customer profile if set
+          const cLat = parseFloat(this.dataset.lat);
+          const cLon = parseFloat(this.dataset.lon);
+          const cRad = parseInt(this.dataset.rad) || 100;
+          const cAlamat = this.dataset.alamat;
+
+          if (!isNaN(cLat) && !isNaN(cLon)) {
+            updateAllDataNoReverse(L.latLng(cLat, cLon), cRad, cAlamat);
+          }
         });
       });
 
@@ -717,6 +733,22 @@ $currentPage = "Today";
           .catch(() => {
             document.getElementById('location_address').value = '';
           });
+      }
+
+      // Instant Update helper to prevent redundant network reverse geocodes
+      function updateAllDataNoReverse(latlng, rad, address) {
+        const r = parseInt(rad) || defaultRad;
+        marker.setLatLng(latlng);
+        circle.setLatLng(latlng).setRadius(r);
+        map.setView(latlng, 16);
+
+        document.getElementById('lat').value = latlng.lat;
+        document.getElementById('lon').value = latlng.lng;
+        document.getElementById('lat_display').value = latlng.lat.toFixed(6);
+        document.getElementById('lon_display').value = latlng.lng.toFixed(6);
+        document.getElementById('radius').value = r;
+        document.getElementById('radius_input').value = r;
+        document.getElementById('location_address').value = address || '';
       }
 
       // Map click event

@@ -79,7 +79,19 @@ if ($checkKegCol->num_rows == 0) {
     echo "<p style='color: blue;'>ℹ Kolom lokasi sudah ada di tabel 'kegiatan_sales'.</p>";
 }
 
-// 7. Masukkan data wilayah awal jika kosong
+// 7. Tambah kolom lokasi di tabel sales_customer jika belum ada
+$checkCustLoc = $conn->query("SHOW COLUMNS FROM sales_customer LIKE 'lat'");
+if ($checkCustLoc->num_rows == 0) {
+    $conn->query("ALTER TABLE sales_customer ADD COLUMN lat VARCHAR(50) NULL");
+    $conn->query("ALTER TABLE sales_customer ADD COLUMN lon VARCHAR(50) NULL");
+    $conn->query("ALTER TABLE sales_customer ADD COLUMN rad VARCHAR(50) NULL");
+    $conn->query("ALTER TABLE sales_customer ADD COLUMN alamat_lokasi TEXT NULL");
+    echo "<p style='color: green;'>✔ Kolom lokasi (lat, lon, rad, alamat_lokasi) berhasil ditambahkan ke tabel 'sales_customer'.</p>";
+} else {
+    echo "<p style='color: blue;'>ℹ Kolom lokasi sudah ada di tabel 'sales_customer'.</p>";
+}
+
+// 8. Masukkan data wilayah awal jika kosong
 $checkData = $conn->query("SELECT COUNT(*) AS total FROM wilayah WHERE deleted_at IS NULL");
 $row = $checkData->fetch_assoc();
 if ($row['total'] == 0) {
@@ -105,7 +117,7 @@ if ($row['total'] == 0) {
     echo "<p style='color: blue;'>ℹ Tabel 'wilayah' sudah memiliki data.</p>";
 }
 
-// 8. Update data sales & customer lama yang id_wilayah-nya masih NULL ke Jabodetabek (ID 1)
+// 9. Update data sales & customer lama yang id_wilayah-nya masih NULL ke Jabodetabek (ID 1)
 $conn->query("UPDATE sales SET id_wilayah = 1 WHERE id_wilayah IS NULL");
 $conn->query("UPDATE sales_customer SET id_wilayah = 1 WHERE id_wilayah IS NULL");
 echo "<p style='color: green;'>✔ Mengatur wilayah default (Jabodetabek) untuk sales &amp; customer lama.</p>";

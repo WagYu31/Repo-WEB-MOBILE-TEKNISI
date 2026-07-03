@@ -44,6 +44,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_id'])) {
     $kota = $_POST['edit_kota'];
     $id_wilayah = intval($_POST['edit_id_wilayah'] ?? 0);
     $telp = preg_replace('/\D/', '', $_POST['edit_telp']);
+    
+    // Lokasi GPS
+    $lat = !empty($_POST['edit_lat']) ? $_POST['edit_lat'] : NULL;
+    $lon = !empty($_POST['edit_lon']) ? $_POST['edit_lon'] : NULL;
+    $rad = !empty($_POST['edit_radius']) ? $_POST['edit_radius'] : NULL;
+    $location_address = !empty($_POST['edit_location_address']) ? $_POST['edit_location_address'] : NULL;
 
     if (substr($telp, 0, 1) === '0') {
         $telp = '62' . substr($telp, 1);
@@ -108,12 +114,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_id'])) {
 
     // Merge existing and new photos
     $merged_photos = array_merge($existing_photos, $new_filenames);
-    // Limit to max 10 for safety, though user asked for at least 5
     $merged_photos = array_slice($merged_photos, 0, 10);
     $foto_json_updated = !empty($merged_photos) ? json_encode($merged_photos) : NULL;
 
-    $stmt = $conn->prepare("UPDATE sales_customer SET nama = ?, kategori = ?, telp_pribadi = ?, email = ?, alamat = ?, kota = ?, id_wilayah = ?, foto = ?, updated_at = NOW() WHERE id = ?");
-    $stmt->bind_param("ssssssisi", $nama, $kategori, $telp, $email, $alamat, $kota, $id_wilayah, $foto_json_updated, $id);
+    $stmt = $conn->prepare("UPDATE sales_customer SET nama = ?, kategori = ?, telp_pribadi = ?, email = ?, alamat = ?, kota = ?, id_wilayah = ?, foto = ?, lat = ?, lon = ?, rad = ?, alamat_lokasi = ?, updated_at = NOW() WHERE id = ?");
+    $stmt->bind_param("ssssssisssssi", $nama, $kategori, $telp, $email, $alamat, $kota, $id_wilayah, $foto_json_updated, $lat, $lon, $rad, $location_address, $id);
     $stmt->execute();
     $stmt->close();
 
@@ -129,6 +134,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['update_id'])) {
     $kota = $_POST['kota'];
     $id_wilayah = intval($_POST['id_wilayah'] ?? 0);
     $telp = preg_replace('/\D/', '', $_POST['telp']);
+    
+    // Lokasi GPS
+    $lat = !empty($_POST['lat']) ? $_POST['lat'] : NULL;
+    $lon = !empty($_POST['lon']) ? $_POST['lon'] : NULL;
+    $rad = !empty($_POST['radius']) ? $_POST['radius'] : NULL;
+    $location_address = !empty($_POST['location_address']) ? $_POST['location_address'] : NULL;
 
     if (substr($telp, 0, 1) === '0') {
         $telp = '62' . substr($telp, 1);
@@ -163,8 +174,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['update_id'])) {
     
     $foto_json = !empty($filenames) ? json_encode($filenames) : NULL;
 
-    $stmt = $conn->prepare("INSERT INTO sales_customer (kategori, nama, telp_pribadi, email, alamat, kota, id_wilayah, foto, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())");
-    $stmt->bind_param("ssssssis", $kategori, $nama, $telp, $email, $alamat, $kota, $id_wilayah, $foto_json);
+    $stmt = $conn->prepare("INSERT INTO sales_customer (kategori, nama, telp_pribadi, email, alamat, kota, id_wilayah, foto, lat, lon, rad, alamat_lokasi, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())");
+    $stmt->bind_param("ssssssisssss", $kategori, $nama, $telp, $email, $alamat, $kota, $id_wilayah, $foto_json, $lat, $lon, $rad, $location_address);
     $stmt->execute();
     $stmt->close();
 
@@ -259,6 +270,16 @@ $salesData = mysqli_query($conn, "
       box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.08);
       outline: none;
       background-color: #fff;
+    }
+
+    /* ── Maps containers ── */
+    #map_create, #map_edit {
+      height: 290px;
+      width: 100%;
+      border-radius: 14px;
+      border: 1.5px solid #e2e8f0;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+      margin-top: 10px;
     }
 
     /* ── Drag & Drop Zone ── */
@@ -613,93 +634,149 @@ $salesData = mysqli_query($conn, "
       <div class="card-body-premium">
         <form method="POST" enctype="multipart/form-data" id="createCustomerForm">
           <div class="row">
-            <div class="col-md-3 form-group-premium">
-              <label class="form-label-premium">
-                <span class="material-symbols-outlined" style="font-size:16px; color:#3b82f6;">store</span> Nama Toko / Mitra / Personal
-              </label>
-              <input type="text" name="nama" class="input-premium" placeholder="Masukkan nama customer..." required>
-            </div>
             
-            <div class="col-md-4 form-group-premium">
-              <label class="form-label-premium">
-                <span class="material-symbols-outlined" style="font-size:16px; color:#3b82f6;">category</span> Kategori Customer
-              </label>
-              <div class="category-pill-group">
-                <label class="category-pill-label" for="kategori_dealer">
-                  <input class="category-pill-input" type="radio" name="kategori" id="kategori_dealer" value="Dealer" required checked>
-                  <span class="category-pill-span span-dealer">Dealer</span>
-                </label>
-                <label class="category-pill-label" for="kategori_installer">
-                  <input class="category-pill-input" type="radio" name="kategori" id="kategori_installer" value="Installer">
-                  <span class="category-pill-span span-installer">Installer</span>
-                </label>
-                <label class="category-pill-label" for="kategori_user">
-                  <input class="category-pill-input" type="radio" name="kategori" id="kategori_user" value="User">
-                  <span class="category-pill-span span-user">User</span>
-                </label>
+            <!-- LEFT COLUMN: Form Fields -->
+            <div class="col-lg-7" style="border-right: 1px solid #f1f5f9; padding-right: 32px;">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:24px;">
+                  <div style="width:3px;height:16px;background:#3b82f6;border-radius:2px;"></div>
+                  <span style="font-size:12px;font-weight:800;color:#1e293b;text-transform: uppercase; letter-spacing: 0.05em;">Informasi Customer</span>
+              </div>
+
+              <div class="row">
+                <div class="col-md-6 form-group-premium">
+                  <label class="form-label-premium">
+                    <span class="material-symbols-outlined" style="font-size:16px; color:#3b82f6;">store</span> Nama Toko / Mitra / Personal
+                  </label>
+                  <input type="text" name="nama" class="input-premium" placeholder="Masukkan nama customer..." required>
+                </div>
+                
+                <div class="col-md-6 form-group-premium">
+                  <label class="form-label-premium">
+                    <span class="material-symbols-outlined" style="font-size:16px; color:#3b82f6;">category</span> Kategori Customer
+                  </label>
+                  <div class="category-pill-group">
+                    <label class="category-pill-label" for="kategori_dealer">
+                      <input class="category-pill-input" type="radio" name="kategori" id="kategori_dealer" value="Dealer" required checked>
+                      <span class="category-pill-span span-dealer">Dealer</span>
+                    </label>
+                    <label class="category-pill-label" for="kategori_installer">
+                      <input class="category-pill-input" type="radio" name="kategori" id="kategori_installer" value="Installer">
+                      <span class="category-pill-span span-installer">Installer</span>
+                    </label>
+                    <label class="category-pill-label" for="kategori_user">
+                      <input class="category-pill-input" type="radio" name="kategori" id="kategori_user" value="User">
+                      <span class="category-pill-span span-user">User</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div class="col-md-6 form-group-premium">
+                  <label class="form-label-premium">
+                    <span class="material-symbols-outlined" style="font-size:16px; color:#3b82f6;">map</span> Wilayah Customer
+                  </label>
+                  <select name="id_wilayah" class="input-premium" required>
+                    <option value="">-- Pilih Wilayah --</option>
+                    <?php 
+                    $wQuery = mysqli_query($conn, "SELECT * FROM wilayah WHERE deleted_at IS NULL ORDER BY nama ASC");
+                    while ($w = mysqli_fetch_assoc($wQuery)) {
+                        echo "<option value='{$w['id']}'>" . htmlspecialchars($w['nama']) . "</option>";
+                    }
+                    ?>
+                  </select>
+                </div>
+                
+                <div class="col-md-6 form-group-premium">
+                  <label class="form-label-premium">
+                    <span class="material-symbols-outlined" style="font-size:16px; color:#3b82f6;">call</span> No. Telepon (WhatsApp)
+                  </label>
+                  <input type="text" name="telp" class="input-premium" placeholder="Contoh: 0812345678" required>
+                </div>
+                
+                <div class="col-md-6 form-group-premium">
+                  <label class="form-label-premium">
+                    <span class="material-symbols-outlined" style="font-size:16px; color:#3b82f6;">mail</span> Email Customer
+                  </label>
+                  <input type="email" name="email" class="input-premium" placeholder="Contoh: customer@loewix.com">
+                </div>
+                
+                <div class="col-md-6 form-group-premium">
+                  <label class="form-label-premium">
+                    <span class="material-symbols-outlined" style="font-size:16px; color:#3b82f6;">location_city</span> Kota
+                  </label>
+                  <input type="text" name="kota" class="input-premium" placeholder="Masukkan kota asal customer...">
+                </div>
+
+                <!-- Drag & Drop Multiple Photos -->
+                <div class="col-md-12 form-group-premium">
+                  <label class="form-label-premium">
+                    <span class="material-symbols-outlined" style="font-size:16px; color:#3b82f6;">image</span> Foto Dokumentasi Toko / Gudang / Pabrik (Maksimal 5 Foto)
+                  </label>
+                  <div class="dropzone-area" id="dropzone_create">
+                    <span class="material-symbols-outlined dropzone-icon">cloud_upload</span>
+                    <p class="dropzone-text">Drag &amp; drop file foto di sini, atau klik untuk memilih</p>
+                    <input type="file" id="foto_input_create" name="foto[]" multiple accept="image/*" class="d-none">
+                  </div>
+                  <div class="preview-grid" id="preview_grid_create"></div>
+                </div>
+                
+                <div class="col-md-12 form-group-premium">
+                  <label class="form-label-premium">
+                    <span class="material-symbols-outlined" style="font-size:16px; color:#3b82f6;">home_pin</span> Alamat Lengkap
+                  </label>
+                  <input type="text" name="alamat" class="input-premium" placeholder="Masukkan alamat lengkap toko/mitra...">
+                </div>
               </div>
             </div>
 
-            <div class="col-md-2 form-group-premium">
-              <label class="form-label-premium">
-                <span class="material-symbols-outlined" style="font-size:16px; color:#3b82f6;">map</span> Wilayah Customer
-              </label>
-              <select name="id_wilayah" class="input-premium" required>
-                <option value="">-- Pilih Wilayah --</option>
-                <?php 
-                $wQuery = mysqli_query($conn, "SELECT * FROM wilayah WHERE deleted_at IS NULL ORDER BY nama ASC");
-                while ($w = mysqli_fetch_assoc($wQuery)) {
-                    echo "<option value='{$w['id']}'>" . htmlspecialchars($w['nama']) . "</option>";
-                }
-                ?>
-              </select>
-            </div>
-            
-            <div class="col-md-3 form-group-premium">
-              <label class="form-label-premium">
-                <span class="material-symbols-outlined" style="font-size:16px; color:#3b82f6;">call</span> No. Telepon (WhatsApp)
-              </label>
-              <input type="text" name="telp" class="input-premium" placeholder="Contoh: 0812345678" required>
-            </div>
-            
-            <div class="col-md-6 form-group-premium">
-              <label class="form-label-premium">
-                <span class="material-symbols-outlined" style="font-size:16px; color:#3b82f6;">mail</span> Email Customer
-              </label>
-              <input type="email" name="email" class="input-premium" placeholder="Contoh: customer@loewix.com">
-            </div>
-            
-            <div class="col-md-6 form-group-premium">
-              <label class="form-label-premium">
-                <span class="material-symbols-outlined" style="font-size:16px; color:#3b82f6;">location_city</span> Kota
-              </label>
-              <input type="text" name="kota" class="input-premium" placeholder="Masukkan kota asal customer...">
+            <!-- RIGHT COLUMN: Location Map -->
+            <div class="col-lg-5" style="padding-left: 32px;">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:24px;">
+                  <div style="width:3px;height:16px;background:#10b981;border-radius:2px;"></div>
+                  <span style="font-size:12px;font-weight:800;color:#1e293b;text-transform: uppercase; letter-spacing: 0.05em;">Lokasi Koordinat Toko (Geofence)</span>
+              </div>
+
+              <div class="form-group-premium">
+                <label class="form-label-premium">
+                  <span class="material-symbols-outlined" style="font-size:16px; color:#10b981;">search</span> Cari Alamat / Koordinat
+                </label>
+                <div class="d-flex gap-2">
+                  <input type="text" id="gmap_search" class="input-premium" placeholder="Contoh: Jawa Timur atau -6.175, 106.827...">
+                  <button type="button" id="gmap_search_btn" class="btn bg-gradient-info text-white font-weight-bold" style="border-radius:10px; padding: 12px 18px; font-size:11px; display:inline-flex; align-items:center; gap:4px; margin-bottom:0;">
+                    <span class="material-symbols-outlined" style="font-size:16px;">search</span>CARI
+                  </button>
+                </div>
+              </div>
+
+              <!-- Leaflet Map create -->
+              <div id="map_create"></div>
+
+              <div class="row g-2 mt-3">
+                <div class="col-5">
+                  <label class="form-label-premium" style="font-size: 9px; color:#64748b;">Latitude</label>
+                  <input type="text" id="lat_display" class="input-premium" placeholder="-6.xxxxx" style="font-family: monospace; font-size:12px; padding: 8px 12px !important; background:#f8fafc;" readonly>
+                </div>
+                <div class="col-5">
+                  <label class="form-label-premium" style="font-size: 9px; color:#64748b;">Longitude</label>
+                  <input type="text" id="lon_display" class="input-premium" placeholder="106.xxxxx" style="font-family: monospace; font-size:12px; padding: 8px 12px !important; background:#f8fafc;" readonly>
+                </div>
+                <div class="col-2">
+                  <label class="form-label-premium" style="font-size: 9px; color:#64748b;">Radius (m)</label>
+                  <input type="number" id="radius_input" class="input-premium" value="100" style="font-size:12px; padding: 8px 6px !important; text-align:center;">
+                </div>
+              </div>
+
+              <!-- Hidden parameters to submit -->
+              <input type="hidden" id="lat" name="lat">
+              <input type="hidden" id="lon" name="lon">
+              <input type="hidden" id="radius" name="radius" value="100">
+              <input type="hidden" id="location_address" name="location_address">
             </div>
 
-            <!-- Drag & Drop Multiple Photos -->
-            <div class="col-md-12 form-group-premium">
-              <label class="form-label-premium">
-                <span class="material-symbols-outlined" style="font-size:16px; color:#3b82f6;">image</span> Foto Dokumentasi Toko / Gudang / Pabrik (Maksimal 5 Foto)
-              </label>
-              <div class="dropzone-area" id="dropzone_create">
-                <span class="material-symbols-outlined dropzone-icon">cloud_upload</span>
-                <p class="dropzone-text">Drag &amp; drop file foto di sini, atau klik untuk memilih</p>
-                <input type="file" id="foto_input_create" name="foto[]" multiple accept="image/*" class="d-none">
-              </div>
-              <div class="preview-grid" id="preview_grid_create"></div>
-            </div>
-            
-            <div class="col-md-12 form-group-premium">
-              <label class="form-label-premium">
-                <span class="material-symbols-outlined" style="font-size:16px; color:#3b82f6;">home_pin</span> Alamat Lengkap
-              </label>
-              <input type="text" name="alamat" class="input-premium" placeholder="Masukkan alamat lengkap toko/mitra...">
-            </div>
           </div>
           <div class="mt-3">
-            <button type="submit" class="btn-submit-premium">
+            <button type="submit" class="btn-submit-premium" style="width: 100%; justify-content: center;">
               <span class="material-symbols-outlined">save</span>
-              Simpan Customer
+              Simpan Customer &amp; Koordinat Lokasi
             </button>
           </div>
         </form>
@@ -811,6 +888,10 @@ $salesData = mysqli_query($conn, "
                   data-kota="<?= htmlspecialchars($row['kota'] ?? ''); ?>"
                   data-foto='<?= htmlspecialchars(json_encode($photos)); ?>'
                   data-id-wilayah="<?= $row['id_wilayah']; ?>"
+                  data-lat="<?= htmlspecialchars($row['lat'] ?? ''); ?>"
+                  data-lon="<?= htmlspecialchars($row['lon'] ?? ''); ?>"
+                  data-rad="<?= htmlspecialchars($row['rad'] ?? ''); ?>"
+                  data-alamat-lokasi="<?= htmlspecialchars($row['alamat_lokasi'] ?? ''); ?>"
                   data-bs-toggle="modal" data-bs-target="#editModal" title="Ubah Data Customer">
                   <span class="material-symbols-outlined">edit</span>
                 </button>
@@ -832,7 +913,7 @@ $salesData = mysqli_query($conn, "
 
     <!-- Modal Edit -->
     <div class="modal fade" id="editModal" tabindex="-1">
-      <div class="modal-dialog modal-lg">
+      <div class="modal-dialog modal-xl">
         <form method="POST" class="modal-content modal-content-premium" enctype="multipart/form-data" id="editCustomerForm">
           <div class="modal-header modal-header-premium">
             <h5 class="modal-title modal-title-premium">
@@ -841,80 +922,129 @@ $salesData = mysqli_query($conn, "
             </h5>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
-          <div class="modal-body modal-body-premium row">
-            <input type="hidden" name="update_id" id="edit_id">
-            
-            <div class="col-md-5 form-group-premium">
-              <label class="form-label-premium">Nama Toko / Personal</label>
-              <input type="text" name="edit_nama" id="edit_nama" class="input-premium" required>
-            </div>
-            
-            <div class="col-md-7 form-group-premium">
-              <label class="form-label-premium">Kategori Customer</label>
-              <div class="d-flex align-items-center gap-4 mt-2">
-                <div class="form-check">
-                  <input class="form-check-input" type="radio" name="edit_kategori" id="edit_kategori_dealer" value="Dealer" required>
-                  <label class="form-check-label font-weight-bold text-sm text-dark" for="edit_kategori_dealer">Dealer</label>
-                </div>
-                <div class="form-check">
-                  <input class="form-check-input" type="radio" name="edit_kategori" id="edit_kategori_installer" value="Installer">
-                  <label class="form-check-label font-weight-bold text-sm text-dark" for="edit_kategori_installer">Installer</label>
-                </div>
-                <div class="form-check">
-                  <input class="form-check-input" type="radio" name="edit_kategori" id="edit_kategori_user" value="User">
-                  <label class="form-check-label font-weight-bold text-sm text-dark" for="edit_kategori_user">User</label>
-                </div>
-              </div>
-            </div>
-
-            <div class="col-md-4 form-group-premium">
-              <label class="form-label-premium">Wilayah Customer</label>
-              <select name="edit_id_wilayah" id="edit_id_wilayah" class="input-premium" required>
-                <option value="">-- Pilih Wilayah --</option>
-                <?php 
-                $wQuery2 = mysqli_query($conn, "SELECT * FROM wilayah WHERE deleted_at IS NULL ORDER BY nama ASC");
-                while ($w2 = mysqli_fetch_assoc($wQuery2)) {
-                    echo "<option value='{$w2['id']}'>" . htmlspecialchars($w2['nama']) . "</option>";
-                }
-                ?>
-              </select>
-            </div>
-            
-            <div class="col-md-4 form-group-premium">
-              <label class="form-label-premium">No. Telepon</label>
-              <input type="text" name="edit_telp" id="edit_telp" class="input-premium" required>
-            </div>
-            
-            <div class="col-md-4 form-group-premium">
-              <label class="form-label-premium">Email</label>
-              <input type="text" name="edit_email" id="edit_email" class="input-premium">
-            </div>
-            
-            <div class="col-md-4 form-group-premium">
-              <label class="form-label-premium">Kota</label>
-              <input type="text" name="edit_kota" id="edit_kota" class="input-premium">
-            </div>
-
-            <div class="col-md-8 form-group-premium">
-              <label class="form-label-premium">Alamat Lengkap</label>
-              <input type="text" name="edit_alamat" id="edit_alamat" class="input-premium">
-            </div>
-
-            <!-- Existing Photos with Delete options -->
-            <div class="col-md-12 form-group-premium mt-3">
-              <label class="form-label-premium">Foto Dokumentasi Saat Ini (Klik ❌ untuk Menghapus)</label>
-              <div class="d-flex flex-wrap gap-3 mb-3" id="edit_existing_photos_container">
-                <!-- JS will inject existing photo previews here -->
-              </div>
-              <input type="hidden" name="deleted_existing_photos" id="deleted_existing_photos">
+          <div class="modal-body modal-body-premium">
+            <div class="row">
               
-              <label class="form-label-premium">Tambah Foto Dokumentasi Baru (Drag &amp; Drop / Klik)</label>
-              <div class="dropzone-area" id="dropzone_edit">
-                <span class="material-symbols-outlined dropzone-icon">cloud_upload</span>
-                <p class="dropzone-text">Drag &amp; drop file baru di sini, atau klik untuk memilih</p>
-                <input type="file" id="foto_input_edit" name="edit_foto[]" multiple accept="image/*" class="d-none">
+              <!-- EDIT LEFT SIDE: Details -->
+              <div class="col-lg-7" style="border-right: 1px solid #f1f5f9; padding-right: 28px;">
+                <input type="hidden" name="update_id" id="edit_id">
+                
+                <div class="row">
+                  <div class="col-md-6 form-group-premium">
+                    <label class="form-label-premium">Nama Toko / Personal</label>
+                    <input type="text" name="edit_nama" id="edit_nama" class="input-premium" required>
+                  </div>
+                  
+                  <div class="col-md-6 form-group-premium">
+                    <label class="form-label-premium">Kategori Customer</label>
+                    <div class="d-flex align-items-center gap-4 mt-2">
+                      <div class="form-check">
+                        <input class="form-check-input" type="radio" name="edit_kategori" id="edit_kategori_dealer" value="Dealer" required>
+                        <label class="form-check-label font-weight-bold text-sm text-dark" for="edit_kategori_dealer">Dealer</label>
+                      </div>
+                      <div class="form-check">
+                        <input class="form-check-input" type="radio" name="edit_kategori" id="edit_kategori_installer" value="Installer">
+                        <label class="form-check-label font-weight-bold text-sm text-dark" for="edit_kategori_installer">Installer</label>
+                      </div>
+                      <div class="form-check">
+                        <input class="form-check-input" type="radio" name="edit_kategori" id="edit_kategori_user" value="User">
+                        <label class="form-check-label font-weight-bold text-sm text-dark" for="edit_kategori_user">User</label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-md-6 form-group-premium">
+                    <label class="form-label-premium">Wilayah Customer</label>
+                    <select name="edit_id_wilayah" id="edit_id_wilayah" class="input-premium" required>
+                      <option value="">-- Pilih Wilayah --</option>
+                      <?php 
+                      $wQuery2 = mysqli_query($conn, "SELECT * FROM wilayah WHERE deleted_at IS NULL ORDER BY nama ASC");
+                      while ($w2 = mysqli_fetch_assoc($wQuery2)) {
+                          echo "<option value='{$w2['id']}'>" . htmlspecialchars($w2['nama']) . "</option>";
+                      }
+                      ?>
+                    </select>
+                  </div>
+                  
+                  <div class="col-md-6 form-group-premium">
+                    <label class="form-label-premium">No. Telepon</label>
+                    <input type="text" name="edit_telp" id="edit_telp" class="input-premium" required>
+                  </div>
+                  
+                  <div class="col-md-6 form-group-premium">
+                    <label class="form-label-premium">Email</label>
+                    <input type="text" name="edit_email" id="edit_email" class="input-premium">
+                  </div>
+                  
+                  <div class="col-md-6 form-group-premium">
+                    <label class="form-label-premium">Kota</label>
+                    <input type="text" name="edit_kota" id="edit_kota" class="input-premium">
+                  </div>
+
+                  <div class="col-md-12 form-group-premium">
+                    <label class="form-label-premium">Alamat Lengkap</label>
+                    <input type="text" name="edit_alamat" id="edit_alamat" class="input-premium">
+                  </div>
+
+                  <!-- Existing Photos -->
+                  <div class="col-md-12 form-group-premium mt-3">
+                    <label class="form-label-premium">Foto Dokumentasi Saat Ini (Klik ❌ untuk Menghapus)</label>
+                    <div class="d-flex flex-wrap gap-3 mb-3" id="edit_existing_photos_container">
+                      <!-- preview -->
+                    </div>
+                    <input type="hidden" name="deleted_existing_photos" id="deleted_existing_photos">
+                    
+                    <label class="form-label-premium">Tambah Foto Dokumentasi Baru</label>
+                    <div class="dropzone-area" id="dropzone_edit">
+                      <span class="material-symbols-outlined dropzone-icon">cloud_upload</span>
+                      <p class="dropzone-text">Drag &amp; drop file baru di sini, atau klik untuk memilih</p>
+                      <input type="file" id="foto_input_edit" name="edit_foto[]" multiple accept="image/*" class="d-none">
+                    </div>
+                    <div class="preview-grid" id="preview_grid_edit"></div>
+                  </div>
+                </div>
               </div>
-              <div class="preview-grid" id="preview_grid_edit"></div>
+
+              <!-- EDIT RIGHT SIDE: Location map -->
+              <div class="col-lg-5" style="padding-left: 28px;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:24px;">
+                    <div style="width:3px;height:16px;background:#10b981;border-radius:2px;"></div>
+                    <span style="font-size:12px;font-weight:800;color:#1e293b;text-transform: uppercase; letter-spacing: 0.05em;">Edit Koordinat Toko (Geofence)</span>
+                </div>
+
+                <div class="form-group-premium">
+                  <label class="form-label-premium">Cari Alamat / Koordinat Baru</label>
+                  <div class="d-flex gap-2">
+                    <input type="text" id="gmap_search_edit" class="input-premium" placeholder="Contoh: Surabaya atau -7.250, 112.750...">
+                    <button type="button" id="gmap_search_btn_edit" class="btn bg-gradient-info text-white font-weight-bold" style="border-radius:10px; padding: 12px 18px; font-size:11px; display:inline-flex; align-items:center; gap:4px; margin-bottom:0;">
+                      <span class="material-symbols-outlined" style="font-size:16px;">search</span>CARI
+                    </button>
+                  </div>
+                </div>
+
+                <div id="map_edit"></div>
+
+                <div class="row g-2 mt-3">
+                  <div class="col-5">
+                    <label class="form-label-premium" style="font-size: 9px; color:#64748b;">Latitude</label>
+                    <input type="text" id="edit_lat_display" class="input-premium" style="font-family: monospace; font-size:12px; padding: 8px 12px !important; background:#f8fafc;" readonly>
+                  </div>
+                  <div class="col-5">
+                    <label class="form-label-premium" style="font-size: 9px; color:#64748b;">Longitude</label>
+                    <input type="text" id="edit_lon_display" class="input-premium" style="font-family: monospace; font-size:12px; padding: 8px 12px !important; background:#f8fafc;" readonly>
+                  </div>
+                  <div class="col-2">
+                    <label class="form-label-premium" style="font-size: 9px; color:#64748b;">Radius (m)</label>
+                    <input type="number" id="edit_radius_input" class="input-premium" style="font-size:12px; padding: 8px 6px !important; text-align:center;">
+                  </div>
+                </div>
+
+                <input type="hidden" id="edit_lat" name="edit_lat">
+                <input type="hidden" id="edit_lon" name="edit_lon">
+                <input type="hidden" id="edit_radius" name="edit_radius">
+                <input type="hidden" id="edit_location_address" name="edit_location_address">
+              </div>
+
             </div>
           </div>
           <div class="modal-footer modal-footer-premium">
@@ -962,6 +1092,10 @@ $salesData = mysqli_query($conn, "
 </main>
 
 <?php include "js-include.php"; ?>
+
+<!-- Leaflet Map JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
 <script>
   // ── Drag & Drop Uploader Script ──
   function setupDragAndDrop(dropzoneId, inputId, previewGridId, maxFiles = 5) {
@@ -1001,10 +1135,8 @@ $salesData = mysqli_query($conn, "
     });
 
     function handleFiles(files) {
-      // Convert FileList to array
       const filesArr = Array.from(files).filter(file => file.type.startsWith('image/'));
       
-      // Limit count
       if (selectedFiles.length + filesArr.length > maxFiles) {
         alert(`Maksimal hanya dapat mengunggah ${maxFiles} foto dokumentasi.`);
         return;
@@ -1013,7 +1145,6 @@ $salesData = mysqli_query($conn, "
       filesArr.forEach(file => {
         selectedFiles.push(file);
         
-        // Render preview
         const reader = new FileReader();
         reader.onload = (e) => {
           const previewItem = document.createElement('div');
@@ -1028,12 +1159,10 @@ $salesData = mysqli_query($conn, "
           removeBtn.innerHTML = '❌';
           removeBtn.addEventListener('click', (ev) => {
             ev.stopPropagation();
-            // Remove from array
             const idx = selectedFiles.indexOf(file);
             if (idx > -1) {
               selectedFiles.splice(idx, 1);
             }
-            // Remove preview element
             previewItem.remove();
             updateFileInput();
           });
@@ -1054,7 +1183,6 @@ $salesData = mysqli_query($conn, "
       input.files = dt.files;
     }
 
-    // Reset method helper
     return {
       reset: () => {
         selectedFiles = [];
@@ -1098,6 +1226,168 @@ $salesData = mysqli_query($conn, "
     });
   });
 
+  // ── Map Create Logic ──
+  const defaultLat = -6.13037113;
+  const defaultLon = 106.75144230;
+  const defaultRad = 100;
+
+  const mapCreate = L.map('map_create').setView([defaultLat, defaultLon], 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(mapCreate);
+
+  let markerCreate = L.marker([defaultLat, defaultLon], { draggable: true }).addTo(mapCreate);
+  let circleCreate = L.circle([defaultLat, defaultLon], { radius: defaultRad, color: '#10b981', fillColor: '#10b981', fillOpacity: 0.15 }).addTo(mapCreate);
+
+  function updateCreateMapData(latlng, rad) {
+    const r = parseInt(rad) || defaultRad;
+    markerCreate.setLatLng(latlng);
+    circleCreate.setLatLng(latlng).setRadius(r);
+    mapCreate.setView(latlng, 16);
+
+    document.getElementById('lat').value = latlng.lat;
+    document.getElementById('lon').value = latlng.lng;
+    document.getElementById('lat_display').value = latlng.lat.toFixed(6);
+    document.getElementById('lon_display').value = latlng.lng.toFixed(6);
+    document.getElementById('radius').value = r;
+    document.getElementById('radius_input').value = r;
+
+    // Nominatim geocode reverse
+    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latlng.lat}&lon=${latlng.lng}&accept-language=id`)
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('location_address').value = data?.display_name || '';
+      })
+      .catch(() => {
+        document.getElementById('location_address').value = '';
+      });
+  }
+
+  mapCreate.on('click', function(e) {
+    updateCreateMapData(e.latlng, document.getElementById('radius_input').value);
+  });
+
+  markerCreate.on('dragend', function() {
+    updateCreateMapData(markerCreate.getLatLng(), document.getElementById('radius_input').value);
+  });
+
+  document.getElementById('radius_input').addEventListener('input', function() {
+    updateCreateMapData(markerCreate.getLatLng(), this.value);
+  });
+
+  document.getElementById('gmap_search_btn').addEventListener('click', function() {
+    const query = document.getElementById('gmap_search').value.trim();
+    if (query === "") return;
+
+    const coordsRegex = /^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?),\s*[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$/;
+    if (coordsRegex.test(query)) {
+      const parts = query.split(',');
+      updateCreateMapData(L.latLng(parseFloat(parts[0]), parseFloat(parts[1])), document.getElementById('radius_input').value);
+    } else {
+      fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1&countrycodes=id&accept-language=id`)
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.length > 0) {
+            updateCreateMapData(L.latLng(parseFloat(data[0].lat), parseFloat(data[0].lon)), document.getElementById('radius_input').value);
+          } else {
+            alert("Lokasi tidak ditemukan.");
+          }
+        });
+    }
+  });
+
+  // Init create map
+  updateCreateMapData(L.latLng(defaultLat, defaultLon), defaultRad);
+
+
+  // ── Map Edit Modal Logic ──
+  let mapEditInstance = null;
+  let markerEdit = null;
+  let circleEdit = null;
+
+  const editModalEl = document.getElementById('editModal');
+  editModalEl.addEventListener('shown.bs.modal', function () {
+      const latVal = parseFloat(document.getElementById('edit_lat').value) || defaultLat;
+      const lonVal = parseFloat(document.getElementById('edit_lon').value) || defaultLon;
+      const radVal = parseInt(document.getElementById('edit_radius').value) || defaultRad;
+      
+      const latlng = L.latLng(latVal, lonVal);
+      
+      if (!mapEditInstance) {
+          mapEditInstance = L.map('map_edit').setView(latlng, 15);
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap'
+          }).addTo(mapEditInstance);
+          
+          markerEdit = L.marker(latlng, { draggable: true }).addTo(mapEditInstance);
+          circleEdit = L.circle(latlng, { radius: radVal, color: '#10b981', fillColor: '#10b981', fillOpacity: 0.15 }).addTo(mapEditInstance);
+          
+          mapEditInstance.on('click', function(e) {
+            updateEditMapData(e.latlng, document.getElementById('edit_radius_input').value);
+          });
+          
+          markerEdit.on('dragend', function() {
+            updateEditMapData(markerEdit.getLatLng(), document.getElementById('edit_radius_input').value);
+          });
+      } else {
+          mapEditInstance.setView(latlng, 15);
+          markerEdit.setLatLng(latlng);
+          circleEdit.setLatLng(latlng).setRadius(radVal);
+          mapEditInstance.invalidateSize();
+      }
+  });
+
+  function updateEditMapData(latlng, rad) {
+      const r = parseInt(rad) || defaultRad;
+      markerEdit.setLatLng(latlng);
+      circleEdit.setLatLng(latlng).setRadius(r);
+      
+      document.getElementById('edit_lat').value = latlng.lat;
+      document.getElementById('edit_lon').value = latlng.lng;
+      document.getElementById('edit_lat_display').value = latlng.lat.toFixed(6);
+      document.getElementById('edit_lon_display').value = latlng.lng.toFixed(6);
+      document.getElementById('edit_radius').value = r;
+      document.getElementById('edit_radius_input').value = r;
+      
+      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latlng.lat}&lon=${latlng.lng}&accept-language=id`)
+        .then(res => res.json())
+        .then(data => {
+          document.getElementById('edit_location_address').value = data?.display_name || '';
+        })
+        .catch(() => {
+          document.getElementById('edit_location_address').value = '';
+        });
+  }
+
+  document.getElementById('edit_radius_input').addEventListener('input', function() {
+    if (markerEdit) {
+      updateEditMapData(markerEdit.getLatLng(), this.value);
+    }
+  });
+
+  document.getElementById('gmap_search_btn_edit').addEventListener('click', function() {
+    const query = document.getElementById('gmap_search_edit').value.trim();
+    if (query === "" || !mapEditInstance) return;
+
+    const coordsRegex = /^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?),\s*[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$/;
+    if (coordsRegex.test(query)) {
+      const parts = query.split(',');
+      updateEditMapData(L.latLng(parseFloat(parts[0]), parseFloat(parts[1])), document.getElementById('edit_radius_input').value);
+    } else {
+      fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1&countrycodes=id&accept-language=id`)
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.length > 0) {
+            updateEditMapData(L.latLng(parseFloat(data[0].lat), parseFloat(data[0].lon)), document.getElementById('edit_radius_input').value);
+          } else {
+            alert("Lokasi tidak ditemukan.");
+          }
+        });
+    }
+  });
+
   // ── Edit Modal Population ──
   let deletedExistingPhotos = [];
   document.querySelectorAll('.editBtn').forEach(btn => {
@@ -1113,6 +1403,18 @@ $salesData = mysqli_query($conn, "
       document.getElementById('edit_alamat').value = btn.dataset.alamat;
       document.getElementById('edit_kota').value = btn.dataset.kota;
       document.getElementById('edit_id_wilayah').value = btn.dataset.idWilayah || "";
+
+      // GPS Data Populate
+      document.getElementById('edit_lat').value = btn.dataset.lat || "";
+      document.getElementById('edit_lon').value = btn.dataset.lon || "";
+      document.getElementById('edit_radius').value = btn.dataset.rad || "100";
+      document.getElementById('edit_radius_input').value = btn.dataset.rad || "100";
+      document.getElementById('edit_location_address').value = btn.dataset.alamatLokasi || "";
+      
+      const latVal = parseFloat(btn.dataset.lat);
+      const lonVal = parseFloat(btn.dataset.lon);
+      document.getElementById('edit_lat_display').value = isNaN(latVal) ? "" : latVal.toFixed(6);
+      document.getElementById('edit_lon_display').value = isNaN(lonVal) ? "" : lonVal.toFixed(6);
 
       // Existing photos preview with delete
       const existingContainer = document.getElementById('edit_existing_photos_container');
