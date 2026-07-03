@@ -3,8 +3,8 @@ $current_date = date("Y-m-d");
 
 // ── Hitung summary per tab ─────────────────────────────────────────────────
 $tab_meta = [
-  'hari-ini'    => ['label'=>'Hari Ini',     'condition'=>"DATE(ks.jadwal) = '$current_date'",                                           'icon'=>'today',        'color'=>'#3b82f6'],
-  'akan-datang' => ['label'=>'Akan Datang',  'condition'=>"DATE(ks.jadwal) > '$current_date'",                                          'icon'=>'event',        'color'=>'#8b5cf6'],
+  'hari-ini'    => ['label'=>'Hari Ini',     'condition'=>"DATE(ks.jadwal) = '$current_date'",                                           'icon'=>'today',        'color'=>'#1e293b'],
+  'akan-datang' => ['label'=>'Akan Datang',  'condition'=>"DATE(ks.jadwal) > '$current_date'",                                          'icon'=>'event',        'color'=>'#3b82f6'],
   'terlewat'    => ['label'=>'Terlewat',     'condition'=>"DATE(ks.jadwal) < '$current_date' AND ks.status != 'selesai'",               'icon'=>'event_busy',   'color'=>'#ef4444'],
   'selesai'     => ['label'=>'Selesai',      'condition'=>"ks.status = 'selesai'",                                                       'icon'=>'task_alt',     'color'=>'#10b981'],
 ];
@@ -16,23 +16,88 @@ foreach ($tab_meta as $k => $m) {
 }
 ?>
 
-<!-- ── SUMMARY STAT CARDS ─────────────────────────────────────────────────── -->
+<!-- ── SUMMARY STAT CARDS (Sama dengan Web Teknisi) ─────────────────────────── -->
 <div class="col-12 mb-4">
   <div class="row g-3">
-    <?php foreach ($tab_meta as $k => $m): ?>
+    <!-- Card 1: Hari Ini -->
     <div class="col-6 col-md-3">
-      <div class="stat-card" style="--accent:<?php echo $m['color']; ?>" onclick="document.getElementById('tab-<?php echo $k;?>').click()">
-        <div class="stat-icon">
-          <span class="material-symbols-outlined"><?php echo $m['icon']; ?></span>
+      <div class="stat-card-premium" style="background: linear-gradient(135deg,#1e293b 0%,#334155 100%);" onclick="document.getElementById('tab-hari-ini').click()">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <p class="stat-label-premium">Hari Ini</p>
+              <h3 class="stat-count-premium"><?php echo $counts['hari-ini']; ?></h3>
+            </div>
+            <div class="stat-icon-premium">
+              <span class="material-symbols-outlined">event_available</span>
+            </div>
+          </div>
         </div>
-        <div class="stat-body">
-          <div class="stat-count"><?php echo $counts[$k]; ?></div>
-          <div class="stat-label"><?php echo $m['label']; ?></div>
+        <div class="stat-footer-premium">
+          <p><?php echo date('d F Y'); ?></p>
         </div>
-        <div class="stat-progress-bar"></div>
       </div>
     </div>
-    <?php endforeach; ?>
+
+    <!-- Card 2: Akan Datang -->
+    <div class="col-6 col-md-3">
+      <div class="stat-card-premium" style="background: linear-gradient(135deg,#1e40af 0%,#3b82f6 100%);" onclick="document.getElementById('tab-akan-datang').click()">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <p class="stat-label-premium">Akan Datang</p>
+              <h3 class="stat-count-premium"><?php echo $counts['akan-datang']; ?></h3>
+            </div>
+            <div class="stat-icon-premium">
+              <span class="material-symbols-outlined">event</span>
+            </div>
+          </div>
+        </div>
+        <div class="stat-footer-premium">
+          <p>Jadwal Mendatang</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 3: Terlewat -->
+    <div class="col-6 col-md-3">
+      <div class="stat-card-premium" style="background: linear-gradient(135deg,#dc2626 0%,#ef4444 100%);" onclick="document.getElementById('tab-terlewat').click()">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <p class="stat-label-premium">Terlewat</p>
+              <h3 class="stat-count-premium"><?php echo $counts['terlewat']; ?></h3>
+            </div>
+            <div class="stat-icon-premium">
+              <span class="material-symbols-outlined">warning_amber</span>
+            </div>
+          </div>
+        </div>
+        <div class="stat-footer-premium">
+          <p>Perlu Tindak Lanjut</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 4: Selesai -->
+    <div class="col-6 col-md-3">
+      <div class="stat-card-premium" style="background: linear-gradient(135deg,#15803d 0%,#22c55e 100%);" onclick="document.getElementById('tab-selesai').click()">
+        <div class="card-body p-3">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <p class="stat-label-premium">Selesai</p>
+              <h3 class="stat-count-premium"><?php echo $counts['selesai']; ?></h3>
+            </div>
+            <div class="stat-icon-premium">
+              <span class="material-symbols-outlined">check_circle</span>
+            </div>
+          </div>
+        </div>
+        <div class="stat-footer-premium">
+          <p>Kunjungan Selesai</p>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -68,11 +133,23 @@ foreach ($tab_meta as $k => $m) {
               WHERE ks.status != 'waiting' AND ks.deleted_at IS NULL AND {$m['condition']}
               ORDER BY ks.jadwal ASC";
       $result = mysqli_query($conn, $sql);
+      $borderColor = $m['color'];
     ?>
     <div class="tab-pane fade <?php echo $first ? 'show active' : ''; ?>"
          id="pane-<?php echo $k; ?>" role="tabpanel">
 
-      <div class="p-3 bg-white">
+      <!-- Section Header (Sama dengan Web Teknisi) -->
+      <div class="section-header-premium">
+        <h6>
+          <span class="material-symbols-outlined" style="font-size: 18px; color: #fff; vertical-align: middle; margin-right: 6px;"><?php echo $m['icon']; ?></span>
+          Kegiatan <?php echo $m['label']; ?>
+        </h6>
+        <div class="d-flex align-items-center gap-2">
+          <span class="badge bg-light text-dark font-weight-bold" style="font-size: 11px;"><?php echo $counts[$k]; ?> Kunjungan</span>
+        </div>
+      </div>
+
+      <div class="keg-list-container">
         <?php if (mysqli_num_rows($result) > 0): ?>
 
           <!-- Desktop header -->
@@ -104,9 +181,6 @@ foreach ($tab_meta as $k => $m) {
               $lbl  = match($st) { 'berjalan'=>'Berjalan','selesai'=>'Selesai', default=>'Dijadwalkan' };
               $salesList[] = ['nama'=>$s['nama_sales'],'cls'=>$cls,'lbl'=>$lbl];
             }
-
-            // warna left-border berdasarkan tab
-            $borderColor = $m['color'];
           ?>
 
           <div class="keg-row" style="--row-accent:<?php echo $borderColor; ?>">
@@ -180,7 +254,7 @@ foreach ($tab_meta as $k => $m) {
           <?php endwhile; ?>
 
         <?php else: ?>
-          <div class="empty-state-premium" style="--accent: <?php echo $m['color']; ?>;">
+          <div class="empty-state-premium" style="--accent: <?php echo $borderColor; ?>;">
             <div class="empty-icon-wrapper">
               <span class="material-symbols-outlined empty-icon-pulsing"><?php echo $m['icon']; ?></span>
             </div>
@@ -197,51 +271,72 @@ foreach ($tab_meta as $k => $m) {
 
 <!-- ── STYLES ─────────────────────────────────────────────────────────────── -->
 <style>
-/* ── Stat Cards ── */
-.stat-card {
-  background: #fff;
-  border-radius: 16px;
-  padding: 20px 22px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.03);
-  border: 1px solid #f1f5f9;
-  border-left: 5px solid var(--accent);
+/* ── Premium Stat Cards (Sama dengan Web Teknisi) ── */
+.stat-card-premium {
+  border: none;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.06);
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
-  overflow: hidden;
 }
-.stat-card:hover { 
-  transform: translateY(-4px); 
-  box-shadow: 0 10px 25px rgba(0,0,0,0.08); 
-  border-color: color-mix(in srgb, var(--accent) 30%, #fff);
+.stat-card-premium:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(0,0,0,0.12);
 }
-.stat-icon {
-  width: 48px; height: 48px;
-  border-radius: 12px;
-  background: color-mix(in srgb, var(--accent) 10%, transparent);
+.stat-label-premium {
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0 0 6px 0;
+}
+.stat-count-premium {
+  font-size: 32px;
+  font-weight: 800;
+  color: #fff;
+  margin: 0;
+  line-height: 1;
+}
+.stat-icon-premium {
+  width: 42px; height: 42px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.15);
   display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
+  backdrop-filter: blur(4px);
+  color: rgba(255,255,255,0.8);
   transition: transform 0.25s;
 }
-.stat-card:hover .stat-icon {
+.stat-card-premium:hover .stat-icon-premium {
   transform: scale(1.1) rotate(5deg);
 }
-.stat-icon .material-symbols-outlined { font-size: 24px; color: var(--accent); }
-.stat-count { font-size: 28px; font-weight: 800; color: #1e293b; line-height: 1; }
-.stat-label { font-size: 12px; color: #64748b; margin-top: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-.stat-progress-bar {
-  position: absolute;
-  bottom: 0; left: 0; right: 0;
-  height: 3px;
-  background: var(--accent);
-  opacity: 0.15;
-  transition: opacity 0.25s;
+.stat-icon-premium .material-symbols-outlined {
+  font-size: 22px;
+  color: #fff;
 }
-.stat-card:hover .stat-progress-bar {
-  opacity: 0.4;
+.stat-footer-premium {
+  padding: 8px 16px;
+  background: rgba(0,0,0,0.15);
+}
+.stat-footer-premium p {
+  font-size: 10px;
+  color: rgba(255,255,255,0.5);
+  margin: 0;
+}
+
+/* ── Section Header Premium (Sama dengan Web Teknisi) ── */
+.section-header-premium {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 20px; background: #1e293b; border-radius: 10px 10px 0 0;
+  transition: background 0.2s;
+  margin-top: 15px;
+}
+.section-header-premium h6 { 
+  margin: 0; font-size: 13px; font-weight: 700; color: #fff; 
+  letter-spacing: 0.04em; text-transform: uppercase;
+  display: flex; align-items: center;
 }
 
 /* ── Tab Pills ── */
@@ -283,40 +378,47 @@ foreach ($tab_meta as $k => $m) {
 
 /* ── Kegiatan List Pane ── */
 .tab-pane { 
-  background: #fff; 
-  border-radius: 0 0 16px 16px; 
-  padding: 0; 
-  overflow: hidden; 
-  box-shadow: 0 4px 20px rgba(0,0,0,0.03); 
+  background: transparent !important; 
+  box-shadow: none !important; 
+  border: none !important;
+}
+.keg-list-container {
+  background: #fff;
   border: 1px solid #e2e8f0;
+  border-top: none;
+  border-radius: 0 0 12px 12px;
+  padding: 20px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.02);
 }
 
 .keg-header {
   display: grid;
   grid-template-columns: 140px 1.2fr 1.2fr 1.5fr 110px;
   gap: 16px;
-  padding: 12px 24px;
+  padding: 12px 16px;
   background: #f8fafc;
   border-bottom: 1px solid #e2e8f0;
   font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: .5px;
+  margin-bottom: 10px;
 }
 .keg-row {
   display: grid;
   grid-template-columns: 140px 1.2fr 1.2fr 1.5fr 110px;
   gap: 16px;
-  padding: 20px 24px;
+  padding: 18px 20px;
   background: #fff;
   border-radius: 12px;
   margin-bottom: 12px;
-  border: 1px solid #f1f5f9;
+  border: 1px solid #e2e8f0;
   border-left: 5px solid var(--row-accent, #3b82f6);
   transition: all 0.22s ease;
   align-items: center;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.01);
 }
 .keg-row:hover { 
   background: #fff; 
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
   border-color: var(--row-accent);
 }
 .keg-cell { padding: 0; }
