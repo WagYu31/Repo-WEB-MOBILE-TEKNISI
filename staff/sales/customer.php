@@ -437,21 +437,21 @@ $salesData = mysqli_query($conn, "
 
     /* ── Avatars in Table ── */
     .avatar-initials-table {
-      width: 40px; height: 40px;
+      width: 42px; height: 42px;
       border-radius: 50%;
       color: #fff;
       font-size: 13px; font-weight: 700;
       display: inline-flex; align-items: center; justify-content: center;
-      margin-right: 12px;
+      margin-right: 14px;
       vertical-align: middle;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
       cursor: pointer;
       transition: all 0.2s;
     }
 
     .avatar-initials-table:hover {
       transform: scale(1.08);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
     }
     
     .customer-identity-cell {
@@ -462,18 +462,20 @@ $salesData = mysqli_query($conn, "
 
     /* ── Category Badges ── */
     .category-badge {
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 700;
-      padding: 4px 10px;
+      padding: 6px 12px;
       border-radius: 20px;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.06em;
       display: inline-block;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+      border: 1px solid rgba(0,0,0,0.03);
     }
-    .badge-dealer { background: #dbeafe; color: #1e40af; }
-    .badge-installer { background: #f3e8ff; color: #6b21a8; }
-    .badge-user { background: #d1fae5; color: #065f46; }
-    .badge-default { background: #f1f5f9; color: #475569; }
+    .badge-dealer { background: #eff6ff; color: #1e40af; border-color: #dbeafe; }
+    .badge-installer { background: #faf5ff; color: #6b21a8; border-color: #f3e8ff; }
+    .badge-user { background: #ecfdf5; color: #065f46; border-color: #d1fae5; }
+    .badge-default { background: #f8fafc; color: #475569; border-color: #e2e8f0; }
  
     /* ── Table custom styling ── */
     .premium-table {
@@ -487,44 +489,88 @@ $salesData = mysqli_query($conn, "
       border-bottom: 2px solid #e2e8f0;
       color: #64748b;
       font-size: 11px;
-      font-weight: 700;
+      font-weight: 800;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
-      padding: 14px 16px;
+      letter-spacing: 0.08em;
+      padding: 18px 20px;
       text-align: left;
     }
     
     .premium-table td {
-      padding: 14px 16px;
+      padding: 16px 20px;
       border-bottom: 1px solid #f1f5f9;
       color: #334155;
-      font-size: 13px;
+      font-size: 13.5px;
       vertical-align: middle;
     }
     
-    .premium-table tr:hover td {
+    .premium-table tbody tr {
+      transition: all 0.2s ease-in-out;
+    }
+
+    .premium-table tbody tr:hover td {
       background-color: #f8fafc;
     }
     
-    .wa-link {
-      font-size: 13px; color: #10b981;
-      text-decoration: none; display: inline-flex;
-      align-items: center; gap: 4px; font-weight: 600;
+    /* WhatsApp Pill style */
+    .wa-pill {
+      background: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      color: #065f46;
+      font-size: 12.5px; 
+      font-weight: 700;
+      padding: 6px 12px;
+      border-radius: 30px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
     }
-    .wa-link:hover { text-decoration: underline; }
+    .wa-pill:hover {
+      background: #10b981;
+      color: #fff;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);
+    }
+    .wa-pill i {
+      font-size: 15px;
+    }
+
+    /* Map Pin Button */
+    .btn-map-pin {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #2563eb;
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      display: inline-flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+    .btn-map-pin:hover {
+      background: #2563eb;
+      color: #fff;
+      transform: scale(1.1);
+      box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2);
+    }
+    .btn-map-pin .material-symbols-outlined {
+      font-size: 18px;
+    }
 
     /* ── Action Buttons ── */
     .btn-act {
-      width: 32px; height: 32px; padding: 0; display: inline-flex;
-      align-items: center; justify-content: center; border-radius: 8px;
+      width: 36px; height: 36px; padding: 0; display: inline-flex;
+      align-items: center; justify-content: center; border-radius: 50%;
       border: 1px solid transparent; transition: all 0.2s; cursor: pointer; text-decoration: none;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     }
-    .btn-act:hover { transform: scale(1.08); }
-    .btn-act .material-symbols-outlined { font-size: 16px; }
+    .btn-act:hover { transform: scale(1.1); }
+    .btn-act .material-symbols-outlined { font-size: 18px; }
     .btn-act-edit { background: #fffbeb; color: #d97706; border-color: #fef3c7; }
-    .btn-act-edit:hover { background: #d97706; color: #fff; }
-    .btn-act-delete { background: #fef2f2; color: #dc2626; border-color: #fee2e2; margin-left: 6px; }
-    .btn-act-delete:hover { background: #dc2626; color: #fff; }
+    .btn-act-edit:hover { background: #d97706; color: #fff; box-shadow: 0 4px 10px rgba(217, 119, 6, 0.2); }
+    .btn-act-delete { background: #fef2f2; color: #dc2626; border-color: #fee2e2; margin-left: 8px; }
+    .btn-act-delete:hover { background: #dc2626; color: #fff; box-shadow: 0 4px 10px rgba(220, 38, 38, 0.2); }
  
     .btn-submit-premium {
       background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #2563eb 100%);
@@ -785,12 +831,20 @@ $salesData = mysqli_query($conn, "
 
     <!-- Card Daftar Sales Customer -->
     <div class="card-premium">
-      <div class="section-header-premium">
-        <h6>
-          <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 8px;">groups</span>
-          Daftar Sales Customer
-        </h6>
-        <span class="badge bg-light text-dark font-weight-bold" style="font-size: 11px;"><?= mysqli_num_rows($salesData); ?> Customer Terdaftar</span>
+      <!-- Premium Gradient Header -->
+      <div style="background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 40%,#2563eb 100%);padding:20px 28px;position:relative;overflow:hidden;">
+          <div style="position:absolute;top:-40px;right:-20px;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,0.04);"></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1;">
+              <div style="display:flex;align-items:center;gap:12px;">
+                  <div style="width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,0.12);backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,0.1);">
+                      <span class="material-symbols-outlined" style="color:#fff;font-size:18px;">groups</span>
+                  </div>
+                  <div>
+                      <h5 style="color:#fff;margin:0;font-size:15px;font-weight:700;letter-spacing:-0.2px;">Daftar Sales Customer</h5>
+                  </div>
+              </div>
+              <span class="badge bg-light text-dark font-weight-bold" style="font-size: 11px; padding: 6px 14px; border-radius: 10px; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.08);"><?= mysqli_num_rows($salesData); ?> Customer Terdaftar</span>
+          </div>
       </div>
       
       <div class="table-responsive">
@@ -798,14 +852,15 @@ $salesData = mysqli_query($conn, "
           <thead>
             <tr>
               <th style="width: 60px; text-align: center;">No</th>
-              <th style="width: 120px;">Kategori</th>
+              <th style="width: 130px;">Kategori</th>
               <th>Nama Toko / Personal</th>
-              <th style="width: 150px;">Wilayah</th>
-              <th style="width: 180px;">No. Telepon</th>
+              <th style="width: 160px;">Wilayah</th>
+              <th style="width: 170px;">No. Telepon</th>
               <th>Email</th>
               <th>Alamat</th>
-              <th style="width: 150px;">Kota</th>
-              <th style="width: 120px; text-align: center;">Aksi</th>
+              <th style="width: 140px;">Kota</th>
+              <th style="width: 50px; text-align: center;">Peta</th>
+              <th style="width: 130px; text-align: center;">Aksi</th>
             </tr>
           </thead>
           <tbody>
@@ -834,9 +889,23 @@ $salesData = mysqli_query($conn, "
                   }
               }
               $firstPhoto = !empty($photos) ? $photos[0] : '';
+              
+              // Wilayah Colorful Badges
+              $regionName = $row['nama_wilayah'] ?? 'Tanpa Wilayah';
+              if (stripos($regionName, 'Jabodetabek') !== false) {
+                  $wBadge = 'background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: #fff;';
+              } elseif (stripos($regionName, 'Jawa Timur') !== false) {
+                  $wBadge = 'background: linear-gradient(135deg, #7c2d12, #ea580c); color: #fff;';
+              } elseif (stripos($regionName, 'Jawa Tengah') !== false) {
+                  $wBadge = 'background: linear-gradient(135deg, #065f46, #10b981); color: #fff;';
+              } elseif (stripos($regionName, 'Jawa Barat') !== false) {
+                  $wBadge = 'background: linear-gradient(135deg, #5b21b6, #8b5cf6); color: #fff;';
+              } else {
+                  $wBadge = 'background: linear-gradient(135deg, #374151, #4b5563); color: #fff;';
+              }
             ?>
             <tr>
-              <td style="text-align: center; font-weight: 600; color: #64748b;"><?= $no++; ?></td>
+              <td style="text-align: center; font-weight: 700; color: #64748b; font-size:12px;"><?= $no++; ?></td>
               <td><span class="category-badge <?= $badgeClass; ?>"><?= $kat; ?></span></td>
               <td>
                 <div class="customer-identity-cell">
@@ -856,27 +925,42 @@ $salesData = mysqli_query($conn, "
                       ?>
                     </div>
                   <?php endif; ?>
-                  <span style="font-weight: 700; color: #1e293b;"><?= htmlspecialchars($row['nama'] ?? ''); ?></span>
+                  <span style="font-weight: 700; color: #0f172a; font-size:13.5px;"><?= htmlspecialchars($row['nama'] ?? ''); ?></span>
                 </div>
               </td>
               <td>
-                <span class="badge bg-gradient-dark text-capitalize" style="font-size: 10px; font-weight: 600;">
-                  <?= htmlspecialchars($row['nama_wilayah'] ?? 'Tanpa Wilayah'); ?>
+                <span class="badge text-capitalize" style="font-size: 9px; padding: 4px 10px; font-weight: 700; letter-spacing: 0.05em; border-radius:30px; text-transform: uppercase; <?= $wBadge; ?>">
+                  <?= htmlspecialchars($regionName); ?>
                 </span>
               </td>
               <td>
                 <?php if (!empty($row['telp_pribadi'])): ?>
-                <a href="https://wa.me/<?= htmlspecialchars($row['telp_pribadi'] ?? ''); ?>" target="_blank" class="wa-link">
-                  <i class="fab fa-whatsapp" style="font-size: 16px;"></i> 
+                <a href="https://wa.me/<?= htmlspecialchars($row['telp_pribadi'] ?? ''); ?>" target="_blank" class="wa-pill">
+                  <i class="fab fa-whatsapp"></i> 
                   <?= htmlspecialchars(preg_replace('/^62/', '0', $row['telp_pribadi'] ?? '')); ?>
                 </a>
                 <?php else: ?>
                 <span class="text-muted">-</span>
                 <?php endif; ?>
               </td>
-              <td><?= htmlspecialchars($row['email'] ?? '-'); ?></td>
-              <td><span style="font-size: 12px; color: #64748b;"><?= htmlspecialchars($row['alamat'] ?? '-'); ?></span></td>
-              <td><span style="font-weight: 600; color: #475569;"><?= htmlspecialchars($row['kota'] ?? '-'); ?></span></td>
+              <td style="color: #64748b; font-size:12.5px; font-family: monospace;"><?= htmlspecialchars($row['email'] ?? '-'); ?></td>
+              <td><span style="font-size: 12px; color: #64748b; font-weight:500; line-height: 1.4; display:block; max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="<?= htmlspecialchars($row['alamat'] ?? ''); ?>"><?= htmlspecialchars($row['alamat'] ?? '-'); ?></span></td>
+              <td><span style="font-weight: 700; color: #475569; font-size:12.5px;"><?= htmlspecialchars($row['kota'] ?? '-'); ?></span></td>
+              <td style="text-align: center;">
+                <?php if (!empty($row['lat']) && !empty($row['lon'])): ?>
+                  <button type="button" class="btn-map-pin openMapModalBtn" 
+                          data-lat="<?= htmlspecialchars($row['lat']); ?>"
+                          data-lon="<?= htmlspecialchars($row['lon']); ?>"
+                          data-rad="<?= htmlspecialchars($row['rad'] ?? '100'); ?>"
+                          data-name="<?= htmlspecialchars($row['nama'] ?? ''); ?>"
+                          data-alamat="<?= htmlspecialchars($row['alamat_lokasi'] ?? ''); ?>"
+                          title="Lihat Peta Lokasi Toko">
+                    <span class="material-symbols-outlined">location_on</span>
+                  </button>
+                <?php else: ?>
+                  <span class="material-symbols-outlined text-muted" style="font-size: 18px;" title="Lokasi Belum Diset">location_off</span>
+                <?php endif; ?>
+              </td>
               <td style="text-align: center;">
                 <button type="button" class="btn-act btn-act-edit editBtn"
                   data-id="<?= $row['id']; ?>"
@@ -903,7 +987,7 @@ $salesData = mysqli_query($conn, "
             <?php endwhile; ?>
             <?php if (mysqli_num_rows($salesData) == 0): ?>
               <tr>
-                <td colspan="9" class="text-center text-muted" style="padding: 40px;">Belum ada customer terdaftar.</td>
+                <td colspan="10" class="text-center text-muted" style="padding: 40px;">Belum ada customer terdaftar.</td>
               </tr>
             <?php endif; ?>
           </tbody>
@@ -1086,6 +1170,25 @@ $salesData = mysqli_query($conn, "
       </div>
     </div>
 
+    <!-- View map coordinates modal -->
+    <div class="modal fade" id="viewMapModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="border-radius:16px; overflow:hidden; border:none; background:#fff;">
+          <div class="modal-header border-0 bg-gradient-dark text-white" style="padding: 18px 24px;">
+            <h6 class="modal-title text-white font-weight-bold" id="viewMapTitle">Lokasi Geofence Toko</h6>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body" style="padding: 24px;">
+            <div id="map_view_container" style="height: 380px; border-radius: 12px; border: 1.5px solid #e2e8f0; width: 100%;"></div>
+            <div class="mt-3 p-3 bg-light rounded-3" style="font-size: 13px; color: #475569;">
+              <div style="font-weight: 700; color: #1e293b; margin-bottom:4px;">Alamat Peta Geocoder:</div>
+              <span id="viewMapAddress">Sedang memuat alamat...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <?php include "floating-menu.php"; ?>
     <?php include "footer.php"; ?>
   </div>
@@ -1223,6 +1326,48 @@ $salesData = mysqli_query($conn, "
       
       const galleryModal = new bootstrap.Modal(document.getElementById('galleryModal'));
       galleryModal.show();
+    });
+  });
+
+  // ── View Map Modal Logic ──
+  let mapViewInstance = null;
+  let markerView = null;
+  let circleView = null;
+
+  document.querySelectorAll('.openMapModalBtn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const lat = parseFloat(btn.dataset.lat);
+      const lon = parseFloat(btn.dataset.lon);
+      const rad = parseInt(btn.dataset.rad) || 100;
+      const name = btn.dataset.name;
+      const address = btn.dataset.alamat || "Alamat lengkap tidak tertera.";
+
+      document.getElementById('viewMapTitle').innerText = 'Lokasi Geofence: ' + name;
+      document.getElementById('viewMapAddress').innerText = address;
+
+      const latlng = L.latLng(lat, lon);
+
+      const viewMapModal = new bootstrap.Modal(document.getElementById('viewMapModal'));
+      viewMapModal.show();
+
+      // Initialize map on modal shown
+      setTimeout(() => {
+        if (!mapViewInstance) {
+          mapViewInstance = L.map('map_view_container').setView(latlng, 16);
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap contributors'
+          }).addTo(mapViewInstance);
+
+          markerView = L.marker(latlng).addTo(mapViewInstance);
+          circleView = L.circle(latlng, { radius: rad, color: '#2563eb', fillColor: '#2563eb', fillOpacity: 0.15 }).addTo(mapViewInstance);
+        } else {
+          mapViewInstance.setView(latlng, 16);
+          markerView.setLatLng(latlng);
+          circleView.setLatLng(latlng).setRadius(rad);
+          mapViewInstance.invalidateSize();
+        }
+      }, 350);
     });
   });
 
