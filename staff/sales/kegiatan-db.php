@@ -183,7 +183,7 @@ foreach ($tab_meta as $k => $m) {
 
             // Ambil sales
             $salesList = [];
-            $sqlSales  = "SELECT s.nama AS nama_sales, ps.status AS status_pelaksanaan, ps.ci_at, ps.co_at
+            $sqlSales  = "SELECT s.nama AS nama_sales, ps.status AS status_pelaksanaan, ps.ci_at, ps.co_at, ps.lat_ci, ps.lon_ci, ps.lat_co, ps.lon_co
                           FROM team_kegiatan_sales tks
                           LEFT JOIN sales s ON tks.id_sales = s.id
                           LEFT JOIN pelaksanaan_sales ps ON ps.kegiatan_id = tks.id_kegiatan_sales AND ps.sales_id = tks.id_sales
@@ -201,7 +201,11 @@ foreach ($tab_meta as $k => $m) {
                 'cls' => $cls,
                 'lbl' => $lbl,
                 'ci_time' => $ci_time,
-                'co_time' => $co_time
+                'co_time' => $co_time,
+                'lat_ci' => $s['lat_ci'] ?? '',
+                'lon_ci' => $s['lon_ci'] ?? '',
+                'lat_co' => $s['lat_co'] ?? '',
+                'lon_co' => $s['lon_co'] ?? ''
               ];
             }
           ?>
@@ -248,13 +252,19 @@ foreach ($tab_meta as $k => $m) {
                     <div class="d-flex align-items-center gap-1 flex-wrap mt-1">
                       <span class="sales-status-badge <?php echo $sl['cls']; ?>"><?php echo $sl['lbl']; ?></span>
                       <?php if (!empty($sl['ci_time'])): ?>
-                        <span class="badge bg-light text-success font-weight-bold" style="font-size: 9px; padding: 2px 6px; border: 1px solid #d1fae5; border-radius: 4px; font-family: monospace; text-transform: uppercase;" title="Jam Clock In">
+                        <span class="badge bg-light text-success font-weight-bold" style="font-size: 9px; padding: 2px 6px; border: 1px solid #d1fae5; border-radius: 4px; font-family: monospace; text-transform: uppercase; display: inline-flex; align-items: center; gap: 2px;" title="Jam Clock In">
                           📥 IN: <?php echo $sl['ci_time']; ?>
+                          <?php if (!empty($sl['lat_ci']) && !empty($sl['lon_ci'])): ?>
+                            <a href="https://www.google.com/maps?q=<?php echo $sl['lat_ci']; ?>,<?php echo $sl['lon_ci']; ?>" target="_blank" style="text-decoration: none; font-size:10px; line-height:1;" title="Lokasi Clock In">📍</a>
+                          <?php endif; ?>
                         </span>
                       <?php endif; ?>
                       <?php if (!empty($sl['co_time'])): ?>
-                        <span class="badge bg-light text-danger font-weight-bold" style="font-size: 9px; padding: 2px 6px; border: 1px solid #fee2e2; border-radius: 4px; font-family: monospace; text-transform: uppercase;" title="Jam Clock Out">
+                        <span class="badge bg-light text-danger font-weight-bold" style="font-size: 9px; padding: 2px 6px; border: 1px solid #fee2e2; border-radius: 4px; font-family: monospace; text-transform: uppercase; display: inline-flex; align-items: center; gap: 2px;" title="Jam Clock Out">
                           📤 OUT: <?php echo $sl['co_time']; ?>
+                          <?php if (!empty($sl['lat_co']) && !empty($sl['lon_co'])): ?>
+                            <a href="https://www.google.com/maps?q=<?php echo $sl['lat_co']; ?>,<?php echo $sl['lon_co']; ?>" target="_blank" style="text-decoration: none; font-size:10px; line-height:1;" title="Lokasi Clock Out">📍</a>
+                          <?php endif; ?>
                         </span>
                       <?php endif; ?>
                     </div>
