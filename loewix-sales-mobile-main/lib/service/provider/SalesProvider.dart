@@ -149,6 +149,7 @@ class SalesProvider extends ChangeNotifier {
     required String lon,
     String catatan = '',
     bool isMock = false,
+    List<String> base64Images = const [],
   }) async {
     final res = await _api.clockOut(
       kegiatanId: kegiatanId,
@@ -157,6 +158,7 @@ class SalesProvider extends ChangeNotifier {
       lon: lon,
       catatanVisit: catatan,
       isMock: isMock,
+      base64Images: base64Images,
     );
     await fetchTasks();
     return res['message'] ?? 'Clock Out berhasil';

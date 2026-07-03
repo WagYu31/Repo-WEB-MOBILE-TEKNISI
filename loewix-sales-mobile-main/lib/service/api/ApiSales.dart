@@ -68,17 +68,26 @@ class ApiSales {
     required String lon,
     String catatanVisit = '',
     bool isMock = false,
+    List<String> base64Images = const [],
   }) async {
+    final Map<String, dynamic> body = {
+      'kegiatan_id': kegiatanId,
+      'sales_id': salesId,
+      'latitude': lat,
+      'longitude': lon,
+      'catatan_visit': catatanVisit,
+      'is_mock': isMock ? 1 : 0,
+    };
+    
+    final listFields = ['image_satu', 'image_dua', 'image_tiga', 'image_empat', 'image_lima'];
+    for (int i = 0; i < base64Images.length && i < listFields.length; i++) {
+      body[listFields[i]] = base64Images[i];
+    }
+
     final res = await http.post(
       Uri.parse('$_base/api_sales_clockout.php'),
-      body: {
-        'kegiatan_id': kegiatanId.toString(),
-        'sales_id': salesId.toString(),
-        'latitude': lat,
-        'longitude': lon,
-        'catatan_visit': catatanVisit,
-        'is_mock': isMock ? '1' : '0',
-      },
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(body),
     );
     final data = jsonDecode(res.body);
     if (res.statusCode == 200 && data['status'] == 'success') {

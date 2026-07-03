@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
@@ -28,7 +29,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   final _catatanCtrl = TextEditingController();
   final GlobalKey<SlideActionState> _slideKeyCI = GlobalKey();
   final GlobalKey<SlideActionState> _slideKeyCO = GlobalKey();
-  XFile? _capturedPhoto;
+  List<XFile> _capturedPhotos = [];
   final _picker = ImagePicker();
 
   LatLng? _customerLatLng;
@@ -172,15 +173,36 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     final pos = await _getPosition();
     if (pos == null) { _slideKeyCO.currentState?.reset(); return; }
 
+    // Show loading overlay
+    QuickAlert.show(
+      context: context,
+      type: QuickAlertType.loading,
+      title: 'Menyimpan Laporan',
+      text: 'Sedang mengunggah catatan dan dokumentasi...',
+      barrierDismissible: false,
+    );
+
     try {
+      // Encode images to base64
+      List<String> base64Images = [];
+      for (var f in _capturedPhotos) {
+        final bytes = await f.readAsBytes();
+        final b64 = base64Encode(bytes);
+        base64Images.add(b64);
+      }
+
       final msg = await context.read<SalesProvider>().doClockOut(
         kegiatanId: _task.kegiatanId,
         lat: pos.latitude.toString(),
         lon: pos.longitude.toString(),
         catatan: result,
         isMock: pos.isMocked,
+        base64Images: base64Images,
       );
+      
       if (!mounted) return;
+      Navigator.pop(context); // Close loading
+
       QuickAlert.show(
         context: context,
         type: QuickAlertType.success,
@@ -194,6 +216,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       );
     } catch (e) {
       if (!mounted) return;
+      Navigator.pop(context); // Close loading
       _slideKeyCO.currentState?.reset();
       QuickAlert.show(
         context: context,
@@ -208,7 +231,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   // ── Catatan + Foto Bottom Sheet ──────────────────────────
   Future<String?> _showCatatanSheet() {
     _catatanCtrl.clear();
-    _capturedPhoto = null;
+    _capturedPhotos = [];
     return showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
@@ -218,7 +241,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       builder: (_) => _CatatanSheet(
         ctrl: _catatanCtrl,
         picker: _picker,
-        onPhotoCapture: (f) => setState(() => _capturedPhoto = f),
+        onPhotosCapture: (list) => setState(() => _capturedPhotos = list),
         onSubmit: (catatan) => Navigator.pop(context, catatan),
       ),
     );
@@ -723,12 +746,12 @@ class _ClockNode extends StatelessWidget {
 class _CatatanSheet extends StatefulWidget {
   final TextEditingController ctrl;
   final ImagePicker picker;
-  final ValueChanged<XFile?> onPhotoCapture;
+  final ValueChanged<List<XFile>> onPhotosCapture;
   final ValueChanged<String> onSubmit;
   const _CatatanSheet({
     required this.ctrl,
     required this.picker,
-    required this.onPhotoCapture,
+    required this.onPhotosCapture,
     required this.onSubmit,
   });
 
@@ -737,15 +760,30 @@ class _CatatanSheet extends StatefulWidget {
 }
 
 class _CatatanSheetState extends State<_CatatanSheet> {
-  XFile? _photo;
+  final List<XFile> _photos = [];
 
-  Future<void> _pickPhoto(ImageSource source) async {
+  Future<void> _pickPhoto(ImageSource source, {bool isVideo = false}) async {
     Navigator.pop(context); // close source picker
-    final f = await widget.picker.pickImage(
-        source: source, imageQuality: 75, maxWidth: 1280);
+    if (_photos.length >= 5) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Maksimal 5 file dokumentasi.')),
+      );
+      return;
+    }
+    
+    XFile? f;
+    if (isVideo) {
+      f = await widget.picker.pickVideo(source: source);
+    } else {
+      f = await widget.picker.pickImage(
+          source: source, imageQuality: 75, maxWidth: 1280);
+    }
+
     if (f != null && mounted) {
-      setState(() => _photo = f);
-      widget.onPhotoCapture(f);
+      setState(() {
+        _photos.add(f!);
+      });
+      widget.onPhotosCapture(_photos);
     }
   }
 
@@ -773,9 +811,22 @@ class _CatatanSheetState extends State<_CatatanSheet> {
                 ),
                 child: const Icon(Icons.camera_alt_rounded, color: AppColors.primary),
               ),
-              title: Text('Ambil Foto', style: S.bodyLg()),
-              subtitle: Text('Gunakan kamera', style: S.caption()),
-              onTap: () => _pickPhoto(ImageSource.camera),
+              title: Text('Ambil Foto (Kamera)', style: S.bodyLg()),
+              subtitle: Text('Gunakan kamera untuk memotret', style: S.caption()),
+              onTap: () => _pickPhoto(ImageSource.camera, isVideo: false),
+            ),
+            ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.videocam_rounded, color: AppColors.primary),
+              ),
+              title: Text('Ambil Video (Kamera)', style: S.bodyLg()),
+              subtitle: Text('Rekam video pendek', style: S.caption()),
+              onTap: () => _pickPhoto(ImageSource.camera, isVideo: true),
             ),
             ListTile(
               leading: Container(
@@ -786,9 +837,9 @@ class _CatatanSheetState extends State<_CatatanSheet> {
                 ),
                 child: const Icon(Icons.photo_library_rounded, color: AppColors.info),
               ),
-              title: Text('Pilih dari Galeri', style: S.bodyLg()),
-              subtitle: Text('Dari penyimpanan', style: S.caption()),
-              onTap: () => _pickPhoto(ImageSource.gallery),
+              title: Text('Pilih dari Galeri (Foto/Video)', style: S.bodyLg()),
+              subtitle: Text('Pilih dari album penyimpanan', style: S.caption()),
+              onTap: () => _pickPhoto(ImageSource.gallery, isVideo: false),
             ),
             const SizedBox(height: 16),
           ],
@@ -821,7 +872,7 @@ class _CatatanSheetState extends State<_CatatanSheet> {
 
           Text('Selesaikan Kunjungan', style: S.h2()),
           const SizedBox(height: 4),
-          Text('Isi catatan dan opsional foto dokumentasi',
+          Text('Isi catatan dan opsional foto/video dokumentasi',
               style: S.caption()),
           const SizedBox(height: 20),
 
@@ -830,7 +881,7 @@ class _CatatanSheetState extends State<_CatatanSheet> {
           const SizedBox(height: 6),
           TextField(
             controller: widget.ctrl,
-            maxLines: 4,
+            maxLines: 3,
             style: S.body(AppColors.textPrimary),
             decoration: const InputDecoration(
               hintText: 'Tuliskan hasil atau catatan kunjungan...',
@@ -839,50 +890,94 @@ class _CatatanSheetState extends State<_CatatanSheet> {
           const SizedBox(height: 16),
 
           // Photo section
-          Text('Foto Dokumentasi (Opsional)',
-              style: S.micro(AppColors.textSecondary)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Dokumentasi (${_photos.length}/5)',
+                  style: S.micro(AppColors.textSecondary)),
+              if (_photos.length < 5)
+                GestureDetector(
+                  onTap: _showSourcePicker,
+                  child: Text('Tambah File',
+                      style: S.caption(AppColors.primaryLight)),
+                ),
+            ],
+          ),
           const SizedBox(height: 8),
 
-          if (_photo != null) ...[
-            // Photo preview
-            Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.file(
-                    File(_photo!.path),
-                    height: 140,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                Positioned(
-                  top: 8, right: 8,
-                  child: GestureDetector(
-                    onTap: () => setState(() => _photo = null),
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: AppColors.error,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Icon(Icons.close, color: Colors.white, size: 16),
+          if (_photos.isNotEmpty)
+            SizedBox(
+              height: 90,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: _photos.length,
+                itemBuilder: (context, index) {
+                  final file = _photos[index];
+                  final isVideo = file.path.endsWith('.mp4') ||
+                      file.path.endsWith('.mov') ||
+                      file.path.endsWith('.3gp');
+
+                  return Container(
+                    margin: const EdgeInsets.only(right: 10),
+                    width: 90,
+                    child: Stack(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: Container(
+                            color: AppColors.bg,
+                            width: 90,
+                            height: 90,
+                            child: isVideo
+                                ? const Center(
+                                    child: Icon(
+                                      Icons.play_circle_fill_rounded,
+                                      color: AppColors.primary,
+                                      size: 32,
+                                    ),
+                                  )
+                                : Image.file(
+                                    File(file.path),
+                                    fit: BoxFit.cover,
+                                  ),
+                          ),
+                        ),
+                        Positioned(
+                          top: 4,
+                          right: 4,
+                          child: GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _photos.removeAt(index);
+                              });
+                              widget.onPhotosCapture(_photos);
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(2),
+                              decoration: const BoxDecoration(
+                                color: AppColors.error,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.close,
+                                color: Colors.white,
+                                size: 14,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            GestureDetector(
-              onTap: _showSourcePicker,
-              child: Text('Ganti Foto',
-                  style: S.caption(AppColors.primaryLight)),
-            ),
-          ] else
+                  );
+                },
+              ),
+            )
+          else
             GestureDetector(
               onTap: _showSourcePicker,
               child: Container(
                 height: 80,
+                width: double.infinity,
                 decoration: BoxDecoration(
                   color: AppColors.bg,
                   borderRadius: BorderRadius.circular(12),
@@ -895,7 +990,7 @@ class _CatatanSheetState extends State<_CatatanSheet> {
                     const Icon(Icons.add_a_photo_outlined,
                         color: AppColors.textMuted, size: 24),
                     const SizedBox(height: 6),
-                    Text('Tambah Foto', style: S.caption()),
+                    Text('Tambah Foto / Video', style: S.caption()),
                   ],
                 ),
               ),

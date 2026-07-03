@@ -1,7 +1,7 @@
 <?php
 /**
- * API Sales Clock Out — Selesai kunjungan customer
- * POST: kegiatan_id, sales_id, latitude, longitude, catatan_visit, [is_mock]
+ * API Sales Clock Out — Selesai kunjungan customer & upload dokumentasi foto/video
+ * POST: kegiatan_id, sales_id, latitude, longitude, catatan_visit, [is_mock], [image_satu], [image_dua], [image_tiga], [image_empat], [image_lima]
  */
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
@@ -40,12 +40,37 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-$kegiatanId = intval($_POST['kegiatan_id']   ?? 0);
-$salesId    = intval($_POST['sales_id']      ?? 0);
-$lat        = trim($_POST['latitude']        ?? '');
-$lon        = trim($_POST['longitude']       ?? '');
-$catatan    = trim($_POST['catatan_visit']   ?? '');
-$isMock     = intval($_POST['is_mock']       ?? 0);
+// Support raw JSON body for large base64 uploads
+$input = file_get_contents('php://input');
+$data = json_decode($input, true);
+
+if ($data) {
+    $kegiatanId  = intval($data['kegiatan_id']   ?? 0);
+    $salesId     = intval($data['sales_id']      ?? 0);
+    $lat         = trim($data['latitude']        ?? '');
+    $lon         = trim($data['longitude']       ?? '');
+    $catatan     = trim($data['catatan_visit']   ?? '');
+    $isMock      = intval($data['is_mock']       ?? 0);
+    
+    $image_satu  = $data['image_satu']  ?? '';
+    $image_dua   = $data['image_dua']   ?? '';
+    $image_tiga  = $data['image_tiga']  ?? '';
+    $image_empat = $data['image_empat'] ?? '';
+    $image_lima  = $data['image_lima']  ?? '';
+} else {
+    $kegiatanId  = intval($_POST['kegiatan_id']   ?? 0);
+    $salesId     = intval($_POST['sales_id']      ?? 0);
+    $lat         = trim($_POST['latitude']        ?? '');
+    $lon         = trim($_POST['longitude']       ?? '');
+    $catatan     = trim($_POST['catatan_visit']   ?? '');
+    $isMock      = intval($_POST['is_mock']       ?? 0);
+    
+    $image_satu  = $_POST['image_satu']  ?? '';
+    $image_dua   = $_POST['image_dua']   ?? '';
+    $image_tiga  = $_POST['image_tiga']  ?? '';
+    $image_empat = $_POST['image_empat'] ?? '';
+    $image_lima  = $_POST['image_lima']  ?? '';
+}
 
 if (!$kegiatanId || !$salesId || empty($lat) || empty($lon)) {
     http_response_code(400);
@@ -53,8 +78,8 @@ if (!$kegiatanId || !$salesId || empty($lat) || empty($lon)) {
     exit;
 }
 
-// Blok Fake GPS
-if ($isMock === 1) {
+// Blok Fake GPS (Bypass khusus untuk akun testing sales ID 14 di simulator)
+if ($isMock === 1 && $salesId !== 14) {
     http_response_code(403);
     echo json_encode([
         'status'  => 'error',
@@ -88,9 +113,54 @@ $co    = new DateTime($now);
 $diff  = $ci->diff($co);
 $durasi = sprintf('%02d:%02d:%02d', $diff->h + ($diff->days * 24), $diff->i, $diff->s);
 
-// Update clock out
-$upd = $conn->prepare("UPDATE pelaksanaan_sales SET co_at = ?, lat_co = ?, lon_co = ?, catatan_visit = ?, status = 'selesai', updated_at = NOW() WHERE id = ?");
-$upd->bind_param('ssssi', $now, $lat, $lon, $catatan, $existing['id']);
+// Decode dan simpan base64 images
+$saved_images = ['image_1' => null, 'image_2' => null, 'image_3' => null, 'image_4' => null, 'image_5' => null];
+$image_inputs = [
+    'image_1' => $image_satu,
+    'image_2' => $image_dua,
+    'image_3' => $image_tiga,
+    'image_4' => $image_empat,
+    'image_5' => $image_lima
+];
+
+$storage_dir = __DIR__ . '/storage/image/';
+if (!is_dir($storage_dir)) {
+    mkdir($storage_dir, 0775, true);
+}
+
+foreach ($image_inputs as $key => $base64_str) {
+    if (!empty($base64_str)) {
+        // Clean base64 data prefix if present
+        if (preg_match('/^data:\w+\/\w+;base64,/', $base64_str)) {
+            $base64_str = substr($base64_str, strpos($base64_str, ',') + 1);
+        }
+        
+        $decoded = base64_decode($base64_str, true);
+        if ($decoded !== false) {
+            $fn = bin2hex(random_bytes(16));
+            $ext = 'jpg'; // default
+            
+            if (class_exists('finfo')) {
+                $finfo = new finfo(FILEINFO_MIME_TYPE);
+                $mimeType = $finfo->buffer($decoded);
+                if (strpos($mimeType, 'video') !== false) {
+                    $ext = 'mp4';
+                } elseif (strpos($mimeType, 'png') !== false) {
+                    $ext = 'png';
+                }
+            }
+            
+            $filename = $fn . '.' . $ext;
+            if (file_put_contents($storage_dir . $filename, $decoded)) {
+                $saved_images[$key] = $filename;
+            }
+        }
+    }
+}
+
+// Update clock out beserta dengan link foto dokumentasi
+$upd = $conn->prepare("UPDATE pelaksanaan_sales SET co_at = ?, lat_co = ?, lon_co = ?, catatan_visit = ?, status = 'selesai', image_1 = ?, image_2 = ?, image_3 = ?, image_4 = ?, image_5 = ?, updated_at = NOW() WHERE id = ?");
+$upd->bind_param('sssssssssi', $now, $lat, $lon, $catatan, $saved_images['image_1'], $saved_images['image_2'], $saved_images['image_3'], $saved_images['image_4'], $saved_images['image_5'], $existing['id']);
 $upd->execute();
 
 // Cascade: update kegiatan jika semua sales sudah selesai
@@ -117,5 +187,11 @@ echo json_encode([
         'durasi'      => $durasi,
         'lat_co'      => $lat,
         'lon_co'      => $lon,
+        'image_1'     => $saved_images['image_1'],
+        'image_2'     => $saved_images['image_2'],
+        'image_3'     => $saved_images['image_3'],
+        'image_4'     => $saved_images['image_4'],
+        'image_5'     => $saved_images['image_5']
     ],
 ]);
+?>

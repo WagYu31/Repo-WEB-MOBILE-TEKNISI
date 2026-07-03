@@ -650,11 +650,11 @@ $left_col_class = $has_coords ? "col-lg-7" : "col-lg-12";
                       <?php endif; ?>
 
                       <!-- Dokumentasi Foto & Video -->
-                      <?php if (!empty($row['image_1']) || !empty($row['image_2']) || !empty($row['image_3'])): ?>
+                      <?php if (!empty($row['image_1']) || !empty($row['image_2']) || !empty($row['image_3']) || !empty($row['image_4']) || !empty($row['image_5'])): ?>
                         <div style="margin-bottom: 20px;">
                           <span class="info-label" style="font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; display: block; margin-bottom: 8px;">Dokumentasi Foto &amp; Video Lapangan</span>
-                          <div class="doc-photo-grid">
-                            <?php foreach (['image_1', 'image_2', 'image_3'] as $img): ?>
+                          <div class="doc-photo-grid" style="grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));">
+                            <?php foreach (['image_1', 'image_2', 'image_3', 'image_4', 'image_5'] as $img): ?>
                               <?php if (!empty($row[$img])): 
                                 $ext = strtolower(pathinfo($row[$img], PATHINFO_EXTENSION));
                                 $is_video = in_array($ext, ['mp4', 'webm', 'mov', '3gp', 'avi', 'ogg']);
