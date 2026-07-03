@@ -716,173 +716,184 @@ $salesData = mysqli_query($conn, "
       </div>
     <?php endif; ?>
 
-    <!-- Card Tambah Sales Customer -->
+    <!-- Card Tambah Sales Customer (COLLAPSIBLE / Buka Tutup Drawer) -->
     <div class="card-premium">
-      <!-- Premium Gradient Header -->
-      <div style="background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 40%,#2563eb 100%);padding:28px 36px;position:relative;overflow:hidden;">
+      <!-- Premium Gradient Header with Collapse Trigger -->
+      <div style="background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 40%,#2563eb 100%);padding:24px 36px;position:relative;overflow:hidden;cursor:pointer;"
+           data-bs-toggle="collapse" data-bs-target="#collapseTambahCustomer" aria-expanded="false" aria-controls="collapseTambahCustomer">
           <div style="position:absolute;top:-40px;right:-20px;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,0.04);"></div>
           <div style="position:absolute;bottom:-50px;right:100px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,0.03);"></div>
           <div style="position:absolute;top:10px;right:30px;width:60px;height:60px;border-radius:50%;background:rgba(59,130,246,0.2);"></div>
-          <div style="display:flex;align-items:center;gap:14px;position:relative;z-index:1;">
-              <div style="width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,0.12);backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,0.1);">
-                  <span class="material-symbols-outlined" style="color:#fff;font-size:22px;">person_add</span>
+          <div style="display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1;user-select:none;">
+              <div style="display:flex;align-items:center;gap:14px;">
+                  <div style="width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,0.12);backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,0.1);">
+                      <span class="material-symbols-outlined" style="color:#fff;font-size:22px;">person_add</span>
+                  </div>
+                  <div>
+                      <h5 style="color:#fff;margin:0;font-size:18px;font-weight:700;letter-spacing:-0.3px;">Tambah Sales Customer</h5>
+                      <p style="color:rgba(255,255,255,0.6);margin:0;font-size:12px;margin-top:2px;">Daftarkan toko, mitra, atau installer baru beserta wilayah kerjanya</p>
+                  </div>
               </div>
-              <div>
-                  <h5 style="color:#fff;margin:0;font-size:18px;font-weight:700;letter-spacing:-0.3px;">Tambah Sales Customer</h5>
-                  <p style="color:rgba(255,255,255,0.6);margin:0;font-size:12px;margin-top:2px;">Daftarkan toko, mitra, atau installer baru beserta wilayah kerjanya</p>
+              <!-- Collapsible Toggle Badge indicator -->
+              <div style="display:flex; align-items:center; gap:8px;">
+                  <span id="toggleText" style="color:#fff; font-size:12px; font-weight:800; background:rgba(255,255,255,0.1); padding:6px 14px; border-radius:30px; border: 1px solid rgba(255,255,255,0.15); text-transform:uppercase; letter-spacing:0.04em;">Tampilkan Form</span>
+                  <span class="material-symbols-outlined" id="toggleChevron" style="color:#fff; font-size:22px; transition: transform 0.3s ease-in-out;">expand_more</span>
               </div>
           </div>
       </div>
 
-      <div class="card-body-premium">
-        <form method="POST" enctype="multipart/form-data" id="createCustomerForm">
-          <div class="row">
-            
-            <!-- LEFT COLUMN: Form Fields -->
-            <div class="col-lg-7" style="border-right: 1px solid #f1f5f9; padding-right: 32px;">
-              <div style="display:flex;align-items:center;gap:8px;margin-bottom:24px;">
-                  <div style="width:3px;height:16px;background:#3b82f6;border-radius:2px;"></div>
-                  <span style="font-size:12px;font-weight:800;color:#1e293b;text-transform: uppercase; letter-spacing: 0.05em;">Informasi Customer</span>
+      <!-- Collapsible Container (Collapsed by Default to keep page clean) -->
+      <div class="collapse" id="collapseTambahCustomer">
+        <div class="card-body-premium" style="border-top: 1px solid #f1f5f9;">
+          <form method="POST" enctype="multipart/form-data" id="createCustomerForm">
+            <div class="row">
+              
+              <!-- LEFT COLUMN: Form Fields -->
+              <div class="col-lg-7" style="border-right: 1px solid #f1f5f9; padding-right: 32px;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:24px;">
+                    <div style="width:3px;height:16px;background:#3b82f6;border-radius:2px;"></div>
+                    <span style="font-size:12px;font-weight:800;color:#1e293b;text-transform: uppercase; letter-spacing: 0.05em;">Informasi Customer</span>
+                </div>
+
+                <div class="row">
+                  <div class="col-md-6 form-group-premium">
+                    <label class="form-label-premium">
+                      <span class="material-symbols-outlined" style="font-size:16px; color:#3b82f6;">store</span> Nama Toko / Mitra / Personal
+                    </label>
+                    <input type="text" name="nama" class="input-premium" placeholder="Masukkan nama customer..." required>
+                  </div>
+                  
+                  <div class="col-md-6 form-group-premium">
+                    <label class="form-label-premium">
+                      <span class="material-symbols-outlined" style="font-size:16px; color:#3b82f6;">category</span> Kategori Customer
+                    </label>
+                    <div class="category-pill-group">
+                      <label class="category-pill-label" for="kategori_dealer">
+                        <input class="category-pill-input" type="radio" name="kategori" id="kategori_dealer" value="Dealer" required checked>
+                        <span class="category-pill-span span-dealer">Dealer</span>
+                      </label>
+                      <label class="category-pill-label" for="kategori_installer">
+                        <input class="category-pill-input" type="radio" name="kategori" id="kategori_installer" value="Installer">
+                        <span class="category-pill-span span-installer">Installer</span>
+                      </label>
+                      <label class="category-pill-label" for="kategori_user">
+                        <input class="category-pill-input" type="radio" name="kategori" id="kategori_user" value="User">
+                        <span class="category-pill-span span-user">User</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div class="col-md-6 form-group-premium">
+                    <label class="form-label-premium">
+                      <span class="material-symbols-outlined" style="font-size:16px; color:#3b82f6;">map</span> Wilayah Customer
+                    </label>
+                    <select name="id_wilayah" class="input-premium" required>
+                      <option value="">-- Pilih Wilayah --</option>
+                      <?php 
+                      $wQuery = mysqli_query($conn, "SELECT * FROM wilayah WHERE deleted_at IS NULL ORDER BY nama ASC");
+                      while ($w = mysqli_fetch_assoc($wQuery)) {
+                          echo "<option value='{$w['id']}'>" . htmlspecialchars($w['nama']) . "</option>";
+                      }
+                      ?>
+                    </select>
+                  </div>
+                  
+                  <div class="col-md-6 form-group-premium">
+                    <label class="form-label-premium">
+                      <span class="material-symbols-outlined" style="font-size:16px; color:#3b82f6;">call</span> No. Telepon (WhatsApp)
+                    </label>
+                    <input type="text" name="telp" class="input-premium" placeholder="Contoh: 0812345678" required>
+                  </div>
+                  
+                  <div class="col-md-6 form-group-premium">
+                    <label class="form-label-premium">
+                      <span class="material-symbols-outlined" style="font-size:16px; color:#3b82f6;">mail</span> Email Customer
+                    </label>
+                    <input type="email" name="email" class="input-premium" placeholder="Contoh: customer@loewix.com">
+                  </div>
+                  
+                  <div class="col-md-6 form-group-premium">
+                    <label class="form-label-premium">
+                      <span class="material-symbols-outlined" style="font-size:16px; color:#3b82f6;">location_city</span> Kota
+                    </label>
+                    <input type="text" name="kota" class="input-premium" placeholder="Masukkan kota asal customer...">
+                  </div>
+
+                  <!-- Drag & Drop Multiple Photos -->
+                  <div class="col-md-12 form-group-premium">
+                    <label class="form-label-premium">
+                      <span class="material-symbols-outlined" style="font-size:16px; color:#3b82f6;">image</span> Foto Dokumentasi Toko / Gudang / Pabrik (Maksimal 5 Foto)
+                    </label>
+                    <div class="dropzone-area" id="dropzone_create">
+                      <span class="material-symbols-outlined dropzone-icon">cloud_upload</span>
+                      <p class="dropzone-text">Drag &amp; drop file foto di sini, atau klik untuk memilih</p>
+                      <input type="file" id="foto_input_create" name="foto[]" multiple accept="image/*" class="d-none">
+                    </div>
+                    <div class="preview-grid" id="preview_grid_create"></div>
+                  </div>
+                  
+                  <div class="col-md-12 form-group-premium">
+                    <label class="form-label-premium">
+                      <span class="material-symbols-outlined" style="font-size:16px; color:#3b82f6;">home_pin</span> Alamat Lengkap
+                    </label>
+                    <input type="text" name="alamat" class="input-premium" placeholder="Masukkan alamat lengkap toko/mitra...">
+                  </div>
+                </div>
               </div>
 
-              <div class="row">
-                <div class="col-md-6 form-group-premium">
-                  <label class="form-label-premium">
-                    <span class="material-symbols-outlined" style="font-size:16px; color:#3b82f6;">store</span> Nama Toko / Mitra / Personal
-                  </label>
-                  <input type="text" name="nama" class="input-premium" placeholder="Masukkan nama customer..." required>
+              <!-- RIGHT COLUMN: Location Map -->
+              <div class="col-lg-5" style="padding-left: 32px;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:24px;">
+                    <div style="width:3px;height:16px;background:#10b981;border-radius:2px;"></div>
+                    <span style="font-size:12px;font-weight:800;color:#1e293b;text-transform: uppercase; letter-spacing: 0.05em;">Lokasi Koordinat Toko (Geofence)</span>
                 </div>
-                
-                <div class="col-md-6 form-group-premium">
+
+                <div class="form-group-premium">
                   <label class="form-label-premium">
-                    <span class="material-symbols-outlined" style="font-size:16px; color:#3b82f6;">category</span> Kategori Customer
+                    <span class="material-symbols-outlined" style="font-size:16px; color:#10b981;">search</span> Cari Alamat / Koordinat
                   </label>
-                  <div class="category-pill-group">
-                    <label class="category-pill-label" for="kategori_dealer">
-                      <input class="category-pill-input" type="radio" name="kategori" id="kategori_dealer" value="Dealer" required checked>
-                      <span class="category-pill-span span-dealer">Dealer</span>
-                    </label>
-                    <label class="category-pill-label" for="kategori_installer">
-                      <input class="category-pill-input" type="radio" name="kategori" id="kategori_installer" value="Installer">
-                      <span class="category-pill-span span-installer">Installer</span>
-                    </label>
-                    <label class="category-pill-label" for="kategori_user">
-                      <input class="category-pill-input" type="radio" name="kategori" id="kategori_user" value="User">
-                      <span class="category-pill-span span-user">User</span>
-                    </label>
+                  <div class="d-flex gap-2">
+                    <input type="text" id="gmap_search" class="input-premium" placeholder="Contoh: Jawa Timur atau -6.175, 106.827...">
+                    <button type="button" id="gmap_search_btn" class="btn bg-gradient-info text-white font-weight-bold" style="border-radius:10px; padding: 12px 18px; font-size:11px; display:inline-flex; align-items:center; gap:4px; margin-bottom:0;">
+                      <span class="material-symbols-outlined" style="font-size:16px;">search</span>CARI
+                    </button>
                   </div>
                 </div>
 
-                <div class="col-md-6 form-group-premium">
-                  <label class="form-label-premium">
-                    <span class="material-symbols-outlined" style="font-size:16px; color:#3b82f6;">map</span> Wilayah Customer
-                  </label>
-                  <select name="id_wilayah" class="input-premium" required>
-                    <option value="">-- Pilih Wilayah --</option>
-                    <?php 
-                    $wQuery = mysqli_query($conn, "SELECT * FROM wilayah WHERE deleted_at IS NULL ORDER BY nama ASC");
-                    while ($w = mysqli_fetch_assoc($wQuery)) {
-                        echo "<option value='{$w['id']}'>" . htmlspecialchars($w['nama']) . "</option>";
-                    }
-                    ?>
-                  </select>
-                </div>
-                
-                <div class="col-md-6 form-group-premium">
-                  <label class="form-label-premium">
-                    <span class="material-symbols-outlined" style="font-size:16px; color:#3b82f6;">call</span> No. Telepon (WhatsApp)
-                  </label>
-                  <input type="text" name="telp" class="input-premium" placeholder="Contoh: 0812345678" required>
-                </div>
-                
-                <div class="col-md-6 form-group-premium">
-                  <label class="form-label-premium">
-                    <span class="material-symbols-outlined" style="font-size:16px; color:#3b82f6;">mail</span> Email Customer
-                  </label>
-                  <input type="email" name="email" class="input-premium" placeholder="Contoh: customer@loewix.com">
-                </div>
-                
-                <div class="col-md-6 form-group-premium">
-                  <label class="form-label-premium">
-                    <span class="material-symbols-outlined" style="font-size:16px; color:#3b82f6;">location_city</span> Kota
-                  </label>
-                  <input type="text" name="kota" class="input-premium" placeholder="Masukkan kota asal customer...">
-                </div>
+                <!-- Leaflet Map create -->
+                <div id="map_create"></div>
 
-                <!-- Drag & Drop Multiple Photos -->
-                <div class="col-md-12 form-group-premium">
-                  <label class="form-label-premium">
-                    <span class="material-symbols-outlined" style="font-size:16px; color:#3b82f6;">image</span> Foto Dokumentasi Toko / Gudang / Pabrik (Maksimal 5 Foto)
-                  </label>
-                  <div class="dropzone-area" id="dropzone_create">
-                    <span class="material-symbols-outlined dropzone-icon">cloud_upload</span>
-                    <p class="dropzone-text">Drag &amp; drop file foto di sini, atau klik untuk memilih</p>
-                    <input type="file" id="foto_input_create" name="foto[]" multiple accept="image/*" class="d-none">
+                <div class="row g-2 mt-3">
+                  <div class="col-5">
+                    <label class="form-label-premium" style="font-size: 9px; color:#64748b;">Latitude</label>
+                    <input type="text" id="lat_display" class="input-premium" placeholder="-6.xxxxx" style="font-family: monospace; font-size:12px; padding: 8px 12px !important; background:#f8fafc;" readonly>
                   </div>
-                  <div class="preview-grid" id="preview_grid_create"></div>
+                  <div class="col-5">
+                    <label class="form-label-premium" style="font-size: 9px; color:#64748b;">Longitude</label>
+                    <input type="text" id="lon_display" class="input-premium" placeholder="106.xxxxx" style="font-family: monospace; font-size:12px; padding: 8px 12px !important; background:#f8fafc;" readonly>
+                  </div>
+                  <div class="col-2">
+                    <label class="form-label-premium" style="font-size: 9px; color:#64748b;">Radius (m)</label>
+                    <input type="number" id="radius_input" class="input-premium" value="100" style="font-size:12px; padding: 8px 6px !important; text-align:center;">
+                  </div>
                 </div>
-                
-                <div class="col-md-12 form-group-premium">
-                  <label class="form-label-premium">
-                    <span class="material-symbols-outlined" style="font-size:16px; color:#3b82f6;">home_pin</span> Alamat Lengkap
-                  </label>
-                  <input type="text" name="alamat" class="input-premium" placeholder="Masukkan alamat lengkap toko/mitra...">
-                </div>
+
+                <!-- Hidden parameters to submit -->
+                <input type="hidden" id="lat" name="lat">
+                <input type="hidden" id="lon" name="lon">
+                <input type="hidden" id="radius" name="radius" value="100">
+                <input type="hidden" id="location_address" name="location_address">
               </div>
+
             </div>
-
-            <!-- RIGHT COLUMN: Location Map -->
-            <div class="col-lg-5" style="padding-left: 32px;">
-              <div style="display:flex;align-items:center;gap:8px;margin-bottom:24px;">
-                  <div style="width:3px;height:16px;background:#10b981;border-radius:2px;"></div>
-                  <span style="font-size:12px;font-weight:800;color:#1e293b;text-transform: uppercase; letter-spacing: 0.05em;">Lokasi Koordinat Toko (Geofence)</span>
-              </div>
-
-              <div class="form-group-premium">
-                <label class="form-label-premium">
-                  <span class="material-symbols-outlined" style="font-size:16px; color:#10b981;">search</span> Cari Alamat / Koordinat
-                </label>
-                <div class="d-flex gap-2">
-                  <input type="text" id="gmap_search" class="input-premium" placeholder="Contoh: Jawa Timur atau -6.175, 106.827...">
-                  <button type="button" id="gmap_search_btn" class="btn bg-gradient-info text-white font-weight-bold" style="border-radius:10px; padding: 12px 18px; font-size:11px; display:inline-flex; align-items:center; gap:4px; margin-bottom:0;">
-                    <span class="material-symbols-outlined" style="font-size:16px;">search</span>CARI
-                  </button>
-                </div>
-              </div>
-
-              <!-- Leaflet Map create -->
-              <div id="map_create"></div>
-
-              <div class="row g-2 mt-3">
-                <div class="col-5">
-                  <label class="form-label-premium" style="font-size: 9px; color:#64748b;">Latitude</label>
-                  <input type="text" id="lat_display" class="input-premium" placeholder="-6.xxxxx" style="font-family: monospace; font-size:12px; padding: 8px 12px !important; background:#f8fafc;" readonly>
-                </div>
-                <div class="col-5">
-                  <label class="form-label-premium" style="font-size: 9px; color:#64748b;">Longitude</label>
-                  <input type="text" id="lon_display" class="input-premium" placeholder="106.xxxxx" style="font-family: monospace; font-size:12px; padding: 8px 12px !important; background:#f8fafc;" readonly>
-                </div>
-                <div class="col-2">
-                  <label class="form-label-premium" style="font-size: 9px; color:#64748b;">Radius (m)</label>
-                  <input type="number" id="radius_input" class="input-premium" value="100" style="font-size:12px; padding: 8px 6px !important; text-align:center;">
-                </div>
-              </div>
-
-              <!-- Hidden parameters to submit -->
-              <input type="hidden" id="lat" name="lat">
-              <input type="hidden" id="lon" name="lon">
-              <input type="hidden" id="radius" name="radius" value="100">
-              <input type="hidden" id="location_address" name="location_address">
+            <div class="mt-3">
+              <button type="submit" class="btn-submit-premium" style="width: 100%; justify-content: center;">
+                <span class="material-symbols-outlined">save</span>
+                Simpan Customer &amp; Koordinat Lokasi
+              </button>
             </div>
-
-          </div>
-          <div class="mt-3">
-            <button type="submit" class="btn-submit-premium" style="width: 100%; justify-content: center;">
-              <span class="material-symbols-outlined">save</span>
-              Simpan Customer &amp; Koordinat Lokasi
-            </button>
-          </div>
-        </form>
+          </form>
+        </div>
       </div>
     </div>
 
@@ -1152,7 +1163,7 @@ $salesData = mysqli_query($conn, "
 
                 <!-- Photos Documentation Grid inside Detail -->
                 <div class="card border-0 shadow-sm rounded-4 p-4" style="background: #fff;">
-                  <h6 style="font-size:12px; font-weight:800; color:#64748b; text-transform:uppercase; margin-bottom:16px; letter-spacing:0.05em;">Foto Dokumentasi Mitra</h6>
+                  <h6 style="font-size:12px; font-weight:800; color:#64748b; text-transform:uppercase; margin-bottom:16px; letter-spacing:0.05em;">Foto Documentation Mitra</h6>
                   <div class="detail-photo-grid" id="detail_photos_container">
                     <!-- photos injected via JS -->
                   </div>
@@ -1635,6 +1646,27 @@ $salesData = mysqli_query($conn, "
 
   // Init create map
   updateCreateMapData(L.latLng(defaultLat, defaultLon), defaultRad);
+
+  // ── Collapse Tambah Customer Map Fix ──
+  const collapseEl = document.getElementById('collapseTambahCustomer');
+  const toggleText = document.getElementById('toggleText');
+  const toggleChevron = document.getElementById('toggleChevron');
+
+  collapseEl.addEventListener('show.bs.collapse', function () {
+      toggleText.innerText = 'Sembunyikan Form';
+      toggleChevron.style.transform = 'rotate(180deg)';
+  });
+
+  collapseEl.addEventListener('shown.bs.collapse', function () {
+      if (mapCreate) {
+          mapCreate.invalidateSize();
+      }
+  });
+
+  collapseEl.addEventListener('hide.bs.collapse', function () {
+      toggleText.innerText = 'Tampilkan Form';
+      toggleChevron.style.transform = 'rotate(0deg)';
+  });
 
 
   // ── Map Edit Modal Logic ──
