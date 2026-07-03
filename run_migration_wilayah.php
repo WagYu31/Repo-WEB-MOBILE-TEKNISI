@@ -18,10 +18,10 @@ if ($conn->query($sqlWilayah)) {
     echo "<p style='color: red;'>✘ Gagal membuat tabel 'wilayah': " . $conn->error . "</p>";
 }
 
-// 2. Tambah kolom id_wilayah di tabel sales jika belum ada
+// 2. Tambah kolom id_wilayah di tabel sales jika belum ada (tanpa AFTER agar aman)
 $checkSalesCol = $conn->query("SHOW COLUMNS FROM sales LIKE 'id_wilayah'");
 if ($checkSalesCol->num_rows == 0) {
-    $sqlAddColSales = "ALTER TABLE sales ADD COLUMN id_wilayah INT NULL AFTER password";
+    $sqlAddColSales = "ALTER TABLE sales ADD COLUMN id_wilayah INT NULL";
     if ($conn->query($sqlAddColSales)) {
         echo "<p style='color: green;'>✔ Kolom 'id_wilayah' berhasil ditambahkan ke tabel 'sales'.</p>";
     } else {
@@ -31,10 +31,10 @@ if ($checkSalesCol->num_rows == 0) {
     echo "<p style='color: blue;'>ℹ Kolom 'id_wilayah' sudah ada di tabel 'sales'.</p>";
 }
 
-// 3. Tambah kolom id_wilayah di tabel sales_customer jika belum ada
+// 3. Tambah kolom id_wilayah di tabel sales_customer jika belum ada (tanpa AFTER agar aman)
 $checkCustCol = $conn->query("SHOW COLUMNS FROM sales_customer LIKE 'id_wilayah'");
 if ($checkCustCol->num_rows == 0) {
-    $sqlAddColCust = "ALTER TABLE sales_customer ADD COLUMN id_wilayah INT NULL AFTER kota";
+    $sqlAddColCust = "ALTER TABLE sales_customer ADD COLUMN id_wilayah INT NULL";
     if ($conn->query($sqlAddColCust)) {
         echo "<p style='color: green;'>✔ Kolom 'id_wilayah' berhasil ditambahkan ke tabel 'sales_customer'.</p>";
     } else {
