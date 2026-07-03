@@ -513,31 +513,32 @@ $salesData = mysqli_query($conn, "
       background-color: #f8fafc;
     }
     
-    /* WhatsApp Pill style */
+    /* WhatsApp Pill style - Solid Premium Green Badge */
     .wa-pill {
-      background: #ecfdf5;
-      border: 1px solid #a7f3d0;
-      color: #065f46;
+      background: #25D366 !important;
+      border: none !important;
+      color: #fff !important;
       font-size: 12px; 
-      font-weight: 800;
-      padding: 6px 12px;
+      font-weight: 700;
+      padding: 6px 14px;
       border-radius: 30px;
       text-decoration: none;
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      transition: all 0.2s;
+      transition: all 0.2s ease-in-out;
       width: fit-content;
-      box-shadow: 0 2px 4px rgba(16, 185, 129, 0.05);
+      box-shadow: 0 4px 10px rgba(37, 211, 102, 0.2);
     }
     .wa-pill:hover {
-      background: #10b981;
+      background: #20ba59 !important;
       color: #fff !important;
       transform: translateY(-1px);
-      box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);
+      box-shadow: 0 6px 14px rgba(37, 211, 102, 0.3);
     }
     .wa-pill svg {
       flex-shrink: 0;
+      fill: #fff !important;
     }
 
     /* Map Pin Button */
@@ -856,7 +857,6 @@ $salesData = mysqli_query($conn, "
           <thead>
             <tr>
               <th style="width: 60px; text-align: center;">No</th>
-              <!-- Consolidated Customer Details -->
               <th style="min-width: 250px;">Customer / Toko</th>
               <th style="width: 200px;">Kontak Utama</th>
               <th>Alamat &amp; Kota</th>
@@ -908,7 +908,6 @@ $salesData = mysqli_query($conn, "
             <tr>
               <td style="text-align: center; font-weight: 700; color: #64748b; font-size:12px;"><?= $no++; ?></td>
               
-              <!-- CONSOLIDATED: Store Details with Category & Wilayah Badges -->
               <td>
                 <div class="customer-identity-cell">
                   <!-- Gallery Trigger Avatar -->
@@ -940,7 +939,6 @@ $salesData = mysqli_query($conn, "
                 </div>
               </td>
               
-              <!-- CONSOLIDATED: Contact Info -->
               <td>
                 <div style="display:flex; flex-direction:column; gap:6px;">
                   <?php if (!empty($row['telp_pribadi'])): ?>
@@ -962,7 +960,6 @@ $salesData = mysqli_query($conn, "
                 </div>
               </td>
               
-              <!-- CONSOLIDATED: Address & City -->
               <td>
                 <div style="display:flex; flex-direction:column; gap:4px;">
                   <span style="font-size: 12.5px; color: #475569; font-weight:500; line-height: 1.4; display:block; max-width:280px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="<?= htmlspecialchars($row['alamat'] ?? ''); ?>">
@@ -976,7 +973,6 @@ $salesData = mysqli_query($conn, "
                 </div>
               </td>
               
-              <!-- Geofence Column -->
               <td style="text-align: center;">
                 <?php if (!empty($row['lat']) && !empty($row['lon'])): ?>
                   <button type="button" class="btn-map-pin openMapModalBtn" 
