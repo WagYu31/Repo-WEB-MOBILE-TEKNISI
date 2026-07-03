@@ -16,11 +16,13 @@ if (isset($_GET['delete_id'])) {
 }
 
 // Update Sales
+$successMsg = "";
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_id'])) {
     $id = $_POST['update_id'];
     $nama = $_POST['edit_nama'];
     $nik = $_POST['edit_nik'];
     $telp = preg_replace('/\D/', '', $_POST['edit_telp']);
+    $editPassword = $_POST['edit_password'] ?? '';
 
     if (substr($telp, 0, 1) === '0') {
         $telp = '62' . substr($telp, 1);
@@ -30,13 +32,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_id'])) {
         $telp = '62' . $telp;
     }
 
-    $stmt = $conn->prepare("UPDATE sales SET nama = ?, nik = ?, telp = ?, updated_at = NOW() WHERE id = ?");
-    $stmt->bind_param("sssi", $nama, $nik, $telp, $id);
+    if (!empty($editPassword)) {
+        $hashedPassword = password_hash($editPassword, PASSWORD_DEFAULT);
+        $stmt = $conn->prepare("UPDATE sales SET nama = ?, nik = ?, telp = ?, password = ?, updated_at = NOW() WHERE id = ?");
+        $stmt->bind_param("ssssi", $nama, $nik, $telp, $hashedPassword, $id);
+    } else {
+        $stmt = $conn->prepare("UPDATE sales SET nama = ?, nik = ?, telp = ?, updated_at = NOW() WHERE id = ?");
+        $stmt->bind_param("sssi", $nama, $nik, $telp, $id);
+    }
     $stmt->execute();
     $stmt->close();
-
-    header("Location: " . $_SERVER['PHP_SELF']);
-    exit();
+    
+    $successMsg = "Profil Sales berhasil diperbarui!";
 }
 
 // Handle insert
@@ -44,6 +51,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['update_id'])) {
     $nama = $_POST['nama'];
     $nik = $_POST['nik'];
     $rawTelp = $_POST['telp'];
+    $password = $_POST['password'] ?? '';
+    $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
     $telp = preg_replace('/\D/', '', $rawTelp);
 
@@ -55,24 +64,241 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['update_id'])) {
         $telp = '62' . $telp;
     }
 
-    $stmt = $conn->prepare("INSERT INTO sales (nik, nama, telp, created_at, updated_at) VALUES (?, ?, ?, NOW(), NOW())");
-    $stmt->bind_param("sss", $nik, $nama, $telp);
+    $stmt = $conn->prepare("INSERT INTO sales (nik, nama, telp, password, created_at, updated_at) VALUES (?, ?, ?, ?, NOW(), NOW())");
+    $stmt->bind_param("ssss", $nik, $nama, $telp, $hashedPassword);
     $stmt->execute();
     $stmt->close();
 
-    echo "<div class='alert alert-success'>Sales berhasil ditambahkan!</div>";
+    $successMsg = "Sales baru berhasil ditambahkan!";
 }
 
 $salesData = mysqli_query($conn, "SELECT * FROM sales WHERE deleted_at IS NULL ORDER BY id DESC");
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <?php include "head.php"; ?>
   <style>
+    /* ── Premium Styling ── */
+    .card-premium {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+      margin-bottom: 24px;
+    }
+    
+    .section-header-premium {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      background: #1e293b;
+      color: #fff;
+    }
+    
+    .section-header-premium h6 {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: flex;
+      align-items: center;
+    }
+    
+    .card-body-premium {
+      padding: 28px 24px;
+    }
+
+    /* ── Form inputs ── */
+    .form-group-premium {
+      margin-bottom: 20px;
+    }
+    
+    .form-label-premium {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: #334155;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    
+    .input-premium {
+      width: 100%;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 10px 16px !important;
+      font-size: 14px;
+      color: #1e293b;
+      background-color: #fff;
+      transition: all 0.2s ease;
+    }
+    
+    .input-premium:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+      outline: none;
+    }
+
+    /* ── Avatars in Table ── */
+    .avatar-initials-table {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+      color: #fff;
+      font-size: 12px; font-weight: 700;
+      display: inline-flex; align-items: center; justify-content: center;
+      margin-right: 12px;
+      vertical-align: middle;
+      box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+    }
+    
+    .sales-identity-cell {
+      display: flex;
+      align-items: center;
+      text-align: left;
+    }
+
+    /* ── Table custom styling ── */
+    .premium-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+    }
+    
+    .premium-table th {
+      background: #f8fafc;
+      border-bottom: 2px solid #e2e8f0;
+      color: #64748b;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 14px 16px;
+      text-align: left;
+    }
+    
+    .premium-table td {
+      padding: 14px 16px;
+      border-bottom: 1px solid #f1f5f9;
+      color: #334155;
+      font-size: 13px;
+      vertical-align: middle;
+    }
+    
+    .premium-table tr:hover td {
+      background-color: #f8fafc;
+    }
+    
+    .nik-badge {
+      font-family: monospace;
+      background: #f1f5f9;
+      color: #475569;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 12px;
+    }
+    
+    .wa-link {
+      font-size: 13px; color: #10b981;
+      text-decoration: none; display: inline-flex;
+      align-items: center; gap: 4px; font-weight: 600;
+    }
+    
+    .wa-link:hover { text-decoration: underline; }
+
+    /* ── Action Buttons ── */
+    .btn-act {
+      width: 32px; height: 32px; padding: 0; display: inline-flex;
+      align-items: center; justify-content: center; border-radius: 8px;
+      border: 1px solid transparent; transition: all 0.2s; cursor: pointer; text-decoration: none;
+    }
+    .btn-act:hover { transform: scale(1.08); }
+    .btn-act .material-symbols-outlined { font-size: 16px; }
+    .btn-act-edit { background: #fffbeb; color: #d97706; border-color: #fef3c7; }
+    .btn-act-edit:hover { background: #d97706; color: #fff; }
+    .btn-act-delete { background: #fef2f2; color: #dc2626; border-color: #fee2e2; margin-left: 6px; }
+    .btn-act-delete:hover { background: #dc2626; color: #fff; }
+
+    .btn-submit-premium {
+      background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+      color: #fff !important;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 24px;
+      font-size: 13px; font-weight: 700;
+      display: inline-flex; align-items: center; gap: 6px;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+      transition: all 0.22s ease;
+      cursor: pointer;
+    }
+    
+    .btn-submit-premium:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+    }
+    
+    .btn-submit-premium:active {
+      transform: translateY(0);
+    }
+    
+    .btn-submit-premium .material-symbols-outlined {
+      font-size: 16px;
+    }
+
+    /* ── Modal Premium Styling ── */
+    .modal-content-premium {
+      border-radius: 16px;
+      border: none;
+      overflow: hidden;
+      box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+    }
+    
+    .modal-header-premium {
+      background: #1e293b;
+      color: #fff;
+      padding: 20px 24px;
+      border-bottom: none;
+    }
+    
+    .modal-title-premium {
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .modal-body-premium {
+      padding: 28px 24px;
+      background: #fff;
+    }
+    
+    .modal-footer-premium {
+      background: #f8fafc;
+      padding: 16px 24px;
+      border-top: 1px solid #f1f5f9;
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    input[type="checkbox"] {
+      -webkit-appearance: checkbox;
+      -moz-appearance: checkbox;
+      appearance: checkbox;
+    }
+    
     <?php include "css/floating-menu2.css"; ?>
   </style>
 </head>
@@ -84,90 +310,168 @@ $salesData = mysqli_query($conn, "SELECT * FROM sales WHERE deleted_at IS NULL O
     $todayDate = formatTanggal('dd MMMM yyyy');
   ?>
   <div class="container-fluid py-4">
-    <div class="card p-4 mb-4 shadow-sm">
-      <h2 class="mb-4">Tambah Sales</h2>
-      <form method="POST" class="mb-5">
-        <div class="row">
-          <div class="mb-3 col-12 col-md-6">
-            <label class="form-label">Nama Sales</label>
-            <input type="text" name="nama" class="form-control border p-2" required>
-          </div>
-          <div class="mb-3 col-12 col-md-2">
-            <label class="form-label">NIK</label>
-            <input type="text" name="nik" class="form-control border p-2" required>
-          </div>
-          <div class="mb-3 col-12 col-md-4">
-            <label class="form-label">No. Telepon</label>
-            <input type="text" name="telp" class="form-control border p-2" required>
-          </div>
-        </div>
-        <button type="submit" class="btn btn-primary">Simpan</button>
-      </form>
+    
+    <!-- Success Alert -->
+    <?php if (!empty($successMsg)): ?>
+      <div class="alert alert-success text-white font-weight-bold mb-4" style="background: #10b981; border: none; border-radius: 10px; padding: 14px 20px;">
+        <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 8px;">check_circle</span>
+        <?php echo $successMsg; ?>
+      </div>
+    <?php endif; ?>
 
-      <h3 class="mb-3">Daftar Sales</h3>
-      <table class="table table-bordered">
-        <thead class="table-light">
-          <tr class="text-center">
-            <th>No</th>
-            <th>NIK</th>
-            <th>Nama</th>
-            <th>No. Telepon</th>
-            <th>Aksi</th>
-          </tr>
-        </thead>
-        <tbody>
-          <?php $no = 1; while ($row = mysqli_fetch_assoc($salesData)): ?>
-          <tr>
-            <td class="text-center"><?= $no++; ?></td>
-            <td><?= htmlspecialchars($row['nik']); ?></td>
-            <td><?= htmlspecialchars($row['nama']); ?></td>
-            <td>
-              <a href="https://wa.me/<?= htmlspecialchars($row['telp']); ?>" target="_blank">
-                <?= htmlspecialchars(preg_replace('/^62/', '0', $row['telp'])); ?>
-              </a>
-            </td>
-            <td>
-              <button type="button" class="btn btn-sm btn-warning editBtn" 
-                data-id="<?= $row['id']; ?>" 
-                data-nama="<?= htmlspecialchars($row['nama']); ?>" 
-                data-nik="<?= htmlspecialchars($row['nik']); ?>" 
-                data-telp="<?= htmlspecialchars($row['telp']); ?>" 
-                data-bs-toggle="modal" data-bs-target="#editModal">Edit</button>
-              <a href="?delete_id=<?= $row['id']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Yakin ingin menghapus data ini?')">Delete</a>
-            </td>
-          </tr>
-          <?php endwhile; ?>
-          <tr></tr>
-        </tbody>
-      </table>
+    <!-- Card Tambah Sales -->
+    <div class="card-premium">
+      <div class="section-header-premium">
+        <h6>
+          <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 8px;">person_add</span>
+          Tambah Sales Baru
+        </h6>
+      </div>
+      <div class="card-body-premium">
+        <form method="POST">
+          <div class="row">
+            <div class="col-md-3 form-group-premium">
+              <label class="form-label-premium">Nama Sales</label>
+              <input type="text" name="nama" class="input-premium" placeholder="Masukkan nama lengkap sales..." required>
+            </div>
+            <div class="col-md-2 form-group-premium">
+              <label class="form-label-premium">NIK / Username</label>
+              <input type="text" name="nik" class="input-premium" placeholder="Masukkan NIK unik..." required>
+            </div>
+            <div class="col-md-3 form-group-premium">
+              <label class="form-label-premium">No. Telepon (WhatsApp)</label>
+              <input type="text" name="telp" class="input-premium" placeholder="Contoh: 08123456789" required>
+            </div>
+            <div class="col-md-4 form-group-premium">
+              <label class="form-label-premium">Kata Sandi (Password Awal)</label>
+              <input type="password" name="password" class="input-premium" placeholder="Sandi masuk aplikasi mobile..." required>
+            </div>
+          </div>
+          <div class="mt-3">
+            <button type="submit" class="btn-submit-premium">
+              <span class="material-symbols-outlined">save</span>
+              Simpan Data Sales
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Card Daftar Sales -->
+    <div class="card-premium">
+      <div class="section-header-premium">
+        <h6>
+          <span class="material-symbols-outlined" style="vertical-align: middle; margin-right: 8px;">group</span>
+          Daftar Sales Aktif
+        </h6>
+        <span class="badge bg-light text-dark font-weight-bold" style="font-size: 11px;"><?= mysqli_num_rows($salesData); ?> Sales Terdaftar</span>
+      </div>
+      
+      <div class="table-responsive">
+        <table class="premium-table">
+          <thead>
+            <tr>
+              <th style="width: 70px; text-align: center;">No</th>
+              <th style="width: 140px;">NIK / Username</th>
+              <th>Nama Lengkap</th>
+              <th style="width: 200px;">No. Telepon</th>
+              <th style="width: 120px; text-align: center;">Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php $no = 1; while ($row = mysqli_fetch_assoc($salesData)): ?>
+            <tr>
+              <td style="text-align: center; font-weight: 600; color: #64748b;"><?= $no++; ?></td>
+              <td><span class="nik-badge"><?= htmlspecialchars($row['nik']); ?></span></td>
+              <td>
+                <div class="sales-identity-cell">
+                  <div class="avatar-initials-table">
+                    <?php 
+                      $words = explode(' ', $row['nama']);
+                      echo strtoupper(substr($words[0], 0, 1) . (isset($words[1]) ? substr($words[1], 0, 1) : ''));
+                    ?>
+                  </div>
+                  <span style="font-weight: 700; color: #1e293b;"><?= htmlspecialchars($row['nama']); ?></span>
+                </div>
+              </td>
+              <td>
+                <?php if (!empty($row['telp'])): ?>
+                <a href="https://wa.me/<?= htmlspecialchars($row['telp']); ?>" target="_blank" class="wa-link">
+                  <i class="fab fa-whatsapp" style="font-size: 16px;"></i> 
+                  <?= htmlspecialchars(preg_replace('/^62/', '0', $row['telp'])); ?>
+                </a>
+                <?php else: ?>
+                <span class="text-muted">-</span>
+                <?php endif; ?>
+              </td>
+              <td style="text-align: center;">
+                <button type="button" class="btn-act btn-act-edit editBtn" 
+                  data-id="<?= $row['id']; ?>" 
+                  data-nama="<?= htmlspecialchars($row['nama']); ?>" 
+                  data-nik="<?= htmlspecialchars($row['nik']); ?>" 
+                  data-telp="<?= htmlspecialchars($row['telp']); ?>" 
+                  data-bs-toggle="modal" data-bs-target="#editModal" title="Ubah Data & Sandi">
+                  <span class="material-symbols-outlined">edit</span>
+                </button>
+                <a href="?delete_id=<?= $row['id']; ?>" class="btn-act btn-act-delete" onclick="return confirm('Yakin ingin menghapus data sales ini?')" title="Hapus Sales">
+                  <span class="material-symbols-outlined">delete</span>
+                </a>
+              </td>
+            </tr>
+            <?php endwhile; ?>
+            <?php if (mysqli_num_rows($salesData) == 0): ?>
+              <tr>
+                <td colspan="5" class="text-center text-muted" style="padding: 40px;">Belum ada data sales terdaftar.</td>
+              </tr>
+            <?php endif; ?>
+          </tbody>
+        </table>
+      </div>
     </div>
 
     <!-- Edit Modal -->
     <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-lg">
-        <form method="POST" class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">Edit Data Sales</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <form method="POST" class="modal-content modal-content-premium">
+          <div class="modal-header modal-header-premium">
+            <h5 class="modal-title modal-title-premium">
+              <span class="material-symbols-outlined">manage_accounts</span>
+              Ubah Data &amp; Sandi Sales
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
-          <div class="modal-body row">
+          <div class="modal-body modal-body-premium row">
             <input type="hidden" name="update_id" id="edit_id">
-            <div class="col-md-6 mb-3">
-              <label>Nama</label>
-              <input type="text" name="edit_nama" id="edit_nama" class="form-control" required>
+            
+            <div class="col-md-6 form-group-premium">
+              <label class="form-label-premium">Nama Lengkap</label>
+              <input type="text" name="edit_nama" id="edit_nama" class="input-premium" required>
             </div>
-            <div class="col-md-3 mb-3">
-              <label>NIK</label>
-              <input type="text" name="edit_nik" id="edit_nik" class="form-control" required>
+            
+            <div class="col-md-3 form-group-premium">
+              <label class="form-label-premium">NIK / Username</label>
+              <input type="text" name="edit_nik" id="edit_nik" class="input-premium" required>
             </div>
-            <div class="col-md-3 mb-3">
-              <label>No. Telepon</label>
-              <input type="text" name="edit_telp" id="edit_telp" class="form-control" required>
+            
+            <div class="col-md-3 form-group-premium">
+              <label class="form-label-premium">No. Telepon</label>
+              <input type="text" name="edit_telp" id="edit_telp" class="input-premium" required>
+            </div>
+            
+            <div class="col-md-12 form-group-premium mt-2">
+              <label class="form-label-premium">Kata Sandi Baru (Ubah Sandi)</label>
+              <input type="password" name="edit_password" class="input-premium" placeholder="Masukkan password baru jika ingin mengubah, atau kosongkan saja...">
+              <small class="text-muted" style="font-size: 11px; margin-top: 4px; display: block;">
+                *Biarkan kosong jika tidak ada perubahan kata sandi untuk akun sales ini.
+              </small>
             </div>
           </div>
-          <div class="modal-footer">
-            <button type="submit" class="btn btn-success">Update</button>
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+          <div class="modal-footer modal-footer-premium">
+            <button type="submit" class="btn-submit-premium">
+              <span class="material-symbols-outlined">save</span>
+              Simpan Perubahan
+            </button>
+            <button type="button" class="btn bg-gradient-secondary font-weight-bold" data-bs-dismiss="modal" style="border-radius: 10px; padding: 10px 20px; font-size: 13px;">Batal</button>
           </div>
         </form>
       </div>
