@@ -142,8 +142,11 @@ $currentPage = "Today";
     }
     
     .sales-card-role {
-      font-size: 10px; color: #64748b;
-      margin-top: 2px;
+      font-size: 10.5px; color: #64748b;
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
     }
     
     .sales-card-checkbox {
@@ -220,11 +223,23 @@ $currentPage = "Today";
 
         <div class="card-body-premium">
           <?php
-          // Ambil customer beserta wilayah
-          $customerResult = mysqli_query($conn, "SELECT id, nama, id_wilayah FROM sales_customer WHERE deleted_at IS NULL ORDER BY nama ASC");
+          // Ambil customer beserta nama wilayahnya
+          $customerResult = mysqli_query($conn, "
+              SELECT c.id, c.nama, c.id_wilayah, w.nama AS nama_wilayah 
+              FROM sales_customer c 
+              LEFT JOIN wilayah w ON c.id_wilayah = w.id 
+              WHERE c.deleted_at IS NULL 
+              ORDER BY c.nama ASC
+          ");
 
-          // Ambil sales beserta wilayah
-          $salesResult = mysqli_query($conn, "SELECT id, nama, id_wilayah FROM sales WHERE deleted_at IS NULL ORDER BY nama ASC");
+          // Ambil sales beserta nama wilayahnya
+          $salesResult = mysqli_query($conn, "
+              SELECT s.id, s.nama, s.id_wilayah, w.nama AS nama_wilayah 
+              FROM sales s 
+              LEFT JOIN wilayah w ON s.id_wilayah = w.id 
+              WHERE s.deleted_at IS NULL 
+              ORDER BY s.nama ASC
+          ");
 
           // Set timezone ke Jakarta
           date_default_timezone_set('Asia/Jakarta');
@@ -284,7 +299,7 @@ $currentPage = "Today";
                 <option value="">-- Pilih Customer --</option>
                 <?php while ($c = mysqli_fetch_assoc($customerResult)): ?>
                   <option value="<?php echo $c['id']; ?>" data-id-wilayah="<?php echo $c['id_wilayah']; ?>">
-                    <?php echo htmlspecialchars($c['nama']); ?>
+                    <?php echo htmlspecialchars($c['nama'] . ' - [' . ($c['nama_wilayah'] ?? 'Tanpa Wilayah') . ']'); ?>
                   </option>
                 <?php endwhile; ?>
               </select>
@@ -306,7 +321,12 @@ $currentPage = "Today";
                         </div>
                         <div class="sales-card-details">
                           <span class="sales-card-name"><?php echo htmlspecialchars($s['nama']); ?></span>
-                          <span class="sales-card-role">Sales Agent</span>
+                          <span class="sales-card-role">
+                            Sales Agent 
+                            <span class="badge bg-secondary text-capitalize" style="font-size: 8px; padding: 2px 6px; letter-spacing: 0.05em; font-weight: 700;">
+                              <?php echo htmlspecialchars($s['nama_wilayah'] ?? 'Tanpa Wilayah'); ?>
+                            </span>
+                          </span>
                         </div>
                         <div class="sales-card-checkbox">
                           <span class="material-symbols-outlined">check_circle</span>
