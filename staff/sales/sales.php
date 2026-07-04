@@ -35,14 +35,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_id'])) {
 
     if (!empty($editPassword)) {
         $hashedPassword = password_hash($editPassword, PASSWORD_DEFAULT);
+        
+        // Update sales table
         $stmt = $conn->prepare("UPDATE sales SET nama = ?, nik = ?, telp = ?, password = ?, id_wilayah = ?, updated_at = NOW() WHERE id = ?");
         $stmt->bind_param("ssssii", $nama, $nik, $telp, $hashedPassword, $id_wilayah, $id);
+        $stmt->execute();
+        $stmt->close();
+
+        // Update user_sales table (sync password, nama, username)
+        $stmtUser = $conn->prepare("UPDATE user_sales SET nama = ?, username = ?, password = ?, updated_at = NOW() WHERE sales_id = ?");
+        $stmtUser->bind_param("sssi", $nama, $nik, $hashedPassword, $id);
+        $stmtUser->execute();
+        $stmtUser->close();
     } else {
+        // Update sales table
         $stmt = $conn->prepare("UPDATE sales SET nama = ?, nik = ?, telp = ?, id_wilayah = ?, updated_at = NOW() WHERE id = ?");
         $stmt->bind_param("sssii", $nama, $nik, $telp, $id_wilayah, $id);
+        $stmt->execute();
+        $stmt->close();
+
+        // Update user_sales table (sync nama and username)
+        $stmtUser = $conn->prepare("UPDATE user_sales SET nama = ?, username = ?, updated_at = NOW() WHERE sales_id = ?");
+        $stmtUser->bind_param("ssi", $nama, $nik, $id);
+        $stmtUser->execute();
+        $stmtUser->close();
     }
-    $stmt->execute();
-    $stmt->close();
     
     $successMsg = "Profil Sales berhasil diperbarui!";
 }

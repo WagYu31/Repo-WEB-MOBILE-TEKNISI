@@ -4,8 +4,10 @@ import 'package:provider/provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'core/app_theme.dart';
 import 'service/provider/SalesProvider.dart';
+import 'service/api/VersionChecker.dart';
 import 'page/login/LoginPage.dart';
 import 'page/home/HomePage.dart';
+import 'page/update/ForceUpdatePage.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -43,7 +45,7 @@ class SalesApp extends StatelessWidget {
   }
 }
 
-// Cek session tersimpan → langsung ke Home
+// Cek versi + session tersimpan → langsung ke Home
 class _AuthGate extends StatefulWidget {
   const _AuthGate();
   @override
@@ -54,10 +56,28 @@ class _AuthGateState extends State<_AuthGate> {
   @override
   void initState() {
     super.initState();
-    _check();
+    _checkVersionThenAuth();
   }
 
-  Future<void> _check() async {
+  Future<void> _checkVersionThenAuth() async {
+    // 1) Cek versi dari server
+    final versionInfo = await VersionChecker.check();
+
+    if (!mounted) return;
+
+    // 2) Jika force update diperlukan, redirect ke ForceUpdatePage
+    if (versionInfo.status == UpdateStatus.updateRequired) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ForceUpdatePage(versionInfo: versionInfo),
+        ),
+        (_) => false, // Hapus semua route sebelumnya
+      );
+      return;
+    }
+
+    // 3) Lanjut cek session seperti biasa
     final prov = context.read<SalesProvider>();
     final ok = await prov.loadFromPrefs();
     if (!mounted) return;
@@ -67,3 +87,4 @@ class _AuthGateState extends State<_AuthGate> {
   @override
   Widget build(BuildContext context) => const LoginPage();
 }
+
