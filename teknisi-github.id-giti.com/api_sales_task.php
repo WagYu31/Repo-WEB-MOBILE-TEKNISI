@@ -60,6 +60,7 @@ $sql = "
         c.telp             AS telp_customer,
         c.alamat           AS alamat_customer,
         c.kota             AS kota_customer,
+        c.foto             AS foto_customer,
         ps.id              AS pelaksanaan_id,
         ps.status          AS status_kunjungan,
         ps.ci_at,

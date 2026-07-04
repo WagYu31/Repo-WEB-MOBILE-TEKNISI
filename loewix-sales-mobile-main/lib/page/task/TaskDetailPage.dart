@@ -394,6 +394,114 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                   ),
                 ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1, end: 0),
 
+                // ── Dokumentasi Toko / Lokasi Customer ──────────────────
+                (() {
+                  List<String> customerPhotos = [];
+                  if (t.fotoCustomer != null && t.fotoCustomer!.isNotEmpty) {
+                    try {
+                      final decoded = jsonDecode(t.fotoCustomer!);
+                      if (decoded is List) {
+                        customerPhotos = decoded.map((e) => e.toString()).toList();
+                      }
+                    } catch (_) {}
+                  }
+
+                  if (customerPhotos.isEmpty) return const SizedBox.shrink();
+
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 16),
+                    child: Container(
+                      padding: const EdgeInsets.all(18),
+                      decoration: AppTheme.cardDeco(),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.photo_library_rounded,
+                                  size: 16, color: AppColors.primary),
+                              const SizedBox(width: 8),
+                              Text('Dokumentasi Toko / Lokasi', style: S.h3()),
+                            ],
+                          ),
+                          const SizedBox(height: 14),
+                          SizedBox(
+                            height: 120,
+                            child: ListView.separated(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: customerPhotos.length,
+                              separatorBuilder: (_, __) => const SizedBox(width: 12),
+                              itemBuilder: (context, index) {
+                                final photo = customerPhotos[index];
+                                final imgUrl = 'https://jadwal.id-giti.com/staff/uploads/customer/$photo';
+                                return GestureDetector(
+                                  onTap: () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (_) => Dialog(
+                                        backgroundColor: Colors.transparent,
+                                        insetPadding: const EdgeInsets.all(10),
+                                        child: Stack(
+                                          alignment: Alignment.center,
+                                          children: [
+                                            InteractiveViewer(
+                                              child: Image.network(
+                                                imgUrl,
+                                                fit: BoxFit.contain,
+                                                loadingBuilder: (_, child, loadingProgress) {
+                                                  if (loadingProgress == null) return child;
+                                                  return const Center(child: CircularProgressIndicator(color: AppColors.primary));
+                                                },
+                                                errorBuilder: (_, __, ___) => const Center(
+                                                  child: Text('Gagal memuat gambar', style: TextStyle(color: Colors.white)),
+                                                ),
+                                              ),
+                                            ),
+                                            Positioned(
+                                              top: 10,
+                                              right: 10,
+                                              child: IconButton(
+                                                icon: const Icon(Icons.close_rounded, color: Colors.white, size: 30),
+                                                onPressed: () => Navigator.pop(context),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: Container(
+                                      width: 160,
+                                      height: 120,
+                                      decoration: BoxDecoration(
+                                        border: Border.all(color: AppColors.border),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Image.network(
+                                        imgUrl,
+                                        fit: BoxFit.cover,
+                                        loadingBuilder: (_, child, loadingProgress) {
+                                          if (loadingProgress == null) return child;
+                                          return const Center(child: CircularProgressIndicator(color: AppColors.primary));
+                                        },
+                                        errorBuilder: (_, __, ___) => const Center(
+                                          child: Icon(Icons.image_not_supported_rounded, color: AppColors.textMuted),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1, end: 0);
+                })(),
+
                 const SizedBox(height: 16),
 
                 // ── Status Timeline ─────────────────────
