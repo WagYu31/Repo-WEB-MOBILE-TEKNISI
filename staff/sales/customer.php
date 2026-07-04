@@ -850,12 +850,12 @@ $salesData = mysqli_query($conn, "
 
                 <div class="form-group-premium">
                   <label class="form-label-premium">
-                    <span class="material-symbols-outlined" style="font-size:16px; color:#10b981;">search</span> Cari Alamat / Koordinat
+                    <i class="fa-solid fa-magnifying-glass text-xs me-1 text-primary"></i> Cari Alamat / Koordinat
                   </label>
                   <div class="d-flex gap-2">
                     <input type="text" id="gmap_search" class="input-premium" placeholder="Contoh: Jawa Timur atau -6.175, 106.827...">
                     <button type="button" id="gmap_search_btn" class="btn bg-gradient-info text-white font-weight-bold" style="border-radius:10px; padding: 12px 18px; font-size:11px; display:inline-flex; align-items:center; gap:4px; margin-bottom:0;">
-                      <span class="material-symbols-outlined" style="font-size:16px;">search</span>CARI
+                      <i class="fa-solid fa-magnifying-glass text-xs"></i> CARI
                     </button>
                   </div>
                 </div>
@@ -863,18 +863,36 @@ $salesData = mysqli_query($conn, "
                 <!-- Leaflet Map create -->
                 <div id="map_create"></div>
 
-                <div class="row g-2 mt-3">
-                  <div class="col-5">
+                <!-- GPS button and Radius input -->
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                  <button type="button" id="btn_get_location_create" class="btn btn-outline-primary btn-sm mb-0 d-flex align-items-center gap-1 font-weight-bold" style="border-radius: 8px; font-size: 11px;">
+                    <i class="fa-solid fa-location-crosshairs text-xs"></i> Dapatkan Lokasi Saya
+                  </button>
+                  <div class="d-flex align-items-center gap-2">
+                    <span class="text-xs text-secondary font-weight-bold">Radius:</span>
+                    <input type="number" id="radius_input" class="input-premium" value="100" style="font-size:12px; padding: 6px 8px !important; text-align:center; width: 60px; border-radius: 8px; margin-bottom: 0;">
+                    <span class="text-xs text-secondary font-weight-bold">Meter</span>
+                  </div>
+                </div>
+
+                <!-- Radius Slider -->
+                <div class="mt-3">
+                  <label class="form-label-premium d-flex justify-content-between mb-1" style="font-size: 10px; color:#64748b;">
+                    <span>Sesuaikan Geofence Radius (Meter)</span>
+                    <span id="slider_val_create" class="text-primary font-weight-bold">100m</span>
+                  </label>
+                  <input type="range" id="radius_slider_create" min="10" max="1000" step="10" value="100" class="form-range w-100" style="accent-color: #3b82f6;">
+                </div>
+
+                <!-- Latitude and Longitude readouts -->
+                <div class="row g-2 mt-2">
+                  <div class="col-6">
                     <label class="form-label-premium" style="font-size: 9px; color:#64748b;">Latitude</label>
-                    <input type="text" id="lat_display" class="input-premium" placeholder="-6.xxxxx" style="font-family: monospace; font-size:12px; padding: 8px 12px !important; background:#f8fafc;" readonly>
+                    <input type="text" id="lat_display" class="input-premium" placeholder="-6.xxxxx" style="font-family: monospace; font-size:12px; padding: 8px 12px !important; background:#f8fafc; border-radius: 8px;" readonly>
                   </div>
-                  <div class="col-5">
+                  <div class="col-6">
                     <label class="form-label-premium" style="font-size: 9px; color:#64748b;">Longitude</label>
-                    <input type="text" id="lon_display" class="input-premium" placeholder="106.xxxxx" style="font-family: monospace; font-size:12px; padding: 8px 12px !important; background:#f8fafc;" readonly>
-                  </div>
-                  <div class="col-2">
-                    <label class="form-label-premium" style="font-size: 9px; color:#64748b;">Radius (m)</label>
-                    <input type="number" id="radius_input" class="input-premium" value="100" style="font-size:12px; padding: 8px 6px !important; text-align:center;">
+                    <input type="text" id="lon_display" class="input-premium" placeholder="106.xxxxx" style="font-family: monospace; font-size:12px; padding: 8px 12px !important; background:#f8fafc; border-radius: 8px;" readonly>
                   </div>
                 </div>
 
@@ -1295,32 +1313,53 @@ $salesData = mysqli_query($conn, "
                 </div>
 
                 <div class="form-group-premium">
-                  <label class="form-label-premium">Cari Alamat / Koordinat Baru</label>
+                  <label class="form-label-premium">
+                    <i class="fa-solid fa-magnifying-glass text-xs me-1 text-primary"></i> Cari Alamat / Koordinat Baru
+                  </label>
                   <div class="d-flex gap-2">
                     <input type="text" id="gmap_search_edit" class="input-premium" placeholder="Contoh: Surabaya atau -7.250, 112.750...">
                     <button type="button" id="gmap_search_btn_edit" class="btn bg-gradient-info text-white font-weight-bold" style="border-radius:10px; padding: 12px 18px; font-size:11px; display:inline-flex; align-items:center; gap:4px; margin-bottom:0;">
-                      <span class="material-symbols-outlined" style="font-size:16px;">search</span>CARI
+                      <i class="fa-solid fa-magnifying-glass text-xs"></i> CARI
                     </button>
                   </div>
                 </div>
 
                 <div id="map_edit"></div>
 
-                <div class="row g-2 mt-3">
-                  <div class="col-5">
-                    <label class="form-label-premium" style="font-size: 9px; color:#64748b;">Latitude</label>
-                    <input type="text" id="edit_lat_display" class="input-premium" style="font-family: monospace; font-size:12px; padding: 8px 12px !important; background:#f8fafc;" readonly>
-                  </div>
-                  <div class="col-5">
-                    <label class="form-label-premium" style="font-size: 9px; color:#64748b;">Longitude</label>
-                    <input type="text" id="edit_lon_display" class="input-premium" style="font-family: monospace; font-size:12px; padding: 8px 12px !important; background:#f8fafc;" readonly>
-                  </div>
-                  <div class="col-2">
-                    <label class="form-label-premium" style="font-size: 9px; color:#64748b;">Radius (m)</label>
-                    <input type="number" id="edit_radius_input" class="input-premium" style="font-size:12px; padding: 8px 6px !important; text-align:center;">
+                <!-- GPS button and Radius input -->
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                  <button type="button" id="btn_get_location_edit" class="btn btn-outline-primary btn-sm mb-0 d-flex align-items-center gap-1 font-weight-bold" style="border-radius: 8px; font-size: 11px;">
+                    <i class="fa-solid fa-location-crosshairs text-xs"></i> Dapatkan Lokasi Saya
+                  </button>
+                  <div class="d-flex align-items-center gap-2">
+                    <span class="text-xs text-secondary font-weight-bold">Radius:</span>
+                    <input type="number" id="edit_radius_input" class="input-premium" value="100" style="font-size:12px; padding: 6px 8px !important; text-align:center; width: 60px; border-radius: 8px; margin-bottom: 0;">
+                    <span class="text-xs text-secondary font-weight-bold">Meter</span>
                   </div>
                 </div>
 
+                <!-- Radius Slider -->
+                <div class="mt-3">
+                  <label class="form-label-premium d-flex justify-content-between mb-1" style="font-size: 10px; color:#64748b;">
+                    <span>Sesuaikan Geofence Radius (Meter)</span>
+                    <span id="slider_val_edit" class="text-primary font-weight-bold">100m</span>
+                  </label>
+                  <input type="range" id="radius_slider_edit" min="10" max="1000" step="10" value="100" class="form-range w-100" style="accent-color: #3b82f6;">
+                </div>
+
+                <!-- Latitude and Longitude readouts -->
+                <div class="row g-2 mt-2">
+                  <div class="col-6">
+                    <label class="form-label-premium" style="font-size: 9px; color:#64748b;">Latitude</label>
+                    <input type="text" id="edit_lat_display" class="input-premium" placeholder="-6.xxxxx" style="font-family: monospace; font-size:12px; padding: 8px 12px !important; background:#f8fafc; border-radius: 8px;" readonly>
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label-premium" style="font-size: 9px; color:#64748b;">Longitude</label>
+                    <input type="text" id="edit_lon_display" class="input-premium" placeholder="106.xxxxx" style="font-family: monospace; font-size:12px; padding: 8px 12px !important; background:#f8fafc; border-radius: 8px;" readonly>
+                  </div>
+                </div>
+
+                <!-- Hidden parameters to submit -->
                 <input type="hidden" id="edit_lat" name="edit_lat">
                 <input type="hidden" id="edit_lon" name="edit_lon">
                 <input type="hidden" id="edit_radius" name="edit_radius">
@@ -1585,7 +1624,35 @@ $salesData = mysqli_query($conn, "
   }).addTo(mapCreate);
 
   let markerCreate = L.marker([defaultLat, defaultLon], { draggable: true }).addTo(mapCreate);
-  let circleCreate = L.circle([defaultLat, defaultLon], { radius: defaultRad, color: '#10b981', fillColor: '#10b981', fillOpacity: 0.15 }).addTo(mapCreate);
+  let circleCreate = L.circle([defaultLat, defaultLon], {
+    radius: defaultRad,
+    color: '#2563eb', // Blue border
+    fillColor: '#3b82f6', // Light blue fill
+    fillOpacity: 0.12,
+    weight: 1.5,
+    dashArray: '5, 5'
+  }).addTo(mapCreate);
+
+  const radInputCreate = document.getElementById('radius_input');
+  const radSliderCreate = document.getElementById('radius_slider_create');
+  const sliderValCreate = document.getElementById('slider_val_create');
+
+  function syncRadiusCreate(value) {
+    const r = parseInt(value) || defaultRad;
+    radInputCreate.value = r;
+    radSliderCreate.value = r;
+    sliderValCreate.innerText = r + 'm';
+    circleCreate.setRadius(r);
+    document.getElementById('radius').value = r;
+  }
+
+  radInputCreate.addEventListener('input', function() {
+    syncRadiusCreate(this.value);
+  });
+
+  radSliderCreate.addEventListener('input', function() {
+    syncRadiusCreate(this.value);
+  });
 
   function updateCreateMapData(latlng, rad) {
     const r = parseInt(rad) || defaultRad;
@@ -1597,8 +1664,7 @@ $salesData = mysqli_query($conn, "
     document.getElementById('lon').value = latlng.lng;
     document.getElementById('lat_display').value = latlng.lat.toFixed(6);
     document.getElementById('lon_display').value = latlng.lng.toFixed(6);
-    document.getElementById('radius').value = r;
-    document.getElementById('radius_input').value = r;
+    syncRadiusCreate(r);
 
     // Nominatim geocode reverse
     fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latlng.lat}&lon=${latlng.lng}&accept-language=id`)
@@ -1612,15 +1678,41 @@ $salesData = mysqli_query($conn, "
   }
 
   mapCreate.on('click', function(e) {
-    updateCreateMapData(e.latlng, document.getElementById('radius_input').value);
+    updateCreateMapData(e.latlng, radInputCreate.value);
   });
 
   markerCreate.on('dragend', function() {
-    updateCreateMapData(markerCreate.getLatLng(), document.getElementById('radius_input').value);
+    updateCreateMapData(markerCreate.getLatLng(), radInputCreate.value);
   });
 
-  document.getElementById('radius_input').addEventListener('input', function() {
-    updateCreateMapData(markerCreate.getLatLng(), this.value);
+  // GPS Create Event
+  document.getElementById('btn_get_location_create').addEventListener('click', function() {
+    const btn = this;
+    const origContent = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Mencari Lokasi...';
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        function(position) {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+          updateCreateMapData(L.latLng(lat, lon), radInputCreate.value);
+          btn.disabled = false;
+          btn.innerHTML = origContent;
+        },
+        function(error) {
+          alert("Gagal mendapatkan lokasi: " + error.message);
+          btn.disabled = false;
+          btn.innerHTML = origContent;
+        },
+        { enableHighAccuracy: true, timeout: 5000 }
+      );
+    } else {
+      alert("Browser Anda tidak mendukung pencarian lokasi (Geolocation).");
+      btn.disabled = false;
+      btn.innerHTML = origContent;
+    }
   });
 
   document.getElementById('gmap_search_btn').addEventListener('click', function() {
@@ -1630,15 +1722,15 @@ $salesData = mysqli_query($conn, "
     const coordsRegex = /^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?),\s*[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$/;
     if (coordsRegex.test(query)) {
       const parts = query.split(',');
-      updateCreateMapData(L.latLng(parseFloat(parts[0]), parseFloat(parts[1])), document.getElementById('radius_input').value);
+      updateCreateMapData(L.latLng(parseFloat(parts[0]), parseFloat(parts[1])), radInputCreate.value);
     } else {
       fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1&countrycodes=id&accept-language=id`)
         .then(res => res.json())
         .then(data => {
           if (data && data.length > 0) {
-            updateCreateMapData(L.latLng(parseFloat(data[0].lat), parseFloat(data[0].lon)), document.getElementById('radius_input').value);
+            updateCreateMapData(L.latLng(parseFloat(data[0].lat), parseFloat(data[0].lon)), radInputCreate.value);
           } else {
-            alert("Lokasi tidak ditemukan.");
+            alert("Alamat tidak ditemukan.");
           }
         });
     }
@@ -1676,30 +1768,71 @@ $salesData = mysqli_query($conn, "
   let markerEdit = null;
   let circleEdit = null;
 
+  const radInputEdit = document.getElementById('edit_radius_input');
+  const radSliderEdit = document.getElementById('radius_slider_edit');
+  const sliderValEdit = document.getElementById('slider_val_edit');
+
+  function syncRadiusEdit(value) {
+    const r = parseInt(value) || defaultRad;
+    radInputEdit.value = r;
+    radSliderEdit.value = r;
+    sliderValEdit.innerText = r + 'm';
+    if (circleEdit) {
+      circleEdit.setRadius(r);
+    }
+    document.getElementById('edit_radius').value = r;
+  }
+
+  radInputEdit.addEventListener('input', function() {
+    syncRadiusEdit(this.value);
+  });
+
+  radSliderEdit.addEventListener('input', function() {
+    syncRadiusEdit(this.value);
+  });
+
   const editModalEl = document.getElementById('editModal');
   editModalEl.addEventListener('shown.bs.modal', function () {
-      const latVal = parseFloat(document.getElementById('edit_lat').value) || defaultLat;
-      const lonVal = parseFloat(document.getElementById('edit_lon').value) || defaultLon;
+      let latVal = parseFloat(document.getElementById('edit_lat').value);
+      let lonVal = parseFloat(document.getElementById('edit_lon').value);
       const radVal = parseInt(document.getElementById('edit_radius').value) || defaultRad;
       
+      // If values are empty/NaN, use defaults and save them so fields are never blank
+      if (isNaN(latVal) || isNaN(lonVal)) {
+        latVal = defaultLat;
+        lonVal = defaultLon;
+        document.getElementById('edit_lat').value = defaultLat;
+        document.getElementById('edit_lon').value = defaultLon;
+        document.getElementById('edit_lat_display').value = defaultLat.toFixed(6);
+        document.getElementById('edit_lon_display').value = defaultLon.toFixed(6);
+      }
+      
       const latlng = L.latLng(latVal, lonVal);
+      syncRadiusEdit(radVal);
       
       if (!mapEditInstance) {
           mapEditInstance = L.map('map_edit').setView(latlng, 15);
           L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
-            attribution: '© OpenStreetMap'
+            attribution: '© OpenStreetMap contributors'
           }).addTo(mapEditInstance);
           
           markerEdit = L.marker(latlng, { draggable: true }).addTo(mapEditInstance);
-          circleEdit = L.circle(latlng, { radius: radVal, color: '#10b981', fillColor: '#10b981', fillOpacity: 0.15 }).addTo(mapEditInstance);
+          circleEdit = L.circle(latlng, {
+            radius: radVal,
+            color: '#2563eb', // Blue border
+            fillColor: '#3b82f6', // Light blue fill
+            fillOpacity: 0.12,
+            weight: 1.5,
+            dashArray: '5, 5'
+          }).addTo(mapEditInstance);
           
           mapEditInstance.on('click', function(e) {
-            updateEditMapData(e.latlng, document.getElementById('edit_radius_input').value);
+            updateEditMapData(e.latlng, radInputEdit.value);
           });
           
           markerEdit.on('dragend', function() {
-            updateEditMapData(markerEdit.getLatLng(), document.getElementById('edit_radius_input').value);
+            updateEditMapData(markerEdit.getLatLng(), radInputEdit.value);
           });
       } else {
           mapEditInstance.setView(latlng, 15);
@@ -1713,13 +1846,13 @@ $salesData = mysqli_query($conn, "
       const r = parseInt(rad) || defaultRad;
       markerEdit.setLatLng(latlng);
       circleEdit.setLatLng(latlng).setRadius(r);
+      mapEditInstance.setView(latlng, 16);
       
       document.getElementById('edit_lat').value = latlng.lat;
       document.getElementById('edit_lon').value = latlng.lng;
       document.getElementById('edit_lat_display').value = latlng.lat.toFixed(6);
       document.getElementById('edit_lon_display').value = latlng.lng.toFixed(6);
-      document.getElementById('edit_radius').value = r;
-      document.getElementById('edit_radius_input').value = r;
+      syncRadiusEdit(r);
       
       fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latlng.lat}&lon=${latlng.lng}&accept-language=id`)
         .then(res => res.json())
@@ -1731,9 +1864,33 @@ $salesData = mysqli_query($conn, "
         });
   }
 
-  document.getElementById('edit_radius_input').addEventListener('input', function() {
-    if (markerEdit) {
-      updateEditMapData(markerEdit.getLatLng(), this.value);
+  // GPS Edit Event
+  document.getElementById('btn_get_location_edit').addEventListener('click', function() {
+    const btn = this;
+    const origContent = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Mencari Lokasi...';
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        function(position) {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+          updateEditMapData(L.latLng(lat, lon), radInputEdit.value);
+          btn.disabled = false;
+          btn.innerHTML = origContent;
+        },
+        function(error) {
+          alert("Gagal mendapatkan lokasi: " + error.message);
+          btn.disabled = false;
+          btn.innerHTML = origContent;
+        },
+        { enableHighAccuracy: true, timeout: 5000 }
+      );
+    } else {
+      alert("Browser Anda tidak mendukung pencarian lokasi (Geolocation).");
+      btn.disabled = false;
+      btn.innerHTML = origContent;
     }
   });
 
@@ -1744,13 +1901,13 @@ $salesData = mysqli_query($conn, "
     const coordsRegex = /^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?),\s*[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$/;
     if (coordsRegex.test(query)) {
       const parts = query.split(',');
-      updateEditMapData(L.latLng(parseFloat(parts[0]), parseFloat(parts[1])), document.getElementById('edit_radius_input').value);
+      updateEditMapData(L.latLng(parseFloat(parts[0]), parseFloat(parts[1])), radInputEdit.value);
     } else {
       fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1&countrycodes=id&accept-language=id`)
         .then(res => res.json())
         .then(data => {
           if (data && data.length > 0) {
-            updateEditMapData(L.latLng(parseFloat(data[0].lat), parseFloat(data[0].lon)), document.getElementById('edit_radius_input').value);
+            updateEditMapData(L.latLng(parseFloat(data[0].lat), parseFloat(data[0].lon)), radInputEdit.value);
           } else {
             alert("Lokasi tidak ditemukan.");
           }
