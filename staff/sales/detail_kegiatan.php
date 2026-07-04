@@ -529,8 +529,8 @@ $left_col_class = $has_coords ? "col-lg-7" : "col-lg-12";
           </div>
           <?php endif; ?>
 
-          <!-- Detail Kunjungan Plan Card (visit) -->
-          <?php if (!empty($data['visit'])): ?>
+          <!-- Detail Kunjungan Plan Card (keterangan) -->
+          <?php if (!empty($data['keterangan'])): ?>
           <div class="card-premium">
             <div class="section-header-premium" style="background:#0f172a;">
               <h6>
@@ -540,7 +540,7 @@ $left_col_class = $has_coords ? "col-lg-7" : "col-lg-12";
             </div>
             <div class="card-body-premium">
               <div style="font-size:14.5px; color:#334155; line-height:1.6; font-weight:500;">
-                <?php echo nl2br(htmlspecialchars($data['visit'])); ?>
+                <?php echo nl2br(htmlspecialchars($data['keterangan'])); ?>
               </div>
             </div>
           </div>
