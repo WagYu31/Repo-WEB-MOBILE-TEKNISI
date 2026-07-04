@@ -1,21 +1,22 @@
 <?php
 include "staff/sales/conn.php";
-$sql = "
-    SELECT
-        ks.id              AS kegiatan_id,
-        ks.jadwal,
-        ks.keterangan,
-        ks.status          AS status_kegiatan,
-        c.id               AS customer_id,
-        c.nama             AS nama_customer,
-        c.alamat           AS alamat_customer,
-        c.foto             AS foto_customer
-    FROM team_kegiatan_sales tks
-    JOIN kegiatan_sales ks ON ks.id = tks.id_kegiatan_sales AND ks.deleted_at IS NULL
-    JOIN sales_customer c  ON c.id  = ks.id_customer        AND c.deleted_at IS NULL
-    ORDER BY ks.id DESC LIMIT 5
-";
-$res = mysqli_query($conn, $sql);
+
+// Ambil sales_id dari team_kegiatan_sales untuk kegiatan_id 31
+$resSales = mysqli_query($conn, "SELECT id_sales FROM team_kegiatan_sales WHERE id_kegiatan_sales = 31");
+$salesRow = mysqli_fetch_assoc($resSales);
+$salesId = $salesRow['id_sales'] ?? 0;
+
+echo "<h3>Sales ID untuk kegiatan 31: $salesId</h3>";
+
+// Hitung respon dari api_sales_task.php di folder teknisi-github.id-giti.com
+$_GET['sales_id'] = $salesId;
+$_GET['filter'] = 'today';
+
+echo "<h3>Isi Respon API (api_sales_task.php):</h3>";
+ob_start();
+include "teknisi-github.id-giti.com/api_sales_task.php";
+$apiResponse = ob_get_clean();
+
 echo "<pre>";
-print_r(mysqli_fetch_all($res, MYSQLI_ASSOC));
+print_r(json_decode($apiResponse, true));
 echo "</pre>";
