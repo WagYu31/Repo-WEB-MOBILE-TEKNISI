@@ -57,7 +57,7 @@ $sql = "
         c.kode,
         c.id               AS customer_id,
         c.nama             AS nama_customer,
-        c.telp             AS telp_customer,
+        c.telp_pribadi     AS telp_customer,
         c.alamat           AS alamat_customer,
         c.kota             AS kota_customer,
         c.foto             AS foto_customer,
@@ -72,7 +72,7 @@ $sql = "
         ps.catatan_visit
     FROM team_kegiatan_sales tks
     JOIN kegiatan_sales ks ON ks.id = tks.id_kegiatan_sales AND ks.deleted_at IS NULL
-    JOIN customer c        ON c.id  = ks.id_customer        AND c.deleted_at IS NULL
+    JOIN sales_customer c  ON c.id  = ks.id_customer        AND c.deleted_at IS NULL
     LEFT JOIN pelaksanaan_sales ps
         ON ps.kegiatan_id = tks.id_kegiatan_sales
         AND ps.sales_id   = tks.id_sales
