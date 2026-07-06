@@ -131,7 +131,7 @@ $role = $_SESSION['role'];
 
 <!-- Modal untuk memasukkan invoice -->
 <div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg modalDetail">
+    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable modalDetail">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="detailModalLabel">Riwayat Waktu Pengerjaan</h5>
@@ -139,7 +139,7 @@ $role = $_SESSION['role'];
             </div>
             <form id="detailForm" data-kode="">
                 <div class="modal-body">
-                    <div class="input-group d-flex flex-row justify-content-start align-items-start mt-3">
+                    <div class="w-100 mt-2">
                         <div id="dataDetailTek" style="width: 100%;"></div>
                     </div>
                 </div>

@@ -503,8 +503,8 @@ if (isset($_POST['id_sales']) && isset($_POST['kode_transaksi'])) {
                                 $imageUrl = "https://api-teknisi.id-giti.com/storage/image/" . htmlspecialchars($data[$column]);
                         ?>
                                 <div class="gallery-card-detail">
-                                    <div class="gallery-img-wrapper">
-                                        <img src="<?php echo $imageUrl; ?>" class="gallery-img" alt="Dokumentasi">
+                                    <div class="gallery-img-wrapper-detail">
+                                        <img src="<?php echo $imageUrl; ?>" class="gallery-img-detail" alt="Dokumentasi">
                                     </div>
                                     <a href="<?php echo $imageUrl; ?>" target="_blank" class="gallery-btn-detail">
                                         <span class="material-symbols-outlined" style="font-size:14px;">visibility</span>
