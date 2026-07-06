@@ -49,7 +49,8 @@ class _HomePageState extends State<HomePage> {
             greeting: _greeting(),
             onTaskTabChange: (i) {
               setState(() => _taskTab = i);
-              prov.fetchTasks(filter: i == 0 ? 'today' : 'all');
+              final filters = ['today', 'upcoming', 'all'];
+              prov.fetchTasks(filter: filters[i]);
             },
           ),
           const RekapPage(),
@@ -295,7 +296,8 @@ class _KunjunganTab extends StatelessWidget {
             child: Row(
               children: [
                 _TabBtn('Hari Ini', 0, taskTab, onTaskTabChange),
-                _TabBtn('Semua', 1, taskTab, onTaskTabChange),
+                _TabBtn('Akan Datang', 1, taskTab, onTaskTabChange),
+                _TabBtn('Semua', 2, taskTab, onTaskTabChange),
               ],
             ),
           ),
@@ -309,11 +311,11 @@ class _KunjunganTab extends StatelessWidget {
               : tasks.isEmpty
                   ? _EmptyKunjungan(
                       onRefresh: () => prov.fetchTasks(
-                          filter: taskTab == 0 ? 'today' : 'all'),
+                          filter: ['today', 'upcoming', 'all'][taskTab]),
                     )
                   : RefreshIndicator(
                       onRefresh: () => prov.fetchTasks(
-                          filter: taskTab == 0 ? 'today' : 'all'),
+                          filter: ['today', 'upcoming', 'all'][taskTab]),
                       color: AppColors.primary,
                       backgroundColor: AppColors.card,
                       child: TaskListPage(tasks: tasks),
