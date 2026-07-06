@@ -43,6 +43,8 @@ class VisitTask {
   final String? lonCo;
   final String? catatanVisit;
   final String? fotoCustomer;
+  final String? latCustomer;
+  final String? lonCustomer;
 
   VisitTask({
     required this.kegiatanId,
@@ -65,6 +67,8 @@ class VisitTask {
     this.lonCo,
     this.catatanVisit,
     this.fotoCustomer,
+    this.latCustomer,
+    this.lonCustomer,
   });
 
   factory VisitTask.fromJson(Map<String, dynamic> j) => VisitTask(
@@ -90,6 +94,8 @@ class VisitTask {
         lonCo: j['lon_co'],
         catatanVisit: j['catatan_visit'],
         fotoCustomer: j['foto_customer'],
+        latCustomer: j['lat_customer'],
+        lonCustomer: j['lon_customer'],
       );
 
   bool get sudahClockIn => ciAt != null && ciAt!.isNotEmpty;

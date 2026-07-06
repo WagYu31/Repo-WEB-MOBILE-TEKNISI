@@ -41,8 +41,22 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   void initState() {
     super.initState();
     _task = widget.task;
-    _geocodeAddress();
+    _initCustomerLocation();
     _initUserLocation();
+  }
+
+  void _initCustomerLocation() {
+    final latStr = _task.latCustomer;
+    final lonStr = _task.lonCustomer;
+    if (latStr != null && latStr.isNotEmpty && lonStr != null && lonStr.isNotEmpty) {
+      final lat = double.tryParse(latStr);
+      final lon = double.tryParse(lonStr);
+      if (lat != null && lon != null) {
+        _customerLatLng = LatLng(lat, lon);
+        return;
+      }
+    }
+    _geocodeAddress();
   }
 
   Future<void> _initUserLocation() async {

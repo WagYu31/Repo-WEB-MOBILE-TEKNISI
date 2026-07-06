@@ -61,6 +61,8 @@ $sql = "
         c.alamat           AS alamat_customer,
         c.kota             AS kota_customer,
         c.foto             AS foto_customer,
+        c.lat              AS lat_customer,
+        c.lon              AS lon_customer,
         ps.id              AS pelaksanaan_id,
         ps.status          AS status_kunjungan,
         ps.ci_at,
