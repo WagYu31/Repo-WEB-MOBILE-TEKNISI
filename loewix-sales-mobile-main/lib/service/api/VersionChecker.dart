@@ -37,8 +37,10 @@ class VersionChecker {
   /// Check the server for version info and determine update status.
   static Future<VersionInfo> check() async {
     try {
+      final cacheBusterUrl = 
+          'https://jadwal.id-giti.com/staff/api_sales_version.php?t=${DateTime.now().millisecondsSinceEpoch}';
       final res = await http
-          .get(Uri.parse('${Api.Url}/api_sales_version.php'))
+          .get(Uri.parse(cacheBusterUrl), headers: {'Accept': 'application/json'})
           .timeout(const Duration(seconds: 10));
 
       if (res.statusCode != 200) {
@@ -55,8 +57,8 @@ class VersionChecker {
       final data = jsonDecode(res.body);
       final latestVersion = data['latest_version'] ?? Api.AppVersion;
       final minVersion = data['min_version'] ?? '0.0.0';
-      final downloadUrl = data['download_url'] ?? '';
-      final changelog = data['changelog'] ?? '';
+      final downloadUrl = data['update_url'] ?? data['download_url'] ?? '';
+      final changelog = data['update_message'] ?? data['changelog'] ?? '';
 
       UpdateStatus status;
       if (_compareVersions(Api.AppVersion, minVersion) < 0) {
