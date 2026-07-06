@@ -86,7 +86,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['update_id'])) {
     $stmt = $conn->prepare("INSERT INTO sales (nik, nama, telp, password, id_wilayah, created_at, updated_at) VALUES (?, ?, ?, ?, ?, NOW(), NOW())");
     $stmt->bind_param("ssssi", $nik, $nama, $telp, $hashedPassword, $id_wilayah);
     $stmt->execute();
+    $newSalesId = $stmt->insert_id;
     $stmt->close();
+
+    // Juga buat akun login di user_sales agar bisa masuk dari app mobile
+    $stmtUser = $conn->prepare("INSERT INTO user_sales (sales_id, username, nama, password, created_at, updated_at) VALUES (?, ?, ?, ?, NOW(), NOW())");
+    $stmtUser->bind_param("isss", $newSalesId, $nik, $nama, $hashedPassword);
+    $stmtUser->execute();
+    $stmtUser->close();
 
     $successMsg = "Sales baru berhasil ditambahkan!";
 }
