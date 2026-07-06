@@ -295,11 +295,17 @@ if (isset($_POST['id_sales']) && isset($_POST['kode_transaksi'])) {
     box-shadow: 0 8px 16px rgba(0,0,0,0.06);
     border-color: #cbd5e1;
   }
-  .gallery-img-detail {
+  .gallery-img-wrapper-detail {
     width: 100%;
     height: 110px;
-    object-fit: cover;
-    transition: all 0.3s;
+    overflow: hidden;
+    background: #f1f5f9;
+  }
+  .gallery-img-detail {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    transition: all 0.3s ease;
   }
   .gallery-card-detail:hover .gallery-img-detail {
     transform: scale(1.05);
