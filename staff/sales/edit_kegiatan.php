@@ -57,8 +57,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Insert yang baru dipilih
     foreach ($sales_to_insert as $id_sales) {
-        $stmt = $conn->prepare("INSERT INTO team_kegiatan_sales (id_kegiatan_sales, id_sales, created_at, updated_at) VALUES (?, ?, NOW(), NOW())");
-        $stmt->bind_param("ii", $kegiatan_id, $id_sales);
+        $getNama = mysqli_query($conn, "SELECT nama FROM sales WHERE id = '$id_sales' LIMIT 1");
+        $namaSales = mysqli_fetch_assoc($getNama)['nama'] ?? '';
+
+        $stmt = $conn->prepare("INSERT INTO team_kegiatan_sales (id_kegiatan_sales, id_sales, nama_sales, created_at, updated_at) VALUES (?, ?, ?, NOW(), NOW())");
+        $stmt->bind_param("iis", $kegiatan_id, $id_sales, $namaSales);
         $stmt->execute();
     }
 
