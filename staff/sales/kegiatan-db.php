@@ -292,6 +292,9 @@ foreach ($tab_meta as $k => $m) {
               <a href="edit_kegiatan.php?id=<?php echo $row['id']; ?>" class="btn-action btn-edit" title="Edit Jadwal">
                 <span class="material-symbols-outlined">edit</span>
               </a>
+              <button type="button" class="btn-action btn-delete" title="Hapus" onclick="confirmDelete(<?php echo $row['id']; ?>, '<?php echo addslashes(htmlspecialchars($row['nama_customer'] ?? '')); ?>')">
+                <span class="material-symbols-outlined">delete</span>
+              </button>
             </div>
           </div>
 
@@ -524,6 +527,61 @@ foreach ($tab_meta as $k => $m) {
 .btn-view:hover { background: #2563eb; color: #fff; }
 .btn-edit { background: #ecfdf5; color: #059669; border-color: #d1fae5; }
 .btn-edit:hover { background: #059669; color: #fff; }
+.btn-delete { background: #fef2f2; color: #dc2626; border-color: #fecaca; cursor: pointer; }
+.btn-delete:hover { background: #dc2626; color: #fff; }
+
+/* ── Delete Confirmation Modal ── */
+.modal-overlay-delete {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  justify-content: center; align-items: center;
+}
+.modal-overlay-delete.active { display: flex; }
+.modal-card-delete {
+  background: #fff;
+  border-radius: 20px;
+  padding: 36px;
+  width: 90%; max-width: 420px;
+  text-align: center;
+  box-shadow: 0 25px 60px rgba(0,0,0,0.15);
+  animation: modalSlideIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes modalSlideIn {
+  from { opacity: 0; transform: scale(0.85) translateY(20px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.modal-icon-delete {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #fef2f2, #fecaca);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 20px;
+}
+.modal-icon-delete span { font-size: 30px; color: #dc2626; }
+.modal-title-delete { font-size: 18px; font-weight: 700; color: #1e293b; margin-bottom: 8px; }
+.modal-desc-delete { font-size: 13px; color: #64748b; line-height: 1.6; margin-bottom: 28px; }
+.modal-desc-delete strong { color: #dc2626; }
+.modal-actions-delete { display: flex; gap: 12px; justify-content: center; }
+.modal-btn-cancel {
+  padding: 12px 28px; border-radius: 12px;
+  background: #f1f5f9; color: #475569;
+  border: 1.5px solid #e2e8f0;
+  font-weight: 600; font-size: 14px;
+  cursor: pointer; transition: all 0.2s;
+}
+.modal-btn-cancel:hover { background: #e2e8f0; }
+.modal-btn-confirm-delete {
+  padding: 12px 28px; border-radius: 12px;
+  background: linear-gradient(135deg, #dc2626, #b91c1c);
+  color: #fff; border: none;
+  font-weight: 700; font-size: 14px;
+  cursor: pointer; transition: all 0.2s;
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.3);
+}
+.modal-btn-confirm-delete:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(220,38,38,0.4); }
 
 /* ── Premium Empty State ── */
 .empty-state-premium { 
@@ -572,3 +630,73 @@ foreach ($tab_meta as $k => $m) {
   .empty-state-premium { padding: 40px 20px; margin: 15px auto; }
 }
 </style>
+
+<!-- ═══ Delete Confirmation Modal ═══ -->
+<div class="modal-overlay-delete" id="deleteModal">
+  <div class="modal-card-delete">
+    <div class="modal-icon-delete">
+      <span class="material-symbols-outlined">delete_forever</span>
+    </div>
+    <div class="modal-title-delete">Hapus Kegiatan?</div>
+    <div class="modal-desc-delete">
+      Kegiatan kunjungan ke <strong id="deleteCustomerName"></strong> akan dihapus secara permanen. Tindakan ini tidak dapat dibatalkan.
+    </div>
+    <div class="modal-actions-delete">
+      <button class="modal-btn-cancel" onclick="closeDeleteModal()">Batal</button>
+      <button class="modal-btn-confirm-delete" id="btnConfirmDelete" onclick="executeDelete()">
+        <span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;margin-right:4px;">delete</span>
+        Ya, Hapus
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+let deleteId = null;
+
+function confirmDelete(id, customerName) {
+  deleteId = id;
+  document.getElementById('deleteCustomerName').textContent = customerName || 'customer ini';
+  document.getElementById('deleteModal').classList.add('active');
+}
+
+function closeDeleteModal() {
+  document.getElementById('deleteModal').classList.remove('active');
+  deleteId = null;
+}
+
+// Close modal on overlay click
+document.getElementById('deleteModal').addEventListener('click', function(e) {
+  if (e.target === this) closeDeleteModal();
+});
+
+function executeDelete() {
+  if (!deleteId) return;
+  
+  const btn = document.getElementById('btnConfirmDelete');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;margin-right:4px;animation:spin 1s linear infinite;">progress_activity</span> Menghapus...';
+
+  fetch('hapus_kegiatan_sales.php', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: 'id=' + deleteId
+  })
+  .then(res => res.text())
+  .then(result => {
+    if (result.trim() === 'success') {
+      closeDeleteModal();
+      window.location.reload();
+    } else {
+      alert('Gagal menghapus kegiatan. Silakan coba lagi.');
+      btn.disabled = false;
+      btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;margin-right:4px;">delete</span> Ya, Hapus';
+    }
+  })
+  .catch(() => {
+    alert('Terjadi kesalahan jaringan.');
+    btn.disabled = false;
+    btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;margin-right:4px;">delete</span> Ya, Hapus';
+  });
+}
+</script>
