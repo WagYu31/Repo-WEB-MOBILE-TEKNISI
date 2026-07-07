@@ -21,9 +21,9 @@ header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
 // ═══════════════════════════════════════════════
 $response = [
     'min_version'     => '1.3.2',   // Versi minimum yang dibolehkan
-    'latest_version'  => '1.3.2',   // Versi terbaru yang tersedia
-    'update_url'      => 'https://jadwal.id-giti.com/staff/download/LoewixSales-v1.3.2.apk',
-    'update_message'  => 'Versi terbaru (v1.3.2) tersedia! Fitur baru: Kegiatan Akan Datang.',
+    'latest_version'  => '1.4.0',   // Versi terbaru yang tersedia
+    'update_url'      => 'https://jadwal.id-giti.com/staff/download/LoewixSales-v1.4.0.apk',
+    'update_message'  => 'Versi terbaru (v1.4.0) tersedia! Fitur baru: Dokumentasi foto laporan & Edit Laporan Kunjungan.',
     'force_message'   => 'Versi aplikasi Anda sudah tidak didukung. Silakan update ke versi terbaru.',
 ];
 
