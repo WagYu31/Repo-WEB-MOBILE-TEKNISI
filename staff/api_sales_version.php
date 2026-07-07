@@ -20,7 +20,7 @@ header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
 // KONFIGURASI VERSI - UBAH DI SINI UNTUK FORCE UPDATE
 // ═══════════════════════════════════════════════
 $response = [
-    'min_version'     => '1.3.2',   // Versi minimum yang dibolehkan
+    'min_version'     => '1.4.0',   // Versi minimum yang dibolehkan
     'latest_version'  => '1.4.0',   // Versi terbaru yang tersedia
     'update_url'      => 'https://jadwal.id-giti.com/staff/download/LoewixSales-v1.4.0.apk',
     'update_message'  => 'Versi terbaru (v1.4.0) tersedia! Fitur baru: Dokumentasi foto laporan & Edit Laporan Kunjungan.',
