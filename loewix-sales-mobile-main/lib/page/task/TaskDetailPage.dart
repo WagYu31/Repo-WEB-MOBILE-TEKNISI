@@ -144,10 +144,45 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     }
   }
 
+  // ── Geofence check ─────────────────────────────────────
+  /// Returns null if OK, error message if out of geofence.
+  String? _checkGeofence(Position pos) {
+    // Prioritas: koordinat kegiatan, fallback ke koordinat customer
+    final targetLat = double.tryParse(_task.latKegiatan ?? '') ??
+                      double.tryParse(_task.latCustomer ?? '');
+    final targetLon = double.tryParse(_task.lonKegiatan ?? '') ??
+                      double.tryParse(_task.lonCustomer ?? '');
+    if (targetLat == null || targetLon == null) return null; // no geofence set
+
+    final distance = Geolocator.distanceBetween(
+      pos.latitude, pos.longitude, targetLat, targetLon,
+    );
+    final maxRadius = _task.radGeofence.toDouble();
+    if (distance <= maxRadius) return null; // within geofence
+
+    return 'Anda berada ${distance.toStringAsFixed(0)}m dari lokasi tujuan.\n'
+           'Jarak maksimal: ${maxRadius.toStringAsFixed(0)}m.\n'
+           'Pastikan Anda berada di lokasi customer.';
+  }
+
   // ── Clock In ────────────────────────────────────────────
   Future<void> _doClockIn() async {
     final pos = await _getPosition();
     if (pos == null) { _slideKeyCI.currentState?.reset(); return; }
+
+    // Validasi geofence
+    final geoError = _checkGeofence(pos);
+    if (geoError != null) {
+      _slideKeyCI.currentState?.reset();
+      QuickAlert.show(
+        context: context,
+        type: QuickAlertType.warning,
+        title: 'Di Luar Jangkauan',
+        text: geoError,
+        confirmBtnColor: AppColors.warning,
+      );
+      return;
+    }
     try {
       final msg = await context.read<SalesProvider>().doClockIn(
         kegiatanId: _task.kegiatanId,
@@ -187,6 +222,20 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
 
     final pos = await _getPosition();
     if (pos == null) { _slideKeyCO.currentState?.reset(); return; }
+
+    // Validasi geofence
+    final geoError = _checkGeofence(pos);
+    if (geoError != null) {
+      _slideKeyCO.currentState?.reset();
+      QuickAlert.show(
+        context: context,
+        type: QuickAlertType.warning,
+        title: 'Di Luar Jangkauan',
+        text: geoError,
+        confirmBtnColor: AppColors.warning,
+      );
+      return;
+    }
 
     // Show loading overlay
     QuickAlert.show(

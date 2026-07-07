@@ -45,6 +45,9 @@ class VisitTask {
   final String? fotoCustomer;
   final String? latCustomer;
   final String? lonCustomer;
+  final String? latKegiatan;
+  final String? lonKegiatan;
+  final int radGeofence;
   final String? image1;
   final String? image2;
   final String? image3;
@@ -74,6 +77,9 @@ class VisitTask {
     this.fotoCustomer,
     this.latCustomer,
     this.lonCustomer,
+    this.latKegiatan,
+    this.lonKegiatan,
+    this.radGeofence = 100,
     this.image1,
     this.image2,
     this.image3,
@@ -106,6 +112,9 @@ class VisitTask {
         fotoCustomer: j['foto_customer'],
         latCustomer: j['lat_customer'],
         lonCustomer: j['lon_customer'],
+        latKegiatan: j['lat_kegiatan'],
+        lonKegiatan: j['lon_kegiatan'],
+        radGeofence: int.tryParse((j['rad_geofence'] ?? '100').toString()) ?? 100,
         image1: j['image_1'],
         image2: j['image_2'],
         image3: j['image_3'],
