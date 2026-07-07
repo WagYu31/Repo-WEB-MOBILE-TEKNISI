@@ -99,4 +99,37 @@ class ApiSales {
     }
     throw Exception(data['message'] ?? 'Clock Out gagal');
   }
+
+  Future<Map<String, dynamic>> updateReport({
+    required int kegiatanId,
+    required int salesId,
+    required String catatanVisit,
+    required List<String> images,
+  }) async {
+    final Map<String, dynamic> body = {
+      'kegiatan_id': kegiatanId,
+      'sales_id': salesId,
+      'catatan_visit': catatanVisit,
+    };
+
+    final listFields = ['image_satu', 'image_dua', 'image_tiga', 'image_empat', 'image_lima'];
+    for (int i = 0; i < 5; i++) {
+      if (i < images.length) {
+        body[listFields[i]] = images[i];
+      } else {
+        body[listFields[i]] = '';
+      }
+    }
+
+    final res = await http.post(
+      Uri.parse('$_base/api_sales_update_report.php'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(body),
+    );
+    final data = jsonDecode(res.body);
+    if (res.statusCode == 200 && data['status'] == 'success') {
+      return data;
+    }
+    throw Exception(data['message'] ?? 'Gagal memperbarui laporan');
+  }
 }

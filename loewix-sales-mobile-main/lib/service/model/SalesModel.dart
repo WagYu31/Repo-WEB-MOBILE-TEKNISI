@@ -45,6 +45,11 @@ class VisitTask {
   final String? fotoCustomer;
   final String? latCustomer;
   final String? lonCustomer;
+  final String? image1;
+  final String? image2;
+  final String? image3;
+  final String? image4;
+  final String? image5;
 
   VisitTask({
     required this.kegiatanId,
@@ -69,6 +74,11 @@ class VisitTask {
     this.fotoCustomer,
     this.latCustomer,
     this.lonCustomer,
+    this.image1,
+    this.image2,
+    this.image3,
+    this.image4,
+    this.image5,
   });
 
   factory VisitTask.fromJson(Map<String, dynamic> j) => VisitTask(
@@ -96,10 +106,25 @@ class VisitTask {
         fotoCustomer: j['foto_customer'],
         latCustomer: j['lat_customer'],
         lonCustomer: j['lon_customer'],
+        image1: j['image_1'],
+        image2: j['image_2'],
+        image3: j['image_3'],
+        image4: j['image_4'],
+        image5: j['image_5'],
       );
 
   bool get sudahClockIn => ciAt != null && ciAt!.isNotEmpty;
   bool get sudahClockOut => coAt != null && coAt!.isNotEmpty;
   bool get sedangBerjalan => sudahClockIn && !sudahClockOut;
   bool get selesai => sudahClockOut;
+
+  List<String> get clockOutPhotos {
+    final list = <String>[];
+    if (image1 != null && image1!.isNotEmpty) list.add(image1!);
+    if (image2 != null && image2!.isNotEmpty) list.add(image2!);
+    if (image3 != null && image3!.isNotEmpty) list.add(image3!);
+    if (image4 != null && image4!.isNotEmpty) list.add(image4!);
+    if (image5 != null && image5!.isNotEmpty) list.add(image5!);
+    return list;
+  }
 }

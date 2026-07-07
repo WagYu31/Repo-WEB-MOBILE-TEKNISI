@@ -15,6 +15,7 @@ import 'package:geocoding/geocoding.dart';
 import '../../core/app_theme.dart';
 import '../../service/model/SalesModel.dart';
 import '../../service/provider/SalesProvider.dart';
+import '../../service/api/ApiLink.dart';
 
 class TaskDetailPage extends StatefulWidget {
   final VisitTask task;
@@ -293,6 +294,118 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     if (wa.startsWith('0')) wa = '62${wa.substring(1)}';
     launchUrl(Uri.parse('https://wa.me/$wa'),
         mode: LaunchMode.externalApplication);
+  }
+
+  void _viewFullImage(String imgUrl) {
+    showDialog(
+      context: context,
+      builder: (_) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(10),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            InteractiveViewer(
+              child: Image.network(
+                imgUrl,
+                fit: BoxFit.contain,
+                loadingBuilder: (_, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return const Center(child: CircularProgressIndicator(color: AppColors.primary));
+                },
+                errorBuilder: (_, __, ___) => const Center(
+                  child: Text('Gagal memuat gambar', style: TextStyle(color: Colors.white)),
+                ),
+              ),
+            ),
+            Positioned(
+              top: 10,
+              right: 10,
+              child: IconButton(
+                icon: const Icon(Icons.close_rounded, color: Colors.white, size: 30),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showEditReportSheet() async {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.cardAlt,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (_) => _EditReportSheet(
+        initialCatatan: _task.catatanVisit ?? '',
+        initialPhotos: _task.clockOutPhotos,
+        picker: _picker,
+        onSubmit: (catatan, photos) async {
+          Navigator.pop(context); // Close bottom sheet
+          
+          // Show loading overlay
+          QuickAlert.show(
+            context: context,
+            type: QuickAlertType.loading,
+            title: 'Memperbarui Laporan',
+            text: 'Sedang menyimpan perubahan laporan kunjungan...',
+            barrierDismissible: false,
+          );
+
+          try {
+            List<String> finalImages = [];
+            for (var item in photos) {
+              if (item.isExisting) {
+                finalImages.add(item.serverFilename!);
+              } else {
+                final bytes = await item.newFile!.readAsBytes();
+                finalImages.add(base64Encode(bytes));
+              }
+            }
+
+            final msg = await context.read<SalesProvider>().doUpdateReport(
+              kegiatanId: _task.kegiatanId,
+              catatan: catatan,
+              images: finalImages,
+            );
+
+            if (!mounted) return;
+            Navigator.pop(context); // Close loading overlay
+
+            // Refresh local task state from provider
+            final updatedTask = context.read<SalesProvider>().tasks.firstWhere(
+              (element) => element.kegiatanId == _task.kegiatanId,
+              orElse: () => _task,
+            );
+
+            setState(() {
+              _task = updatedTask;
+            });
+
+            QuickAlert.show(
+              context: context,
+              type: QuickAlertType.success,
+              title: 'Laporan Diperbarui!',
+              text: msg,
+              confirmBtnColor: AppColors.success,
+            );
+          } catch (e) {
+            if (!mounted) return;
+            Navigator.pop(context); // Close loading overlay
+            QuickAlert.show(
+              context: context,
+              type: QuickAlertType.error,
+              title: 'Gagal Memperbarui Laporan',
+              text: e.toString().replaceAll('Exception: ', ''),
+              confirmBtnColor: AppColors.error,
+            );
+          }
+        },
+      ),
+    );
   }
 
   @override
@@ -601,6 +714,112 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                   ),
                 ).animate(delay: 150.ms).fadeIn(duration: 400.ms).slideY(begin: 0.1, end: 0),
 
+                // ── Foto Dokumentasi Laporan ─────────────────
+                if (t.selesai && t.clockOutPhotos.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(18),
+                    decoration: AppTheme.cardDeco(),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.photo_camera_rounded,
+                                size: 16, color: AppColors.primary),
+                            const SizedBox(width: 8),
+                            Text('Dokumentasi Laporan', style: S.h3()),
+                            const Spacer(),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                '${t.clockOutPhotos.length} foto',
+                                style: S.micro(AppColors.primaryDark),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 14),
+                        SizedBox(
+                          height: 130,
+                          child: ListView.separated(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: t.clockOutPhotos.length,
+                            separatorBuilder: (_, __) => const SizedBox(width: 12),
+                            itemBuilder: (context, index) {
+                              final photo = t.clockOutPhotos[index];
+                              final imgUrl = '${Api.Url}/storage/image/$photo';
+                              final isVideo = photo.endsWith('.mp4') || photo.endsWith('.mov');
+                              return GestureDetector(
+                                onTap: () => _viewFullImage(imgUrl),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(14),
+                                  child: Container(
+                                    width: 170,
+                                    height: 130,
+                                    decoration: BoxDecoration(
+                                      color: AppColors.bg,
+                                      border: Border.all(color: AppColors.border),
+                                      borderRadius: BorderRadius.circular(14),
+                                    ),
+                                    child: isVideo
+                                        ? Center(
+                                            child: Column(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                Icon(Icons.play_circle_fill_rounded,
+                                                    color: AppColors.primary, size: 40),
+                                                const SizedBox(height: 4),
+                                                Text('Video', style: S.caption()),
+                                              ],
+                                            ),
+                                          )
+                                        : Image.network(
+                                            imgUrl,
+                                            fit: BoxFit.cover,
+                                            loadingBuilder: (_, child, loadingProgress) {
+                                              if (loadingProgress == null) return child;
+                                              return Center(
+                                                child: CircularProgressIndicator(
+                                                  color: AppColors.primary,
+                                                  strokeWidth: 2,
+                                                  value: loadingProgress.expectedTotalBytes != null
+                                                      ? loadingProgress.cumulativeBytesLoaded /
+                                                          loadingProgress.expectedTotalBytes!
+                                                      : null,
+                                                ),
+                                              );
+                                            },
+                                            errorBuilder: (_, __, ___) => const Center(
+                                              child: Column(
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                children: [
+                                                  Icon(Icons.image_not_supported_rounded,
+                                                      color: AppColors.textMuted, size: 28),
+                                                  SizedBox(height: 4),
+                                                  Text('Gagal memuat',
+                                                      style: TextStyle(
+                                                          fontSize: 10,
+                                                          color: AppColors.textMuted)),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ).animate(delay: 170.ms).fadeIn(duration: 400.ms).slideY(begin: 0.1, end: 0),
+                ],
+
                 // ── Map Card ────────────────────────────
                 const SizedBox(height: 16),
                 Container(
@@ -770,24 +989,62 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                     onSubmit: () { _doClockOut(); return null; },
                   ).animate(delay: 200.ms).fadeIn(duration: 500.ms).slideY(begin: 0.2, end: 0)
                 else
-                  Container(
-                    padding: const EdgeInsets.all(18),
-                    decoration: BoxDecoration(
-                      color: AppColors.success.withOpacity(0.08),
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(
-                          color: AppColors.success.withOpacity(0.3)),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.check_circle_rounded,
-                            color: AppColors.success, size: 24),
-                        const SizedBox(width: 10),
-                        Text('Kunjungan Selesai',
-                            style: S.h3(AppColors.success)),
-                      ],
-                    ),
+                  Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(18),
+                        decoration: BoxDecoration(
+                          color: AppColors.success.withOpacity(0.08),
+                          borderRadius: BorderRadius.circular(18),
+                          border: Border.all(
+                              color: AppColors.success.withOpacity(0.3)),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.check_circle_rounded,
+                                color: AppColors.success, size: 24),
+                            const SizedBox(width: 10),
+                            Text('Kunjungan Selesai',
+                                style: S.h3(AppColors.success)),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      // ── Edit Laporan Kunjungan Button ──────
+                      GestureDetector(
+                        onTap: _showEditReportSheet,
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 18),
+                          decoration: BoxDecoration(
+                            color: AppColors.card,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: AppColors.primary.withOpacity(0.4)),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.primary.withOpacity(0.08),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.edit_note_rounded,
+                                  color: AppColors.primaryDark, size: 22),
+                              const SizedBox(width: 8),
+                              Text('Edit Laporan Kunjungan',
+                                  style: S.body(AppColors.primaryDark)),
+                              const SizedBox(width: 4),
+                              Icon(Icons.arrow_forward_ios_rounded,
+                                  color: AppColors.primaryDark, size: 14),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ).animate(delay: 200.ms).fadeIn(duration: 500.ms),
 
                 const SizedBox(height: 16),
@@ -1147,6 +1404,360 @@ class _CatatanSheetState extends State<_CatatanSheet> {
                   const SizedBox(width: 8),
                   Text('Konfirmasi Clock Out', style: S.btn()),
                 ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Photo Item Model (for edit report) ───────────────────
+class _PhotoItem {
+  final String? serverFilename; // existing photo from server
+  final XFile? newFile;         // newly picked file from device
+
+  _PhotoItem.existing(this.serverFilename) : newFile = null;
+  _PhotoItem.picked(this.newFile) : serverFilename = null;
+
+  bool get isExisting => serverFilename != null;
+}
+
+// ── Edit Report Bottom Sheet ─────────────────────────────
+class _EditReportSheet extends StatefulWidget {
+  final String initialCatatan;
+  final List<String> initialPhotos;
+  final ImagePicker picker;
+  final Future<void> Function(String catatan, List<_PhotoItem> photos) onSubmit;
+
+  const _EditReportSheet({
+    required this.initialCatatan,
+    required this.initialPhotos,
+    required this.picker,
+    required this.onSubmit,
+  });
+
+  @override
+  State<_EditReportSheet> createState() => _EditReportSheetState();
+}
+
+class _EditReportSheetState extends State<_EditReportSheet> {
+  late TextEditingController _catCtrl;
+  late List<_PhotoItem> _items;
+  bool _submitting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _catCtrl = TextEditingController(text: widget.initialCatatan);
+    _items = widget.initialPhotos
+        .map((fn) => _PhotoItem.existing(fn))
+        .toList();
+  }
+
+  @override
+  void dispose() {
+    _catCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickFile(ImageSource source, {bool isVideo = false}) async {
+    Navigator.pop(context); // close source picker
+    if (_items.length >= 5) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Maksimal 5 file dokumentasi.')),
+      );
+      return;
+    }
+    XFile? f;
+    if (isVideo) {
+      f = await widget.picker.pickVideo(source: source);
+    } else {
+      f = await widget.picker.pickImage(
+          source: source, imageQuality: 75, maxWidth: 1280);
+    }
+    if (f != null && mounted) {
+      setState(() => _items.add(_PhotoItem.picked(f)));
+    }
+  }
+
+  void _showSourcePicker() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.cardAlt,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (_) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 8),
+            Container(width: 40, height: 4,
+                decoration: BoxDecoration(color: AppColors.border,
+                    borderRadius: BorderRadius.circular(2))),
+            const SizedBox(height: 16),
+            ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.camera_alt_rounded, color: AppColors.primary),
+              ),
+              title: Text('Ambil Foto (Kamera)', style: S.bodyLg()),
+              subtitle: Text('Gunakan kamera untuk memotret', style: S.caption()),
+              onTap: () => _pickFile(ImageSource.camera, isVideo: false),
+            ),
+            ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.videocam_rounded, color: AppColors.primary),
+              ),
+              title: Text('Ambil Video (Kamera)', style: S.bodyLg()),
+              subtitle: Text('Rekam video pendek', style: S.caption()),
+              onTap: () => _pickFile(ImageSource.camera, isVideo: true),
+            ),
+            ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.info.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.photo_library_rounded, color: AppColors.info),
+              ),
+              title: Text('Pilih dari Galeri (Foto/Video)', style: S.bodyLg()),
+              subtitle: Text('Pilih dari album penyimpanan', style: S.caption()),
+              onTap: () => _pickFile(ImageSource.gallery, isVideo: false),
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPhotoThumbnail(int index) {
+    final item = _items[index];
+    Widget thumbnail;
+
+    if (item.isExisting) {
+      final url = '${Api.Url}/storage/image/${item.serverFilename}';
+      final isVideo = item.serverFilename!.endsWith('.mp4') ||
+          item.serverFilename!.endsWith('.mov');
+      thumbnail = isVideo
+          ? const Center(
+              child: Icon(Icons.play_circle_fill_rounded,
+                  color: AppColors.primary, size: 32))
+          : Image.network(url, fit: BoxFit.cover,
+              loadingBuilder: (_, child, lp) {
+                if (lp == null) return child;
+                return const Center(
+                    child: CircularProgressIndicator(
+                        color: AppColors.primary, strokeWidth: 2));
+              },
+              errorBuilder: (_, __, ___) => const Center(
+                  child: Icon(Icons.image_not_supported_rounded,
+                      color: AppColors.textMuted)));
+    } else {
+      final path = item.newFile!.path;
+      final isVideo = path.endsWith('.mp4') ||
+          path.endsWith('.mov') ||
+          path.endsWith('.3gp');
+      thumbnail = isVideo
+          ? const Center(
+              child: Icon(Icons.play_circle_fill_rounded,
+                  color: AppColors.primary, size: 32))
+          : Image.file(File(path), fit: BoxFit.cover);
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(right: 10),
+      width: 90,
+      height: 90,
+      child: Stack(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: SizedBox(width: 90, height: 90, child: thumbnail),
+          ),
+          Positioned(
+            top: 4,
+            right: 4,
+            child: GestureDetector(
+              onTap: () => setState(() => _items.removeAt(index)),
+              child: Container(
+                padding: const EdgeInsets.all(3),
+                decoration: const BoxDecoration(
+                  color: AppColors.error,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.close, color: Colors.white, size: 13),
+              ),
+            ),
+          ),
+          // Badge: existing vs new
+          if (item.isExisting)
+            Positioned(
+              bottom: 4,
+              left: 4,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.black54,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: const Text('Server',
+                    style: TextStyle(color: Colors.white, fontSize: 8)),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        left: 20, right: 20, top: 16,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Handle
+          Center(
+            child: Container(
+              width: 40, height: 4,
+              decoration: BoxDecoration(
+                  color: AppColors.border,
+                  borderRadius: BorderRadius.circular(2)),
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          Row(
+            children: [
+              const Icon(Icons.edit_note_rounded,
+                  color: AppColors.primary, size: 22),
+              const SizedBox(width: 8),
+              Text('Edit Laporan Kunjungan', style: S.h2()),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text('Ubah catatan dan kelola dokumentasi foto/video',
+              style: S.caption()),
+          const SizedBox(height: 20),
+
+          // Catatan field
+          Text('Catatan Kunjungan', style: S.micro(AppColors.textSecondary)),
+          const SizedBox(height: 6),
+          TextField(
+            controller: _catCtrl,
+            maxLines: 3,
+            style: S.body(AppColors.textPrimary),
+            decoration: const InputDecoration(
+              hintText: 'Tuliskan catatan kunjungan...',
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Photos section
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Dokumentasi (${_items.length}/5)',
+                  style: S.micro(AppColors.textSecondary)),
+              if (_items.length < 5)
+                GestureDetector(
+                  onTap: _showSourcePicker,
+                  child: Row(
+                    children: [
+                      const Icon(Icons.add_photo_alternate_outlined,
+                          color: AppColors.primaryLight, size: 16),
+                      const SizedBox(width: 4),
+                      Text('Tambah', style: S.caption(AppColors.primaryLight)),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
+
+          if (_items.isNotEmpty)
+            SizedBox(
+              height: 95,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: _items.length,
+                itemBuilder: (_, i) => _buildPhotoThumbnail(i),
+              ),
+            )
+          else
+            GestureDetector(
+              onTap: _showSourcePicker,
+              child: Container(
+                height: 80,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: AppColors.bg,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                      color: AppColors.border, style: BorderStyle.solid),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.add_a_photo_outlined,
+                        color: AppColors.textMuted, size: 24),
+                    const SizedBox(height: 6),
+                    Text('Tambah Foto / Video', style: S.caption()),
+                  ],
+                ),
+              ),
+            ),
+
+          const SizedBox(height: 20),
+
+          // Submit button
+          GestureDetector(
+            onTap: _submitting
+                ? null
+                : () {
+                    final catatan = _catCtrl.text.trim();
+                    setState(() => _submitting = true);
+                    widget.onSubmit(catatan, List.from(_items));
+                  },
+            child: Container(
+              width: double.infinity,
+              height: 52,
+              decoration: AppTheme.btnDeco(radius: 14),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: _submitting
+                    ? [
+                        const SizedBox(
+                          width: 20, height: 20,
+                          child: CircularProgressIndicator(
+                              color: Colors.white, strokeWidth: 2),
+                        ),
+                        const SizedBox(width: 10),
+                        Text('Menyimpan...', style: S.btn()),
+                      ]
+                    : [
+                        const Icon(Icons.save_rounded,
+                            color: Colors.white, size: 20),
+                        const SizedBox(width: 8),
+                        Text('Simpan Perubahan', style: S.btn()),
+                      ],
               ),
             ),
           ),

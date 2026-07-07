@@ -163,6 +163,22 @@ class SalesProvider extends ChangeNotifier {
     await fetchTasks();
     return res['message'] ?? 'Clock Out berhasil';
   }
+
+  // ─── Update Report ────────────────────────────────────────
+  Future<String> doUpdateReport({
+    required int kegiatanId,
+    required String catatan,
+    required List<String> images,
+  }) async {
+    final res = await _api.updateReport(
+      kegiatanId: kegiatanId,
+      salesId: _profile!.id,
+      catatanVisit: catatan,
+      images: images,
+    );
+    await fetchTasks();
+    return res['message'] ?? 'Laporan berhasil diperbarui';
+  }
 }
 
 // ─── Model: Akun Tersimpan ────────────────────────────────
