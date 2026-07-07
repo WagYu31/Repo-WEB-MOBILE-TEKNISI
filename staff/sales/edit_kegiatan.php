@@ -39,10 +39,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $jadwal = $_POST['jadwal'];
     $keterangan = $_POST['keterangan'];
     $team_sales = $_POST['sales'] ?? [];
+    $lat = !empty($_POST['lat']) ? $_POST['lat'] : NULL;
+    $lon = !empty($_POST['lon']) ? $_POST['lon'] : NULL;
+    $rad = !empty($_POST['radius']) ? $_POST['radius'] : NULL;
+    $alamat_lokasi = !empty($_POST['location_address']) ? $_POST['location_address'] : NULL;
 
-    // Update kegiatan_sales
-    $stmt = $conn->prepare("UPDATE kegiatan_sales SET jadwal = ?, keterangan = ?, updated_at = NOW() WHERE id = ?");
-    $stmt->bind_param("ssi", $jadwal, $keterangan, $kegiatan_id);
+    // Update kegiatan_sales (termasuk lokasi geofence)
+    $stmt = $conn->prepare("UPDATE kegiatan_sales SET jadwal = ?, keterangan = ?, lat = ?, lon = ?, rad = ?, alamat_lokasi = ?, updated_at = NOW() WHERE id = ?");
+    $stmt->bind_param("ssssssi", $jadwal, $keterangan, $lat, $lon, $rad, $alamat_lokasi, $kegiatan_id);
     $stmt->execute();
 
     // Hitung perubahan tim sales
@@ -86,8 +90,10 @@ while ($r = mysqli_fetch_assoc($res)) {
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <?php include "head.php"; ?>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
-    /* ── Premium Card ── */
+    #map { height: 300px; border-radius: 12px; border: 2px solid #e2e8f0; margin-bottom: 12px; }
     .card-premium {
       background: #fff;
       border: none;
@@ -398,6 +404,66 @@ while ($r = mysqli_fetch_assoc($res)) {
 
             <div class="section-divider"></div>
 
+            <!-- ═══ Lokasi & Peta Geofence ═══ -->
+            <div class="form-group-premium">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+                <div style="width:3px;height:16px;background:#10b981;border-radius:2px;"></div>
+                <span style="font-size:12px;font-weight:800;color:#1e293b;text-transform:uppercase;letter-spacing:0.05em;">Lokasi & Peta Geofence</span>
+                <span style="font-size:11px;color:#94a3b8;font-weight:400;margin-left:4px;">(Opsional)</span>
+              </div>
+
+              <div class="form-group-premium">
+                <label class="form-label-premium">
+                  <i class="fa-solid fa-magnifying-glass text-xs me-1 text-primary"></i> Cari Koordinat / Alamat
+                </label>
+                <div class="d-flex gap-2">
+                  <input type="text" id="gmap_search" class="input-premium" placeholder="Contoh: Jawa Timur atau -6.175, 106.827...">
+                  <button type="button" id="gmap_search_btn" class="btn bg-gradient-info text-white font-weight-bold" style="border-radius:10px; padding: 12px 18px; font-size:11px; display:inline-flex; align-items:center; gap:4px; margin-bottom:0;">
+                    <i class="fa-solid fa-magnifying-glass text-xs"></i> CARI
+                  </button>
+                </div>
+              </div>
+
+              <div id="map"></div>
+
+              <div class="d-flex justify-content-between align-items-center mt-3">
+                <button type="button" id="btn_get_location" class="btn btn-outline-primary btn-sm mb-0 d-flex align-items-center gap-1 font-weight-bold" style="border-radius: 8px; font-size: 11px;">
+                  <i class="fa-solid fa-location-crosshairs text-xs"></i> Dapatkan Lokasi Saya
+                </button>
+                <div class="d-flex align-items-center gap-2">
+                  <span class="text-xs text-secondary font-weight-bold">Radius:</span>
+                  <input type="number" id="radius_input" class="input-premium" value="<?php echo $kegiatan['rad'] ?? 100; ?>" style="font-size:12px; padding: 6px 8px !important; text-align:center; width: 60px; border-radius: 8px; margin-bottom: 0;">
+                  <span class="text-xs text-secondary font-weight-bold">Meter</span>
+                </div>
+              </div>
+
+              <div class="mt-3">
+                <label class="form-label-premium d-flex justify-content-between mb-1" style="font-size: 10px; color:#64748b;">
+                  <span>Sesuaikan Geofence Radius (Meter)</span>
+                  <span id="slider_val" class="text-primary font-weight-bold"><?php echo ($kegiatan['rad'] ?? 100); ?>m</span>
+                </label>
+                <input type="range" id="radius_slider" min="10" max="1000" step="10" value="<?php echo $kegiatan['rad'] ?? 100; ?>" class="form-range w-100" style="accent-color: #3b82f6;">
+              </div>
+
+              <div class="row g-2 mt-2">
+                <div class="col-6">
+                  <label class="form-label-premium" style="font-size: 9px; color:#64748b;">Latitude</label>
+                  <input type="text" id="lat_display" class="input-premium" placeholder="-6.xxxxx" value="<?php echo $kegiatan['lat'] ?? ''; ?>" style="font-family: monospace; font-size:12px; padding: 8px 12px !important; background:#f8fafc; border-radius: 8px;" readonly>
+                </div>
+                <div class="col-6">
+                  <label class="form-label-premium" style="font-size: 9px; color:#64748b;">Longitude</label>
+                  <input type="text" id="lon_display" class="input-premium" placeholder="106.xxxxx" value="<?php echo $kegiatan['lon'] ?? ''; ?>" style="font-family: monospace; font-size:12px; padding: 8px 12px !important; background:#f8fafc; border-radius: 8px;" readonly>
+                </div>
+              </div>
+
+              <input type="hidden" id="lat" name="lat" value="<?php echo $kegiatan['lat'] ?? ''; ?>">
+              <input type="hidden" id="lon" name="lon" value="<?php echo $kegiatan['lon'] ?? ''; ?>">
+              <input type="hidden" id="radius" name="radius" value="<?php echo $kegiatan['rad'] ?? 100; ?>">
+              <input type="hidden" id="location_address" name="location_address" value="<?php echo htmlspecialchars($kegiatan['alamat_lokasi'] ?? ''); ?>">
+            </div>
+
+            <div class="section-divider"></div>
+
             <!-- ═══ Pilih Sales (Cards) ═══ -->
             <div class="form-group-premium">
               <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
@@ -478,6 +544,110 @@ while ($r = mysqli_fetch_assoc($res)) {
       var options = { damping: '0.5' }
       Scrollbar.init(document.querySelector('#sidenav-scrollbar'), options);
     }
+
+    // ── Leaflet Map Initialization ──
+    document.addEventListener('DOMContentLoaded', function() {
+      const existLat = <?php echo !empty($kegiatan['lat']) ? $kegiatan['lat'] : '-6.13037'; ?>;
+      const existLon = <?php echo !empty($kegiatan['lon']) ? $kegiatan['lon'] : '106.75144'; ?>;
+      const existRad = <?php echo !empty($kegiatan['rad']) ? $kegiatan['rad'] : '100'; ?>;
+
+      const map = L.map('map').setView([existLat, existLon], 15);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap contributors'
+      }).addTo(map);
+
+      let marker = L.marker([existLat, existLon], { draggable: true }).addTo(map);
+      let circle = L.circle([existLat, existLon], {
+        radius: existRad,
+        color: '#2563eb',
+        fillColor: '#3b82f6',
+        fillOpacity: 0.12,
+        weight: 1.5,
+        dashArray: '5, 5'
+      }).addTo(map);
+
+      const radInput = document.getElementById('radius_input');
+      const radSlider = document.getElementById('radius_slider');
+      const sliderVal = document.getElementById('slider_val');
+
+      function syncRadius(value) {
+        const r = parseInt(value) || 100;
+        radInput.value = r;
+        radSlider.value = r;
+        sliderVal.innerText = r + 'm';
+        circle.setRadius(r);
+        document.getElementById('radius').value = r;
+      }
+
+      radInput.addEventListener('input', function() { syncRadius(this.value); });
+      radSlider.addEventListener('input', function() { syncRadius(this.value); });
+
+      function updateAllData(latlng, rad) {
+        const r = parseInt(rad) || 100;
+        marker.setLatLng(latlng);
+        circle.setLatLng(latlng).setRadius(r);
+        map.setView(latlng, 16);
+        document.getElementById('lat').value = latlng.lat;
+        document.getElementById('lon').value = latlng.lng;
+        document.getElementById('lat_display').value = latlng.lat.toFixed(6);
+        document.getElementById('lon_display').value = latlng.lng.toFixed(6);
+        syncRadius(r);
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latlng.lat}&lon=${latlng.lng}&accept-language=id`)
+          .then(res => res.json())
+          .then(data => { document.getElementById('location_address').value = data?.display_name || ''; })
+          .catch(() => { document.getElementById('location_address').value = ''; });
+      }
+
+      map.on('click', function(e) { updateAllData(e.latlng, radInput.value); });
+      marker.on('dragend', function() { updateAllData(marker.getLatLng(), radInput.value); });
+
+      document.getElementById('btn_get_location').addEventListener('click', function() {
+        const btn = this;
+        const orig = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Mencari Lokasi...';
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            function(pos) {
+              updateAllData(L.latLng(pos.coords.latitude, pos.coords.longitude), radInput.value);
+              btn.disabled = false;
+              btn.innerHTML = orig;
+            },
+            function(err) {
+              alert('Gagal mendapatkan lokasi: ' + err.message);
+              btn.disabled = false;
+              btn.innerHTML = orig;
+            },
+            { enableHighAccuracy: true, timeout: 5000 }
+          );
+        } else {
+          alert('Browser tidak mendukung Geolocation.');
+          btn.disabled = false;
+          btn.innerHTML = orig;
+        }
+      });
+
+      document.getElementById('gmap_search_btn').addEventListener('click', function() {
+        const query = document.getElementById('gmap_search').value.trim();
+        if (!query) return;
+        const coordsRegex = /^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?),\s*[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$/;
+        if (coordsRegex.test(query)) {
+          const parts = query.split(',');
+          updateAllData(L.latLng(parseFloat(parts[0]), parseFloat(parts[1])), radInput.value);
+        } else {
+          fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1&countrycodes=id&accept-language=id`)
+            .then(res => res.json())
+            .then(data => {
+              if (data && data.length > 0) {
+                updateAllData(L.latLng(parseFloat(data[0].lat), parseFloat(data[0].lon)), radInput.value);
+              } else {
+                alert('Alamat tidak ditemukan.');
+              }
+            });
+        }
+      });
+    });
   </script>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </body>
