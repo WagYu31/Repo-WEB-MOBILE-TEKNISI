@@ -287,7 +287,7 @@ if ($resSalesList) {
                     <div class="form-group mt-3">
                         <label class="form-label text-xs font-weight-bold text-secondary text-uppercase mb-1">Nama Sheet (Tab)</label>
                         <input type="text" name="sheet_name" id="sheetNameInput" class="form-control border p-2 text-sm" 
-                               placeholder="Contoh: Sheet1" value="Sheet1" style="border-radius: 8px;" required>
+                               placeholder="Contoh: Sheet1" value="LAPORAN MINGGUAN" style="border-radius: 8px;" required>
                     </div>
 
                     <div class="row mt-3">
