@@ -1,33 +1,70 @@
 <?php
+// Filter variables
+$filterSales = isset($_GET['id_sales']) ? intval($_GET['id_sales']) : 0;
+$filterBulan = isset($_GET['bulan']) ? trim($_GET['bulan']) : date("Y-m");
 
-if (isset($_GET['cariTgl']) && !empty($_GET['cariTgl'])) {
-    $current_date = $_GET['cariTgl'];
-} else {
-    $current_date = date("Y-m-d"); // Today's date
+// Fetch sales list for dropdown
+$resSalesList = mysqli_query($conn, "SELECT id, nama FROM sales WHERE deleted_at IS NULL ORDER BY nama ASC");
+$salesOptions = [];
+if ($resSalesList) {
+    while ($rS = mysqli_fetch_assoc($resSalesList)) {
+        $salesOptions[] = $rS;
+    }
 }
 ?>
 <div class="col-lg-12">
     <div class="card h-100 py-3" style="border-radius: 16px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05); border: none;">
-        <div class="card-header pb-0 p-3 bg-transparent border-bottom-0">
-            <div class="row">
-                <div class="col-12 col-md-6 d-flex align-items-center">
+        <div class="card-header pb-3 p-3 bg-transparent border-bottom">
+            <div class="row align-items-center">
+                <div class="col-12 col-xl-4 d-flex align-items-center mb-3 mb-xl-0">
                     <h5 class="mb-0 mx-1 ms-2 font-weight-bold text-dark text-uppercase" style="letter-spacing: 0.5px;"><i class="fa-solid fa-clipboard-list text-primary me-2"></i>Laporan Kunjungan Sales</h5>
                 </div>
-                <div class="col-12 col-md-6 d-flex align-items-center justify-content-center flex-row">
-
+                <div class="col-12 col-xl-8">
+                    <form method="GET" action="" class="row g-2 align-items-center justify-content-xl-end">
+                        <div class="col-12 col-sm-4">
+                            <select name="id_sales" class="form-select border p-2 bg-white text-dark" style="border-radius: 8px;">
+                                <option value="0">-- Semua Sales --</option>
+                                <?php foreach ($salesOptions as $opt) : ?>
+                                    <option value="<?php echo $opt['id']; ?>" <?php echo $filterSales == $opt['id'] ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($opt['nama']); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="col-12 col-sm-3">
+                            <input type="month" class="form-control border p-2 bg-white text-dark" name="bulan" value="<?php echo $filterBulan; ?>" style="border-radius: 8px;">
+                        </div>
+                        <div class="col-6 col-sm-2 d-grid">
+                            <button type="submit" class="btn bg-gradient-primary mb-0 p-2 text-white" style="border-radius: 8px;">Cari</button>
+                        </div>
+                        <div class="col-6 col-sm-3 d-grid">
+                            <button type="button" class="btn bg-gradient-success mb-0 p-2 text-white" style="border-radius: 8px;" data-bs-toggle="modal" data-bs-target="#syncSheetsModal">
+                                <i class="fa-solid fa-file-excel me-1"></i>Sync Sheets
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
         <?php
-        // Kueri SQL untuk memilih data kegiatan sales dan customer
+        // Build SQL with filters
+        $whereClauses = ["ks.deleted_at IS NULL"];
+        if ($filterSales > 0) {
+            $whereClauses[] = "ks.id IN (SELECT id_kegiatan_sales FROM team_kegiatan_sales WHERE id_sales = $filterSales AND deleted_at IS NULL)";
+        }
+        if (!empty($filterBulan)) {
+            $whereClauses[] = "DATE_FORMAT(ks.jadwal, '%Y-%m') = '" . mysqli_real_escape_string($conn, $filterBulan) . "'";
+        }
+        
+        $whereSql = implode(" AND ", $whereClauses);
+
         $sql = "SELECT ks.id, ks.id AS kode_transaksi, ks.jadwal AS tgl_visits, sc.nama AS nama_cust, sc.id AS id_cust
                 FROM kegiatan_sales ks
                 INNER JOIN sales_customer sc ON ks.id_customer = sc.id
-                WHERE ks.deleted_at IS NULL
+                WHERE $whereSql
                 ORDER BY ks.jadwal DESC";
 
         $result = mysqli_query($conn, $sql);
-
         ?>
         <div class="card-body p-3">
             <?php
@@ -78,6 +115,9 @@ if (isset($_GET['cariTgl']) && !empty($_GET['cariTgl'])) {
                                           JOIN kegiatan_sales ks ON tks.id_kegiatan_sales = ks.id
                                           LEFT JOIN pelaksanaan_sales ps ON ps.kegiatan_id = tks.id_kegiatan_sales AND ps.sales_id = tks.id_sales
                                           WHERE tks.id_kegiatan_sales = '$kegiatanId' AND tks.deleted_at IS NULL";
+                            if ($filterSales > 0) {
+                                $sqlLapTek .= " AND tks.id_sales = $filterSales";
+                            }
                             $resLapTek = mysqli_query($conn, $sqlLapTek);
                             if ($resLapTek && mysqli_num_rows($resLapTek) > 0) {
                             ?>
@@ -207,13 +247,112 @@ if (isset($_GET['cariTgl']) && !empty($_GET['cariTgl'])) {
                             ?>
                         </div>
                     </div>
-                <?php
-                    }
-                } else {
-                    echo "<div class='text-center text-sm text-secondary py-4'>Tidak ada data kunjungan.</div>";
-                }
-                ?>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Modal Sync Google Sheets -->
+<div class="modal fade" id="syncSheetsModal" tabindex="-1" aria-labelledby="syncSheetsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 16px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title font-weight-bold text-dark" id="syncSheetsModalLabel">
+                    <i class="fa-solid fa-file-excel text-success me-2"></i>Sync ke Google Sheets
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="syncSheetsForm">
+                <div class="modal-body py-3">
+                    <div class="alert alert-info text-white text-xs border-0" style="background: linear-gradient(135deg, #1d4ed8, #3b82f6); border-radius: 12px; line-height: 1.5;">
+                        <i class="fa-solid fa-circle-info me-2 text-sm"></i>
+                        Pastikan Anda telah membagikan Spreadsheet target sebagai <strong>Editor</strong> ke email service account berikut:<br>
+                        <code class="text-white bg-dark px-2 py-1 mt-1 d-inline-block rounded-sm select-all" style="font-family: monospace; font-size: 11px; letter-spacing: 0.2px;">sheets-sync@loewix-sales.iam.gserviceaccount.com</code>
+                    </div>
+
+                    <div class="form-group mt-3">
+                        <label class="form-label text-xs font-weight-bold text-secondary text-uppercase mb-1">ID Spreadsheet atau URL</label>
+                        <input type="text" name="spreadsheet_id" id="sheetIdInput" class="form-control border p-2 text-sm" 
+                               placeholder="Masukkan ID / Link Google Sheets" 
+                               value="19OV073XNHmo7zACGOpYPyEcmodlZmEv4wzFq7Fg_uoU" style="border-radius: 8px;" required>
+                    </div>
+
+                    <div class="form-group mt-3">
+                        <label class="form-label text-xs font-weight-bold text-secondary text-uppercase mb-1">Nama Sheet (Tab)</label>
+                        <input type="text" name="sheet_name" id="sheetNameInput" class="form-control border p-2 text-sm" 
+                               placeholder="Contoh: Sheet1" value="Sheet1" style="border-radius: 8px;" required>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-6">
+                            <label class="form-label text-xs font-weight-bold text-secondary text-uppercase mb-1">Bulan</label>
+                            <input type="text" class="form-control border p-2 text-sm bg-light" value="<?php echo date('F Y', strtotime($filterBulan . '-01')); ?>" style="border-radius: 8px;" readonly disabled>
+                            <input type="hidden" name="bulan" value="<?php echo $filterBulan; ?>">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label text-xs font-weight-bold text-secondary text-uppercase mb-1">Sales Agent</label>
+                            <?php
+                            $selectedSalesName = "Semua Sales";
+                            if ($filterSales > 0) {
+                                foreach ($salesOptions as $opt) {
+                                    if ($opt['id'] == $filterSales) {
+                                        $selectedSalesName = $opt['nama'];
+                                        break;
+                                    }
+                                }
+                            }
+                            ?>
+                            <input type="text" class="form-control border p-2 text-sm bg-light" value="<?php echo htmlspecialchars($selectedSalesName); ?>" style="border-radius: 8px;" readonly disabled>
+                            <input type="hidden" name="id_sales" value="<?php echo $filterSales; ?>">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-link text-secondary mb-0" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn bg-gradient-success mb-0" id="btnDoSync" style="border-radius: 8px;">
+                        <span id="syncSpinner" class="spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true"></span>
+                        Mulai Sync
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(document).ready(function() {
+    $("#syncSheetsForm").on('submit', function(e) {
+        e.preventDefault();
+        
+        const btn = $("#btnDoSync");
+        const spinner = $("#syncSpinner");
+        
+        btn.prop('disabled', true);
+        spinner.removeClass('d-none');
+        
+        $.ajax({
+            url: "proses-sync-sheets.php",
+            type: "POST",
+            data: $(this).serialize(),
+            dataType: "json",
+            success: function(response) {
+                btn.prop('disabled', false);
+                spinner.addClass('d-none');
+                
+                if (response.status === 'success') {
+                    alert(response.message);
+                    $("#syncSheetsModal").modal('hide');
+                } else {
+                    alert("Gagal: " . response.message);
+                }
+            },
+            error: function(xhr, status, error) {
+                btn.prop('disabled', false);
+                spinner.addClass('d-none');
+                alert("Terjadi kesalahan koneksi server: " + error);
+            }
+        });
+    });
+});
+</script>
