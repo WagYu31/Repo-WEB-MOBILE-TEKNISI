@@ -7,33 +7,30 @@ require_once "GoogleSheetsClient.php";
 
 try {
     $keyPath = __DIR__ . '/../../staff/config/google-sheets-key.json';
-    echo "Checking key path: " . $keyPath . "\n";
-    echo "File exists: " . (file_exists($keyPath) ? 'Yes' : 'No') . "\n";
-    echo "Is readable: " . (is_readable($keyPath) ? 'Yes' : 'No') . "\n";
-    echo "Permissions: " . substr(sprintf('%o', fileperms($keyPath)), -4) . "\n";
-
-    if (file_exists($keyPath)) {
-        $content = file_get_contents($keyPath);
-        $json = json_decode($content, true);
-        echo "Valid JSON: " . ($json ? 'Yes' : 'No') . "\n";
-        if ($json) {
-            echo "Client Email: " . ($json['client_email'] ?? 'Not set') . "\n";
-            echo "Private Key length: " . (isset($json['private_key']) ? strlen($json['private_key']) : 0) . "\n";
-        }
-    }
-
-    echo "\nTesting Client Authentication...\n";
-    $client = new GoogleSheetsClient($keyPath);
     
-    // Test spreadsheet (the one shared by user)
+    $client = new GoogleSheetsClient($keyPath);
+    $client->authenticate();
+    $accessToken = $client->accessToken;
+    
     $testSpreadsheetId = "19OV073XNHmo7zACGOpYPyEcmodlZmEv4wzFq7Fg_uoU";
     
-    // Just try to clear a dummy cell to test authentication & write permissions
-    // Using a safe dummy cell Sheet1!Z100
-    echo "Sending authentication and clearing cell Sheet1!Z100...\n";
-    $res = $client->clearValues($testSpreadsheetId, "Sheet1!Z100");
-    echo "Success! Google API Response:\n";
-    print_r($res);
+    echo "Testing GET request for Spreadsheet metadata...\n";
+    $url = "https://sheets.googleapis.com/v4/spreadsheets/" . urlencode($testSpreadsheetId);
+    
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        "Authorization: Bearer " . $accessToken
+    ]);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    
+    echo "HTTP Status Code: " . $httpCode . "\n";
+    echo "Response:\n";
+    echo $response . "\n";
 
 } catch (Exception $e) {
     echo "Error caught: " . $e->getMessage() . "\n";
