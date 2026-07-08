@@ -12,6 +12,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:video_compress/video_compress.dart';
 import '../../core/app_theme.dart';
 import '../../service/model/SalesModel.dart';
 import '../../service/provider/SalesProvider.dart';
@@ -247,12 +248,36 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     );
 
     try {
-      // Encode images to base64
+      // Encode images/videos to base64 (compress videos first)
       List<String> base64Images = [];
       for (var f in _capturedPhotos) {
-        final bytes = await f.readAsBytes();
-        final b64 = base64Encode(bytes);
-        base64Images.add(b64);
+        final path = f.path.toLowerCase();
+        final isVideo = path.endsWith('.mp4') || path.endsWith('.mov') || path.endsWith('.3gp') || path.endsWith('.avi') || path.endsWith('.webm');
+        
+        if (isVideo) {
+          // Compress video before encoding
+          try {
+            final info = await VideoCompress.compressVideo(
+              f.path,
+              quality: VideoQuality.MediumQuality,
+              deleteOrigin: false,
+            );
+            if (info != null && info.file != null) {
+              final bytes = await info.file!.readAsBytes();
+              base64Images.add(base64Encode(bytes));
+            } else {
+              // Fallback: send original
+              final bytes = await f.readAsBytes();
+              base64Images.add(base64Encode(bytes));
+            }
+          } catch (_) {
+            final bytes = await f.readAsBytes();
+            base64Images.add(base64Encode(bytes));
+          }
+        } else {
+          final bytes = await f.readAsBytes();
+          base64Images.add(base64Encode(bytes));
+        }
       }
 
       final msg = await context.read<SalesProvider>().doClockOut(
