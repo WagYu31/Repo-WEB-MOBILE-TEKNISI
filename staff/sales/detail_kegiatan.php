@@ -555,11 +555,16 @@ $left_col_class = $has_coords ? "col-lg-7" : "col-lg-12";
 
           <!-- Tim Sales & Laporan Lapangan Section -->
           <div class="card-premium">
-            <div class="section-header-premium">
+            <div class="section-header-premium" style="justify-content: space-between;">
               <h6>
                 <span class="material-symbols-outlined">groups</span>
                 Tim Sales &amp; Laporan Lapangan
               </h6>
+              <?php if (!empty($data['kode'])): ?>
+              <span style="background:rgba(255,255,255,0.15); color:#fff; font-size:12px; font-weight:700; padding:5px 14px; border-radius:8px; font-family:monospace; letter-spacing:0.5px; border:1px solid rgba(255,255,255,0.25);">
+                🏷️ <?= htmlspecialchars($data['kode']); ?>
+              </span>
+              <?php endif; ?>
             </div>
             <div class="card-body-premium">
               <?php if ($sales_count > 0): ?>
