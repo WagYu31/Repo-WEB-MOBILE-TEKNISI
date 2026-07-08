@@ -5,6 +5,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'core/app_theme.dart';
 import 'service/provider/SalesProvider.dart';
 import 'service/api/VersionChecker.dart';
+import 'service/notification/NotificationService.dart';
 import 'page/login/LoginPage.dart';
 import 'page/home/HomePage.dart';
 import 'page/update/ForceUpdatePage.dart';
@@ -12,6 +13,7 @@ import 'page/update/ForceUpdatePage.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('id', null);
+  await NotificationService().init();
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,

@@ -7,6 +7,7 @@ import '../../service/provider/SalesProvider.dart';
 import '../task/TaskListPage.dart';
 import '../rekap/RekapPage.dart';
 import '../profile/ProfilePage.dart';
+import '../../service/notification/NotificationService.dart';
 
 class HomePage extends StatefulWidget {
   static const routeName = '/home';
@@ -23,7 +24,13 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<SalesProvider>().fetchTasks(filter: 'today');
+      final prov = context.read<SalesProvider>();
+      prov.fetchTasks(filter: 'today');
+      // Register background notification check
+      final salesId = prov.profile?.id?.toString() ?? '';
+      if (salesId.isNotEmpty) {
+        NotificationService().registerPeriodicCheck(salesId);
+      }
     });
   }
 
