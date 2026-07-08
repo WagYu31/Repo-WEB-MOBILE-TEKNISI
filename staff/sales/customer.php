@@ -1026,6 +1026,9 @@ $salesData = mysqli_query($conn, "
                         <?= htmlspecialchars($regionName); ?>
                       </span>
                     </div>
+                    <?php if (!empty($row['kode_customer'])): ?>
+                      <span style="font-size:10px; font-family:monospace; color:#3b82f6; font-weight:700; letter-spacing:0.5px;"><?= htmlspecialchars($row['kode_customer']); ?></span>
+                    <?php endif; ?>
                   </div>
                 </div>
               </td>

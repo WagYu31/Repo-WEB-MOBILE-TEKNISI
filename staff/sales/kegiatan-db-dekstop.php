@@ -60,6 +60,9 @@
         <div class="col-6 col-md-2 mb-2 mt-n2 mb-md-0 text-center text-md-left d-flex justify-content-center align-items-center flex-column">
             <h6 class="text-dark font-weight-bold mb-0 text-sm"><?php echo $data['customer'][0]; ?></h6>
             <span class="text-xs text-uppercase"><a href="https://api.whatsapp.com/send?phone=<?php echo $nomorHandphone; ?>" target="_blank"><?php echo $data['cust_nomor'][0]; ?></a></span>
+            <?php if (!empty($kodeTransaksi)): ?>
+              <span style="font-size:9px; font-family:monospace; color:#3b82f6; font-weight:700; margin-top:2px;"><?php echo $kodeTransaksi; ?></span>
+            <?php endif; ?>
         </div>
 
         <?php

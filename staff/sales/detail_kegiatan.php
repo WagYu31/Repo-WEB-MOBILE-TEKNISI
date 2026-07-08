@@ -452,6 +452,13 @@ $left_col_class = $has_coords ? "col-lg-7" : "col-lg-12";
             <p style="color:rgba(255,255,255,0.7); margin:4px 0 0 0; font-size:12px; font-weight:500;">
               Wilayah: <strong style="color:#fff;"><?= htmlspecialchars($data['nama_wilayah'] ?? 'Tanpa Wilayah'); ?></strong>
             </p>
+            <?php if (!empty($data['kode'])): ?>
+            <div style="margin-top:6px;">
+              <span style="background:rgba(255,255,255,0.15); color:#fff; font-size:11px; font-weight:700; padding:4px 12px; border-radius:6px; font-family:monospace; letter-spacing:0.5px; border:1px solid rgba(255,255,255,0.2);">
+                🏷️ <?= htmlspecialchars($data['kode']); ?>
+              </span>
+            </div>
+            <?php endif; ?>
           </div>
         </div>
         
