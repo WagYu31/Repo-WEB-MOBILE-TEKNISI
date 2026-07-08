@@ -3,6 +3,9 @@ header('Content-Type: text/plain');
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
+// Mock server request method
+$_SERVER['REQUEST_METHOD'] = 'POST';
+
 // Set parameters
 $_POST['spreadsheet_id'] = "1N8OzWJbJ4FX0pQmcJuvLDaR9WOqjF0dajE4ks4nJhP0";
 $_POST['sheet_name'] = "LAPORAN MINGGUAN";
