@@ -452,10 +452,13 @@ $left_col_class = $has_coords ? "col-lg-7" : "col-lg-12";
             <p style="color:rgba(255,255,255,0.7); margin:4px 0 0 0; font-size:12px; font-weight:500;">
               Wilayah: <strong style="color:#fff;"><?= htmlspecialchars($data['nama_wilayah'] ?? 'Tanpa Wilayah'); ?></strong>
             </p>
-            <?php if (!empty($data['kode'])): ?>
+            <?php if (!empty($data['kode'])): 
+              $kodeParts = explode('/', $data['kode']);
+              $kodeCust = $kodeParts[0] ?? '';
+            ?>
             <div style="margin-top:6px;">
               <span style="background:rgba(255,255,255,0.15); color:#fff; font-size:11px; font-weight:700; padding:4px 12px; border-radius:6px; font-family:monospace; letter-spacing:0.5px; border:1px solid rgba(255,255,255,0.2);">
-                🏷️ <?= htmlspecialchars($data['kode']); ?>
+                🏷️ <?= htmlspecialchars($kodeCust); ?>
               </span>
             </div>
             <?php endif; ?>
@@ -560,9 +563,12 @@ $left_col_class = $has_coords ? "col-lg-7" : "col-lg-12";
                 <span class="material-symbols-outlined">groups</span>
                 Tim Sales &amp; Laporan Lapangan
               </h6>
-              <?php if (!empty($data['kode'])): ?>
+              <?php if (!empty($data['kode'])): 
+                $kodeParts2 = explode('/', $data['kode']);
+                $kodeKjg = $kodeParts2[1] ?? $data['kode'];
+              ?>
               <span style="background:rgba(255,255,255,0.15); color:#fff; font-size:12px; font-weight:700; padding:5px 14px; border-radius:8px; font-family:monospace; letter-spacing:0.5px; border:1px solid rgba(255,255,255,0.25);">
-                🏷️ <?= htmlspecialchars($data['kode']); ?>
+                🏷️ <?= htmlspecialchars($kodeKjg); ?>
               </span>
               <?php endif; ?>
             </div>
