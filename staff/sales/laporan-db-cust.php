@@ -385,7 +385,11 @@ $(document).ready(function() {
             error: function(xhr, status, error) {
                 btn.prop('disabled', false);
                 spinner.addClass('d-none');
-                alert("Terjadi kesalahan koneksi server: " + error);
+                let errMsg = error;
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errMsg = xhr.responseJSON.message;
+                }
+                alert("Terjadi kesalahan koneksi server: " + errMsg);
             }
         });
     });

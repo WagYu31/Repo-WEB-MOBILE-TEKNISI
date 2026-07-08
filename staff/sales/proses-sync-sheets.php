@@ -5,7 +5,8 @@ include "../session.php";
 include_once "../include/format_tanggal.php";
 require_once "GoogleSheetsClient.php";
 
-if ($_SESSION['role'] !== 'admin' && $_SESSION['role'] !== 'superadmin') {
+$userRole = strtolower($_SESSION['jabatan'] ?? '');
+if ($userRole !== 'admin' && $userRole !== 'super admin' && $userRole !== 'superadmin') {
     http_response_code(403);
     echo json_encode(['status' => 'error', 'message' => 'Akses ditolak. Hanya Admin yang dapat melakukan sinkronisasi.']);
     exit;
