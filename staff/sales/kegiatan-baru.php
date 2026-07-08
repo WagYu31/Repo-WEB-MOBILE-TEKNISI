@@ -370,12 +370,30 @@ $currentPage = "Today";
               $status = 'dijadwalkan';
               $selectedSales = $_POST['sales'] ?? [];
 
+              // Auto-generate kode kunjungan: CUST-XXX/KJG-YYY
+              $custKodeQuery = $conn->prepare("SELECT kode_customer FROM sales_customer WHERE id = ? LIMIT 1");
+              $custKodeQuery->bind_param("i", $id_customer);
+              $custKodeQuery->execute();
+              $custKodeResult = $custKodeQuery->get_result()->fetch_assoc();
+              $kode_customer = $custKodeResult['kode_customer'] ?? 'CUST-000';
+              $custKodeQuery->close();
+
+              // Hitung jumlah kunjungan sebelumnya untuk customer ini
+              $countQuery = $conn->prepare("SELECT COUNT(*) AS total FROM kegiatan_sales WHERE id_customer = ? AND deleted_at IS NULL");
+              $countQuery->bind_param("i", $id_customer);
+              $countQuery->execute();
+              $countResult = $countQuery->get_result()->fetch_assoc();
+              $kjgNum = ($countResult['total'] ?? 0) + 1;
+              $countQuery->close();
+
+              $kode_kegiatan = $kode_customer . '/KJG-' . str_pad($kjgNum, 3, '0', STR_PAD_LEFT);
+
               // Insert ke kegiatan_sales
               $stmt = $conn->prepare("
-                  INSERT INTO kegiatan_sales (jadwal, keterangan, id_customer, status, lat, lon, rad, alamat_lokasi, created_at, updated_at) 
-                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+                  INSERT INTO kegiatan_sales (kode, jadwal, keterangan, id_customer, status, lat, lon, rad, alamat_lokasi, created_at, updated_at) 
+                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
               ");
-              $stmt->bind_param("ssisssss", $jadwal, $visit, $id_customer, $status, $lat, $lon, $rad, $location_address);
+              $stmt->bind_param("ssssissss", $kode_kegiatan, $jadwal, $visit, $id_customer, $status, $lat, $lon, $rad, $location_address);
               $stmt->execute();
               $kegiatanId = $stmt->insert_id;
               $stmt->close();

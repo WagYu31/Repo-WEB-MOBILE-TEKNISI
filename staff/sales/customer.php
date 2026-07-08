@@ -174,8 +174,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['update_id'])) {
     
     $foto_json = !empty($filenames) ? json_encode($filenames) : NULL;
 
-    $stmt = $conn->prepare("INSERT INTO sales_customer (kategori, nama, telp_pribadi, email, alamat, kota, id_wilayah, foto, lat, lon, rad, alamat_lokasi, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())");
-    $stmt->bind_param("ssssssisssss", $kategori, $nama, $telp, $email, $alamat, $kota, $id_wilayah, $foto_json, $lat, $lon, $rad, $location_address);
+    // Auto-generate kode customer: CUST-001, CUST-002, ...
+    $lastKode = mysqli_query($conn, "SELECT kode_customer FROM sales_customer WHERE kode_customer IS NOT NULL ORDER BY id DESC LIMIT 1");
+    $lastRow = mysqli_fetch_assoc($lastKode);
+    if ($lastRow && preg_match('/CUST-(\d+)/', $lastRow['kode_customer'], $m)) {
+        $nextNum = intval($m[1]) + 1;
+    } else {
+        $nextNum = 1;
+    }
+    $kode_customer = 'CUST-' . str_pad($nextNum, 3, '0', STR_PAD_LEFT);
+
+    $stmt = $conn->prepare("INSERT INTO sales_customer (kode_customer, kategori, nama, telp_pribadi, email, alamat, kota, id_wilayah, foto, lat, lon, rad, alamat_lokasi, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())");
+    $stmt->bind_param("sssssssisssss", $kode_customer, $kategori, $nama, $telp, $email, $alamat, $kota, $id_wilayah, $foto_json, $lat, $lon, $rad, $location_address);
     $stmt->execute();
     $stmt->close();
 
