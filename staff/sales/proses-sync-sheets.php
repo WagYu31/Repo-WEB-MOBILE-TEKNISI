@@ -163,12 +163,12 @@ try {
         [$lokasiKunjungan]
     ]);
 
-    // 2. Clear previous data rows from A15:J1000
-    $client->clearValues($spreadsheetId, "{$sheetName}!A15:J1000");
+    // 2. Clear previous data rows from A8:J1000
+    $client->clearValues($spreadsheetId, "{$sheetName}!A8:J1000");
 
-    // 3. Write data rows starting from A15
+    // 3. Write data rows starting from A8
     if (!empty($rows)) {
-        $client->updateValues($spreadsheetId, "{$sheetName}!A15:J" . (15 + count($rows) - 1), $rows);
+        $client->updateValues($spreadsheetId, "{$sheetName}!A8:J" . (8 + count($rows) - 1), $rows);
     }
 
     echo json_encode([
