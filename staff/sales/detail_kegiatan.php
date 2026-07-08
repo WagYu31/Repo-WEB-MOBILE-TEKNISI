@@ -556,26 +556,69 @@ $left_col_class = $has_coords ? "col-lg-7" : "col-lg-12";
           </div>
           <?php endif; ?>
 
-          <!-- Tim Sales & Laporan Lapangan Section -->
-          <div class="card-premium">
-            <div class="section-header-premium" style="justify-content: space-between;">
-              <h6>
+          <!-- Tim Sales & Laporan Lapangan Section - ALL VISITS -->
+          <?php
+          // Query SEMUA kegiatan untuk customer yang sama
+          $customerId = $data['id_customer'];
+          $sqlAllKegiatan = "SELECT ks.id, ks.kode, ks.jadwal, ks.keterangan, ks.status
+                             FROM kegiatan_sales ks
+                             WHERE ks.id_customer = '$customerId' AND ks.deleted_at IS NULL
+                             ORDER BY ks.jadwal DESC";
+          $resultAllKegiatan = mysqli_query($conn, $sqlAllKegiatan);
+          $totalKegiatan = mysqli_num_rows($resultAllKegiatan);
+          
+          while ($kegRow = mysqli_fetch_assoc($resultAllKegiatan)):
+            $kegId = $kegRow['id'];
+            $kegKode = $kegRow['kode'] ?? '';
+            $kegKodeParts = explode('/', $kegKode);
+            $kegKjg = $kegKodeParts[1] ?? $kegKode;
+            $isCurrentKegiatan = ($kegId == $idKegiatan);
+            
+            // Query sales team untuk kegiatan ini
+            $sqlKegSales = "SELECT s.nama AS nama_sales, ps.status, ps.keterangan, ps.image_1, ps.image_2, ps.image_3, ps.record,
+                                   ps.ci_at, ps.co_at, ps.lat_ci, ps.lon_ci, ps.lat_co, ps.lon_co, ps.catatan_visit 
+                            FROM team_kegiatan_sales tks
+                            LEFT JOIN sales s ON tks.id_sales = s.id
+                            LEFT JOIN pelaksanaan_sales ps ON ps.kegiatan_id = tks.id_kegiatan_sales AND ps.sales_id = tks.id_sales
+                            WHERE tks.id_kegiatan_sales = '$kegId' AND tks.deleted_at IS NULL";
+            $resultKegSales = mysqli_query($conn, $sqlKegSales);
+            $kegSalesCount = mysqli_num_rows($resultKegSales);
+            
+            // Status kegiatan
+            $kegStatus = strtolower($kegRow['status'] ?? 'dijadwalkan');
+            $kegStatusLabel = match($kegStatus) {
+              'selesai' => 'Selesai',
+              'berjalan' => 'Berjalan',
+              'dibatalkan' => 'Dibatalkan',
+              default => 'Dijadwalkan'
+            };
+          ?>
+          <div class="card-premium" style="<?= $isCurrentKegiatan ? 'border: 2px solid #3b82f6;' : ''; ?>">
+            <div class="section-header-premium" style="justify-content: space-between; <?= !$isCurrentKegiatan ? 'background: linear-gradient(135deg, #1e293b 0%, #334155 100%);' : ''; ?>">
+              <h6 style="display:flex; align-items:center; gap:10px;">
                 <span class="material-symbols-outlined">groups</span>
-                Tim Sales &amp; Laporan Lapangan
+                Tim Sales & Laporan Lapangan
+                <?php if (!empty($kegRow['jadwal'])): ?>
+                  <span style="font-size:11px; font-weight:500; opacity:0.7; font-family:monospace;">
+                    📅 <?= date('d M Y, H:i', strtotime($kegRow['jadwal'])); ?> WIB
+                  </span>
+                <?php endif; ?>
               </h6>
-              <?php if (!empty($data['kode'])): 
-                $kodeParts2 = explode('/', $data['kode']);
-                $kodeKjg = $kodeParts2[1] ?? $data['kode'];
-              ?>
-              <span style="background:rgba(255,255,255,0.15); color:#fff; font-size:12px; font-weight:700; padding:5px 14px; border-radius:8px; font-family:monospace; letter-spacing:0.5px; border:1px solid rgba(255,255,255,0.25);">
-                🏷️ <?= htmlspecialchars($kodeKjg); ?>
-              </span>
-              <?php endif; ?>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <?php if (!empty($kegKjg)): ?>
+                <span style="background:rgba(255,255,255,0.15); color:#fff; font-size:12px; font-weight:700; padding:5px 14px; border-radius:8px; font-family:monospace; letter-spacing:0.5px; border:1px solid rgba(255,255,255,0.25);">
+                  🏷️ <?= htmlspecialchars($kegKjg); ?>
+                </span>
+                <?php endif; ?>
+                <span style="background:<?= match($kegStatus) { 'selesai' => '#10b981', 'berjalan' => '#3b82f6', 'dibatalkan' => '#ef4444', default => '#64748b' }; ?>; color:#fff; font-size:10px; font-weight:700; padding:4px 10px; border-radius:20px; text-transform:uppercase; letter-spacing:0.05em;">
+                  <?= $kegStatusLabel; ?>
+                </span>
+              </div>
             </div>
             <div class="card-body-premium">
-              <?php if ($sales_count > 0): ?>
+              <?php if ($kegSalesCount > 0): ?>
               <div class="row g-4">
-                <?php while ($row = mysqli_fetch_assoc($resultSales)): 
+                <?php while ($row = mysqli_fetch_assoc($resultKegSales)): 
                   $status = strtolower($row['status'] ?? 'dijadwalkan');
                   $badgeClass = match($status) {
                     'selesai' => 'badge-selesai',
@@ -588,13 +631,10 @@ $left_col_class = $has_coords ? "col-lg-7" : "col-lg-12";
                     default => '#64748b'
                   };
                   
-                  // Hitung grid class untuk laci sales
                   $card_grid_class = "col-12";
                   if (!$has_coords) {
-                      if ($sales_count > 1) {
+                      if ($kegSalesCount > 1) {
                           $card_grid_class = "col-md-6";
-                      } else {
-                          $card_grid_class = "col-12";
                       }
                   }
                 ?>
@@ -683,7 +723,6 @@ $left_col_class = $has_coords ? "col-lg-7" : "col-lg-12";
                                 <a href="https://api-teknisi.id-giti.com/storage/image/<?php echo $row[$img]; ?>" target="_blank" class="doc-photo-wrapper" style="position: relative; display: block;">
                                   <?php if ($is_video): ?>
                                     <video src="https://api-teknisi.id-giti.com/storage/image/<?php echo $row[$img]; ?>" style="width: 100%; height: 100%; object-fit: cover;" muted playsinline></video>
-                                    <!-- Video Play Overlay -->
                                     <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; border-radius: 8px;">
                                       <span class="material-symbols-outlined" style="color: #fff; font-size: 28px; font-variation-settings: 'FILL' 1;">play_circle</span>
                                     </div>
@@ -725,6 +764,7 @@ $left_col_class = $has_coords ? "col-lg-7" : "col-lg-12";
               <?php endif; ?>
             </div>
           </div>
+          <?php endwhile; ?>
 
         </div>
 
