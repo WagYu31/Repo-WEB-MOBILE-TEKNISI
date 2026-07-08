@@ -247,6 +247,12 @@ if ($resSalesList) {
                             ?>
                         </div>
                     </div>
+                <?php
+                    }
+                } else {
+                    echo "<div class='text-center text-sm text-secondary py-4'>Tidak ada data kunjungan.</div>";
+                }
+                ?>
             </div>
         </div>
     </div>
