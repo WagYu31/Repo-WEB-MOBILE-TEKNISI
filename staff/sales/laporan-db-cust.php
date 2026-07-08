@@ -281,7 +281,7 @@ if ($resSalesList) {
                         <label class="form-label text-xs font-weight-bold text-secondary text-uppercase mb-1">ID Spreadsheet atau URL</label>
                         <input type="text" name="spreadsheet_id" id="sheetIdInput" class="form-control border p-2 text-sm" 
                                placeholder="Masukkan ID / Link Google Sheets" 
-                               value="19OV073XNHmo7zACGOpYPyEcmodlZmEv4wzFq7Fg_uoU" style="border-radius: 8px;" required>
+                               value="1N8OzWJbJ4FX0pQmcJuvLDaR9WOqjF0dajE4ks4nJhP0" style="border-radius: 8px;" required>
                     </div>
 
                     <div class="form-group mt-3">
