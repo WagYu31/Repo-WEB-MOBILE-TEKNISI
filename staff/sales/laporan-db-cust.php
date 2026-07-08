@@ -2,6 +2,7 @@
 // Filter variables
 $filterSales = isset($_GET['id_sales']) ? intval($_GET['id_sales']) : 0;
 $filterBulan = isset($_GET['bulan']) ? trim($_GET['bulan']) : date("Y-m");
+$current_date = $filterBulan . '-01'; // Define base date for compatibility/formatting
 
 // Fetch sales list for dropdown
 $resSalesList = mysqli_query($conn, "SELECT id, nama FROM sales WHERE deleted_at IS NULL ORDER BY nama ASC");
