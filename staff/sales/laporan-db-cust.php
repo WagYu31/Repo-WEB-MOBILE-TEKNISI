@@ -293,8 +293,8 @@ if ($resSalesList) {
                     <div class="row mt-3">
                         <div class="col-6">
                             <label class="form-label text-xs font-weight-bold text-secondary text-uppercase mb-1">Bulan</label>
-                            <input type="text" class="form-control border p-2 text-sm bg-light" value="<?php echo date('F Y', strtotime($filterBulan . '-01')); ?>" style="border-radius: 8px;" readonly disabled>
-                            <input type="hidden" name="bulan" value="<?php echo $filterBulan; ?>">
+                            <input type="text" id="displayBulanInput" class="form-control border p-2 text-sm bg-light" value="<?php echo date('F Y', strtotime($filterBulan . '-01')); ?>" style="border-radius: 8px;" readonly disabled>
+                            <input type="hidden" id="hiddenBulanInput" name="bulan" value="<?php echo $filterBulan; ?>">
                         </div>
                         <div class="col-6">
                             <label class="form-label text-xs font-weight-bold text-secondary text-uppercase mb-1">Sales Agent</label>
@@ -309,8 +309,8 @@ if ($resSalesList) {
                                 }
                             }
                             ?>
-                            <input type="text" class="form-control border p-2 text-sm bg-light" value="<?php echo htmlspecialchars($selectedSalesName); ?>" style="border-radius: 8px;" readonly disabled>
-                            <input type="hidden" name="id_sales" value="<?php echo $filterSales; ?>">
+                            <input type="text" id="displaySalesInput" class="form-control border p-2 text-sm bg-light" value="<?php echo htmlspecialchars($selectedSalesName); ?>" style="border-radius: 8px;" readonly disabled>
+                            <input type="hidden" id="hiddenSalesInput" name="id_sales" value="<?php echo $filterSales; ?>">
                         </div>
                     </div>
                 </div>
@@ -329,6 +329,34 @@ if ($resSalesList) {
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
 $(document).ready(function() {
+    // Dynamically update modal values when modal opens
+    $("#syncSheetsModal").on('show.bs.modal', function() {
+        const topSalesSelect = $('select[name="id_sales"]');
+        const topBulanInput = $('input[name="bulan"]');
+        
+        const selectedSalesId = topSalesSelect.val();
+        const selectedSalesName = topSalesSelect.find('option:selected').text().trim();
+        const selectedBulan = topBulanInput.val();
+        
+        // Parse month to human readable format (e.g., "2026-07" -> "July 2026")
+        let readableMonth = selectedBulan;
+        if (selectedBulan) {
+            const parts = selectedBulan.split('-');
+            if (parts.length === 2) {
+                const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+                const monthIdx = parseInt(parts[1], 10) - 1;
+                if (monthIdx >= 0 && monthIdx < 12) {
+                    readableMonth = months[monthIdx] + " " + parts[0];
+                }
+            }
+        }
+        
+        $("#displaySalesInput").val(selectedSalesName);
+        $("#hiddenSalesInput").val(selectedSalesId);
+        $("#displayBulanInput").val(readableMonth);
+        $("#hiddenBulanInput").val(selectedBulan);
+    });
+
     $("#syncSheetsForm").on('submit', function(e) {
         e.preventDefault();
         
@@ -351,7 +379,7 @@ $(document).ready(function() {
                     alert(response.message);
                     $("#syncSheetsModal").modal('hide');
                 } else {
-                    alert("Gagal: " . response.message);
+                    alert("Gagal: " + response.message);
                 }
             },
             error: function(xhr, status, error) {
