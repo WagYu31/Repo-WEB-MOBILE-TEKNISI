@@ -337,7 +337,7 @@ $currentPage = "Today";
           <?php
           // Ambil customer beserta nama wilayahnya dan lokasi GPS
           $customerResult = mysqli_query($conn, "
-              SELECT c.id, c.nama, c.id_wilayah, c.lat, c.lon, c.rad, c.alamat_lokasi, w.nama AS nama_wilayah 
+              SELECT c.id, c.nama, c.kode_customer, c.id_wilayah, c.lat, c.lon, c.rad, c.alamat_lokasi, w.nama AS nama_wilayah 
               FROM sales_customer c 
               LEFT JOIN wilayah w ON c.id_wilayah = w.id 
               WHERE c.deleted_at IS NULL 
@@ -481,7 +481,10 @@ $currentPage = "Today";
                              data-lon="<?php echo htmlspecialchars($c['lon'] ?? ''); ?>"
                              data-rad="<?php echo htmlspecialchars($c['rad'] ?? ''); ?>"
                              data-alamat="<?php echo htmlspecialchars($c['alamat_lokasi'] ?? ''); ?>">
-                          <?php echo htmlspecialchars($c['nama'] . ' - [' . $cRegion . ']'); ?>
+                          <?php 
+                            $kodeLabel = !empty($c['kode_customer']) ? $c['kode_customer'] . ' | ' : '';
+                            echo htmlspecialchars($kodeLabel . $c['nama'] . ' - [' . $cRegion . ']'); 
+                          ?>
                         </div>
                       <?php endwhile; ?>
                     </div>
