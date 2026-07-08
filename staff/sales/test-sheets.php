@@ -10,14 +10,13 @@ try {
     $client = new GoogleSheetsClient($keyPath);
     $accessToken = $client->getAccessToken();
     
-    // Variations of the ID due to potential font lookalikes
-    $variations = [
-        "19OV073XNHmo7zACGOpYPyEcmodlZmEv4wzFq7Fg_uoU", // starting with number 1
-        "I9OV073XNHmo7zACGOpYPyEcmodlZmEv4wzFq7Fg_uoU", // starting with capital letter I
-        "l9OV073XNHmo7zACGOpYPyEcmodlZmEv4wzFq7Fg_uoU"  // starting with lowercase letter l
+    // Test the two spreadsheet IDs
+    $ids = [
+        "19OV073XNHmo7zACGOpYPyEcmodlZmEv4wzFq7Fg_uoU", // The one they are currently viewing
+        "1N8OzWJbJ4FX0pQmcJuvLDaR9WOqjF0dajE4ks4nJhP0"  // The original one they shared in step 2
     ];
     
-    foreach ($variations as $id) {
+    foreach ($ids as $id) {
         echo "Testing Spreadsheet ID: $id\n";
         $url = "https://sheets.googleapis.com/v4/spreadsheets/" . urlencode($id);
         
