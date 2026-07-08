@@ -9,8 +9,7 @@ try {
     $keyPath = __DIR__ . '/../../staff/config/google-sheets-key.json';
     
     $client = new GoogleSheetsClient($keyPath);
-    $client->authenticate();
-    $accessToken = $client->accessToken;
+    $accessToken = $client->getAccessToken();
     
     $testSpreadsheetId = "19OV073XNHmo7zACGOpYPyEcmodlZmEv4wzFq7Fg_uoU";
     

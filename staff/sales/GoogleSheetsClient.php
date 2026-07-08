@@ -78,6 +78,13 @@ class GoogleSheetsClient {
         $this->accessToken = $responseData['access_token'];
     }
 
+    public function getAccessToken() {
+        if (!$this->accessToken) {
+            $this->authenticate();
+        }
+        return $this->accessToken;
+    }
+
     private function base64UrlEncode($data) {
         return str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($data));
     }
