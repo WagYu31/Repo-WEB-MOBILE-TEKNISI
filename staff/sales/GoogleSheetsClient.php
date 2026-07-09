@@ -208,4 +208,87 @@ class GoogleSheetsClient {
 
         return json_decode($response, true);
     }
+
+    /**
+     * Get sheet ID by tab name
+     */
+    public function getSheetIdByName($spreadsheetId, $sheetName) {
+        if (!$this->accessToken) {
+            $this->authenticate();
+        }
+
+        $url = "https://sheets.googleapis.com/v4/spreadsheets/" . urlencode($spreadsheetId) . "?fields=sheets.properties";
+
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            "Authorization: Bearer " . $this->accessToken
+        ]);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $err = curl_error($ch);
+        curl_close($ch);
+
+        if ($err) {
+            throw new Exception("CURL Error getting sheet metadata: " . $err);
+        }
+
+        if ($httpCode !== 200) {
+            throw new Exception("Failed to get sheet metadata. Google API responded with code $httpCode: " . $response);
+        }
+
+        $data = json_decode($response, true);
+        if (isset($data['sheets'])) {
+            foreach ($data['sheets'] as $sheet) {
+                if (strcasecmp($sheet['properties']['title'], $sheetName) === 0) {
+                    return $sheet['properties']['sheetId'];
+                }
+            }
+        }
+
+        throw new Exception("Sheet tab named '$sheetName' not found.");
+    }
+
+    /**
+     * Send raw batchUpdate requests to the Google Spreadsheet
+     */
+    public function batchUpdate($spreadsheetId, $requests) {
+        if (!$this->accessToken) {
+            $this->authenticate();
+        }
+
+        $url = "https://sheets.googleapis.com/v4/spreadsheets/" . urlencode($spreadsheetId) . ":batchUpdate";
+
+        $payload = json_encode([
+            'requests' => $requests
+        ]);
+
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            "Authorization: Bearer " . $this->accessToken,
+            "Content-Type: application/json",
+            "Content-Length: " . strlen($payload)
+        ]);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $err = curl_error($ch);
+        curl_close($ch);
+
+        if ($err) {
+            throw new Exception("CURL Error batchUpdate: " . $err);
+        }
+
+        if ($httpCode !== 200) {
+            throw new Exception("Failed to batchUpdate. Google API responded with code $httpCode: " . $response);
+        }
+
+        return json_decode($response, true);
+    }
 }

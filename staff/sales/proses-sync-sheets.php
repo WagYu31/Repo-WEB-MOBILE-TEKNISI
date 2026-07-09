@@ -176,7 +176,137 @@ try {
 
     // 3. Write data rows starting from A8
     if (!empty($rows)) {
-        $client->updateValues($spreadsheetId, "{$sheetName}!A8:J" . (8 + count($rows) - 1), $rows);
+        $endRow = 8 + count($rows) - 1;
+        $client->updateValues($spreadsheetId, "{$sheetName}!A8:J" . $endRow, $rows);
+
+        try {
+            // 4. Dynamically get Sheet ID for batch formatting
+            $sheetId = $client->getSheetIdByName($spreadsheetId, $sheetName);
+
+            // 5. Build batchUpdate requests to apply borders, vertical alignment, text wrapping, and custom horizontal alignments
+            $borderStyle = [
+                'style' => 'SOLID',
+                'width' => 1,
+                'color' => ['red' => 0.7, 'green' => 0.7, 'blue' => 0.7]
+            ];
+
+            $requests = [
+                // Apply borders to table
+                [
+                    'updateBorders' => [
+                        'range' => [
+                            'sheetId' => $sheetId,
+                            'startRowIndex' => 7, // Row 8 is index 7
+                            'endRowIndex' => $endRow,
+                            'startColumnIndex' => 0,
+                            'endColumnIndex' => 10
+                        ],
+                        'top' => $borderStyle,
+                        'bottom' => $borderStyle,
+                        'left' => $borderStyle,
+                        'right' => $borderStyle,
+                        'innerHorizontal' => $borderStyle,
+                        'innerVertical' => $borderStyle
+                    ]
+                ],
+                // Apply text wrap and vertical alignment
+                [
+                    'repeatCell' => [
+                        'range' => [
+                            'sheetId' => $sheetId,
+                            'startRowIndex' => 7,
+                            'endRowIndex' => $endRow,
+                            'startColumnIndex' => 0,
+                            'endColumnIndex' => 10
+                        ],
+                        'cell' => [
+                            'userEnteredFormat' => [
+                                'wrapStrategy' => 'WRAP',
+                                'verticalAlignment' => 'MIDDLE'
+                            ]
+                        ],
+                        'fields' => 'userEnteredFormat.wrapStrategy,userEnteredFormat.verticalAlignment'
+                    ]
+                ],
+                // Center align Columns A & B (NO, HARI & TANGGAL)
+                [
+                    'repeatCell' => [
+                        'range' => [
+                            'sheetId' => $sheetId,
+                            'startRowIndex' => 7,
+                            'endRowIndex' => $endRow,
+                            'startColumnIndex' => 0,
+                            'endColumnIndex' => 2
+                        ],
+                        'cell' => [
+                            'userEnteredFormat' => [
+                                'horizontalAlignment' => 'CENTER'
+                            ]
+                        ],
+                        'fields' => 'userEnteredFormat.horizontalAlignment'
+                    ]
+                ],
+                // Center align Column E (JENIS USAHA)
+                [
+                    'repeatCell' => [
+                        'range' => [
+                            'sheetId' => $sheetId,
+                            'startRowIndex' => 7,
+                            'endRowIndex' => $endRow,
+                            'startColumnIndex' => 4,
+                            'endColumnIndex' => 5
+                        ],
+                        'cell' => [
+                            'userEnteredFormat' => [
+                                'horizontalAlignment' => 'CENTER'
+                            ]
+                        ],
+                        'fields' => 'userEnteredFormat.horizontalAlignment'
+                    ]
+                ],
+                // Center align Column G (JENIS KUNJUNGAN)
+                [
+                    'repeatCell' => [
+                        'range' => [
+                            'sheetId' => $sheetId,
+                            'startRowIndex' => 7,
+                            'endRowIndex' => $endRow,
+                            'startColumnIndex' => 6,
+                            'endColumnIndex' => 7
+                        ],
+                        'cell' => [
+                            'userEnteredFormat' => [
+                                'horizontalAlignment' => 'CENTER'
+                            ]
+                        ],
+                        'fields' => 'userEnteredFormat.horizontalAlignment'
+                    ]
+                ],
+                // Center align Column H (BUKTI FOTO SALES)
+                [
+                    'repeatCell' => [
+                        'range' => [
+                            'sheetId' => $sheetId,
+                            'startRowIndex' => 7,
+                            'endRowIndex' => $endRow,
+                            'startColumnIndex' => 7,
+                            'endColumnIndex' => 8
+                        ],
+                        'cell' => [
+                            'userEnteredFormat' => [
+                                'horizontalAlignment' => 'CENTER'
+                            ]
+                        ],
+                        'fields' => 'userEnteredFormat.horizontalAlignment'
+                    ]
+                ]
+            ];
+
+            $client->batchUpdate($spreadsheetId, $requests);
+        } catch (Exception $errFormat) {
+            // Log formatting error but do not fail the sync if only formatting fails
+            error_log("Google Sheets formatting failed: " . $errFormat->getMessage());
+        }
     }
 
     echo json_encode([
