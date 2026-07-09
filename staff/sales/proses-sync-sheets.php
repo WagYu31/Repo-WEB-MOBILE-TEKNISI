@@ -113,17 +113,21 @@ while ($row = mysqli_fetch_assoc($result)) {
         $tglKunjungan = formatTanggal('EEEE, dd MMMM yyyy', $row['tgl_visits']);
     }
 
-    // Maps link / address
-    $mapsLink = !empty($row['alamat_kegiatan']) ? $row['alamat_kegiatan'] : (!empty($row['alamat_cust']) ? $row['alamat_cust'] : '');
-    // Clean addresses to add coordinates if link format is nicer, or just text
-    if (!empty($mapsLink) && strpos($mapsLink, '📍') === false) {
-        $mapsLink = '📍 ' . $mapsLink;
+    // Maps link / address (as a clean HYPERLINK formula)
+    $rawAddress = !empty($row['alamat_kegiatan']) ? $row['alamat_kegiatan'] : (!empty($row['alamat_cust']) ? $row['alamat_cust'] : '');
+    $tokoName = $row['nama_cust'];
+    $cleanTokoName = str_replace('"', "'", $tokoName);
+    if (!empty($rawAddress)) {
+        $mapsUrl = "https://www.google.com/maps/search/?api=1&query=" . rawurlencode($rawAddress);
+        $mapsLink = '=HYPERLINK("' . $mapsUrl . '", "📍 ' . $cleanTokoName . '")';
+    } else {
+        $mapsLink = '';
     }
 
     // Contact Person
     $cp = !empty($row['contact_person']) ? $row['contact_person'] : '';
 
-    // Bukti Foto Sales (URL links)
+    // Bukti Foto Sales (using HYPERLINK + IMAGE formula for cell thumbnail preview)
     $fotoLinks = [];
     $apiBase = "https://api-teknisi.id-giti.com/storage/image/";
     for ($i = 1; $i <= 5; $i++) {
@@ -132,7 +136,11 @@ while ($row = mysqli_fetch_assoc($result)) {
             $fotoLinks[] = $apiBase . $row[$imgCol];
         }
     }
-    $buktiFoto = implode("\n", $fotoLinks);
+    $buktiFoto = '';
+    if (!empty($fotoLinks)) {
+        $firstFoto = $fotoLinks[0];
+        $buktiFoto = '=HYPERLINK("' . $firstFoto . '", IMAGE("' . $firstFoto . '"))';
+    }
 
     // Catatan
     $catatan = !empty($row['catatan_visit']) ? $row['catatan_visit'] : (!empty($row['ps_keterangan']) ? $row['ps_keterangan'] : '');
