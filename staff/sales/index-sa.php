@@ -19,11 +19,21 @@ $hour = (int)date('H');
 $greeting = $hour < 12 ? 'Selamat Pagi' : ($hour < 15 ? 'Selamat Siang' : ($hour < 18 ? 'Selamat Sore' : 'Selamat Malam'));
 $todayFormatted = date('d F Y');
 
-// Simpan/baca pilihan wilayah dari session/query
+// Simpan/baca pilihan filter dari session/query
 if (isset($_GET['wilayah'])) {
     $_SESSION['selected_wilayah'] = $_GET['wilayah'] === 'all' ? 'all' : intval($_GET['wilayah']);
 }
 $selectedWilayah = $_SESSION['selected_wilayah'] ?? 'all';
+
+if (isset($_GET['sales'])) {
+    $_SESSION['selected_sales'] = $_GET['sales'] === 'all' ? 'all' : intval($_GET['sales']);
+}
+$selectedSales = $_SESSION['selected_sales'] ?? 'all';
+
+if (isset($_GET['customer'])) {
+    $_SESSION['search_customer'] = trim($_GET['customer']);
+}
+$searchCustomer = $_SESSION['search_customer'] ?? '';
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -78,24 +88,68 @@ $selectedWilayah = $_SESSION['selected_wilayah'] ?? 'all';
         </div>
       </div>
 
-      <!-- ── Region Selector Dropdown ───────────────────────────────── -->
+      <!-- ── Filter Card ───────────────────────────────────────────── -->
       <div class="row mb-4">
-        <div class="col-12 col-md-4">
+        <div class="col-12">
           <div class="card p-3 shadow-sm border-0" style="border-radius: 12px; border: 1px solid #e2e8f0 !important;">
-            <label class="form-label font-weight-bold text-dark text-xs text-uppercase mb-2 d-flex align-items-center gap-1" style="letter-spacing: 0.05em;">
-              <span class="material-symbols-outlined" style="font-size: 16px; color: #3b82f6;">map</span>
-              Filter Wilayah Operasional
-            </label>
-            <select class="form-select border p-2 text-sm" style="border-radius: 8px; font-weight: 600; outline: none; background: #fff;" onchange="window.location.href='index-sa.php?wilayah=' + this.value">
-              <option value="all" <?php echo $selectedWilayah === 'all' ? 'selected' : ''; ?>>Tampilkan Semua Wilayah</option>
-              <?php
-              $wQuery = mysqli_query($conn, "SELECT * FROM wilayah WHERE deleted_at IS NULL ORDER BY nama ASC");
-              while ($w = mysqli_fetch_assoc($wQuery)) {
-                  $selected = ($selectedWilayah !== 'all' && (int)$selectedWilayah === (int)$w['id']) ? 'selected' : '';
-                  echo "<option value='{$w['id']}' $selected>" . htmlspecialchars($w['nama']) . "</option>";
-              }
-              ?>
-            </select>
+            <form method="GET" action="index-sa.php" class="row g-3 align-items-end">
+              <!-- Filter Wilayah -->
+              <div class="col-12 col-md-3">
+                <label class="form-label font-weight-bold text-dark text-xs text-uppercase mb-2 d-flex align-items-center gap-1" style="letter-spacing: 0.05em; margin-bottom: 0.5rem !important;">
+                  <span class="material-symbols-outlined" style="font-size: 16px; color: #3b82f6;">map</span>
+                  Filter Wilayah
+                </label>
+                <select name="wilayah" class="form-select border p-2 text-sm" style="border-radius: 8px; font-weight: 600; outline: none; background: #fff;">
+                  <option value="all" <?php echo $selectedWilayah === 'all' ? 'selected' : ''; ?>>Semua Wilayah</option>
+                  <?php
+                  $wQuery = mysqli_query($conn, "SELECT * FROM wilayah WHERE deleted_at IS NULL ORDER BY nama ASC");
+                  while ($w = mysqli_fetch_assoc($wQuery)) {
+                      $selected = ($selectedWilayah !== 'all' && (int)$selectedWilayah === (int)$w['id']) ? 'selected' : '';
+                      echo "<option value='{$w['id']}' $selected>" . htmlspecialchars($w['nama']) . "</option>";
+                  }
+                  ?>
+                </select>
+              </div>
+
+              <!-- Filter Sales -->
+              <div class="col-12 col-md-3">
+                <label class="form-label font-weight-bold text-dark text-xs text-uppercase mb-2 d-flex align-items-center gap-1" style="letter-spacing: 0.05em; margin-bottom: 0.5rem !important;">
+                  <span class="material-symbols-outlined" style="font-size: 16px; color: #3b82f6;">person</span>
+                  Filter Sales
+                </label>
+                <select name="sales" class="form-select border p-2 text-sm" style="border-radius: 8px; font-weight: 600; outline: none; background: #fff;">
+                  <option value="all" <?php echo $selectedSales === 'all' ? 'selected' : ''; ?>>Semua Sales</option>
+                  <?php
+                  $sQuery = mysqli_query($conn, "SELECT * FROM sales WHERE deleted_at IS NULL ORDER BY nama ASC");
+                  while ($s = mysqli_fetch_assoc($sQuery)) {
+                      $selected = ($selectedSales !== 'all' && (int)$selectedSales === (int)$s['id']) ? 'selected' : '';
+                      echo "<option value='{$s['id']}' $selected>" . htmlspecialchars($s['nama']) . "</option>";
+                  }
+                  ?>
+                </select>
+              </div>
+
+              <!-- Cari Customer -->
+              <div class="col-12 col-md-3">
+                <label class="form-label font-weight-bold text-dark text-xs text-uppercase mb-2 d-flex align-items-center gap-1" style="letter-spacing: 0.05em; margin-bottom: 0.5rem !important;">
+                  <span class="material-symbols-outlined" style="font-size: 16px; color: #3b82f6;">search</span>
+                  Nama Customer
+                </label>
+                <input type="text" name="customer" class="form-control border p-2 text-sm" style="border-radius: 8px; height: 38px;" placeholder="Ketik nama customer..." value="<?php echo htmlspecialchars($searchCustomer); ?>">
+              </div>
+
+              <!-- Tombol Aksi -->
+              <div class="col-12 col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary w-100 mb-0 py-2 d-flex align-items-center justify-content-center gap-1" style="border-radius: 8px; background: #1e3a8a; border: none; font-weight: 700; height: 38px;">
+                  <span class="material-symbols-outlined" style="font-size: 16px;">search</span>
+                  Cari
+                </button>
+                <a href="index-sa.php?wilayah=all&sales=all&customer=" class="btn btn-outline-secondary mb-0 py-2 d-flex align-items-center justify-content-center gap-1" style="border-radius: 8px; font-weight: 700; height: 38px; border: 1.5px solid #cbd5e1; color: #475569;">
+                  <span class="material-symbols-outlined" style="font-size: 16px;">restart_alt</span>
+                  Reset
+                </a>
+              </div>
+            </form>
           </div>
         </div>
       </div>

@@ -1,6 +1,8 @@
 <?php
 $current_date = date("Y-m-d");
 $selectedWilayah = $_SESSION['selected_wilayah'] ?? 'all';
+$selectedSales = $_SESSION['selected_sales'] ?? 'all';
+$searchCustomer = $_SESSION['search_customer'] ?? '';
 
 // ── Hitung summary per tab ─────────────────────────────────────────────────
 $tab_meta = [
@@ -12,12 +14,24 @@ $tab_meta = [
 
 $counts = [];
 foreach ($tab_meta as $k => $m) {
-  $queryStr = "SELECT COUNT(ks.id) AS c FROM kegiatan_sales ks ";
+  $queryStr = "SELECT COUNT(DISTINCT ks.id) AS c FROM kegiatan_sales ks 
+               LEFT JOIN sales_customer c ON ks.id_customer = c.id ";
+               
+  if ($selectedSales !== 'all') {
+      $queryStr .= "INNER JOIN team_kegiatan_sales tks ON ks.id = tks.id_kegiatan_sales ";
+  }
+  
+  $queryStr .= "WHERE ks.status != 'waiting' AND ks.deleted_at IS NULL AND {$m['condition']} ";
+  
   if ($selectedWilayah !== 'all') {
-      $queryStr .= "LEFT JOIN sales_customer c ON ks.id_customer = c.id ";
-      $queryStr .= "WHERE ks.status != 'waiting' AND ks.deleted_at IS NULL AND c.id_wilayah = '$selectedWilayah' AND {$m['condition']}";
-  } else {
-      $queryStr .= "WHERE ks.status != 'waiting' AND ks.deleted_at IS NULL AND {$m['condition']}";
+      $queryStr .= "AND c.id_wilayah = '$selectedWilayah' ";
+  }
+  if ($selectedSales !== 'all') {
+      $queryStr .= "AND tks.id_sales = '$selectedSales' AND tks.deleted_at IS NULL ";
+  }
+  if (!empty($searchCustomer)) {
+      $safeSearch = mysqli_real_escape_string($conn, $searchCustomer);
+      $queryStr .= "AND c.nama LIKE '%$safeSearch%' ";
   }
   
   $r = mysqli_query($conn, $queryStr);
@@ -136,13 +150,27 @@ foreach ($tab_meta as $k => $m) {
 <div class="col-12">
   <div class="tab-content" id="kegiatanTabContent">
     <?php $first = true; foreach ($tab_meta as $k => $m):
-      $sql = "SELECT ks.*, c.nama AS nama_customer, c.telp_pribadi AS cust_nomor, c.alamat, c.id AS customer_id
+      $sql = "SELECT DISTINCT ks.*, c.nama AS nama_customer, c.telp_pribadi AS cust_nomor, c.alamat, c.id AS customer_id
               FROM kegiatan_sales ks
-              LEFT JOIN sales_customer c ON ks.id_customer = c.id
-              WHERE ks.status != 'waiting' AND ks.deleted_at IS NULL AND {$m['condition']} ";
+              LEFT JOIN sales_customer c ON ks.id_customer = c.id ";
+      
+      if ($selectedSales !== 'all') {
+          $sql .= "INNER JOIN team_kegiatan_sales tks ON ks.id = tks.id_kegiatan_sales ";
+      }
+      
+      $sql .= "WHERE ks.status != 'waiting' AND ks.deleted_at IS NULL AND {$m['condition']} ";
       
       if ($selectedWilayah !== 'all') {
           $sql .= "AND c.id_wilayah = '$selectedWilayah' ";
+      }
+      
+      if ($selectedSales !== 'all') {
+          $sql .= "AND tks.id_sales = '$selectedSales' AND tks.deleted_at IS NULL ";
+      }
+      
+      if (!empty($searchCustomer)) {
+          $safeSearch = mysqli_real_escape_string($conn, $searchCustomer);
+          $sql .= "AND c.nama LIKE '%$safeSearch%' ";
       }
       
       $sql .= "ORDER BY ks.jadwal ASC";
