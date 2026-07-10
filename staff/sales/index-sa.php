@@ -284,32 +284,58 @@ $searchCustomer = $_SESSION['search_customer'] ?? '';
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", function() {
+      // 1. Line Glow Shadow Plugin
+      const shadowPlugin = {
+        id: 'shadowPlugin',
+        beforeDatasetDraw: (chart, args) => {
+          const { ctx } = chart;
+          ctx.save();
+          ctx.shadowColor = 'rgba(6, 182, 212, 0.4)';
+          ctx.shadowBlur = 12;
+          ctx.shadowOffsetX = 0;
+          ctx.shadowOffsetY = 6;
+        },
+        afterDatasetDraw: (chart, args) => {
+          const { ctx } = chart;
+          ctx.restore();
+        }
+      };
+
       // 1. Trend Chart (Line Chart)
       const ctxTrend = document.getElementById('trendChart').getContext('2d');
+      
+      // Line Stroke Gradient (Indigo to Cyan)
+      const gradientStroke = ctxTrend.createLinearGradient(0, 0, ctxTrend.canvas.offsetWidth || 500, 0);
+      gradientStroke.addColorStop(0, '#4f46e5');
+      gradientStroke.addColorStop(0.5, '#3b82f6');
+      gradientStroke.addColorStop(1, '#06b6d4');
+
+      // Line Fill Gradient
       const gradientTrend = ctxTrend.createLinearGradient(0, 0, 0, 200);
-      gradientTrend.addColorStop(0, 'rgba(59, 130, 246, 0.4)');
-      gradientTrend.addColorStop(1, 'rgba(59, 130, 246, 0.0)');
+      gradientTrend.addColorStop(0, 'rgba(6, 182, 212, 0.35)');
+      gradientTrend.addColorStop(1, 'rgba(79, 70, 229, 0.0)');
 
       new Chart(ctxTrend, {
         type: 'line',
+        plugins: [shadowPlugin],
         data: {
           labels: <?php echo json_encode($trendLabels); ?>,
           datasets: [{
             label: 'Jumlah Kunjungan',
             data: <?php echo json_encode($trendValues); ?>,
-            borderColor: '#3b82f6',
-            borderWidth: 3,
+            borderColor: gradientStroke,
+            borderWidth: 4,
             backgroundColor: gradientTrend,
             fill: true,
             tension: 0.4,
             pointBackgroundColor: '#ffffff',
-            pointBorderColor: '#3b82f6',
-            pointBorderWidth: 2,
-            pointRadius: 4,
-            pointHoverRadius: 6,
-            pointHoverBackgroundColor: '#3b82f6',
+            pointBorderColor: '#06b6d4',
+            pointBorderWidth: 3,
+            pointRadius: 6,
+            pointHoverRadius: 9,
+            pointHoverBackgroundColor: '#06b6d4',
             pointHoverBorderColor: '#ffffff',
-            pointHoverBorderWidth: 2
+            pointHoverBorderWidth: 3
           }]
         },
         options: {
@@ -318,11 +344,14 @@ $searchCustomer = $_SESSION['search_customer'] ?? '';
           plugins: {
             legend: { display: false },
             tooltip: {
-              backgroundColor: '#1e293b',
+              backgroundColor: '#1e1b4b',
               titleColor: '#ffffff',
-              bodyColor: '#ffffff',
-              cornerRadius: 8,
-              padding: 10
+              bodyColor: '#38bdf8',
+              cornerRadius: 10,
+              padding: 12,
+              displayColors: false,
+              titleFont: { size: 12, weight: 'bold' },
+              bodyFont: { size: 12 }
             }
           },
           scales: {
@@ -335,18 +364,39 @@ $searchCustomer = $_SESSION['search_customer'] ?? '';
               ticks: { color: '#64748b', stepSize: 1, precision: 0, font: { size: 10 } }
             }
           },
-          animation: {
-            duration: 1500,
-            easing: 'easeOutElastic'
+          animations: {
+            y: {
+              type: 'number',
+              duration: 1000,
+              easing: 'easeOutQuart',
+              from: (ctx) => ctx.chart.scales.y.getPixelForValue(0),
+              delay(ctx) {
+                if (ctx.type !== 'data' || ctx.yStarted) { return 0; }
+                ctx.yStarted = true;
+                return ctx.index * 100;
+              }
+            },
+            x: {
+              type: 'number',
+              duration: 100,
+              easing: 'linear',
+              delay(ctx) {
+                if (ctx.type !== 'data' || ctx.xStarted) { return 0; }
+                ctx.xStarted = true;
+                return ctx.index * 100;
+              }
+            }
           }
         }
       });
 
       // 2. Sales Performance Chart (Bar Chart)
       const ctxSales = document.getElementById('salesChart').getContext('2d');
+      
+      // Bar Color Gradient (Violet to Pink)
       const gradientSales = ctxSales.createLinearGradient(0, 0, 0, 250);
-      gradientSales.addColorStop(0, '#10b981');
-      gradientSales.addColorStop(1, '#059669');
+      gradientSales.addColorStop(0, '#8b5cf6');
+      gradientSales.addColorStop(1, '#db2777');
 
       new Chart(ctxSales, {
         type: 'bar',
@@ -356,9 +406,12 @@ $searchCustomer = $_SESSION['search_customer'] ?? '';
             label: 'Kunjungan',
             data: <?php echo json_encode($salesValues); ?>,
             backgroundColor: gradientSales,
-            borderRadius: 6,
+            borderRadius: 8,
             borderSkipped: false,
-            barThickness: 16
+            barThickness: 20,
+            hoverBackgroundColor: '#db2777',
+            hoverBorderColor: '#8b5cf6',
+            hoverBorderWidth: 2
           }]
         },
         options: {
@@ -367,11 +420,14 @@ $searchCustomer = $_SESSION['search_customer'] ?? '';
           plugins: {
             legend: { display: false },
             tooltip: {
-              backgroundColor: '#1e293b',
+              backgroundColor: '#1e1b4b',
               titleColor: '#ffffff',
-              bodyColor: '#ffffff',
-              cornerRadius: 8,
-              padding: 10
+              bodyColor: '#f472b6',
+              cornerRadius: 10,
+              padding: 12,
+              displayColors: false,
+              titleFont: { size: 12, weight: 'bold' },
+              bodyFont: { size: 12 }
             }
           },
           scales: {
@@ -384,9 +440,18 @@ $searchCustomer = $_SESSION['search_customer'] ?? '';
               ticks: { color: '#64748b', stepSize: 1, precision: 0, font: { size: 10 } }
             }
           },
-          animation: {
-            duration: 1200,
-            easing: 'easeOutQuart'
+          animations: {
+            y: {
+              type: 'number',
+              duration: 1200,
+              easing: 'easeOutBack',
+              from: (ctx) => ctx.chart.scales.y.getPixelForValue(0),
+              delay(ctx) {
+                if (ctx.type !== 'data' || ctx.yStarted) { return 0; }
+                ctx.yStarted = true;
+                return ctx.index * 120;
+              }
+            }
           }
         }
       });
