@@ -154,6 +154,113 @@ $searchCustomer = $_SESSION['search_customer'] ?? '';
         </div>
       </div>
 
+      <!-- ── Chart Data Fetching (PHP) ──────────────────────────────── -->
+      <?php
+      // 1. Data Trend 7 Hari Terakhir
+      $trendLabels = [];
+      $trendValues = [];
+      for ($i = 6; $i >= 0; $i--) {
+          $dateStr = date('Y-m-d', strtotime("-$i days"));
+          $displayStr = date('d M', strtotime($dateStr));
+          
+          $queryTrend = "SELECT COUNT(DISTINCT ks.id) AS c FROM kegiatan_sales ks
+                         LEFT JOIN sales_customer c ON ks.id_customer = c.id ";
+          if ($selectedSales !== 'all') {
+              $queryTrend .= "INNER JOIN team_kegiatan_sales tks ON ks.id = tks.id_kegiatan_sales ";
+          } else {
+              $queryTrend .= "LEFT JOIN team_kegiatan_sales tks ON ks.id = tks.id_kegiatan_sales ";
+          }
+          
+          $queryTrend .= "WHERE ks.status != 'waiting' AND ks.deleted_at IS NULL AND DATE(ks.jadwal) = '$dateStr' ";
+          
+          if ($selectedWilayah !== 'all') {
+              $queryTrend .= "AND c.id_wilayah = '$selectedWilayah' ";
+          }
+          if ($selectedSales !== 'all') {
+              $queryTrend .= "AND tks.id_sales = '$selectedSales' AND tks.deleted_at IS NULL ";
+          }
+          if (!empty($searchCustomer)) {
+              $safeSearch = mysqli_real_escape_string($conn, $searchCustomer);
+              $queryTrend .= "AND c.nama LIKE '%$safeSearch%' ";
+          }
+          
+          $resTrend = mysqli_query($conn, $queryTrend);
+          $count = ($resTrend && ($rRow = mysqli_fetch_assoc($resTrend))) ? (int)$rRow['c'] : 0;
+          
+          $trendLabels[] = $displayStr;
+          $trendValues[] = $count;
+      }
+
+      // 2. Data Performa Sales
+      $salesLabels = [];
+      $salesValues = [];
+
+      $querySalesPerformance = "SELECT s.nama AS nama_sales, COUNT(DISTINCT ks.id) AS c
+                                FROM kegiatan_sales ks
+                                JOIN team_kegiatan_sales tks ON ks.id = tks.id_kegiatan_sales
+                                JOIN sales s ON tks.id_sales = s.id
+                                LEFT JOIN sales_customer c ON ks.id_customer = c.id
+                                WHERE ks.status != 'waiting' AND ks.deleted_at IS NULL AND tks.deleted_at IS NULL ";
+
+      if ($selectedWilayah !== 'all') {
+          $querySalesPerformance .= "AND c.id_wilayah = '$selectedWilayah' ";
+      }
+      if ($selectedSales !== 'all') {
+          $querySalesPerformance .= "AND tks.id_sales = '$selectedSales' ";
+      }
+      if (!empty($searchCustomer)) {
+          $safeSearch = mysqli_real_escape_string($conn, $searchCustomer);
+          $querySalesPerformance .= "AND c.nama LIKE '%$safeSearch%' ";
+      }
+
+      $querySalesPerformance .= "GROUP BY s.id, s.nama ORDER BY c DESC LIMIT 10";
+      $resSalesPerformance = mysqli_query($conn, $querySalesPerformance);
+
+      while ($sp = mysqli_fetch_assoc($resSalesPerformance)) {
+          $salesLabels[] = $sp['nama_sales'];
+          $salesValues[] = (int)$sp['c'];
+      }
+
+      // Fallback jika tidak ada data sales agar grafik tidak kosong melompong
+      if (empty($salesLabels)) {
+          $salesLabels = ['Belum ada data'];
+          $salesValues = [0];
+      }
+      ?>
+
+      <!-- ── Chart Section ─────────────────────────────────────────── -->
+      <div class="row mb-4">
+        <!-- Chart 1: Trend Kunjungan -->
+        <div class="col-12 col-lg-7 mb-4 mb-lg-0">
+          <div class="card p-3 shadow-sm border-0" style="border-radius: 12px; border: 1px solid #e2e8f0 !important; background: #fff; height: 350px;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h6 class="text-xs font-weight-bold text-uppercase text-secondary mb-0" style="letter-spacing: 0.05em; font-family: 'Open Sans', sans-serif;">
+                <span class="material-symbols-outlined" style="font-size: 16px; color: #3b82f6; vertical-align: middle; margin-right: 4px;">trending_up</span>
+                Trend Kunjungan (7 Hari Terakhir)
+              </h6>
+            </div>
+            <div style="position: relative; height: 260px; width: 100%;">
+              <canvas id="trendChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chart 2: Performa Sales -->
+        <div class="col-12 col-lg-5">
+          <div class="card p-3 shadow-sm border-0" style="border-radius: 12px; border: 1px solid #e2e8f0 !important; background: #fff; height: 350px;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h6 class="text-xs font-weight-bold text-uppercase text-secondary mb-0" style="letter-spacing: 0.05em; font-family: 'Open Sans', sans-serif;">
+                <span class="material-symbols-outlined" style="font-size: 16px; color: #10b981; vertical-align: middle; margin-right: 4px;">leaderboard</span>
+                Performa Kunjungan Sales
+              </h6>
+            </div>
+            <div style="position: relative; height: 260px; width: 100%;">
+              <canvas id="salesChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- ── Kegiatan Tabs + Cards ──────────────────────────────────── -->
       <div class="row g-3">
         <?php include "kegiatan-db.php"; ?>
@@ -171,6 +278,119 @@ $searchCustomer = $_SESSION['search_customer'] ?? '';
     if (win && document.querySelector('#sidenav-scrollbar')) {
       Scrollbar.init(document.querySelector('#sidenav-scrollbar'), {damping:'0.5'});
     }
+  </script>
+
+  <!-- ── Chart.js Script CDN & Initialization ────────────────────── -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      // 1. Trend Chart (Line Chart)
+      const ctxTrend = document.getElementById('trendChart').getContext('2d');
+      const gradientTrend = ctxTrend.createLinearGradient(0, 0, 0, 200);
+      gradientTrend.addColorStop(0, 'rgba(59, 130, 246, 0.4)');
+      gradientTrend.addColorStop(1, 'rgba(59, 130, 246, 0.0)');
+
+      new Chart(ctxTrend, {
+        type: 'line',
+        data: {
+          labels: <?php echo json_encode($trendLabels); ?>,
+          datasets: [{
+            label: 'Jumlah Kunjungan',
+            data: <?php echo json_encode($trendValues); ?>,
+            borderColor: '#3b82f6',
+            borderWidth: 3,
+            backgroundColor: gradientTrend,
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: '#ffffff',
+            pointBorderColor: '#3b82f6',
+            pointBorderWidth: 2,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            pointHoverBackgroundColor: '#3b82f6',
+            pointHoverBorderColor: '#ffffff',
+            pointHoverBorderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#1e293b',
+              titleColor: '#ffffff',
+              bodyColor: '#ffffff',
+              cornerRadius: 8,
+              padding: 10
+            }
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { color: '#64748b', font: { size: 10, weight: 'bold' } }
+            },
+            y: {
+              grid: { color: '#f1f5f9' },
+              ticks: { color: '#64748b', stepSize: 1, precision: 0, font: { size: 10 } }
+            }
+          },
+          animation: {
+            duration: 1500,
+            easing: 'easeOutElastic'
+          }
+        }
+      });
+
+      // 2. Sales Performance Chart (Bar Chart)
+      const ctxSales = document.getElementById('salesChart').getContext('2d');
+      const gradientSales = ctxSales.createLinearGradient(0, 0, 0, 250);
+      gradientSales.addColorStop(0, '#10b981');
+      gradientSales.addColorStop(1, '#059669');
+
+      new Chart(ctxSales, {
+        type: 'bar',
+        data: {
+          labels: <?php echo json_encode($salesLabels); ?>,
+          datasets: [{
+            label: 'Kunjungan',
+            data: <?php echo json_encode($salesValues); ?>,
+            backgroundColor: gradientSales,
+            borderRadius: 6,
+            borderSkipped: false,
+            barThickness: 16
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#1e293b',
+              titleColor: '#ffffff',
+              bodyColor: '#ffffff',
+              cornerRadius: 8,
+              padding: 10
+            }
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { color: '#64748b', font: { size: 10, weight: 'bold' } }
+            },
+            y: {
+              grid: { color: '#f1f5f9' },
+              ticks: { color: '#64748b', stepSize: 1, precision: 0, font: { size: 10 } }
+            }
+          },
+          animation: {
+            duration: 1200,
+            easing: 'easeOutQuart'
+          }
+        }
+      });
+    });
   </script>
 </body>
 </html>
