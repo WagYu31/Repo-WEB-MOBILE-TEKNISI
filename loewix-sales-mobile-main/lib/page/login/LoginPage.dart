@@ -238,8 +238,8 @@ class _LogoBadge extends StatelessWidget {
       ),
       child: ClipOval(
         child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Image.asset('assets/images/logo_loewix.png',
+          padding: const EdgeInsets.all(2),
+          child: Image.asset('assets/images/logo_loewix.jpg',
               fit: BoxFit.contain),
         ),
       ),
