@@ -4,7 +4,7 @@ $isMobile = preg_match('/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry
 
 // Include the appropriate menu file based on device size
 if ($isMobile) {
-    include "menu-bottom.php";
+    include "../menu-bottom.php";
 } else {
     include "../menu-aside.php";
 }
