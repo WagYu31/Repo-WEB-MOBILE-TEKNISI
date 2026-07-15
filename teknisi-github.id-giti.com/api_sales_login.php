@@ -51,7 +51,7 @@ if (empty($username) || empty($password)) {
 }
 
 // Ambil data sales berdasarkan username (nama) ATAU nik
-$stmt = $conn->prepare("SELECT id, nik, nama, no_tlp, jabatan, password FROM sales WHERE (nama = ? OR nik = ?) AND deleted_at IS NULL LIMIT 1");
+$stmt = $conn->prepare("SELECT id, nik, nama, no_tlp, jabatan, password, foto FROM sales WHERE (nama = ? OR nik = ?) AND deleted_at IS NULL LIMIT 1");
 $stmt->bind_param('ss', $username, $username);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -87,5 +87,6 @@ echo json_encode([
         'nama'    => $sales['nama'],
         'no_tlp'  => $sales['no_tlp'] ?? '',
         'jabatan' => $sales['jabatan'] ?? 'Sales',
+        'foto'    => $sales['foto'] ?? '',
     ],
 ]);

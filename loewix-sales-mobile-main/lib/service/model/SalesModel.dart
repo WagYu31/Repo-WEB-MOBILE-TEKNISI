@@ -4,6 +4,7 @@ class SalesProfile {
   final String nama;
   final String noTlp;
   final String jabatan;
+  final String? foto;
 
   SalesProfile({
     required this.id,
@@ -11,6 +12,7 @@ class SalesProfile {
     required this.nama,
     required this.noTlp,
     required this.jabatan,
+    this.foto,
   });
 
   factory SalesProfile.fromJson(Map<String, dynamic> j) => SalesProfile(
@@ -19,6 +21,7 @@ class SalesProfile {
         nama: j['nama'] ?? '',
         noTlp: j['no_tlp'] ?? '',
         jabatan: j['jabatan'] ?? 'Sales',
+        foto: j['foto'] ?? '',
       );
 }
 

@@ -67,6 +67,8 @@ class SalesProvider extends ChangeNotifier {
       await prefs.setString('sales_nama', _profile!.nama);
       await prefs.setString('sales_nik', _profile!.nik);
       await prefs.setString('sales_jabatan', _profile!.jabatan);
+      await prefs.setString('sales_no_tlp', _profile!.noTlp);
+      await prefs.setString('sales_foto', _profile!.foto ?? '');
       // Simpan akun ke daftar akun tersimpan
       await _saveAccount(_profile!.nik, _profile!.nama);
       _isLoading = false;
@@ -89,8 +91,9 @@ class SalesProvider extends ChangeNotifier {
       id: id,
       nik: prefs.getString('sales_nik') ?? '',
       nama: prefs.getString('sales_nama') ?? '',
-      noTlp: '',
+      noTlp: prefs.getString('sales_no_tlp') ?? '',
       jabatan: prefs.getString('sales_jabatan') ?? 'Sales',
+      foto: prefs.getString('sales_foto') ?? '',
     );
     notifyListeners();
     return true;
@@ -104,9 +107,43 @@ class SalesProvider extends ChangeNotifier {
     await prefs.remove('sales_nama');
     await prefs.remove('sales_nik');
     await prefs.remove('sales_jabatan');
+    await prefs.remove('sales_no_tlp');
+    await prefs.remove('sales_foto');
     _profile = null;
     _tasks = [];
     notifyListeners();
+  }
+
+  // ─── Ubah Foto Profil ─────────────────────────────────────
+  Future<bool> changeProfilePhoto(String base64Image) async {
+    if (_profile == null) return false;
+    _isLoading = true;
+    _error = '';
+    notifyListeners();
+    try {
+      final newPhoto = await _api.uploadProfilePhoto(
+        salesId: _profile!.id,
+        base64Image: base64Image,
+      );
+      _profile = SalesProfile(
+        id: _profile!.id,
+        nik: _profile!.nik,
+        nama: _profile!.nama,
+        noTlp: _profile!.noTlp,
+        jabatan: _profile!.jabatan,
+        foto: newPhoto,
+      );
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('sales_foto', newPhoto);
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = e.toString().replaceAll('Exception: ', '');
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
   }
 
   // ─── Fetch Tasks ──────────────────────────────────────────

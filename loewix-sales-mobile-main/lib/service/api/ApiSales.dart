@@ -146,4 +146,22 @@ class ApiSales {
     }
     throw Exception(data['message'] ?? 'Gagal memperbarui laporan');
   }
+
+  Future<String> uploadProfilePhoto({
+    required int salesId,
+    required String base64Image,
+  }) async {
+    final res = await http.post(
+      Uri.parse('$_base/api_sales_upload_profile.php'),
+      body: {
+        'sales_id': salesId.toString(),
+        'image': base64Image,
+      },
+    );
+    final data = jsonDecode(res.body);
+    if (res.statusCode == 200 && data['status'] == 'success') {
+      return data['photo'] ?? '';
+    }
+    throw Exception(data['message'] ?? 'Gagal mengunggah foto profil');
+  }
 }
