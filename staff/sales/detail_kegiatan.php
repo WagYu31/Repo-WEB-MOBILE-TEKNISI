@@ -44,7 +44,7 @@ $resultKegiatan = mysqli_query($conn, $sqlKegiatan);
 $data = mysqli_fetch_assoc($resultKegiatan);
 
 // Ambil tim sales
-$sqlSales = "SELECT s.nama AS nama_sales, ps.status, ps.keterangan, ps.image_1, ps.image_2, ps.image_3, ps.record,
+$sqlSales = "SELECT s.nama AS nama_sales, s.foto AS foto_sales, ps.status, ps.keterangan, ps.image_1, ps.image_2, ps.image_3, ps.record,
                     ps.ci_at, ps.co_at, ps.lat_ci, ps.lon_ci, ps.lat_co, ps.lon_co, ps.catatan_visit,
                     ps.nama_client, ps.nomer_client
              FROM team_kegiatan_sales tks
@@ -596,7 +596,7 @@ $left_col_class = $has_coords ? "col-lg-7" : "col-lg-12";
             $isCurrentKegiatan = ($kegId == $idKegiatan);
             
             // Query sales team untuk kegiatan ini
-            $sqlKegSales = "SELECT s.nama AS nama_sales, ps.status, ps.keterangan, ps.image_1, ps.image_2, ps.image_3, ps.record,
+            $sqlKegSales = "SELECT s.nama AS nama_sales, s.foto AS foto_sales, ps.status, ps.keterangan, ps.image_1, ps.image_2, ps.image_3, ps.record,
                                    ps.ci_at, ps.co_at, ps.lat_ci, ps.lon_ci, ps.lat_co, ps.lon_co, ps.catatan_visit,
                                    ps.nama_client, ps.nomer_client
                             FROM team_kegiatan_sales tks
@@ -666,12 +666,16 @@ $left_col_class = $has_coords ? "col-lg-7" : "col-lg-12";
                       <!-- Card Header: Sales & Status -->
                       <div class="sales-header-strip">
                         <div class="sales-profile">
-                          <div class="sales-initial" style="background: <?= $colorTheme; ?>;">
-                            <?php 
-                              $words = explode(' ', $row['nama_sales'] ?? '');
-                              echo strtoupper(substr($words[0] ?? '', 0, 1) . (isset($words[1]) ? substr($words[1], 0, 1) : ''));
-                            ?>
-                          </div>
+                          <?php if (!empty($row['foto_sales'])): ?>
+                            <img src="https://api-teknisi.id-giti.com/storage/profile/<?= htmlspecialchars($row['foto_sales']); ?>" class="sales-avatar-img" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid <?= $colorTheme; ?>; margin-right: 8px;">
+                          <?php else: ?>
+                            <div class="sales-initial" style="background: <?= $colorTheme; ?>;">
+                              <?php 
+                                $words = explode(' ', $row['nama_sales'] ?? '');
+                                echo strtoupper(substr($words[0] ?? '', 0, 1) . (isset($words[1]) ? substr($words[1], 0, 1) : ''));
+                              ?>
+                            </div>
+                          <?php endif; ?>
                           <span class="sales-name-label"><?= htmlspecialchars($row['nama_sales'] ?? '-'); ?></span>
                         </div>
                         <span class="status-badge-sales <?= $badgeClass; ?>">

@@ -211,7 +211,7 @@ foreach ($tab_meta as $k => $m) {
 
             // Ambil sales
             $salesList = [];
-            $sqlSales  = "SELECT s.nama AS nama_sales, ps.status AS status_pelaksanaan, ps.ci_at, ps.co_at, ps.lat_ci, ps.lon_ci, ps.lat_co, ps.lon_co
+            $sqlSales  = "SELECT s.nama AS nama_sales, s.foto AS foto_sales, ps.status AS status_pelaksanaan, ps.ci_at, ps.co_at, ps.lat_ci, ps.lon_ci, ps.lat_co, ps.lon_co
                           FROM team_kegiatan_sales tks
                           LEFT JOIN sales s ON tks.id_sales = s.id
                           LEFT JOIN pelaksanaan_sales ps ON ps.kegiatan_id = tks.id_kegiatan_sales AND ps.sales_id = tks.id_sales
@@ -226,6 +226,7 @@ foreach ($tab_meta as $k => $m) {
               
               $salesList[] = [
                 'nama' => $s['nama_sales'],
+                'foto' => $s['foto_sales'],
                 'cls' => $cls,
                 'lbl' => $lbl,
                 'ci_time' => $ci_time,
@@ -269,12 +270,16 @@ foreach ($tab_meta as $k => $m) {
               <?php if (count($salesList) > 0): ?>
                 <?php foreach ($salesList as $sl): ?>
                 <div class="sales-item d-flex align-items-center gap-2 mb-2">
-                  <div class="avatar-initials" style="background-color: <?php echo $borderColor; ?>;">
-                    <?php 
-                      $words = explode(' ', $sl['nama']);
-                      echo strtoupper(substr($words[0], 0, 1) . (isset($words[1]) ? substr($words[1], 0, 1) : ''));
-                    ?>
-                  </div>
+                  <?php if (!empty($sl['foto'])): ?>
+                    <img src="https://api-teknisi.id-giti.com/storage/profile/<?php echo htmlspecialchars($sl['foto']); ?>" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; border: 1.5px solid <?php echo $borderColor; ?>;">
+                  <?php else: ?>
+                    <div class="avatar-initials" style="background-color: <?php echo $borderColor; ?>;">
+                      <?php 
+                        $words = explode(' ', $sl['nama']);
+                        echo strtoupper(substr($words[0], 0, 1) . (isset($words[1]) ? substr($words[1], 0, 1) : ''));
+                      ?>
+                    </div>
+                  <?php endif; ?>
                   <div class="d-flex flex-column">
                     <span class="sales-name"><?php echo htmlspecialchars($sl['nama']); ?></span>
                     <div class="d-flex align-items-center gap-1 flex-wrap mt-1">
