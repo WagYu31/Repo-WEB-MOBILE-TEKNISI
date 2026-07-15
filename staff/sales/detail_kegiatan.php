@@ -1,5 +1,25 @@
 <?php
 include "conn.php";
+
+// Auto migration: Add Sales App clock-in/out columns to pelaksanaan_sales if not exist
+$salesMigrations = [
+    "ci_at"        => "ALTER TABLE `pelaksanaan_sales` ADD COLUMN `ci_at` DATETIME NULL DEFAULT NULL COMMENT 'Waktu Clock In Sales'",
+    "co_at"        => "ALTER TABLE `pelaksanaan_sales` ADD COLUMN `co_at` DATETIME NULL DEFAULT NULL COMMENT 'Waktu Clock Out Sales'",
+    "lat_ci"       => "ALTER TABLE `pelaksanaan_sales` ADD COLUMN `lat_ci` VARCHAR(30) NULL DEFAULT NULL COMMENT 'Latitude saat Clock In'",
+    "lon_ci"       => "ALTER TABLE `pelaksanaan_sales` ADD COLUMN `lon_ci` VARCHAR(30) NULL DEFAULT NULL COMMENT 'Longitude saat Clock In'",
+    "lat_co"       => "ALTER TABLE `pelaksanaan_sales` ADD COLUMN `lat_co` VARCHAR(30) NULL DEFAULT NULL COMMENT 'Latitude saat Clock Out'",
+    "lon_co"       => "ALTER TABLE `pelaksanaan_sales` ADD COLUMN `lon_co` VARCHAR(30) NULL DEFAULT NULL COMMENT 'Longitude saat Clock Out'",
+    "catatan_visit"=> "ALTER TABLE `pelaksanaan_sales` ADD COLUMN `catatan_visit` TEXT NULL DEFAULT NULL COMMENT 'Catatan hasil kunjungan'",
+    "nama_client"  => "ALTER TABLE `pelaksanaan_sales` ADD COLUMN `nama_client` VARCHAR(100) NULL DEFAULT NULL COMMENT 'Nama Client / Kontak Kunjungan'",
+    "nomer_client" => "ALTER TABLE `pelaksanaan_sales` ADD COLUMN `nomer_client` VARCHAR(30) NULL DEFAULT NULL COMMENT 'Nomor Telepon Client / Kontak'",
+];
+foreach ($salesMigrations as $col => $sql) {
+    $chk = mysqli_query($conn, "SHOW COLUMNS FROM `pelaksanaan_sales` LIKE '$col'");
+    if ($chk && mysqli_num_rows($chk) == 0) {
+        mysqli_query($conn, $sql);
+    }
+}
+
 include "session.php";
 include "get-user-data.php";
 $pageNow = "Dashboard";
