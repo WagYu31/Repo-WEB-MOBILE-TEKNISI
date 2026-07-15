@@ -56,6 +56,39 @@
 $isSalesDir = (basename(getcwd()) === 'sales');
 $rootPrefix = $isSalesDir ? '../' : '';
 $salesPrefix = $isSalesDir ? '' : 'sales/';
+
+if ($isSalesDir) {
+    include_once "../menu-access-helper.php";
+} else {
+    include_once "menu-access-helper.php";
+}
+
+// Check menu access permissions dynamically
+$showDashboard = hasMenuAccess($conn, $idSesi, 'dashboard', ($role == 'Super Admin' || $role == 'Admin'));
+$showTambahKegiatan = hasMenuAccess($conn, $idSesi, 'tambah_kegiatan', ($role == 'Super Admin' || $role == 'Admin'));
+$showWaitingList = hasMenuAccess($conn, $idSesi, 'waiting_list', ($role == 'Super Admin' || $role == 'Admin'));
+
+$showKegiatanTeknisi = hasMenuAccess($conn, $idSesi, 'kegiatan_teknisi', ($role == 'Super Admin' || $role == 'Admin'));
+$showLaporanKegiatan = hasMenuAccess($conn, $idSesi, 'laporan_kegiatan', ($role == 'Super Admin' || $role == 'Admin'));
+$showTargetTercapai = hasMenuAccess($conn, $idSesi, 'target_tercapai', ($role == 'Super Admin' || $role == 'Admin'));
+$showProgressKegiatan = hasMenuAccess($conn, $idSesi, 'progress_kegiatan', ($role == 'Super Admin' || $role == 'Admin'));
+
+$showStokBarang = hasMenuAccess($conn, $idSesi, 'stok_barang', ($role == 'Super Admin' || $role == 'Admin'));
+$showPeminjaman = hasMenuAccess($conn, $idSesi, 'peminjaman', ($role == 'Super Admin' || $role == 'Admin'));
+$showTutorial = hasMenuAccess($conn, $idSesi, 'tutorial', ($role == 'Super Admin' || $role == 'Admin'));
+
+$showTeknisi = hasMenuAccess($conn, $idSesi, 'teknisi', ($role == 'Super Admin' || $role == 'Admin'));
+$showCustomer = hasMenuAccess($conn, $idSesi, 'customer', ($role == 'Super Admin' || $role == 'Admin'));
+
+$showDashboardSales = hasMenuAccess($conn, $idSesi, 'dashboard_sales', ($role == 'Super Admin' || $role == 'Admin' || $role == 'Sales Manager' || $role == 'Sales'));
+$showDataSales = hasMenuAccess($conn, $idSesi, 'data_sales', ($role == 'Super Admin' || $role == 'Admin' || $role == 'Sales Manager'));
+$showJadwalKunjungan = hasMenuAccess($conn, $idSesi, 'jadwal_kunjungan', ($role == 'Super Admin' || $role == 'Admin' || $role == 'Sales Manager' || $role == 'Sales'));
+$showLaporanVisit = hasMenuAccess($conn, $idSesi, 'laporan_visit', ($role == 'Super Admin' || $role == 'Admin' || $role == 'Sales Manager'));
+$showCustomerSales = hasMenuAccess($conn, $idSesi, 'customer_sales', ($role == 'Super Admin' || $role == 'Admin' || $role == 'Sales Manager' || $role == 'Sales'));
+
+$showKegiatanSaya = hasMenuAccess($conn, $idSesi, 'kegiatan_saya', ($role == 'Sales Manager' || $role == 'Sales'));
+$showDashboardTeknisi = hasMenuAccess($conn, $idSesi, 'dashboard_teknisi', ($role == 'Sales Manager' || $role == 'Sales'));
+$showBuatRequest = hasMenuAccess($conn, $idSesi, 'buat_request', ($role == 'Sales Manager' || $role == 'Sales'));
 ?>
 
 <nav class="navbar navbar-expand fixed-bottom d-xxl-none p-0 btm-nav">
