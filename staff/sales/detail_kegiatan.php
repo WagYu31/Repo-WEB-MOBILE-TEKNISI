@@ -25,7 +25,8 @@ $data = mysqli_fetch_assoc($resultKegiatan);
 
 // Ambil tim sales
 $sqlSales = "SELECT s.nama AS nama_sales, ps.status, ps.keterangan, ps.image_1, ps.image_2, ps.image_3, ps.record,
-                    ps.ci_at, ps.co_at, ps.lat_ci, ps.lon_ci, ps.lat_co, ps.lon_co, ps.catatan_visit 
+                    ps.ci_at, ps.co_at, ps.lat_ci, ps.lon_ci, ps.lat_co, ps.lon_co, ps.catatan_visit,
+                    ps.nama_client, ps.nomer_client
              FROM team_kegiatan_sales tks
              LEFT JOIN sales s ON tks.id_sales = s.id
              LEFT JOIN pelaksanaan_sales ps ON ps.kegiatan_id = tks.id_kegiatan_sales AND ps.sales_id = tks.id_sales
@@ -576,7 +577,8 @@ $left_col_class = $has_coords ? "col-lg-7" : "col-lg-12";
             
             // Query sales team untuk kegiatan ini
             $sqlKegSales = "SELECT s.nama AS nama_sales, ps.status, ps.keterangan, ps.image_1, ps.image_2, ps.image_3, ps.record,
-                                   ps.ci_at, ps.co_at, ps.lat_ci, ps.lon_ci, ps.lat_co, ps.lon_co, ps.catatan_visit 
+                                   ps.ci_at, ps.co_at, ps.lat_ci, ps.lon_ci, ps.lat_co, ps.lon_co, ps.catatan_visit,
+                                   ps.nama_client, ps.nomer_client
                             FROM team_kegiatan_sales tks
                             LEFT JOIN sales s ON tks.id_sales = s.id
                             LEFT JOIN pelaksanaan_sales ps ON ps.kegiatan_id = tks.id_kegiatan_sales AND ps.sales_id = tks.id_sales
@@ -693,6 +695,33 @@ $left_col_class = $has_coords ? "col-lg-7" : "col-lg-12";
                           <?php endif; ?>
                         </div>
                       </div>
+
+                      <!-- Client Contact Info -->
+                      <?php if (!empty($row['nama_client']) || !empty($row['nomer_client'])): ?>
+                        <div class="laporan-note-container" style="border-left-color: #3b82f6; margin-bottom: 12px;">
+                          <div class="laporan-note-title" style="color: #3b82f6; font-weight: bold; display: flex; align-items: center; gap: 6px;">
+                            <span class="material-symbols-outlined" style="font-size: 16px;">contact_phone</span> Kontak Client / Hubungan
+                          </div>
+                          <div class="laporan-note-text" style="display: flex; flex-direction: column; gap: 4px; font-size: 13px; font-weight: 500; color: #334155;">
+                            <?php if (!empty($row['nama_client'])): ?>
+                              <span>👤 Nama Client: <strong style="color: #1e293b;"><?= htmlspecialchars($row['nama_client']); ?></strong></span>
+                            <?php endif; ?>
+                            <?php if (!empty($row['nomer_client'])): ?>
+                              <span>📞 Telepon: <strong style="color: #1e293b;"><?= htmlspecialchars($row['nomer_client']); ?></strong>
+                              <?php 
+                                $cleanPhone = preg_replace('/[^0-9]/', '', $row['nomer_client']);
+                                if (str_starts_with($cleanPhone, '0')) {
+                                  $cleanPhone = '62' . substr($cleanPhone, 1);
+                                }
+                              ?>
+                              <a href="https://wa.me/<?= $cleanPhone; ?>" target="_blank" style="display: inline-flex; align-items: center; gap: 4px; background: #25d366; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-left: 8px; text-decoration: none; font-weight: bold;">
+                                Hubungi WA
+                              </a>
+                              </span>
+                            <?php endif; ?>
+                          </div>
+                        </div>
+                      <?php endif; ?>
 
                       <!-- Notes field -->
                       <?php 
