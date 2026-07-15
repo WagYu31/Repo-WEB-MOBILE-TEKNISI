@@ -272,7 +272,6 @@ $searchCustomer = $_SESSION['search_customer'] ?? '';
   </main>
 
   <?php include "js-include.php"; ?>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     var win = navigator.platform.indexOf('Win') > -1;
     if (win && document.querySelector('#sidenav-scrollbar')) {
