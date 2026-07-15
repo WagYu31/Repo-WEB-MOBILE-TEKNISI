@@ -148,6 +148,8 @@ class SalesProvider extends ChangeNotifier {
     required String lat,
     required String lon,
     String catatan = '',
+    String namaClient = '',
+    String nomerClient = '',
     bool isMock = false,
     List<String> base64Images = const [],
   }) async {
@@ -157,6 +159,8 @@ class SalesProvider extends ChangeNotifier {
       lat: lat,
       lon: lon,
       catatanVisit: catatan,
+      namaClient: namaClient,
+      nomerClient: nomerClient,
       isMock: isMock,
       base64Images: base64Images,
     );

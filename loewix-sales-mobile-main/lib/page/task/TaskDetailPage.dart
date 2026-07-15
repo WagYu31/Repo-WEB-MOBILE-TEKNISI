@@ -29,6 +29,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   late VisitTask _task;
   bool _gpsLoading = false;
   final _catatanCtrl = TextEditingController();
+  final _namaClientCtrl = TextEditingController();
+  final _nomerClientCtrl = TextEditingController();
   final GlobalKey<SlideActionState> _slideKeyCI = GlobalKey();
   final GlobalKey<SlideActionState> _slideKeyCO = GlobalKey();
   List<XFile> _capturedPhotos = [];
@@ -111,6 +113,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   @override
   void dispose() {
     _catatanCtrl.dispose();
+    _namaClientCtrl.dispose();
+    _nomerClientCtrl.dispose();
     super.dispose();
   }
 
@@ -221,6 +225,11 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     final result = await _showCatatanSheet();
     if (result == null) { _slideKeyCO.currentState?.reset(); return; }
 
+    final Map<String, dynamic> parsedResult = jsonDecode(result);
+    final catatan = parsedResult['catatan'] as String;
+    final namaClient = parsedResult['nama_client'] as String;
+    final nomerClient = parsedResult['nomer_client'] as String;
+
     final pos = await _getPosition();
     if (pos == null) { _slideKeyCO.currentState?.reset(); return; }
 
@@ -284,7 +293,9 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         kegiatanId: _task.kegiatanId,
         lat: pos.latitude.toString(),
         lon: pos.longitude.toString(),
-        catatan: result,
+        catatan: catatan,
+        namaClient: namaClient,
+        nomerClient: nomerClient,
         isMock: pos.isMocked,
         base64Images: base64Images,
       );
@@ -320,6 +331,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   // ── Catatan + Foto Bottom Sheet ──────────────────────────
   Future<String?> _showCatatanSheet() {
     _catatanCtrl.clear();
+    _namaClientCtrl.clear();
+    _nomerClientCtrl.clear();
     _capturedPhotos = [];
     return showModalBottomSheet<String>(
       context: context,
@@ -329,9 +342,18 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
           borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (_) => _CatatanSheet(
         ctrl: _catatanCtrl,
+        namaClientCtrl: _namaClientCtrl,
+        nomerClientCtrl: _nomerClientCtrl,
         picker: _picker,
         onPhotosCapture: (list) => setState(() => _capturedPhotos = list),
-        onSubmit: (catatan) => Navigator.pop(context, catatan),
+        onSubmit: (catatan, namaClient, nomerClient) => Navigator.pop(
+          context,
+          jsonEncode({
+            'catatan': catatan,
+            'nama_client': namaClient,
+            'nomer_client': nomerClient,
+          }),
+        ),
       ),
     );
   }
@@ -1198,11 +1220,15 @@ class _ClockNode extends StatelessWidget {
 // ── Catatan + Foto Bottom Sheet ──────────────────────────
 class _CatatanSheet extends StatefulWidget {
   final TextEditingController ctrl;
+  final TextEditingController namaClientCtrl;
+  final TextEditingController nomerClientCtrl;
   final ImagePicker picker;
   final ValueChanged<List<XFile>> onPhotosCapture;
-  final ValueChanged<String> onSubmit;
+  final void Function(String catatan, String namaClient, String nomerClient) onSubmit;
   const _CatatanSheet({
     required this.ctrl,
+    required this.namaClientCtrl,
+    required this.nomerClientCtrl,
     required this.picker,
     required this.onPhotosCapture,
     required this.onSubmit,
@@ -1342,6 +1368,31 @@ class _CatatanSheetState extends State<_CatatanSheet> {
           ),
           const SizedBox(height: 16),
 
+          // Nama Client field
+          Text('Nama Client *', style: S.micro(AppColors.textSecondary)),
+          const SizedBox(height: 6),
+          TextField(
+            controller: widget.namaClientCtrl,
+            style: S.body(AppColors.textPrimary),
+            decoration: const InputDecoration(
+              hintText: 'Tuliskan nama client...',
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Nomor Client field
+          Text('Nomor Client *', style: S.micro(AppColors.textSecondary)),
+          const SizedBox(height: 6),
+          TextField(
+            controller: widget.nomerClientCtrl,
+            keyboardType: TextInputType.phone,
+            style: S.body(AppColors.textPrimary),
+            decoration: const InputDecoration(
+              hintText: 'Tuliskan nomor telepon client...',
+            ),
+          ),
+          const SizedBox(height: 16),
+
           // Photo section
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1455,6 +1506,8 @@ class _CatatanSheetState extends State<_CatatanSheet> {
           GestureDetector(
             onTap: () {
               final catatan = widget.ctrl.text.trim();
+              final namaClient = widget.namaClientCtrl.text.trim();
+              final nomerClient = widget.nomerClientCtrl.text.trim();
               if (catatan.isEmpty) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -1465,7 +1518,27 @@ class _CatatanSheetState extends State<_CatatanSheet> {
                 );
                 return;
               }
-              widget.onSubmit(catatan);
+              if (namaClient.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Nama Client wajib diisi',
+                        style: S.body(AppColors.textPrimary)),
+                    backgroundColor: AppColors.error,
+                  ),
+                );
+                return;
+              }
+              if (nomerClient.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Nomor Client wajib diisi',
+                        style: S.body(AppColors.textPrimary)),
+                    backgroundColor: AppColors.error,
+                  ),
+                );
+                return;
+              }
+              widget.onSubmit(catatan, namaClient, nomerClient);
             },
             child: Container(
               width: double.infinity,

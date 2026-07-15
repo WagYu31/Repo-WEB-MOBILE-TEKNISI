@@ -50,6 +50,8 @@ if ($data) {
     $lat         = trim($data['latitude']        ?? '');
     $lon         = trim($data['longitude']       ?? '');
     $catatan     = trim($data['catatan_visit']   ?? '');
+    $namaClient  = trim($data['nama_client']     ?? '');
+    $nomerClient = trim($data['nomer_client']    ?? '');
     $isMock      = intval($data['is_mock']       ?? 0);
     
     $image_satu  = $data['image_satu']  ?? '';
@@ -63,6 +65,8 @@ if ($data) {
     $lat         = trim($_POST['latitude']        ?? '');
     $lon         = trim($_POST['longitude']       ?? '');
     $catatan     = trim($_POST['catatan_visit']   ?? '');
+    $namaClient  = trim($_POST['nama_client']     ?? '');
+    $nomerClient = trim($_POST['nomer_client']    ?? '');
     $isMock      = intval($_POST['is_mock']       ?? 0);
     
     $image_satu  = $_POST['image_satu']  ?? '';
@@ -72,9 +76,9 @@ if ($data) {
     $image_lima  = $_POST['image_lima']  ?? '';
 }
 
-if (!$kegiatanId || !$salesId || empty($lat) || empty($lon)) {
+if (!$kegiatanId || !$salesId || empty($lat) || empty($lon) || empty($namaClient) || empty($nomerClient)) {
     http_response_code(400);
-    echo json_encode(['status' => 'error', 'message' => 'Parameter tidak lengkap']);
+    echo json_encode(['status' => 'error', 'message' => 'Parameter tidak lengkap (Nama client dan nomor client wajib diisi)']);
     exit;
 }
 
@@ -159,8 +163,8 @@ foreach ($image_inputs as $key => $base64_str) {
 }
 
 // Update clock out beserta dengan link foto dokumentasi
-$upd = $conn->prepare("UPDATE pelaksanaan_sales SET co_at = ?, lat_co = ?, lon_co = ?, catatan_visit = ?, status = 'selesai', image_1 = ?, image_2 = ?, image_3 = ?, image_4 = ?, image_5 = ?, updated_at = NOW() WHERE id = ?");
-$upd->bind_param('sssssssssi', $now, $lat, $lon, $catatan, $saved_images['image_1'], $saved_images['image_2'], $saved_images['image_3'], $saved_images['image_4'], $saved_images['image_5'], $existing['id']);
+$upd = $conn->prepare("UPDATE pelaksanaan_sales SET co_at = ?, lat_co = ?, lon_co = ?, catatan_visit = ?, status = 'selesai', image_1 = ?, image_2 = ?, image_3 = ?, image_4 = ?, image_5 = ?, nama_client = ?, nomer_client = ?, updated_at = NOW() WHERE id = ?");
+$upd->bind_param('sssssssssssi', $now, $lat, $lon, $catatan, $saved_images['image_1'], $saved_images['image_2'], $saved_images['image_3'], $saved_images['image_4'], $saved_images['image_5'], $namaClient, $nomerClient, $existing['id']);
 $upd->execute();
 
 // Cascade: update kegiatan jika semua sales sudah selesai

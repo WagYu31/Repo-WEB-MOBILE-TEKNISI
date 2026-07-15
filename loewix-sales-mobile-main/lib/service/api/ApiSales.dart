@@ -67,6 +67,8 @@ class ApiSales {
     required String lat,
     required String lon,
     String catatanVisit = '',
+    String namaClient = '',
+    String nomerClient = '',
     bool isMock = false,
     List<String> base64Images = const [],
   }) async {
@@ -76,6 +78,8 @@ class ApiSales {
       'latitude': lat,
       'longitude': lon,
       'catatan_visit': catatanVisit,
+      'nama_client': namaClient,
+      'nomer_client': nomerClient,
       'is_mock': isMock ? 1 : 0,
     };
     
