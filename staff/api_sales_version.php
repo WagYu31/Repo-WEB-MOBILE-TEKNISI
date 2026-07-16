@@ -20,10 +20,10 @@ header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
 // KONFIGURASI VERSI - UBAH DI SINI UNTUK FORCE UPDATE
 // ═══════════════════════════════════════════════
 $response = [
-    'min_version'     => '1.6.0',   // Versi minimum yang dibolehkan
-    'latest_version'  => '1.6.0',   // Versi terbaru yang tersedia
-    'update_url'      => 'https://jadwal.id-giti.com/staff/download/LoewixSales-v1.6.0.apk',
-    'update_message'  => 'Versi terbaru (v1.6.0) tersedia! Penambahan kolom Nama Client dan Nomor Client di Clock Out.',
+    'min_version'     => '1.7.0',   // Versi minimum yang dibolehkan
+    'latest_version'  => '1.7.0',   // Versi terbaru yang tersedia
+    'update_url'      => 'https://jadwal.id-giti.com/staff/download/LoewixSales-v1.7.0.apk',
+    'update_message'  => 'Versi terbaru (v1.7.0) tersedia! Penambahan klasifikasi prospek customer, jadwal ulang kunjungan, filter rekap, dan nomor invoice.',
     'force_message'   => 'Versi aplikasi Anda sudah tidak didukung. Silakan update ke versi terbaru.',
 ];
 
