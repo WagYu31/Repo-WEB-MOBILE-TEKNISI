@@ -280,7 +280,7 @@ $searchCustomer = $_SESSION['search_customer'] ?? '';
   </script>
 
   <!-- ── Chart.js Script CDN & Initialization ────────────────────── -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="assets/js/plugins/chartjs.min.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", function() {
       // 1. Line Glow Shadow Plugin
@@ -362,29 +362,6 @@ $searchCustomer = $_SESSION['search_customer'] ?? '';
               grid: { color: '#f1f5f9' },
               ticks: { color: '#64748b', stepSize: 1, precision: 0, font: { size: 10 } }
             }
-          },
-          animations: {
-            y: {
-              type: 'number',
-              duration: 1000,
-              easing: 'easeOutQuart',
-              from: (ctx) => ctx.chart.scales.y.getPixelForValue(0),
-              delay(ctx) {
-                if (ctx.type !== 'data' || ctx.yStarted) { return 0; }
-                ctx.yStarted = true;
-                return ctx.index * 100;
-              }
-            },
-            x: {
-              type: 'number',
-              duration: 100,
-              easing: 'linear',
-              delay(ctx) {
-                if (ctx.type !== 'data' || ctx.xStarted) { return 0; }
-                ctx.xStarted = true;
-                return ctx.index * 100;
-              }
-            }
           }
         }
       });
@@ -437,19 +414,6 @@ $searchCustomer = $_SESSION['search_customer'] ?? '';
             y: {
               grid: { color: '#f1f5f9' },
               ticks: { color: '#64748b', stepSize: 1, precision: 0, font: { size: 10 } }
-            }
-          },
-          animations: {
-            y: {
-              type: 'number',
-              duration: 1200,
-              easing: 'easeOutBack',
-              from: (ctx) => ctx.chart.scales.y.getPixelForValue(0),
-              delay(ctx) {
-                if (ctx.type !== 'data' || ctx.yStarted) { return 0; }
-                ctx.yStarted = true;
-                return ctx.index * 120;
-              }
             }
           }
         }
