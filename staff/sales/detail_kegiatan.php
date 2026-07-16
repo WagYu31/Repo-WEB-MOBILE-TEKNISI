@@ -12,12 +12,24 @@ $salesMigrations = [
     "catatan_visit"=> "ALTER TABLE `pelaksanaan_sales` ADD COLUMN `catatan_visit` TEXT NULL DEFAULT NULL COMMENT 'Catatan hasil kunjungan'",
     "nama_client"  => "ALTER TABLE `pelaksanaan_sales` ADD COLUMN `nama_client` VARCHAR(100) NULL DEFAULT NULL COMMENT 'Nama Client / Kontak Kunjungan'",
     "nomer_client" => "ALTER TABLE `pelaksanaan_sales` ADD COLUMN `nomer_client` VARCHAR(30) NULL DEFAULT NULL COMMENT 'Nomor Telepon Client / Kontak'",
+    "tipe_prospek" => "ALTER TABLE `pelaksanaan_sales` ADD COLUMN `tipe_prospek` VARCHAR(30) NULL DEFAULT 'Biasa' COMMENT 'Kategori prospek customer'",
+    "no_invoice"   => "ALTER TABLE `pelaksanaan_sales` ADD COLUMN `no_invoice` VARCHAR(100) NULL DEFAULT NULL COMMENT 'Nomor invoice opsional jika ada transaksi'",
 ];
 foreach ($salesMigrations as $col => $sql) {
     $chk = mysqli_query($conn, "SHOW COLUMNS FROM `pelaksanaan_sales` LIKE '$col'");
     if ($chk && mysqli_num_rows($chk) == 0) {
         mysqli_query($conn, $sql);
     }
+}
+
+// Auto migration: Add rescheduled columns to kegiatan_sales table
+$checkReschedFrom = mysqli_query($conn, "SHOW COLUMNS FROM `kegiatan_sales` LIKE 'rescheduled_from'");
+if ($checkReschedFrom && mysqli_num_rows($checkReschedFrom) == 0) {
+    mysqli_query($conn, "ALTER TABLE `kegiatan_sales` ADD COLUMN `rescheduled_from` INT NULL DEFAULT NULL COMMENT 'Reference ke ID kegiatan lama yang di-reschedule'");
+}
+$checkReschedReason = mysqli_query($conn, "SHOW COLUMNS FROM `kegiatan_sales` LIKE 'reschedule_reason'");
+if ($checkReschedReason && mysqli_num_rows($checkReschedReason) == 0) {
+    mysqli_query($conn, "ALTER TABLE `kegiatan_sales` ADD COLUMN `reschedule_reason` TEXT NULL DEFAULT NULL COMMENT 'Alasan reschedule'");
 }
 
 include "session.php";
@@ -46,7 +58,7 @@ $data = mysqli_fetch_assoc($resultKegiatan);
 // Ambil tim sales
 $sqlSales = "SELECT s.nama AS nama_sales, s.foto AS foto_sales, ps.status, ps.keterangan, ps.image_1, ps.image_2, ps.image_3, ps.record,
                     ps.ci_at, ps.co_at, ps.lat_ci, ps.lon_ci, ps.lat_co, ps.lon_co, ps.catatan_visit,
-                    ps.nama_client, ps.nomer_client
+                    ps.nama_client, ps.nomer_client, ps.tipe_prospek, ps.no_invoice
              FROM team_kegiatan_sales tks
              LEFT JOIN sales s ON tks.id_sales = s.id
              LEFT JOIN pelaksanaan_sales ps ON ps.kegiatan_id = tks.id_kegiatan_sales AND ps.sales_id = tks.id_sales
@@ -598,11 +610,11 @@ $left_col_class = $has_coords ? "col-lg-7" : "col-lg-12";
             // Query sales team untuk kegiatan ini
             $sqlKegSales = "SELECT s.nama AS nama_sales, s.foto AS foto_sales, ps.status, ps.keterangan, ps.image_1, ps.image_2, ps.image_3, ps.record,
                                    ps.ci_at, ps.co_at, ps.lat_ci, ps.lon_ci, ps.lat_co, ps.lon_co, ps.catatan_visit,
-                                   ps.nama_client, ps.nomer_client
-                            FROM team_kegiatan_sales tks
-                            LEFT JOIN sales s ON tks.id_sales = s.id
-                            LEFT JOIN pelaksanaan_sales ps ON ps.kegiatan_id = tks.id_kegiatan_sales AND ps.sales_id = tks.id_sales
-                            WHERE tks.id_kegiatan_sales = '$kegId' AND tks.deleted_at IS NULL";
+                                   ps.nama_client, ps.nomer_client, ps.tipe_prospek, ps.no_invoice
+                             FROM team_kegiatan_sales tks
+                             LEFT JOIN sales s ON tks.id_sales = s.id
+                             LEFT JOIN pelaksanaan_sales ps ON ps.kegiatan_id = tks.id_kegiatan_sales AND ps.sales_id = tks.id_sales
+                             WHERE tks.id_kegiatan_sales = '$kegId' AND tks.deleted_at IS NULL";
             $resultKegSales = mysqli_query($conn, $sqlKegSales);
             $kegSalesCount = mysqli_num_rows($resultKegSales);
             
@@ -638,6 +650,17 @@ $left_col_class = $has_coords ? "col-lg-7" : "col-lg-12";
               </div>
             </div>
             <div class="card-body-premium">
+              <!-- Reschedule Info Notice -->
+              <?php if (strtolower($kegRow['status'] ?? '') === 'dibatalkan' && !empty($kegRow['reschedule_reason'])): ?>
+                <div class="alert alert-danger d-flex align-items-center gap-2 mb-4" style="background: #fee2e2; border: 1px solid #fca5a5; color: #b91c1c; border-radius: 12px; padding: 12px 16px;">
+                  <span class="material-symbols-outlined" style="font-size: 20px;">event_busy</span>
+                  <div style="font-size: 13.5px; font-weight: 500;">
+                    <strong>Jadwal Ulang:</strong> Kunjungan ini dibatalkan untuk dijadwalkan kembali. <br>
+                    <span style="opacity: 0.85;">💬 Alasan: <?= htmlspecialchars($kegRow['reschedule_reason']); ?></span>
+                  </div>
+                </div>
+              <?php endif; ?>
+
               <?php if ($kegSalesCount > 0): ?>
               <div class="row g-4">
                 <?php while ($row = mysqli_fetch_assoc($resultKegSales)): 
@@ -645,11 +668,13 @@ $left_col_class = $has_coords ? "col-lg-7" : "col-lg-12";
                   $badgeClass = match($status) {
                     'selesai' => 'badge-selesai',
                     'berjalan' => 'badge-berjalan',
+                    'dibatalkan' => 'badge-dibatalkan',
                     default => 'badge-dijadwalkan'
                   };
                   $colorTheme = match($status) {
                     'selesai' => '#10b981',
                     'berjalan' => '#3b82f6',
+                    'dibatalkan' => '#ef4444',
                     default => '#64748b'
                   };
                   
@@ -677,9 +702,27 @@ $left_col_class = $has_coords ? "col-lg-7" : "col-lg-12";
                             </div>
                           <?php endif; ?>
                           <span class="sales-name-label"><?= htmlspecialchars($row['nama_sales'] ?? '-'); ?></span>
+                          <?php 
+                            $prospek = $row['tipe_prospek'] ?? 'Biasa';
+                            if ($prospek !== 'Biasa') {
+                                $pColor = match($prospek) {
+                                    'Peluang' => '#10b981',
+                                    'Menengah' => '#f59e0b',
+                                    'Rumit' => '#ef4444',
+                                    default => '#64748b'
+                                };
+                                $pBg = match($prospek) {
+                                    'Peluang' => '#d1fae5',
+                                    'Menengah' => '#fef3c7',
+                                    'Rumit' => '#fee2e2',
+                                    default => '#f1f5f9'
+                                };
+                                echo '<span style="font-size:10px; font-weight:bold; color:'.$pColor.'; background:'.$pBg.'; padding: 2px 8px; border-radius: 12px; margin-left: 8px;">'.$prospek.'</span>';
+                            }
+                          ?>
                         </div>
-                        <span class="status-badge-sales <?= $badgeClass; ?>">
-                          <?= htmlspecialchars($row['status'] ?? 'Dijadwalkan'); ?>
+                        <span class="status-badge-sales <?= $badgeClass; ?>" style="background: <?= $colorTheme; ?>20; color: <?= $colorTheme; ?>; border: 1.5px solid <?= $colorTheme; ?>30; font-weight: bold;">
+                          <?= htmlspecialchars(ucfirst($row['status'] ?? 'Dijadwalkan')); ?>
                         </span>
                       </div>
 
@@ -743,6 +786,18 @@ $left_col_class = $has_coords ? "col-lg-7" : "col-lg-12";
                               </a>
                               </span>
                             <?php endif; ?>
+                          </div>
+                        </div>
+                      <?php endif; ?>
+
+                      <!-- Invoice Info -->
+                      <?php if (!empty($row['no_invoice'])): ?>
+                        <div class="laporan-note-container" style="border-left-color: #10b981; margin-bottom: 12px; background: #f0fdf4;">
+                          <div class="laporan-note-title" style="color: #10b981; font-weight: bold; display: flex; align-items: center; gap: 6px;">
+                            <span class="material-symbols-outlined" style="font-size: 16px;">receipt</span> Transaksi Penjualan
+                          </div>
+                          <div class="laporan-note-text" style="font-size: 13px; font-weight: 500; color: #14532d;">
+                            <span>📄 No. Invoice: <strong style="color: #14532d;"><?= htmlspecialchars($row['no_invoice']); ?></strong></span>
                           </div>
                         </div>
                       <?php endif; ?>

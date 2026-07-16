@@ -31,6 +31,9 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
   final _catatanCtrl = TextEditingController();
   final _namaClientCtrl = TextEditingController();
   final _nomerClientCtrl = TextEditingController();
+  final _namaCustomerCtrl = TextEditingController();
+  final _telpCustomerCtrl = TextEditingController();
+  final _noInvoiceCtrl = TextEditingController();
   final GlobalKey<SlideActionState> _slideKeyCI = GlobalKey();
   final GlobalKey<SlideActionState> _slideKeyCO = GlobalKey();
   List<XFile> _capturedPhotos = [];
@@ -229,6 +232,10 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     final catatan = parsedResult['catatan'] as String;
     final namaClient = parsedResult['nama_client'] as String;
     final nomerClient = parsedResult['nomer_client'] as String;
+    final namaCustomer = parsedResult['nama_customer'] as String;
+    final telpCustomer = parsedResult['telp_customer'] as String;
+    final tipeProspek = parsedResult['tipe_prospek'] as String;
+    final noInvoice = parsedResult['no_invoice'] as String;
 
     final pos = await _getPosition();
     if (pos == null) { _slideKeyCO.currentState?.reset(); return; }
@@ -296,6 +303,10 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         catatan: catatan,
         namaClient: namaClient,
         nomerClient: nomerClient,
+        telpCustomer: telpCustomer,
+        namaCustomer: namaCustomer,
+        tipeProspek: tipeProspek,
+        noInvoice: noInvoice,
         isMock: pos.isMocked,
         base64Images: base64Images,
       );
@@ -333,6 +344,9 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     _catatanCtrl.clear();
     _namaClientCtrl.clear();
     _nomerClientCtrl.clear();
+    _namaCustomerCtrl.clear();
+    _telpCustomerCtrl.clear();
+    _noInvoiceCtrl.clear();
     _capturedPhotos = [];
     return showModalBottomSheet<String>(
       context: context,
@@ -344,18 +358,192 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         ctrl: _catatanCtrl,
         namaClientCtrl: _namaClientCtrl,
         nomerClientCtrl: _nomerClientCtrl,
+        namaCustomerCtrl: _namaCustomerCtrl,
+        telpCustomerCtrl: _telpCustomerCtrl,
+        noInvoiceCtrl: _noInvoiceCtrl,
+        showNamaCustomer: _task.namaCustomer.isEmpty,
+        showTelpCustomer: _task.telpCustomer.isEmpty || _task.telpCustomer == '0',
         picker: _picker,
         onPhotosCapture: (list) => setState(() => _capturedPhotos = list),
-        onSubmit: (catatan, namaClient, nomerClient) => Navigator.pop(
+        onSubmit: (catatan, namaClient, nomerClient, namaCustomer, telpCustomer, tipeProspek, noInvoice) => Navigator.pop(
           context,
           jsonEncode({
             'catatan': catatan,
             'nama_client': namaClient,
             'nomer_client': nomerClient,
+            'nama_customer': namaCustomer,
+            'telp_customer': telpCustomer,
+            'tipe_prospek': tipeProspek,
+            'no_invoice': noInvoice,
           }),
         ),
       ),
     );
+  }
+
+  Future<void> _showRescheduleDialog() async {
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now().add(const Duration(days: 1)),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 30)),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: AppColors.primary,
+              onPrimary: Colors.white,
+              onSurface: AppColors.textPrimary,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (pickedDate == null) return;
+
+    if (!mounted) return;
+    final TimeOfDay? pickedTime = await showTimePicker(
+      context: context,
+      initialTime: const TimeOfDay(hour: 9, minute: 0),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: AppColors.primary,
+              onPrimary: Colors.white,
+              onSurface: AppColors.textPrimary,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (pickedTime == null) return;
+
+    final newJadwal = DateTime(
+      pickedDate.year,
+      pickedDate.month,
+      pickedDate.day,
+      pickedTime.hour,
+      pickedTime.minute,
+    );
+
+    if (!mounted) return;
+    final reasonCtrl = TextEditingController();
+    
+    final reasonResult = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.cardAlt,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (_) => Padding(
+        padding: EdgeInsets.only(
+          left: 20, right: 20, top: 16,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40, height: 4,
+                decoration: BoxDecoration(
+                    color: AppColors.border,
+                    borderRadius: BorderRadius.circular(2)),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text('Alasan Penjadwalan Ulang', style: S.h2()),
+            const SizedBox(height: 4),
+            Text('Jadwal Baru: ${DateFormat('EEEE, dd MMMM yyyy • HH:mm', 'id').format(newJadwal)}',
+                style: S.caption(AppColors.primaryLight)),
+            const SizedBox(height: 20),
+            Text('Tulis Alasan *', style: S.micro(AppColors.textSecondary)),
+            const SizedBox(height: 6),
+            TextField(
+              controller: reasonCtrl,
+              maxLines: 3,
+              style: S.body(AppColors.textPrimary),
+              decoration: const InputDecoration(
+                hintText: 'Misal: Toko tutup / Owner minta ganti hari...',
+              ),
+            ),
+            const SizedBox(height: 20),
+            GestureDetector(
+              onTap: () {
+                final reason = reasonCtrl.text.trim();
+                if (reason.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Alasan wajib diisi')),
+                  );
+                  return;
+                }
+                Navigator.pop(context, reason);
+              },
+              child: Container(
+                width: double.infinity,
+                height: 52,
+                decoration: AppTheme.btnDeco(radius: 14),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.check_rounded, color: Colors.white, size: 20),
+                    const SizedBox(width: 8),
+                    Text('Konfirmasi Reschedule', style: S.btn()),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (reasonResult == null || reasonResult.isEmpty) return;
+
+    if (!mounted) return;
+    QuickAlert.show(
+      context: context,
+      type: QuickAlertType.loading,
+      title: 'Menjadwalkan Ulang',
+      text: 'Sedang memperbarui kunjungan...',
+      barrierDismissible: false,
+    );
+
+    try {
+      final msg = await context.read<SalesProvider>().doReschedule(
+        kegiatanId: _task.kegiatanId,
+        newJadwal: DateFormat('yyyy-MM-dd HH:mm:ss').format(newJadwal),
+        reason: reasonResult,
+      );
+      if (!mounted) return;
+      Navigator.pop(context); // Close loading
+
+      QuickAlert.show(
+        context: context,
+        type: QuickAlertType.success,
+        title: 'Berhasil Dijadwalkan Ulang',
+        text: msg,
+        confirmBtnColor: AppColors.success,
+        onConfirmBtnTap: () {
+          Navigator.pop(context); // Close alert
+          Navigator.pop(context); // Close page
+        },
+      );
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.pop(context); // Close loading
+      QuickAlert.show(
+        context: context,
+        type: QuickAlertType.error,
+        title: 'Gagal Reschedule',
+        text: e.toString().replaceAll('Exception: ', ''),
+        confirmBtnColor: AppColors.error,
+      );
+    }
   }
 
   void _showError(String msg) => ScaffoldMessenger.of(context)
@@ -1083,8 +1271,36 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                     borderRadius: 18,
                     height: 62,
                     onSubmit: () { _doClockOut(); return null; },
-                  ).animate(delay: 200.ms).fadeIn(duration: 500.ms).slideY(begin: 0.2, end: 0)
-                else
+                  ).animate(delay: 200.ms).fadeIn(duration: 500.ms).slideY(begin: 0.2, end: 0),
+                if (!t.selesai) ...[
+                  const SizedBox(height: 12),
+                  GestureDetector(
+                    onTap: _showRescheduleDialog,
+                    child: Container(
+                      width: double.infinity,
+                      height: 52,
+                      decoration: BoxDecoration(
+                        color: Colors.transparent,
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(color: AppColors.border, width: 1.5),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.event_repeat_rounded, color: AppColors.textSecondary, size: 20),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Jadwalkan Ulang Kunjungan',
+                            style: S.body(AppColors.textSecondary).copyWith(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ).animate(delay: 250.ms).fadeIn(duration: 500.ms).slideY(begin: 0.2, end: 0),
+                ] else ...[
                   Column(
                     children: [
                       Container(
@@ -1142,6 +1358,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                       ),
                     ],
                   ).animate(delay: 200.ms).fadeIn(duration: 500.ms),
+                ],
 
                 const SizedBox(height: 16),
               ]),
@@ -1222,13 +1439,23 @@ class _CatatanSheet extends StatefulWidget {
   final TextEditingController ctrl;
   final TextEditingController namaClientCtrl;
   final TextEditingController nomerClientCtrl;
+  final TextEditingController namaCustomerCtrl;
+  final TextEditingController telpCustomerCtrl;
+  final TextEditingController noInvoiceCtrl;
+  final bool showNamaCustomer;
+  final bool showTelpCustomer;
   final ImagePicker picker;
   final ValueChanged<List<XFile>> onPhotosCapture;
-  final void Function(String catatan, String namaClient, String nomerClient) onSubmit;
+  final void Function(String catatan, String namaClient, String nomerClient, String namaCustomer, String telpCustomer, String tipeProspek, String noInvoice) onSubmit;
   const _CatatanSheet({
     required this.ctrl,
     required this.namaClientCtrl,
     required this.nomerClientCtrl,
+    required this.namaCustomerCtrl,
+    required this.telpCustomerCtrl,
+    required this.noInvoiceCtrl,
+    required this.showNamaCustomer,
+    required this.showTelpCustomer,
     required this.picker,
     required this.onPhotosCapture,
     required this.onSubmit,
@@ -1240,6 +1467,8 @@ class _CatatanSheet extends StatefulWidget {
 
 class _CatatanSheetState extends State<_CatatanSheet> {
   final List<XFile> _photos = [];
+  String _selectedProspek = 'Biasa';
+  bool _adaPenjualan = false;
 
   Future<void> _pickPhoto(ImageSource source, {bool isVideo = false}) async {
     Navigator.pop(context); // close source picker
@@ -1327,6 +1556,38 @@ class _CatatanSheetState extends State<_CatatanSheet> {
     );
   }
 
+  Widget _buildProspekBtn(String label, Color color) {
+    final isSelected = _selectedProspek == label;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            _selectedProspek = label;
+          });
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: isSelected ? color.withOpacity(0.12) : AppColors.bg,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: isSelected ? color : AppColors.border,
+              width: isSelected ? 2 : 1,
+            ),
+          ),
+          child: Text(
+            label,
+            style: S.body(isSelected ? color : AppColors.textSecondary).copyWith(
+              fontSize: 12,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -1334,227 +1595,319 @@ class _CatatanSheetState extends State<_CatatanSheet> {
         left: 20, right: 20, top: 16,
         bottom: MediaQuery.of(context).viewInsets.bottom + 24,
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Handle
-          Center(
-            child: Container(
-              width: 40, height: 4,
-              decoration: BoxDecoration(
-                  color: AppColors.border,
-                  borderRadius: BorderRadius.circular(2)),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40, height: 4,
+                decoration: BoxDecoration(
+                    color: AppColors.border,
+                    borderRadius: BorderRadius.circular(2)),
+              ),
             ),
-          ),
-          const SizedBox(height: 20),
+            const SizedBox(height: 20),
 
-          Text('Selesaikan Kunjungan', style: S.h2()),
-          const SizedBox(height: 4),
-          Text('Isi catatan dan opsional foto/video dokumentasi',
-              style: S.caption()),
-          const SizedBox(height: 20),
+            Text('Selesaikan Kunjungan', style: S.h2()),
+            const SizedBox(height: 4),
+            Text('Isi catatan dan opsional foto/video dokumentasi',
+                style: S.caption()),
+            const SizedBox(height: 20),
 
-          // Catatan field
-          Text('Catatan Kunjungan *', style: S.micro(AppColors.textSecondary)),
-          const SizedBox(height: 6),
-          TextField(
-            controller: widget.ctrl,
-            maxLines: 3,
-            style: S.body(AppColors.textPrimary),
-            decoration: const InputDecoration(
-              hintText: 'Tuliskan hasil atau catatan kunjungan...',
+            // Catatan field
+            Text('Catatan Kunjungan *', style: S.micro(AppColors.textSecondary)),
+            const SizedBox(height: 6),
+            TextField(
+              controller: widget.ctrl,
+              maxLines: 3,
+              style: S.body(AppColors.textPrimary),
+              decoration: const InputDecoration(
+                hintText: 'Tuliskan hasil atau catatan kunjungan...',
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
+            const SizedBox(height: 16),
 
-          // Nama Client field
-          Text('Nama Client *', style: S.micro(AppColors.textSecondary)),
-          const SizedBox(height: 6),
-          TextField(
-            controller: widget.namaClientCtrl,
-            style: S.body(AppColors.textPrimary),
-            decoration: const InputDecoration(
-              hintText: 'Tuliskan nama client...',
+            // Nama Client field
+            Text('Nama Client *', style: S.micro(AppColors.textSecondary)),
+            const SizedBox(height: 6),
+            TextField(
+              controller: widget.namaClientCtrl,
+              style: S.body(AppColors.textPrimary),
+              decoration: const InputDecoration(
+                hintText: 'Tuliskan nama client...',
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
+            const SizedBox(height: 16),
 
-          // Nomor Client field
-          Text('Nomor Client *', style: S.micro(AppColors.textSecondary)),
-          const SizedBox(height: 6),
-          TextField(
-            controller: widget.nomerClientCtrl,
-            keyboardType: TextInputType.phone,
-            style: S.body(AppColors.textPrimary),
-            decoration: const InputDecoration(
-              hintText: 'Tuliskan nomor telepon client...',
+            // Nomor Client field
+            Text('Nomor Client *', style: S.micro(AppColors.textSecondary)),
+            const SizedBox(height: 6),
+            TextField(
+              controller: widget.nomerClientCtrl,
+              keyboardType: TextInputType.phone,
+              style: S.body(AppColors.textPrimary),
+              decoration: const InputDecoration(
+                hintText: 'Tuliskan nomor telepon client...',
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
+            const SizedBox(height: 16),
 
-          // Photo section
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('Dokumentasi (${_photos.length}/5)',
-                  style: S.micro(AppColors.textSecondary)),
-              if (_photos.length < 5)
-                GestureDetector(
-                  onTap: _showSourcePicker,
-                  child: Text('Tambah File',
-                      style: S.caption(AppColors.primaryLight)),
+            // Conditional Customer Name input
+            if (widget.showNamaCustomer) ...[
+              Text('Nama Customer *', style: S.micro(AppColors.textSecondary)),
+              const SizedBox(height: 6),
+              TextField(
+                controller: widget.namaCustomerCtrl,
+                style: S.body(AppColors.textPrimary),
+                decoration: const InputDecoration(
+                  hintText: 'Lengkapi Nama Customer (Toko)...',
                 ),
+              ),
+              const SizedBox(height: 16),
             ],
-          ),
-          const SizedBox(height: 8),
 
-          if (_photos.isNotEmpty)
-            SizedBox(
-              height: 90,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: _photos.length,
-                itemBuilder: (context, index) {
-                  final file = _photos[index];
-                  final isVideo = file.path.endsWith('.mp4') ||
-                      file.path.endsWith('.mov') ||
-                      file.path.endsWith('.3gp');
+            // Conditional Customer Phone input
+            if (widget.showTelpCustomer) ...[
+              Text('Nomor Telepon Customer *', style: S.micro(AppColors.textSecondary)),
+              const SizedBox(height: 6),
+              TextField(
+                controller: widget.telpCustomerCtrl,
+                keyboardType: TextInputType.phone,
+                style: S.body(AppColors.textPrimary),
+                decoration: const InputDecoration(
+                  hintText: 'Lengkapi Nomor Telepon Customer (Toko)...',
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
 
-                  return Container(
-                    margin: const EdgeInsets.only(right: 10),
-                    width: 90,
-                    child: Stack(
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: Container(
-                            color: AppColors.bg,
-                            width: 90,
-                            height: 90,
-                            child: isVideo
-                                ? const Center(
-                                    child: Icon(
-                                      Icons.play_circle_fill_rounded,
-                                      color: AppColors.primary,
-                                      size: 32,
-                                    ),
-                                  )
-                                : Image.file(
-                                    File(file.path),
-                                    fit: BoxFit.cover,
-                                  ),
-                          ),
-                        ),
-                        Positioned(
-                          top: 4,
-                          right: 4,
-                          child: GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                _photos.removeAt(index);
-                              });
-                              widget.onPhotosCapture(_photos);
-                            },
+            // Kategori Prospek
+            Text('Kategori Prospek Customer *', style: S.micro(AppColors.textSecondary)),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                _buildProspekBtn('Biasa', Colors.grey),
+                const SizedBox(width: 8),
+                _buildProspekBtn('Peluang', AppColors.success),
+                const SizedBox(width: 8),
+                _buildProspekBtn('Menengah', AppColors.warning),
+                const SizedBox(width: 8),
+                _buildProspekBtn('Rumit', AppColors.error),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // Ada Penjualan Toggle
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Ada Penjualan?', style: S.body(AppColors.textPrimary)),
+                Switch(
+                  value: _adaPenjualan,
+                  onChanged: (val) {
+                    setState(() {
+                      _adaPenjualan = val;
+                    });
+                  },
+                  activeColor: AppColors.primary,
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            if (_adaPenjualan) ...[
+              Text('Nomor Invoice *', style: S.micro(AppColors.textSecondary)),
+              const SizedBox(height: 6),
+              TextField(
+                controller: widget.noInvoiceCtrl,
+                style: S.body(AppColors.textPrimary),
+                decoration: const InputDecoration(
+                  hintText: 'Tuliskan nomor invoice...',
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+
+            // Photo section
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Dokumentasi (${_photos.length}/5)',
+                    style: S.micro(AppColors.textSecondary)),
+                if (_photos.length < 5)
+                  GestureDetector(
+                    onTap: _showSourcePicker,
+                    child: Text('Tambah File',
+                        style: S.caption(AppColors.primaryLight)),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 8),
+
+            if (_photos.isNotEmpty)
+              SizedBox(
+                height: 90,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _photos.length,
+                  itemBuilder: (context, index) {
+                    final file = _photos[index];
+                    final isVideo = file.path.endsWith('.mp4') ||
+                        file.path.endsWith('.mov') ||
+                        file.path.endsWith('.3gp');
+
+                    return Container(
+                      margin: const EdgeInsets.only(right: 10),
+                      width: 90,
+                      child: Stack(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
                             child: Container(
-                              padding: const EdgeInsets.all(2),
-                              decoration: const BoxDecoration(
-                                color: AppColors.error,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.close,
-                                color: Colors.white,
-                                size: 14,
+                              color: AppColors.bg,
+                              width: 90,
+                              height: 90,
+                              child: isVideo
+                                  ? const Center(
+                                      child: Icon(
+                                        Icons.play_circle_fill_rounded,
+                                        color: AppColors.primary,
+                                        size: 32,
+                                      ),
+                                    )
+                                  : Image.file(
+                                      File(file.path),
+                                      fit: BoxFit.cover,
+                                    ),
+                            ),
+                          ),
+                          Positioned(
+                            top: 4,
+                            right: 4,
+                            child: GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _photos.removeAt(index);
+                                });
+                                widget.onPhotosCapture(_photos);
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.all(2),
+                                decoration: const BoxDecoration(
+                                  color: AppColors.error,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.close,
+                                  color: Colors.white,
+                                  size: 14,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            )
-          else
-            GestureDetector(
-              onTap: _showSourcePicker,
-              child: Container(
-                height: 80,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: AppColors.bg,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                      color: AppColors.border, style: BorderStyle.solid),
+                        ],
+                      ),
+                    );
+                  },
                 ),
-                child: Column(
+              )
+            else
+              GestureDetector(
+                onTap: _showSourcePicker,
+                child: Container(
+                  height: 80,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: AppColors.bg,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                        color: AppColors.border, style: BorderStyle.solid),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.add_a_photo_outlined,
+                          color: AppColors.textMuted, size: 24),
+                      const SizedBox(height: 6),
+                      Text('Tambah Foto / Video', style: S.caption()),
+                    ],
+                  ),
+                ),
+              ),
+
+            const SizedBox(height: 20),
+
+            // Submit
+            GestureDetector(
+              onTap: () {
+                final catatan = widget.ctrl.text.trim();
+                final namaClient = widget.namaClientCtrl.text.trim();
+                final nomerClient = widget.nomerClientCtrl.text.trim();
+                final namaCustomer = widget.namaCustomerCtrl.text.trim();
+                final telpCustomer = widget.telpCustomerCtrl.text.trim();
+                final noInvoice = _adaPenjualan ? widget.noInvoiceCtrl.text.trim() : '';
+
+                if (catatan.isEmpty) {
+                  _showError('Catatan wajib diisi');
+                  return;
+                }
+                if (namaClient.isEmpty) {
+                  _showError('Nama Client wajib diisi');
+                  return;
+                }
+                if (nomerClient.isEmpty) {
+                  _showError('Nomor Client wajib diisi');
+                  return;
+                }
+                if (widget.showNamaCustomer && namaCustomer.isEmpty) {
+                  _showError('Nama Customer wajib diisi');
+                  return;
+                }
+                if (widget.showTelpCustomer && telpCustomer.isEmpty) {
+                  _showError('Nomor Telepon Customer wajib diisi');
+                  return;
+                }
+                if (_adaPenjualan && noInvoice.isEmpty) {
+                  _showError('Nomor Invoice wajib diisi');
+                  return;
+                }
+
+                widget.onSubmit(
+                  catatan,
+                  namaClient,
+                  nomerClient,
+                  namaCustomer,
+                  telpCustomer,
+                  _selectedProspek,
+                  noInvoice,
+                );
+              },
+              child: Container(
+                width: double.infinity,
+                height: 52,
+                decoration: AppTheme.btnDeco(radius: 14),
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.add_a_photo_outlined,
-                        color: AppColors.textMuted, size: 24),
-                    const SizedBox(height: 6),
-                    Text('Tambah Foto / Video', style: S.caption()),
+                    const Icon(Icons.check_rounded, color: Colors.white, size: 20),
+                    const SizedBox(width: 8),
+                    Text('Konfirmasi Clock Out', style: S.btn()),
                   ],
                 ),
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
 
-          const SizedBox(height: 20),
-
-          // Submit
-          GestureDetector(
-            onTap: () {
-              final catatan = widget.ctrl.text.trim();
-              final namaClient = widget.namaClientCtrl.text.trim();
-              final nomerClient = widget.nomerClientCtrl.text.trim();
-              if (catatan.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Catatan wajib diisi',
-                        style: S.body(AppColors.textPrimary)),
-                    backgroundColor: AppColors.error,
-                  ),
-                );
-                return;
-              }
-              if (namaClient.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Nama Client wajib diisi',
-                        style: S.body(AppColors.textPrimary)),
-                    backgroundColor: AppColors.error,
-                  ),
-                );
-                return;
-              }
-              if (nomerClient.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Nomor Client wajib diisi',
-                        style: S.body(AppColors.textPrimary)),
-                    backgroundColor: AppColors.error,
-                  ),
-                );
-                return;
-              }
-              widget.onSubmit(catatan, namaClient, nomerClient);
-            },
-            child: Container(
-              width: double.infinity,
-              height: 52,
-              decoration: AppTheme.btnDeco(radius: 14),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.check_rounded, color: Colors.white, size: 20),
-                  const SizedBox(width: 8),
-                  Text('Konfirmasi Clock Out', style: S.btn()),
-                ],
-              ),
-            ),
-          ),
-        ],
+  void _showError(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(msg, style: S.body(Colors.white)),
+        backgroundColor: AppColors.error,
       ),
     );
   }

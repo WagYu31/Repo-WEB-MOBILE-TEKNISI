@@ -69,6 +69,10 @@ class ApiSales {
     String catatanVisit = '',
     String namaClient = '',
     String nomerClient = '',
+    String telpCustomer = '',
+    String namaCustomer = '',
+    String tipeProspek = 'Biasa',
+    String noInvoice = '',
     bool isMock = false,
     List<String> base64Images = const [],
   }) async {
@@ -80,6 +84,10 @@ class ApiSales {
       'catatan_visit': catatanVisit,
       'nama_client': namaClient,
       'nomer_client': nomerClient,
+      'telp_customer': telpCustomer,
+      'nama_customer': namaCustomer,
+      'tipe_prospek': tipeProspek,
+      'no_invoice': noInvoice,
       'is_mock': isMock ? 1 : 0,
     };
     
@@ -163,5 +171,28 @@ class ApiSales {
       return data['photo'] ?? '';
     }
     throw Exception(data['message'] ?? 'Gagal mengunggah foto profil');
+  }
+
+  Future<Map<String, dynamic>> reschedule({
+    required int kegiatanId,
+    required int salesId,
+    required String newJadwal,
+    required String reason,
+  }) async {
+    final res = await http.post(
+      Uri.parse('$_base/api_sales_reschedule.php'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'kegiatan_id': kegiatanId,
+        'sales_id': salesId,
+        'new_jadwal': newJadwal,
+        'reason': reason,
+      }),
+    );
+    final data = jsonDecode(res.body);
+    if (res.statusCode == 200 && data['status'] == 'success') {
+      return data;
+    }
+    throw Exception(data['message'] ?? 'Gagal menjadwalkan ulang');
   }
 }

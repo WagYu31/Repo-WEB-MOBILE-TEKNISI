@@ -187,6 +187,10 @@ class SalesProvider extends ChangeNotifier {
     String catatan = '',
     String namaClient = '',
     String nomerClient = '',
+    String telpCustomer = '',
+    String namaCustomer = '',
+    String tipeProspek = 'Biasa',
+    String noInvoice = '',
     bool isMock = false,
     List<String> base64Images = const [],
   }) async {
@@ -198,11 +202,31 @@ class SalesProvider extends ChangeNotifier {
       catatanVisit: catatan,
       namaClient: namaClient,
       nomerClient: nomerClient,
+      telpCustomer: telpCustomer,
+      namaCustomer: namaCustomer,
+      tipeProspek: tipeProspek,
+      noInvoice: noInvoice,
       isMock: isMock,
       base64Images: base64Images,
     );
     await fetchTasks();
     return res['message'] ?? 'Clock Out berhasil';
+  }
+
+  // ─── Reschedule ───────────────────────────────────────────
+  Future<String> doReschedule({
+    required int kegiatanId,
+    required String newJadwal,
+    required String reason,
+  }) async {
+    final res = await _api.reschedule(
+      kegiatanId: kegiatanId,
+      salesId: _profile!.id,
+      newJadwal: newJadwal,
+      reason: reason,
+    );
+    await fetchTasks();
+    return res['message'] ?? 'Kunjungan berhasil dijadwalkan ulang';
   }
 
   // ─── Update Report ────────────────────────────────────────

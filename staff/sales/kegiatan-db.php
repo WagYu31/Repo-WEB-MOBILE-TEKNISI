@@ -211,7 +211,7 @@ foreach ($tab_meta as $k => $m) {
 
             // Ambil sales
             $salesList = [];
-            $sqlSales  = "SELECT s.nama AS nama_sales, s.foto AS foto_sales, ps.status AS status_pelaksanaan, ps.ci_at, ps.co_at, ps.lat_ci, ps.lon_ci, ps.lat_co, ps.lon_co
+            $sqlSales  = "SELECT s.nama AS nama_sales, s.foto AS foto_sales, ps.status AS status_pelaksanaan, ps.ci_at, ps.co_at, ps.lat_ci, ps.lon_ci, ps.lat_co, ps.lon_co, ps.tipe_prospek, ps.no_invoice
                           FROM team_kegiatan_sales tks
                           LEFT JOIN sales s ON tks.id_sales = s.id
                           LEFT JOIN pelaksanaan_sales ps ON ps.kegiatan_id = tks.id_kegiatan_sales AND ps.sales_id = tks.id_sales
@@ -219,8 +219,8 @@ foreach ($tab_meta as $k => $m) {
             $resSales  = mysqli_query($conn, $sqlSales);
             while ($s = mysqli_fetch_assoc($resSales)) {
               $st   = strtolower($s['status_pelaksanaan'] ?? 'dijadwalkan');
-              $cls  = match($st) { 'berjalan'=>'status-running','selesai'=>'status-done', default=>'status-scheduled' };
-              $lbl  = match($st) { 'berjalan'=>'Berjalan','selesai'=>'Selesai', default=>'Dijadwalkan' };
+              $cls  = match($st) { 'berjalan'=>'status-running','selesai'=>'status-done','dibatalkan'=>'status-cancelled', default=>'status-scheduled' };
+              $lbl  = match($st) { 'berjalan'=>'Berjalan','selesai'=>'Selesai','dibatalkan'=>'Dibatalkan', default=>'Dijadwalkan' };
               $ci_time = !empty($s['ci_at']) ? date('H:i', strtotime($s['ci_at'])) : '';
               $co_time = !empty($s['co_at']) ? date('H:i', strtotime($s['co_at'])) : '';
               
@@ -234,12 +234,16 @@ foreach ($tab_meta as $k => $m) {
                 'lat_ci' => $s['lat_ci'] ?? '',
                 'lon_ci' => $s['lon_ci'] ?? '',
                 'lat_co' => $s['lat_co'] ?? '',
-                'lon_co' => $s['lon_co'] ?? ''
+                'lon_co' => $s['lon_co'] ?? '',
+                'tipe_prospek' => $s['tipe_prospek'] ?? 'Biasa',
+                'no_invoice' => $s['no_invoice'] ?? ''
               ];
             }
+            $kegStatus = strtolower($row['status'] ?? 'dijadwalkan');
+            $rowAccent = ($kegStatus === 'dibatalkan') ? '#ef4444' : $borderColor;
           ?>
 
-          <div class="keg-row" style="--row-accent:<?php echo $borderColor; ?>">
+          <div class="keg-row" style="--row-accent:<?php echo $rowAccent; ?>">
             <!-- Jadwal -->
             <div class="keg-cell">
               <span class="cell-label d-md-none">Jadwal</span>
@@ -262,6 +266,11 @@ foreach ($tab_meta as $k => $m) {
                 <i class="fab fa-whatsapp"></i> <?php echo $row['cust_nomor']; ?>
               </a>
               <?php endif; ?>
+              <?php if ($kegStatus === 'dibatalkan' && !empty($row['reschedule_reason'])): ?>
+                <div style="font-size:10px; color:#ef4444; font-weight:600; margin-top:4px;">
+                  🔁 Dijadwalkan Ulang: "<?php echo htmlspecialchars($row['reschedule_reason']); ?>"
+                </div>
+              <?php endif; ?>
             </div>
 
             <!-- Sales -->
@@ -281,9 +290,18 @@ foreach ($tab_meta as $k => $m) {
                     </div>
                   <?php endif; ?>
                   <div class="d-flex flex-column">
-                    <span class="sales-name"><?php echo htmlspecialchars($sl['nama']); ?></span>
+                    <span class="sales-name">
+                      <?php echo htmlspecialchars($sl['nama']); ?>
+                      <?php if (!empty($sl['tipe_prospek']) && $sl['tipe_prospek'] !== 'Biasa'): 
+                        $pColor = match($sl['tipe_prospek']) { 'Peluang'=>'#10b981', 'Menengah'=>'#f59e0b', 'Rumit'=>'#ef4444', default=>'#64748b' };
+                        $pBg = match($sl['tipe_prospek']) { 'Peluang'=>'#d1fae5', 'Menengah'=>'#fef3c7', 'Rumit'=>'#fee2e2', default=>'#f1f5f9' };
+                      ?>
+                        <span style="font-size:8px; font-weight:bold; color:<?php echo $pColor; ?>; background:<?php echo $pBg; ?>; padding: 1px 5px; border-radius: 8px; margin-left: 4px; display:inline-block; vertical-align:middle;"><?php echo $sl['tipe_prospek']; ?></span>
+                      <?php endif; ?>
+                    </span>
                     <div class="d-flex align-items-center gap-1 flex-wrap mt-1">
-                      <span class="sales-status-badge <?php echo $sl['cls']; ?>"><?php echo $sl['lbl']; ?></span>
+                      <span class="sales-status-badge <?php echo $sl['cls']; ?>" style="<?php echo ($sl['cls'] === 'status-cancelled') ? 'background:#fee2e2;color:#ef4444;border-color:#fca5a5;' : ''; ?>"><?php echo $sl['lbl']; ?></span>
+                      
                       <!-- Always Show Clock In -->
                       <span class="badge bg-light <?php echo !empty($sl['ci_time']) ? 'text-success' : 'text-muted'; ?> font-weight-bold" style="font-size: 9px; padding: 2px 6px; border: 1px solid <?php echo !empty($sl['ci_time']) ? '#d1fae5' : '#e2e8f0'; ?>; border-radius: 4px; font-family: monospace; text-transform: uppercase; display: inline-flex; align-items: center; gap: 2px;" title="Jam Clock In">
                         📥 IN: <?php echo !empty($sl['ci_time']) ? $sl['ci_time'] : '--:--'; ?>
@@ -299,6 +317,13 @@ foreach ($tab_meta as $k => $m) {
                           <a href="https://www.google.com/maps?q=<?php echo $sl['lat_co']; ?>,<?php echo $sl['lon_co']; ?>" target="_blank" style="text-decoration: none; font-size:10px; line-height:1;" title="Lokasi Clock Out">📍</a>
                         <?php endif; ?>
                       </span>
+
+                      <!-- Invoice tag if present -->
+                      <?php if (!empty($sl['no_invoice'])): ?>
+                        <span class="badge bg-light text-success font-weight-bold" style="font-size: 9px; padding: 2px 6px; border: 1px solid #10b98140; border-radius: 4px; font-family: monospace; display: inline-flex; align-items: center; gap: 2px;" title="Nomor Invoice Penjualan">
+                          📄 INV: <?php echo htmlspecialchars($sl['no_invoice']); ?>
+                        </span>
+                      <?php endif; ?>
                     </div>
                   </div>
                 </div>

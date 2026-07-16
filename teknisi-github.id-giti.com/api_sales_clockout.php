@@ -54,6 +54,11 @@ if ($data) {
     $nomerClient = trim($data['nomer_client']    ?? '');
     $isMock      = intval($data['is_mock']       ?? 0);
     
+    $telpCustomer = trim($data['telp_customer']  ?? '');
+    $namaCustomer = trim($data['nama_customer']  ?? '');
+    $tipeProspek  = trim($data['tipe_prospek']   ?? 'Biasa');
+    $noInvoice    = trim($data['no_invoice']     ?? '');
+    
     $image_satu  = $data['image_satu']  ?? '';
     $image_dua   = $data['image_dua']   ?? '';
     $image_tiga  = $data['image_tiga']  ?? '';
@@ -68,6 +73,11 @@ if ($data) {
     $namaClient  = trim($_POST['nama_client']     ?? '');
     $nomerClient = trim($_POST['nomer_client']    ?? '');
     $isMock      = intval($_POST['is_mock']       ?? 0);
+    
+    $telpCustomer = trim($_POST['telp_customer']  ?? '');
+    $namaCustomer = trim($_POST['nama_customer']  ?? '');
+    $tipeProspek  = trim($_POST['tipe_prospek']   ?? 'Biasa');
+    $noInvoice    = trim($_POST['no_invoice']     ?? '');
     
     $image_satu  = $_POST['image_satu']  ?? '';
     $image_dua   = $_POST['image_dua']   ?? '';
@@ -162,9 +172,39 @@ foreach ($image_inputs as $key => $base64_str) {
     }
 }
 
+// Update customer info if telp_customer or nama_customer is provided
+if (!empty($telpCustomer) || !empty($namaCustomer)) {
+    // Get customer_id of this kegiatan
+    $stmtCust = $conn->prepare("SELECT id_customer FROM kegiatan_sales WHERE id = ? LIMIT 1");
+    $stmtCust->bind_param('i', $kegiatanId);
+    $stmtCust->execute();
+    $custRow = $stmtCust->get_result()->fetch_assoc();
+    $stmtCust->close();
+    
+    if ($custRow) {
+        $customerId = $custRow['id_customer'];
+        if (!empty($telpCustomer) && !empty($namaCustomer)) {
+            $updCust = $conn->prepare("UPDATE sales_customer SET telp_pribadi = ?, nama = ? WHERE id = ?");
+            $updCust->bind_param('ssi', $telpCustomer, $namaCustomer, $customerId);
+            $updCust->execute();
+            $updCust->close();
+        } elseif (!empty($telpCustomer)) {
+            $updCust = $conn->prepare("UPDATE sales_customer SET telp_pribadi = ? WHERE id = ?");
+            $updCust->bind_param('si', $telpCustomer, $customerId);
+            $updCust->execute();
+            $updCust->close();
+        } elseif (!empty($namaCustomer)) {
+            $updCust = $conn->prepare("UPDATE sales_customer SET nama = ? WHERE id = ?");
+            $updCust->bind_param('si', $namaCustomer, $customerId);
+            $updCust->execute();
+            $updCust->close();
+        }
+    }
+}
+
 // Update clock out beserta dengan link foto dokumentasi
-$upd = $conn->prepare("UPDATE pelaksanaan_sales SET co_at = ?, lat_co = ?, lon_co = ?, catatan_visit = ?, status = 'selesai', image_1 = ?, image_2 = ?, image_3 = ?, image_4 = ?, image_5 = ?, nama_client = ?, nomer_client = ?, updated_at = NOW() WHERE id = ?");
-$upd->bind_param('sssssssssssi', $now, $lat, $lon, $catatan, $saved_images['image_1'], $saved_images['image_2'], $saved_images['image_3'], $saved_images['image_4'], $saved_images['image_5'], $namaClient, $nomerClient, $existing['id']);
+$upd = $conn->prepare("UPDATE pelaksanaan_sales SET co_at = ?, lat_co = ?, lon_co = ?, catatan_visit = ?, status = 'selesai', image_1 = ?, image_2 = ?, image_3 = ?, image_4 = ?, image_5 = ?, nama_client = ?, nomer_client = ?, tipe_prospek = ?, no_invoice = ?, updated_at = NOW() WHERE id = ?");
+$upd->bind_param('sssssssssssssi', $now, $lat, $lon, $catatan, $saved_images['image_1'], $saved_images['image_2'], $saved_images['image_3'], $saved_images['image_4'], $saved_images['image_5'], $namaClient, $nomerClient, $tipeProspek, $noInvoice, $existing['id']);
 $upd->execute();
 
 // Cascade: update kegiatan jika semua sales sudah selesai

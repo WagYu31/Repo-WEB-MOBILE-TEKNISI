@@ -19,6 +19,7 @@ class _RekapPageState extends State<RekapPage> {
   List<VisitTask>? _all;
   bool _loading = true;
   String? _err;
+  String _selectedFilter = 'Semua';
 
   @override
   void initState() {
@@ -38,8 +39,91 @@ class _RekapPageState extends State<RekapPage> {
     }
   }
 
+  List<VisitTask> _getFilteredTasks() {
+    if (_all == null) return [];
+    if (_selectedFilter == 'Semua') return _all!;
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    return _all!.where((t) {
+      try {
+        final dt = DateTime.parse(t.jadwal);
+        final visitDate = DateTime(dt.year, dt.month, dt.day);
+
+        if (_selectedFilter == 'Hari Ini') {
+          return visitDate.isAtSameMomentAs(today);
+        } else if (_selectedFilter == 'Minggu Ini') {
+          final startOfWeek = today.subtract(Duration(days: today.weekday - 1));
+          final endOfWeek = today.add(Duration(days: 7 - today.weekday));
+          return (visitDate.isAfter(startOfWeek.subtract(const Duration(seconds: 1))) &&
+                  visitDate.isBefore(endOfWeek.add(const Duration(seconds: 1))));
+        } else if (_selectedFilter == 'Bulan Ini') {
+          return visitDate.year == today.year && visitDate.month == today.month;
+        }
+      } catch (_) {}
+      return false;
+    }).toList();
+  }
+
+  Widget _buildFilterChips() {
+    final filters = ['Semua', 'Hari Ini', 'Minggu Ini', 'Bulan Ini'];
+    return Container(
+      height: 38,
+      margin: const EdgeInsets.only(bottom: 20),
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: filters.length,
+        itemBuilder: (context, index) {
+          final f = filters[index];
+          final isSelected = _selectedFilter == f;
+          return GestureDetector(
+            onTap: () {
+              setState(() {
+                _selectedFilter = f;
+              });
+            },
+            child: Container(
+              margin: const EdgeInsets.only(right: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: isSelected ? AppColors.primary : AppColors.card,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: isSelected ? AppColors.primary : AppColors.border,
+                  width: 1,
+                ),
+                boxShadow: isSelected
+                    ? [
+                        BoxShadow(
+                          color: AppColors.primary.withOpacity(0.25),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        )
+                      ]
+                    : null,
+              ),
+              child: Center(
+                child: Text(
+                  f,
+                  style: GoogleFonts.outfit(
+                    fontSize: 13,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                    color: isSelected ? Colors.white : AppColors.textSecondary,
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    ).animate().fadeIn(duration: 400.ms).slideX(begin: 0.1, end: 0);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final filteredTasks = _getFilteredTasks();
+
     return Scaffold(
       backgroundColor: AppColors.bg,
       body: SafeArea(
@@ -63,6 +147,8 @@ class _RekapPageState extends State<RekapPage> {
                           style: S.caption())
                           .animate(delay: 100.ms).fadeIn(duration: 400.ms),
                       const SizedBox(height: 20),
+                      if (!_loading && _err == null && _all != null && _all!.isNotEmpty)
+                        _buildFilterChips(),
                     ],
                   ),
                 ),
@@ -79,8 +165,29 @@ class _RekapPageState extends State<RekapPage> {
                 SliverFillRemaining(child: _ErrorState(err: _err!, onRetry: _load))
               else if (_all == null || _all!.isEmpty)
                 const SliverFillRemaining(child: _EmptyState())
+              else if (filteredTasks.isEmpty)
+                SliverFillRemaining(
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.event_busy_rounded, size: 48, color: AppColors.border),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Tidak ada kunjungan',
+                          style: S.h3(AppColors.textSecondary),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Tidak ada riwayat untuk filter "$_selectedFilter"',
+                          style: S.caption(),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
               else
-                _RekapContent(tasks: _all!),
+                _RekapContent(tasks: filteredTasks),
             ],
           ),
         ),
