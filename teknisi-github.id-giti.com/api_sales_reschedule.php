@@ -104,7 +104,7 @@ try {
         $stmtUpd->execute();
         $stmtUpd->close();
     } else {
-        $stmtIns = $conn->prepare("INSERT INTO pelaksanaan_sales (kegiatan_id, sales_id, status, catatan_visit, ci_at, co_at, created_at, updated_at) VALUES (?, ?, 'dibatalkan', ?, NOW(), NOW(), NOW(), NOW())");
+        $stmtIns = $conn->prepare("INSERT INTO pelaksanaan_sales (kegiatan_id, sales_id, status, catatan_visit, ci_at, co_at, created_at, updated_at) VALUES (?, ?, 'dibatalkan', ?, NULL, NULL, NOW(), NOW())");
         $stmtIns->bind_param('iis', $kegiatanId, $salesId, $fullReason);
         $stmtIns->execute();
         $stmtIns->close();
