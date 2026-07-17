@@ -6,10 +6,11 @@ $searchCustomer = $_SESSION['search_customer'] ?? '';
 
 // ── Hitung summary per tab ─────────────────────────────────────────────────
 $tab_meta = [
-  'hari-ini'    => ['label'=>'Hari Ini',     'condition'=>"DATE(ks.jadwal) = '$current_date'",                                           'icon'=>'today',        'color'=>'#1e293b'],
-  'akan-datang' => ['label'=>'Akan Datang',  'condition'=>"DATE(ks.jadwal) > '$current_date'",                                          'icon'=>'event',        'color'=>'#3b82f6'],
-  'terlewat'    => ['label'=>'Terlewat',     'condition'=>"DATE(ks.jadwal) < '$current_date' AND ks.status != 'selesai'",               'icon'=>'event_busy',   'color'=>'#ef4444'],
+  'hari-ini'    => ['label'=>'Hari Ini',     'condition'=>"DATE(ks.jadwal) = '$current_date' AND ks.status != 'waiting'",                                           'icon'=>'today',        'color'=>'#1e293b'],
+  'akan-datang' => ['label'=>'Akan Datang',  'condition'=>"DATE(ks.jadwal) > '$current_date' AND ks.status != 'waiting'",                                          'icon'=>'event',        'color'=>'#3b82f6'],
+  'terlewat'    => ['label'=>'Terlewat',     'condition'=>"DATE(ks.jadwal) < '$current_date' AND ks.status NOT IN ('selesai', 'waiting')",               'icon'=>'event_busy',   'color'=>'#ef4444'],
   'selesai'     => ['label'=>'Selesai',      'condition'=>"ks.status = 'selesai'",                                                       'icon'=>'task_alt',     'color'=>'#10b981'],
+  'waiting'     => ['label'=>'Waiting List', 'condition'=>"ks.status = 'waiting'",                                                       'icon'=>'hourglass_empty','color'=>'#f59e0b'],
 ];
 
 $counts = [];
@@ -21,7 +22,7 @@ foreach ($tab_meta as $k => $m) {
       $queryStr .= "INNER JOIN team_kegiatan_sales tks ON ks.id = tks.id_kegiatan_sales ";
   }
   
-  $queryStr .= "WHERE ks.status != 'waiting' AND ks.deleted_at IS NULL AND {$m['condition']} ";
+  $queryStr .= "WHERE ks.deleted_at IS NULL AND {$m['condition']} ";
   
   if ($selectedWilayah !== 'all') {
       $queryStr .= "AND c.id_wilayah = '$selectedWilayah' ";
@@ -158,7 +159,7 @@ foreach ($tab_meta as $k => $m) {
           $sql .= "INNER JOIN team_kegiatan_sales tks ON ks.id = tks.id_kegiatan_sales ";
       }
       
-      $sql .= "WHERE ks.status != 'waiting' AND ks.deleted_at IS NULL AND {$m['condition']} ";
+      $sql .= "WHERE ks.deleted_at IS NULL AND {$m['condition']} ";
       
       if ($selectedWilayah !== 'all') {
           $sql .= "AND c.id_wilayah = '$selectedWilayah' ";
@@ -344,6 +345,11 @@ foreach ($tab_meta as $k => $m) {
 
             <!-- Aksi -->
             <div class="keg-cell keg-actions">
+              <?php if ($kegStatus === 'waiting'): ?>
+              <a href="approve_kegiatan.php?id=<?php echo $row['id']; ?>" class="btn-action" title="Setujui Reschedule" style="background:#e8f5e9; color:#2e7d32; border:1.5px solid #a5d6a7;" onclick="return confirm('Apakah Anda yakin ingin menyetujui jadwal reschedule ini?')">
+                <span class="material-symbols-outlined">check_circle</span>
+              </a>
+              <?php endif; ?>
               <a href="detail_kegiatan.php?id=<?php echo $row['id']; ?>" class="btn-action btn-view" title="Lihat Detail">
                 <span class="material-symbols-outlined">visibility</span>
               </a>

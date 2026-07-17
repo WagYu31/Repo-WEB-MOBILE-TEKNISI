@@ -45,8 +45,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $alamat_lokasi = !empty($_POST['location_address']) ? $_POST['location_address'] : NULL;
 
     // Update kegiatan_sales (termasuk lokasi geofence)
-    $stmt = $conn->prepare("UPDATE kegiatan_sales SET jadwal = ?, keterangan = ?, lat = ?, lon = ?, rad = ?, alamat_lokasi = ?, updated_at = NOW() WHERE id = ?");
-    $stmt->bind_param("ssssssi", $jadwal, $keterangan, $lat, $lon, $rad, $alamat_lokasi, $kegiatan_id);
+    $newStatus = ($kegiatan['status'] === 'waiting') ? 'dijadwalkan' : $kegiatan['status'];
+    $stmt = $conn->prepare("UPDATE kegiatan_sales SET jadwal = ?, keterangan = ?, lat = ?, lon = ?, rad = ?, alamat_lokasi = ?, status = ?, updated_at = NOW() WHERE id = ?");
+    $stmt->bind_param("sssssssi", $jadwal, $keterangan, $lat, $lon, $rad, $alamat_lokasi, $newStatus, $kegiatan_id);
     $stmt->execute();
 
     // Hitung perubahan tim sales

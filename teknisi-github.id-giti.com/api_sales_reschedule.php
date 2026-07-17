@@ -112,7 +112,7 @@ try {
 
     // 4. Create new kegiatan_sales record
     $newKeterangan = "[Jadwal Ulang] " . $oldKeterangan;
-    $stmtNew = $conn->prepare("INSERT INTO kegiatan_sales (id_customer, jadwal, keterangan, status, kode, rescheduled_from, created_at, updated_at) VALUES (?, ?, ?, 'dijadwalkan', ?, ?, NOW(), NOW())");
+    $stmtNew = $conn->prepare("INSERT INTO kegiatan_sales (id_customer, jadwal, keterangan, status, kode, rescheduled_from, created_at, updated_at) VALUES (?, ?, ?, 'waiting', ?, ?, NOW(), NOW())");
     $stmtNew->bind_param('isssi', $customerId, $newJadwal, $newKeterangan, $oldKode, $kegiatanId);
     $stmtNew->execute();
     $newKegiatanId = $stmtNew->insert_id;
