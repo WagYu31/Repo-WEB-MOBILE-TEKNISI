@@ -118,9 +118,17 @@ try {
     $newKegiatanId = $stmtNew->insert_id;
     $stmtNew->close();
 
-    // 5. Assign sales to the new task
-    $stmtAssign = $conn->prepare("INSERT INTO team_kegiatan_sales (id_kegiatan_sales, id_sales, created_at, updated_at) VALUES (?, ?, NOW(), NOW())");
-    $stmtAssign->bind_param('ii', $newKegiatanId, $salesId);
+    // 5. Get sales name
+    $stmtS = $conn->prepare("SELECT nama FROM sales WHERE id = ? LIMIT 1");
+    $stmtS->bind_param('i', $salesId);
+    $stmtS->execute();
+    $salesRow = $stmtS->get_result()->fetch_assoc();
+    $stmtS->close();
+    $salesName = $salesRow ? $salesRow['nama'] : '';
+
+    // 6. Assign sales to the new task
+    $stmtAssign = $conn->prepare("INSERT INTO team_kegiatan_sales (id_kegiatan_sales, id_sales, nama_sales, created_at, updated_at) VALUES (?, ?, ?, NOW(), NOW())");
+    $stmtAssign->bind_param('iis', $newKegiatanId, $salesId, $salesName);
     $stmtAssign->execute();
     $stmtAssign->close();
 
