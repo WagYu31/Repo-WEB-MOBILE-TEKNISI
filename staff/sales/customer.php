@@ -2301,7 +2301,9 @@ $salesData = mysqli_query($conn, $queryStr);
             
             // Dot indicator
             const dot = document.createElement('div');
-            dot.style.cssText = 'position:absolute; left:-5px; top:4px; width:12px; height:12px; border-radius:50%; background:#2563eb; border:2.5px solid #fff; box-shadow: 0 0 0 1.5px #cbd5e1;';
+            const dotColor = v.status_kegiatan === 'dibatalkan' ? '#ef4444' : '#2563eb';
+            const dotShadow = v.status_kegiatan === 'dibatalkan' ? '#fecaca' : '#cbd5e1';
+            dot.style.cssText = `position:absolute; left:-5px; top:4px; width:12px; height:12px; border-radius:50%; background:${dotColor}; border:2.5px solid #fff; box-shadow: 0 0 0 1.5px ${dotShadow};`;
             item.appendChild(dot);
             
             // Card content
@@ -2311,6 +2313,52 @@ $salesData = mysqli_query($conn, $queryStr);
             
             // Header info
             let invoiceBadge = v.no_invoice ? `<span class="badge" style="background:#f0fdf4; color:#166534; border:1px solid #bbf7d0; font-size:10px; font-weight:700; text-transform:none; box-shadow:none;">Inv: ${v.no_invoice}</span>` : '';
+            
+            let statusBadge = '';
+            if (v.status_kegiatan === 'dibatalkan') {
+              statusBadge = `<span class="badge" style="background:#fef2f2; color:#b91c1c; border:1px solid #fecaca; font-size:10px; font-weight:700; text-transform:none; box-shadow:none;">Dibatalkan</span>`;
+            } else {
+              statusBadge = `<span class="badge" style="background:#eff6ff; color:#1e40af; border:1px solid #bfdbfe; font-size:10px; font-weight:700; text-transform:none; box-shadow:none;">Prospek: ${v.tipe_prospek}</span>`;
+            }
+            
+            // Clock In / Out info
+            let clockInfo = '';
+            if (v.status_kegiatan === 'dibatalkan' && (v.ci_at === '-' || !v.ci_at)) {
+              clockInfo = `
+                <div class="col-12 text-muted" style="font-style:italic; font-size:12px;">
+                  * Kunjungan dibatalkan/reschedule sebelum Sales sempat melakukan Clock In.
+                </div>
+              `;
+            } else {
+              clockInfo = `
+                <div class="col-sm-6 mb-1">
+                  <span style="display:block; color:#64748b; font-size:10px; font-weight:700; text-transform:uppercase; margin-bottom:2px;">CLOCK IN</span>
+                  <span style="color:#0f172a; font-weight:600;"><span class="material-symbols-outlined" style="font-size:13px; vertical-align:middle; color:#10b981; margin-right:3px;">login</span> ${v.ci_at}</span>
+                </div>
+                <div class="col-sm-6 mb-1">
+                  <span style="display:block; color:#64748b; font-size:10px; font-weight:700; text-transform:uppercase; margin-bottom:2px;">CLOCK OUT</span>
+                  <span style="color:#0f172a; font-weight:600;"><span class="material-symbols-outlined" style="font-size:13px; vertical-align:middle; color:#ef4444; margin-right:3px;">logout</span> ${v.co_at}</span>
+                </div>
+              `;
+            }
+            
+            // Notes or cancel reason
+            let notesInfo = '';
+            if (v.status_kegiatan === 'dibatalkan') {
+              notesInfo = `
+                <div class="p-2 rounded-3" style="font-size:12px; color:#c53030; line-height:1.4; border: 1px solid #feb2b2; background:#fff5f5;">
+                  <strong style="color:#9b2c2c; font-size:10.5px; display:block; margin-bottom:2px; text-transform:uppercase;">Alasan Pembatalan / Reschedule:</strong>
+                  "${v.reschedule_reason || 'Tidak ada alasan yang dicantumkan.'}"
+                </div>
+              `;
+            } else {
+              notesInfo = `
+                <div class="p-2 bg-light rounded-3" style="font-size:12px; color:#334155; line-height:1.4; border: 1px solid #e2e8f0;">
+                  <strong style="color:#0f172a; font-size:10.5px; display:block; margin-bottom:2px; text-transform:uppercase;">Catatan Kunjungan:</strong>
+                  "${v.catatan_visit || 'Tidak ada catatan.'}"
+                </div>
+              `;
+            }
             
             // Photos rendering
             let photosHtml = '';
@@ -2336,26 +2384,16 @@ $salesData = mysqli_query($conn, $queryStr);
                   <span style="font-size:13px; font-weight:800; color:#0f172a;">${v.jadwal}</span>
                 </div>
                 <div style="display:flex; gap:6px;">
-                  <span class="badge" style="background:#eff6ff; color:#1e40af; border:1px solid #bfdbfe; font-size:10px; font-weight:700; text-transform:none; box-shadow:none;">Prospek: ${v.tipe_prospek}</span>
+                  ${statusBadge}
                   ${invoiceBadge}
                 </div>
               </div>
               
               <div class="row mb-2" style="font-size:12px; color:#475569;">
-                <div class="col-sm-6 mb-1">
-                  <span style="display:block; color:#64748b; font-size:10px; font-weight:700; text-transform:uppercase; margin-bottom:2px;">CLOCK IN</span>
-                  <span style="color:#0f172a; font-weight:600;"><span class="material-symbols-outlined" style="font-size:13px; vertical-align:middle; color:#10b981; margin-right:3px;">login</span> ${v.ci_at}</span>
-                </div>
-                <div class="col-sm-6 mb-1">
-                  <span style="display:block; color:#64748b; font-size:10px; font-weight:700; text-transform:uppercase; margin-bottom:2px;">CLOCK OUT</span>
-                  <span style="color:#0f172a; font-weight:600;"><span class="material-symbols-outlined" style="font-size:13px; vertical-align:middle; color:#ef4444; margin-right:3px;">logout</span> ${v.co_at}</span>
-                </div>
+                ${clockInfo}
               </div>
               
-              <div class="p-2 bg-light rounded-3" style="font-size:12px; color:#334155; line-height:1.4; border: 1px solid #e2e8f0;">
-                <strong style="color:#0f172a; font-size:10.5px; display:block; margin-bottom:2px; text-transform:uppercase;">Catatan Kunjungan:</strong>
-                "${v.catatan_visit || 'Tidak ada catatan.'}"
-              </div>
+              ${notesInfo}
               
               ${photosHtml}
             `;
