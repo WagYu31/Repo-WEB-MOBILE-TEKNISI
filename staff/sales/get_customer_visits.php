@@ -11,7 +11,7 @@ if (!isset($_GET['id']) || empty($_GET['id'])) {
 
 $customerId = intval($_GET['id']);
 
-$sql = "SELECT s.nama, s.foto, MAX(ps.co_at) AS terakhir_kunjung, COUNT(ps.id) AS total_kunjungan
+$sql = "SELECT s.id AS sales_id, s.nama, s.foto, MAX(ps.co_at) AS terakhir_kunjung, COUNT(ps.id) AS total_kunjungan
         FROM team_kegiatan_sales tks
         INNER JOIN pelaksanaan_sales ps ON tks.id_kegiatan_sales = ps.kegiatan_id AND tks.id_sales = ps.sales_id
         INNER JOIN kegiatan_sales ks ON tks.id_kegiatan_sales = ks.id
@@ -33,6 +33,7 @@ while ($row = $result->fetch_assoc()) {
     }
     
     $visits[] = [
+        'sales_id' => (int)$row['sales_id'],
         'nama' => $row['nama'],
         'foto' => $row['foto'],
         'terakhir_kunjung' => $formattedDate,
