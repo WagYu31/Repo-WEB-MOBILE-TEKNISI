@@ -23,6 +23,7 @@ $sheetName     = trim($_POST['sheet_name'] ?? 'Sheet1');
 $idSales       = intval($_POST['id_sales'] ?? 0);
 $bulan         = trim($_POST['bulan'] ?? '');
 $tanggal       = trim($_POST['tanggal'] ?? '');
+$status        = trim(strtolower($_POST['status'] ?? ''));
 
 if (empty($spreadsheetId)) {
     echo json_encode(['status' => 'error', 'message' => 'ID Spreadsheet / URL harus diisi.']);
@@ -52,6 +53,15 @@ if (!empty($tanggal)) {
     $whereClauses[] = "DATE(ks.jadwal) = '" . mysqli_real_escape_string($conn, $tanggal) . "'";
 } else if (!empty($bulan)) {
     $whereClauses[] = "DATE_FORMAT(ks.jadwal, '%Y-%m') = '" . mysqli_real_escape_string($conn, $bulan) . "'";
+}
+if (!empty($status)) {
+    if ($status === 'dijadwalkan') {
+        $whereClauses[] = "ks.id NOT IN (SELECT kegiatan_id FROM pelaksanaan_sales WHERE status IN ('selesai', 'berjalan', 'proses'))";
+    } else if ($status === 'berjalan') {
+        $whereClauses[] = "ks.id IN (SELECT kegiatan_id FROM pelaksanaan_sales WHERE status IN ('berjalan', 'proses'))";
+    } else if ($status === 'selesai') {
+        $whereClauses[] = "ks.id IN (SELECT kegiatan_id FROM pelaksanaan_sales WHERE status = 'selesai')";
+    }
 }
 
 $whereSql = implode(" AND ", $whereClauses);

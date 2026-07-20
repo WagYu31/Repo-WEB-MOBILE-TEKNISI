@@ -3,6 +3,7 @@
 $filterSales = isset($_GET['id_sales']) ? intval($_GET['id_sales']) : 0;
 $filterBulan = isset($_GET['bulan']) ? trim($_GET['bulan']) : date("Y-m");
 $filterTanggal = isset($_GET['tanggal']) ? trim($_GET['tanggal']) : '';
+$filterStatus = isset($_GET['status']) ? trim(strtolower($_GET['status'])) : '';
 
 if (!empty($filterTanggal)) {
     $current_date = $filterTanggal;
@@ -39,17 +40,25 @@ if ($resSalesList) {
                             </select>
                         </div>
                         <div class="col-12 col-sm-2">
+                            <select name="status" class="form-select border p-2 bg-white text-dark" style="border-radius: 8px;" title="Filter Status">
+                                <option value="">-- Semua Status --</option>
+                                <option value="selesai" <?php echo $filterStatus == 'selesai' ? 'selected' : ''; ?>>Selesai</option>
+                                <option value="berjalan" <?php echo $filterStatus == 'berjalan' ? 'selected' : ''; ?>>Diproses</option>
+                                <option value="dijadwalkan" <?php echo $filterStatus == 'dijadwalkan' ? 'selected' : ''; ?>>Dijadwalkan</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-sm-2">
                             <input type="month" class="form-control border p-2 bg-white text-dark" name="bulan" value="<?php echo $filterBulan; ?>" style="border-radius: 8px;" title="Filter Bulan">
                         </div>
                         <div class="col-12 col-sm-2">
                             <input type="date" class="form-control border p-2 bg-white text-dark" name="tanggal" value="<?php echo $filterTanggal; ?>" style="border-radius: 8px;" title="Filter Tanggal">
                         </div>
-                        <div class="col-6 col-sm-2 d-grid">
+                        <div class="col-6 col-sm-1 d-grid">
                             <button type="submit" class="btn bg-gradient-primary mb-0 p-2 text-white" style="border-radius: 8px;">Cari</button>
                         </div>
-                        <div class="col-6 col-sm-3 d-grid">
+                        <div class="col-6 col-sm-2 d-grid">
                             <button type="button" class="btn bg-gradient-success mb-0 p-2 text-white" style="border-radius: 8px;" data-bs-toggle="modal" data-bs-target="#syncSheetsModal">
-                                <i class="fa-solid fa-file-excel me-1"></i>Sync Sheets
+                                <i class="fa-solid fa-file-excel me-1"></i>Sync
                             </button>
                         </div>
                     </form>
@@ -66,6 +75,15 @@ if ($resSalesList) {
             $whereClauses[] = "DATE(ks.jadwal) = '" . mysqli_real_escape_string($conn, $filterTanggal) . "'";
         } else if (!empty($filterBulan)) {
             $whereClauses[] = "DATE_FORMAT(ks.jadwal, '%Y-%m') = '" . mysqli_real_escape_string($conn, $filterBulan) . "'";
+        }
+        if (!empty($filterStatus)) {
+            if ($filterStatus === 'dijadwalkan') {
+                $whereClauses[] = "ks.id NOT IN (SELECT kegiatan_id FROM pelaksanaan_sales WHERE status IN ('selesai', 'berjalan', 'proses'))";
+            } else if ($filterStatus === 'berjalan') {
+                $whereClauses[] = "ks.id IN (SELECT kegiatan_id FROM pelaksanaan_sales WHERE status IN ('berjalan', 'proses'))";
+            } else if ($filterStatus === 'selesai') {
+                $whereClauses[] = "ks.id IN (SELECT kegiatan_id FROM pelaksanaan_sales WHERE status = 'selesai')";
+            }
         }
         
         $whereSql = implode(" AND ", $whereClauses);
@@ -129,6 +147,15 @@ if ($resSalesList) {
                                           WHERE tks.id_kegiatan_sales = '$kegiatanId' AND tks.deleted_at IS NULL";
                             if ($filterSales > 0) {
                                 $sqlLapTek .= " AND tks.id_sales = $filterSales";
+                            }
+                            if (!empty($filterStatus)) {
+                                if ($filterStatus === 'dijadwalkan') {
+                                    $sqlLapTek .= " AND (ps.status IS NULL OR ps.status = 'dijadwalkan')";
+                                } else if ($filterStatus === 'berjalan') {
+                                    $sqlLapTek .= " AND ps.status IN ('berjalan', 'proses')";
+                                } else if ($filterStatus === 'selesai') {
+                                    $sqlLapTek .= " AND ps.status = 'selesai'";
+                                }
                             }
                             $resLapTek = mysqli_query($conn, $sqlLapTek);
                             if ($resLapTek && mysqli_num_rows($resLapTek) > 0) {
@@ -306,17 +333,28 @@ if ($resSalesList) {
                     </div>
 
                     <div class="row mt-3">
-                        <div class="col-4">
+                        <div class="col-6 mb-3">
                             <label class="form-label text-xs font-weight-bold text-secondary text-uppercase mb-1">Bulan</label>
                             <input type="text" id="displayBulanInput" class="form-control border p-2 text-sm bg-light" value="<?php echo date('F Y', strtotime($filterBulan . '-01')); ?>" style="border-radius: 8px;" readonly disabled>
                             <input type="hidden" id="hiddenBulanInput" name="bulan" value="<?php echo $filterBulan; ?>">
                         </div>
-                        <div class="col-4">
+                        <div class="col-6 mb-3">
                             <label class="form-label text-xs font-weight-bold text-secondary text-uppercase mb-1">Tanggal</label>
                             <input type="text" id="displayTanggalInput" class="form-control border p-2 text-sm bg-light" value="<?php echo !empty($filterTanggal) ? date('d M Y', strtotime($filterTanggal)) : '-'; ?>" style="border-radius: 8px;" readonly disabled>
                             <input type="hidden" id="hiddenTanggalInput" name="tanggal" value="<?php echo $filterTanggal; ?>">
                         </div>
-                        <div class="col-4">
+                        <div class="col-6">
+                            <label class="form-label text-xs font-weight-bold text-secondary text-uppercase mb-1">Status Kegiatan</label>
+                            <?php
+                            $selectedStatusName = "Semua Status";
+                            if ($filterStatus === 'selesai') $selectedStatusName = "Selesai";
+                            elseif ($filterStatus === 'berjalan') $selectedStatusName = "Diproses";
+                            elseif ($filterStatus === 'dijadwalkan') $selectedStatusName = "Dijadwalkan";
+                            ?>
+                            <input type="text" id="displayStatusInput" class="form-control border p-2 text-sm bg-light" value="<?php echo $selectedStatusName; ?>" style="border-radius: 8px;" readonly disabled>
+                            <input type="hidden" id="hiddenStatusInput" name="status" value="<?php echo $filterStatus; ?>">
+                        </div>
+                        <div class="col-6">
                             <label class="form-label text-xs font-weight-bold text-secondary text-uppercase mb-1">Sales Agent</label>
                             <?php
                             $selectedSalesName = "Semua Sales";
@@ -497,14 +535,16 @@ $(document).ready(function() {
     makeModalDraggable('editVisitModal');
     makeModalDraggable('detailModal');
 
-    // Dynamically update modal values when modal opens
     $("#syncSheetsModal").on('show.bs.modal', function() {
         const topSalesSelect = $('select[name="id_sales"]');
+        const topStatusSelect = $('select[name="status"]');
         const topBulanInput = $('input[name="bulan"]');
         const topTanggalInput = $('input[name="tanggal"]');
         
         const selectedSalesId = topSalesSelect.val();
         const selectedSalesName = topSalesSelect.find('option:selected').text().trim();
+        const selectedStatus = topStatusSelect.val();
+        const selectedStatusName = topStatusSelect.find('option:selected').text().trim();
         const selectedBulan = topBulanInput.val();
         const selectedTanggal = topTanggalInput.val();
         
@@ -534,6 +574,8 @@ $(document).ready(function() {
         
         $("#displaySalesInput").val(selectedSalesName);
         $("#hiddenSalesInput").val(selectedSalesId);
+        $("#displayStatusInput").val(selectedStatusName);
+        $("#hiddenStatusInput").val(selectedStatus);
         $("#displayBulanInput").val(readableMonth);
         $("#hiddenBulanInput").val(selectedBulan);
         $("#displayTanggalInput").val(readableTanggal);
