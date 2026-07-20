@@ -241,6 +241,25 @@ function renderSubNavItem($isActive, $url, $icon, $text) {
         color: #FFFFFF !important;
         background: rgba(255, 255, 255, 0.03) !important;
     }
+    
+    /* Disable default theme caret indicator */
+    #sidenav-main .nav-link[data-bs-toggle="collapse"]::after {
+        display: none !important;
+        content: none !important;
+    }
+    
+    /* Sub-menu items styling */
+    #sidenav-main .nav-item .collapse .nav-link.active::before {
+        display: none !important;
+    }
+    #sidenav-main .nav-item .collapse .nav-link.active {
+        background: rgba(59, 130, 246, 0.1) !important;
+        color: #60a5fa !important;
+        font-weight: 700 !important;
+    }
+    #sidenav-main .nav-item .collapse .nav-link.active .nav-icon {
+        color: #60a5fa !important;
+    }
 </style>
 <?php
 // Calculate directory prefix dynamically to share the same menu-aside.php between root and sales subdirectory
