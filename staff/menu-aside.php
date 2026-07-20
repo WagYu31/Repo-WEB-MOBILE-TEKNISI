@@ -13,6 +13,17 @@ function renderNavItem($isActive, $url, $icon, $text) {
         </a>
     </li>';
 }
+
+function renderSubNavItem($isActive, $url, $icon, $text) {
+    $activeClass = $isActive ? 'active' : '';
+    echo '
+    <li class="nav-item" style="list-style: none;">
+        <a class="nav-link ' . $activeClass . '" href="' . $url . '" style="padding: 0.5rem 0.75rem 0.5rem 0.85rem !important; font-size: 0.825rem !important; margin-bottom: 1px !important;">
+            <i class="nav-icon fa-fw ' . $icon . '" style="font-size: 0.8rem !important; margin-right: 0.6rem !important;"></i>
+            <span style="font-size: 0.825rem !important; font-weight: 500;">' . htmlspecialchars($text) . '</span>
+        </a>
+    </li>';
+}
 ?>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" />
 
@@ -215,6 +226,21 @@ function renderNavItem($isActive, $url, $icon, $text) {
     #sidenav-main .text-white {
         color: inherit !important;
     }
+
+    /* Collapsible Parent Transitions & Style */
+    #sidenav-main .nav-link .collapse-chevron {
+        transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        color: #9CA3AF !important;
+        font-size: 0.75rem !important;
+    }
+    #sidenav-main .nav-link[aria-expanded="true"] .collapse-chevron {
+        transform: rotate(90deg) !important;
+        color: #FFFFFF !important;
+    }
+    #sidenav-main .nav-link[aria-expanded="true"] {
+        color: #FFFFFF !important;
+        background: rgba(255, 255, 255, 0.03) !important;
+    }
 </style>
 <?php
 // Calculate directory prefix dynamically to share the same menu-aside.php between root and sales subdirectory
@@ -267,57 +293,190 @@ if ($isSalesDir) {
 
             // Render menus according to user permissions
             if ($role == 'Super Admin' || $role == 'Admin') {
+                // Category: Operasional
                 if ($showDashboard || $showTambahKegiatan || $showWaitingList) {
-                    renderNavHeader("Operasional");
-                    if ($showDashboard) renderNavItem(($pageNow == "Dashboard" && !$isSalesDir), $rootPrefix . "index-sa.php", "fa-solid fa-chart-pie", "Dashboard");
-                    if ($showTambahKegiatan) renderNavItem(($pageNow == "Kegiatan Baru" && !$isSalesDir), $rootPrefix . "kegiatan-baru.php", "fa-solid fa-file-circle-plus", "Tambah Kegiatan");
-                    if ($showWaitingList) renderNavItem(($pageNow == "Waiting List" && !$isSalesDir), $rootPrefix . "waiting-list.php", "fa-solid fa-hourglass-half", "Waiting List");
+                    $isOperasionalActive = ($pageNow == "Dashboard" && !$isSalesDir) || ($pageNow == "Kegiatan Baru" && !$isSalesDir) || ($pageNow == "Waiting List" && !$isSalesDir);
+                    $operasionalCollapse = $isOperasionalActive ? 'show' : '';
+                    $operasionalAria = $isOperasionalActive ? 'true' : 'false';
+                    $operasionalLinkClass = $isOperasionalActive ? '' : 'collapsed';
+                    ?>
+                    <li class="nav-item">
+                        <a class="nav-link <?php echo $operasionalLinkClass; ?>" data-bs-toggle="collapse" href="#collapseOperasional" role="button" aria-expanded="<?php echo $operasionalAria; ?>" aria-controls="collapseOperasional">
+                            <i class="nav-icon fa-fw fa-solid fa-gears"></i>
+                            <p class="flex-grow-1">Operasional</p>
+                            <i class="collapse-chevron fa-solid fa-chevron-right ms-auto"></i>
+                        </a>
+                        <div class="collapse <?php echo $operasionalCollapse; ?>" id="collapseOperasional">
+                            <ul class="nav flex-column ms-3 ps-2" style="border-left: 1.5px solid #374151; margin-left: 18px; padding-left: 8px;">
+                                <?php
+                                if ($showDashboard) renderSubNavItem(($pageNow == "Dashboard" && !$isSalesDir), $rootPrefix . "index-sa.php", "fa-solid fa-chart-pie", "Dashboard");
+                                if ($showTambahKegiatan) renderSubNavItem(($pageNow == "Kegiatan Baru" && !$isSalesDir), $rootPrefix . "kegiatan-baru.php", "fa-solid fa-file-circle-plus", "Tambah Kegiatan");
+                                if ($showWaitingList) renderSubNavItem(($pageNow == "Waiting List" && !$isSalesDir), $rootPrefix . "waiting-list.php", "fa-solid fa-hourglass-half", "Waiting List");
+                                ?>
+                            </ul>
+                        </div>
+                    </li>
+                    <?php
                 }
 
+                // Category: Laporan
                 if ($showKegiatanTeknisi || $showLaporanKegiatan || $showTargetTercapai || $showProgressKegiatan) {
-                    renderNavHeader("Laporan");
-                    if ($showKegiatanTeknisi) renderNavItem(($pageNow == "Task" && !$isSalesDir), $rootPrefix . "task.php", "fa-solid fa-person-digging", "Kegiatan Teknisi");
-                    if ($showLaporanKegiatan) renderNavItem(($pageNow == "Laporan" && !$isSalesDir), $rootPrefix . "lap-kegiatan.php", "fa-solid fa-file-invoice", "Laporan Kegiatan");
-                    if ($showTargetTercapai) renderNavItem(($pageNow == "Target Tercapai" && !$isSalesDir), $rootPrefix . "laporan.php", "fa-solid fa-hand-holding-dollar", "Target Tercapai Teknisi");
-                    if ($showProgressKegiatan) renderNavItem(($pageNow == "Progress Kegiatan" && !$isSalesDir), $rootPrefix . "lap-progress.php", "fa-solid fa-bars-progress", "Progress Kegiatan");
+                    $isLaporanActive = ($pageNow == "Task" && !$isSalesDir) || ($pageNow == "Laporan" && !$isSalesDir) || ($pageNow == "Target Tercapai" && !$isSalesDir) || ($pageNow == "Progress Kegiatan" && !$isSalesDir);
+                    $laporanCollapse = $isLaporanActive ? 'show' : '';
+                    $laporanAria = $isLaporanActive ? 'true' : 'false';
+                    $laporanLinkClass = $isLaporanActive ? '' : 'collapsed';
+                    ?>
+                    <li class="nav-item">
+                        <a class="nav-link <?php echo $laporanLinkClass; ?>" data-bs-toggle="collapse" href="#collapseLaporan" role="button" aria-expanded="<?php echo $laporanAria; ?>" aria-controls="collapseLaporan">
+                            <i class="nav-icon fa-fw fa-solid fa-file-lines"></i>
+                            <p class="flex-grow-1">Laporan</p>
+                            <i class="collapse-chevron fa-solid fa-chevron-right ms-auto"></i>
+                        </a>
+                        <div class="collapse <?php echo $laporanCollapse; ?>" id="collapseLaporan">
+                            <ul class="nav flex-column ms-3 ps-2" style="border-left: 1.5px solid #374151; margin-left: 18px; padding-left: 8px;">
+                                <?php
+                                if ($showKegiatanTeknisi) renderSubNavItem(($pageNow == "Task" && !$isSalesDir), $rootPrefix . "task.php", "fa-solid fa-person-digging", "Kegiatan Teknisi");
+                                if ($showLaporanKegiatan) renderSubNavItem(($pageNow == "Laporan" && !$isSalesDir), $rootPrefix . "lap-kegiatan.php", "fa-solid fa-file-invoice", "Laporan Kegiatan");
+                                if ($showTargetTercapai) renderSubNavItem(($pageNow == "Target Tercapai" && !$isSalesDir), $rootPrefix . "laporan.php", "fa-solid fa-hand-holding-dollar", "Target Tercapai Teknisi");
+                                if ($showProgressKegiatan) renderSubNavItem(($pageNow == "Progress Kegiatan" && !$isSalesDir), $rootPrefix . "lap-progress.php", "fa-solid fa-bars-progress", "Progress Kegiatan");
+                                ?>
+                            </ul>
+                        </div>
+                    </li>
+                    <?php
                 }
 
+                // Category: Manajemen Aset
                 if ($showStokBarang || $showPeminjaman || $showTutorial) {
-                    renderNavHeader("Manajemen Aset");
-                    if ($showStokBarang) renderNavItem(($pageNow == "Inventory" && !$isSalesDir), $rootPrefix . "inventory.php", "fa-solid fa-boxes-stacked", "Stok Barang");
-                    if ($showPeminjaman) renderNavItem(($pageNow == "Peminjaman" && !$isSalesDir), $rootPrefix . "peminjaman.php", "fa-solid fa-right-left", "Peminjaman");
-                    if ($showTutorial) renderNavItem(($pageNow == "Tutorial" && !$isSalesDir), $rootPrefix . "tutorial.php", "fa-solid fa-book", "Tutorial");
+                    $isAsetActive = ($pageNow == "Inventory" && !$isSalesDir) || ($pageNow == "Peminjaman" && !$isSalesDir) || ($pageNow == "Tutorial" && !$isSalesDir);
+                    $asetCollapse = $isAsetActive ? 'show' : '';
+                    $asetAria = $isAsetActive ? 'true' : 'false';
+                    $asetLinkClass = $isAsetActive ? '' : 'collapsed';
+                    ?>
+                    <li class="nav-item">
+                        <a class="nav-link <?php echo $asetLinkClass; ?>" data-bs-toggle="collapse" href="#collapseAset" role="button" aria-expanded="<?php echo $asetAria; ?>" aria-controls="collapseAset">
+                            <i class="nav-icon fa-fw fa-solid fa-boxes-stacked"></i>
+                            <p class="flex-grow-1">Manajemen Aset</p>
+                            <i class="collapse-chevron fa-solid fa-chevron-right ms-auto"></i>
+                        </a>
+                        <div class="collapse <?php echo $asetCollapse; ?>" id="collapseAset">
+                            <ul class="nav flex-column ms-3 ps-2" style="border-left: 1.5px solid #374151; margin-left: 18px; padding-left: 8px;">
+                                <?php
+                                if ($showStokBarang) renderSubNavItem(($pageNow == "Inventory" && !$isSalesDir), $rootPrefix . "inventory.php", "fa-solid fa-box", "Stok Barang");
+                                if ($showPeminjaman) renderSubNavItem(($pageNow == "Peminjaman" && !$isSalesDir), $rootPrefix . "peminjaman.php", "fa-solid fa-right-left", "Peminjaman");
+                                if ($showTutorial) renderSubNavItem(($pageNow == "Tutorial" && !$isSalesDir), $rootPrefix . "tutorial.php", "fa-solid fa-book-open", "Tutorial");
+                                ?>
+                            </ul>
+                        </div>
+                    </li>
+                    <?php
                 }
 
+                // Category: Data Master
                 if ($showTeknisi || $showCustomer) {
-                    renderNavHeader("Data Master");
-                    if ($showTeknisi) renderNavItem(($pageNow == "Data Teknisi" && !$isSalesDir), $rootPrefix . "data-teknisi.php", "fa-solid fa-users-gear", "Teknisi");
-                    if ($showCustomer) renderNavItem(($pageNow == "Data Customer" && !$isSalesDir), $rootPrefix . "customer.php", "fa-solid fa-users", "Customer");
+                    $isMasterActive = ($pageNow == "Data Teknisi" && !$isSalesDir) || ($pageNow == "Data Customer" && !$isSalesDir);
+                    $masterCollapse = $isMasterActive ? 'show' : '';
+                    $masterAria = $isMasterActive ? 'true' : 'false';
+                    $masterLinkClass = $isMasterActive ? '' : 'collapsed';
+                    ?>
+                    <li class="nav-item">
+                        <a class="nav-link <?php echo $masterLinkClass; ?>" data-bs-toggle="collapse" href="#collapseMaster" role="button" aria-expanded="<?php echo $masterAria; ?>" aria-controls="collapseMaster">
+                            <i class="nav-icon fa-fw fa-solid fa-database"></i>
+                            <p class="flex-grow-1">Data Master</p>
+                            <i class="collapse-chevron fa-solid fa-chevron-right ms-auto"></i>
+                        </a>
+                        <div class="collapse <?php echo $masterCollapse; ?>" id="collapseMaster">
+                            <ul class="nav flex-column ms-3 ps-2" style="border-left: 1.5px solid #374151; margin-left: 18px; padding-left: 8px;">
+                                <?php
+                                if ($showTeknisi) renderSubNavItem(($pageNow == "Data Teknisi" && !$isSalesDir), $rootPrefix . "data-teknisi.php", "fa-solid fa-users-gear", "Teknisi");
+                                if ($showCustomer) renderSubNavItem(($pageNow == "Data Customer" && !$isSalesDir), $rootPrefix . "customer.php", "fa-solid fa-users", "Customer");
+                                ?>
+                            </ul>
+                        </div>
+                    </li>
+                    <?php
                 }
 
+                // Category: Aplikasi Sales
                 if ($showDashboardSales || $showDataSales || $showJadwalKunjungan || $showLaporanVisit || $showCustomerSales) {
-                    renderNavHeader("Aplikasi Sales");
-                    if ($showDashboardSales) renderNavItem(($pageNow == "Dashboard Sales" || ($pageNow == "Dashboard" && $isSalesDir)), $salesPrefix . "index-sa.php", "fa-solid fa-chart-line", "Dashboard Sales");
-                    if ($showJadwalKunjungan) renderNavItem(($pageNow == "Kegiatan Baru" && $isSalesDir), $salesPrefix . "kegiatan-baru.php", "fa-solid fa-map-location-dot", "Jadwal Kunjungan");
-                    if ($showLaporanVisit) renderNavItem(($pageNow == "Laporan" && $isSalesDir), $salesPrefix . "laporan-cust.php", "fa-solid fa-file-contract", "Laporan Visit");
-                    if ($showCustomerSales) renderNavItem(($pageNow == "Data Customer" && $isSalesDir), $salesPrefix . "customer.php", "fa-solid fa-address-book", "Customer Sales");
-                    if ($showDataSales) renderNavItem(($pageNow == "Sales" && $isSalesDir), $salesPrefix . "sales.php", "fa-solid fa-user-group", "Data Sales");
+                    $isSalesActive = ($pageNow == "Dashboard Sales" || ($pageNow == "Dashboard" && $isSalesDir)) || ($pageNow == "Kegiatan Baru" && $isSalesDir) || ($pageNow == "Laporan" && $isSalesDir) || ($pageNow == "Data Customer" && $isSalesDir) || ($pageNow == "Sales" && $isSalesDir);
+                    $salesCollapse = $isSalesActive ? 'show' : '';
+                    $salesAria = $isSalesActive ? 'true' : 'false';
+                    $salesLinkClass = $isSalesActive ? '' : 'collapsed';
+                    ?>
+                    <li class="nav-item">
+                        <a class="nav-link <?php echo $salesLinkClass; ?>" data-bs-toggle="collapse" href="#collapseSales" role="button" aria-expanded="<?php echo $salesAria; ?>" aria-controls="collapseSales">
+                            <i class="nav-icon fa-fw fa-solid fa-chart-line"></i>
+                            <p class="flex-grow-1">Aplikasi Sales</p>
+                            <i class="collapse-chevron fa-solid fa-chevron-right ms-auto"></i>
+                        </a>
+                        <div class="collapse <?php echo $salesCollapse; ?>" id="collapseSales">
+                            <ul class="nav flex-column ms-3 ps-2" style="border-left: 1.5px solid #374151; margin-left: 18px; padding-left: 8px;">
+                                <?php
+                                if ($showDashboardSales) renderSubNavItem(($pageNow == "Dashboard Sales" || ($pageNow == "Dashboard" && $isSalesDir)), $salesPrefix . "index-sa.php", "fa-solid fa-gauge-high", "Dashboard Sales");
+                                if ($showJadwalKunjungan) renderSubNavItem(($pageNow == "Kegiatan Baru" && $isSalesDir), $salesPrefix . "kegiatan-baru.php", "fa-solid fa-map-location-dot", "Jadwal Kunjungan");
+                                if ($showLaporanVisit) renderSubNavItem(($pageNow == "Laporan" && $isSalesDir), $salesPrefix . "laporan-cust.php", "fa-solid fa-file-contract", "Laporan Visit");
+                                if ($showCustomerSales) renderSubNavItem(($pageNow == "Data Customer" && $isSalesDir), $salesPrefix . "customer.php", "fa-solid fa-address-book", "Customer Sales");
+                                if ($showDataSales) renderSubNavItem(($pageNow == "Sales" && $isSalesDir), $salesPrefix . "sales.php", "fa-solid fa-user-group", "Data Sales");
+                                ?>
+                            </ul>
+                        </div>
+                    </li>
+                    <?php
                 }
             } elseif ($role == 'Sales Manager' || $role == 'Sales') {
+                // Category: Sales Menu for Staff
                 if ($showKegiatanSaya || $showDashboardSales || $showJadwalKunjungan || $showCustomerSales) {
-                    renderNavHeader("Sales");
-                    if ($showDashboardSales) renderNavItem(($pageNow == "Dashboard Sales" || ($pageNow == "Dashboard" && $isSalesDir)), $salesPrefix . "index-sa.php", "fa-solid fa-chart-line", "Dashboard");
-                    if ($showKegiatanSaya) renderNavItem(($pageNow == "Kegiatan Saya" && $isSalesDir), $salesPrefix . "sales/index.php", "fa-solid fa-user-check", "Kegiatan Saya");
-                    if ($showJadwalKunjungan) renderNavItem(($pageNow == "Kegiatan Baru" && $isSalesDir), $salesPrefix . "kegiatan-baru.php", "fa-solid fa-map-location-dot", "Visit Customer");
-                    if ($role == 'Sales Manager' && $showLaporanVisit) renderNavItem(($pageNow == "Laporan" && $isSalesDir), $salesPrefix . "laporan-cust.php", "fa-solid fa-file-contract", "Laporan Visit");
-                    if ($showCustomerSales) renderNavItem(($pageNow == "Data Customer" && $isSalesDir), $salesPrefix . "customer.php", "fa-solid fa-address-book", "Customer");
-                    if ($role == 'Sales Manager' && $showDataSales) renderNavItem(($pageNow == "Sales" && $isSalesDir), $salesPrefix . "sales.php", "fa-solid fa-user-group", "Tim Sales");
+                    $isSalesStaffActive = ($pageNow == "Dashboard Sales" || ($pageNow == "Dashboard" && $isSalesDir)) || ($pageNow == "Kegiatan Saya" && $isSalesDir) || ($pageNow == "Kegiatan Baru" && $isSalesDir) || ($pageNow == "Laporan" && $isSalesDir) || ($pageNow == "Data Customer" && $isSalesDir) || ($pageNow == "Sales" && $isSalesDir);
+                    $salesStaffCollapse = $isSalesStaffActive ? 'show' : '';
+                    $salesStaffAria = $isSalesStaffActive ? 'true' : 'false';
+                    $salesStaffLinkClass = $isSalesStaffActive ? '' : 'collapsed';
+                    ?>
+                    <li class="nav-item">
+                        <a class="nav-link <?php echo $salesStaffLinkClass; ?>" data-bs-toggle="collapse" href="#collapseSalesStaff" role="button" aria-expanded="<?php echo $salesStaffAria; ?>" aria-controls="collapseSalesStaff">
+                            <i class="nav-icon fa-fw fa-solid fa-chart-line"></i>
+                            <p class="flex-grow-1">Sales</p>
+                            <i class="collapse-chevron fa-solid fa-chevron-right ms-auto"></i>
+                        </a>
+                        <div class="collapse <?php echo $salesStaffCollapse; ?>" id="collapseSalesStaff">
+                            <ul class="nav flex-column ms-3 ps-2" style="border-left: 1.5px solid #374151; margin-left: 18px; padding-left: 8px;">
+                                <?php
+                                if ($showDashboardSales) renderSubNavItem(($pageNow == "Dashboard Sales" || ($pageNow == "Dashboard" && $isSalesDir)), $salesPrefix . "index-sa.php", "fa-solid fa-gauge-high", "Dashboard");
+                                if ($showKegiatanSaya) renderSubNavItem(($pageNow == "Kegiatan Saya" && $isSalesDir), $salesPrefix . "sales/index.php", "fa-solid fa-user-check", "Kegiatan Saya");
+                                if ($showJadwalKunjungan) renderSubNavItem(($pageNow == "Kegiatan Baru" && $isSalesDir), $salesPrefix . "kegiatan-baru.php", "fa-solid fa-map-location-dot", "Visit Customer");
+                                if ($role == 'Sales Manager' && $showLaporanVisit) renderSubNavItem(($pageNow == "Laporan" && $isSalesDir), $salesPrefix . "laporan-cust.php", "fa-solid fa-file-contract", "Laporan Visit");
+                                if ($showCustomerSales) renderSubNavItem(($pageNow == "Data Customer" && $isSalesDir), $salesPrefix . "customer.php", "fa-solid fa-address-book", "Customer");
+                                if ($role == 'Sales Manager' && $showDataSales) renderSubNavItem(($pageNow == "Sales" && $isSalesDir), $salesPrefix . "sales.php", "fa-solid fa-user-group", "Tim Sales");
+                                ?>
+                            </ul>
+                        </div>
+                    </li>
+                    <?php
                 }
 
+                // Category: Teknisi Menu for Staff
                 if ($showDashboardTeknisi || $showBuatRequest) {
-                    renderNavHeader("Teknisi");
-                    if ($showDashboardTeknisi) renderNavItem(($pageNow == "Dashboard Teknisi" && !$isSalesDir), $rootPrefix . "index-sales.php", "fa-solid fa-chart-pie", "Dashboard Teknisi");
-                    if ($showBuatRequest) renderNavItem(($pageNow == "Kegiatan Baru" && !$isSalesDir), $rootPrefix . "kegiatan-baru.php", "fa-solid fa-bell-concierge", "Buat Request");
+                    $isTeknisiStaffActive = ($pageNow == "Dashboard Teknisi" && !$isSalesDir) || ($pageNow == "Kegiatan Baru" && !$isSalesDir);
+                    $teknisiStaffCollapse = $isTeknisiStaffActive ? 'show' : '';
+                    $teknisiStaffAria = $isTeknisiStaffActive ? 'true' : 'false';
+                    $teknisiStaffLinkClass = $isTeknisiStaffActive ? '' : 'collapsed';
+                    ?>
+                    <li class="nav-item">
+                        <a class="nav-link <?php echo $teknisiStaffLinkClass; ?>" data-bs-toggle="collapse" href="#collapseTeknisiStaff" role="button" aria-expanded="<?php echo $teknisiStaffAria; ?>" aria-controls="collapseTeknisiStaff">
+                            <i class="nav-icon fa-fw fa-solid fa-wrench"></i>
+                            <p class="flex-grow-1">Teknisi</p>
+                            <i class="collapse-chevron fa-solid fa-chevron-right ms-auto"></i>
+                        </a>
+                        <div class="collapse <?php echo $teknisiStaffCollapse; ?>" id="collapseTeknisiStaff">
+                            <ul class="nav flex-column ms-3 ps-2" style="border-left: 1.5px solid #374151; margin-left: 18px; padding-left: 8px;">
+                                <?php
+                                if ($showDashboardTeknisi) renderSubNavItem(($pageNow == "Dashboard Teknisi" && !$isSalesDir), $rootPrefix . "index-sales.php", "fa-solid fa-chart-pie", "Dashboard Teknisi");
+                                if ($showBuatRequest) renderSubNavItem(($pageNow == "Kegiatan Baru" && !$isSalesDir), $rootPrefix . "kegiatan-baru.php", "fa-solid fa-bell-concierge", "Buat Request");
+                                ?>
+                            </ul>
+                        </div>
+                    </li>
+                    <?php
                 }
             }
             ?>
