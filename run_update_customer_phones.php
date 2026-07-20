@@ -28,8 +28,8 @@ while ($row = mysqli_fetch_assoc($q)) {
     $check = mysqli_query($conn, "SELECT telp_pribadi, nama FROM sales_customer WHERE id = $custId");
     if ($check && $cust = mysqli_fetch_assoc($check)) {
         $currentPhone = trim($cust['telp_pribadi']);
-        // If current phone is empty, '0', or empty string, update it!
-        if (empty($currentPhone) || $currentPhone === '0' || $currentPhone === '') {
+        // If current phone is empty, '0', or shorter than 6 characters (e.g. '62'), update it!
+        if (empty($currentPhone) || $currentPhone === '0' || $currentPhone === '' || strlen($currentPhone) < 6) {
             $safePhone = mysqli_real_escape_string($conn, $phone);
             $upd = mysqli_query($conn, "UPDATE sales_customer SET telp_pribadi = '$safePhone', updated_at = NOW() WHERE id = $custId");
             if ($upd) {
