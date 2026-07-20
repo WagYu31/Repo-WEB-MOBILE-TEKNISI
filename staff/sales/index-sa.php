@@ -125,34 +125,39 @@ $progress_percent = $today_total > 0 ? round(($today_completed / $today_total) *
   <?php include "head.php"; ?>
   <style>
     .dashboard-header {
-      background: #ffffff;
+      position: relative;
+      background: linear-gradient(135deg, #ffffff 0%, #fcfdff 100%);
       border: 1px solid #e2e8f0;
-      border-left: 5px solid #2563eb !important;
-      border-radius: 16px;
-      padding: 20px 24px;
+      border-radius: 20px;
+      padding: 24px 30px;
       color: #0f172a;
       margin-bottom: 24px;
-      position: relative;
       overflow: hidden;
-      box-shadow: 0 4px 18px rgba(148, 163, 184, 0.05);
+      box-shadow: 0 10px 25px -5px rgba(148, 163, 184, 0.05), 0 8px 16px -6px rgba(148, 163, 184, 0.02);
     }
-    .dashboard-header .greeting { font-size: 12.5px; color: #64748b; font-weight: 600; margin-bottom: 4px; }
-    .dashboard-header .user-name { font-size: 20px; font-weight: 700; color: #0f172a; margin-bottom: 2px; }
-    .dashboard-header .today-date { font-size: 12px; color: #64748b; font-weight: 500; }
+    .dashboard-header::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; bottom: 0;
+      width: 6px;
+      background: linear-gradient(to bottom, #3b82f6, #6366f1);
+    }
+    .dashboard-header .greeting { font-size: 13px; color: #64748b; font-weight: 600; margin-bottom: 4px; letter-spacing: 0.02em; }
+    .dashboard-header .user-name { font-size: 24px; font-weight: 800; color: #0f172a; margin-bottom: 4px; letter-spacing: -0.02em; }
+    .dashboard-header .today-date { font-size: 12.5px; color: #64748b; font-weight: 500; }
     .dashboard-header .header-icon {
       position: absolute; right: 24px; top: 50%; transform: translateY(-50%);
       font-size: 64px; color: #2563eb; opacity: .08;
     }
     .live-indicator-dot {
-      width: 7px;
-      height: 7px;
+      width: 6px;
+      height: 6px;
       background-color: #10b981;
       border-radius: 50%;
       display: inline-block;
       box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
       animation: pulse-live 1.6s infinite;
       flex-shrink: 0;
-      margin-right: 4px;
     }
     @keyframes pulse-live {
       0% {
@@ -167,6 +172,14 @@ $progress_percent = $today_total > 0 ? round(($today_completed / $today_total) *
         transform: scale(0.95);
         box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
       }
+    }
+    .premium-action-btn {
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+    .premium-action-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(37, 99, 235, 0.25) !important;
+      opacity: 0.95;
     }
   </style>
 </head>
@@ -186,29 +199,28 @@ $progress_percent = $today_total > 0 ? round(($today_completed / $today_total) *
             <div>
               <div class="greeting"><?php echo $greeting; ?>, 👋</div>
               <div class="user-name"><?php echo htmlspecialchars($nmUser ?? 'Admin'); ?></div>
-              <div class="today-date d-flex align-items-center">
-                <span class="live-indicator-dot"></span>
-                <span id="live-clock-header">📅 <?php echo $todayFormatted; ?></span>
+              <div class="today-date d-flex align-items-center mt-1">
+                <span id="live-clock-header">📅 <?php echo $todayFormatted; ?> <span style="font-size: 10px; font-weight: 700; color: #10b981; background-color: #ecfdf5; border: 1px solid #a7f3d0; padding: 2px 8px; border-radius: 20px; margin-left: 8px; vertical-align: middle; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 2px 6px rgba(16, 185, 129, 0.04);"><span class="live-indicator-dot" style="margin-right: 0;"></span> LIVE</span></span>
               </div>
             </div>
             
             <div class="d-flex align-items-center gap-3 mt-2 mt-md-0 flex-wrap">
                 <!-- Progress Bar -->
-                <div class="d-flex align-items-center gap-3 px-3 py-2 rounded-3" style="border: 1px solid #e2e8f0; min-width: 250px; background-color: #f8fafc; height: 48px;">
+                <div class="d-flex align-items-center gap-3 px-3.5 py-2.5 rounded-4" style="border: 1px solid #e2e8f0; min-width: 260px; background-color: #ffffff; height: 52px; box-shadow: 0 4px 12px -2px rgba(148, 163, 184, 0.04);">
                     <div class="d-flex flex-column flex-grow-1">
                         <span class="text-xxs font-weight-bold text-uppercase text-secondary" style="letter-spacing: 0.05em; line-height: 1;">Progress Hari Ini</span>
-                        <h6 class="mb-0 text-dark font-weight-bold text-xs mt-0.5"><?php echo $today_completed; ?> / <?php echo $today_total; ?> Selesai</h6>
-                        <div class="progress mt-1" style="height: 4px; background-color: #e2e8f0; border-radius: 4px; overflow: hidden; width: 100%;">
-                            <div class="progress-bar bg-success" role="progressbar" style="width: <?php echo $progress_percent; ?>%; border-radius: 4px;" aria-valuenow="<?php echo $progress_percent; ?>" aria-valuemin="0" aria-valuemax="100"></div>
+                        <h6 class="mb-0 text-dark font-weight-bold text-xs mt-0.5" style="letter-spacing: -0.01em;"><?php echo $today_completed; ?> / <?php echo $today_total; ?> Selesai</h6>
+                        <div class="progress mt-1.5" style="height: 5px; background-color: #f1f5f9; border-radius: 10px; overflow: hidden; width: 100%;">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: <?php echo $progress_percent; ?>%; border-radius: 10px; background: linear-gradient(to right, #10b981, #059669) !important;" aria-valuenow="<?php echo $progress_percent; ?>" aria-valuemin="0" aria-valuemax="100"></div>
                         </div>
                     </div>
-                    <div class="d-flex align-items-center justify-content-center text-white rounded-2" style="width: 32px; height: 32px; flex-shrink: 0; background: linear-gradient(135deg, #10b981, #059669);">
-                        <span class="material-symbols-outlined" style="font-size: 16px;">done_all</span>
+                    <div class="d-flex align-items-center justify-content-center text-white rounded-3 shadow-sm" style="width: 34px; height: 34px; flex-shrink: 0; background: linear-gradient(135deg, #10b981, #059669);">
+                        <span class="material-symbols-outlined" style="font-size: 18px;">done_all</span>
                     </div>
                 </div>
 
                 <!-- Tambah Kegiatan Button -->
-                <a href="kegiatan-baru.php" class="btn btn-sm btn-primary mb-0 d-flex align-items-center justify-content-center gap-1.5 shadow-sm" style="border-radius: 8px; background: #3b82f6; border: none; font-weight: 700; height: 48px; padding: 0 16px;">
+                <a href="kegiatan-baru.php" class="btn btn-sm btn-primary mb-0 d-flex align-items-center justify-content-center gap-2 shadow-sm premium-action-btn" style="border-radius: 12px; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); border: none; font-weight: 700; height: 52px; padding: 0 20px;">
                     <span class="material-symbols-outlined" style="font-size: 18px;">add_circle</span>
                     Tambah Kegiatan
                 </a>
