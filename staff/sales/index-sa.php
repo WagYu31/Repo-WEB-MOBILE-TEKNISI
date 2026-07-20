@@ -143,6 +143,31 @@ $progress_percent = $today_total > 0 ? round(($today_completed / $today_total) *
       position: absolute; right: 24px; top: 50%; transform: translateY(-50%);
       font-size: 64px; color: #2563eb; opacity: .08;
     }
+    .live-indicator-dot {
+      width: 7px;
+      height: 7px;
+      background-color: #10b981;
+      border-radius: 50%;
+      display: inline-block;
+      box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+      animation: pulse-live 1.6s infinite;
+      flex-shrink: 0;
+      margin-right: 4px;
+    }
+    @keyframes pulse-live {
+      0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+      }
+      70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 5px rgba(16, 185, 129, 0);
+      }
+      100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+      }
+    }
   </style>
 </head>
  
@@ -161,7 +186,10 @@ $progress_percent = $today_total > 0 ? round(($today_completed / $today_total) *
             <div>
               <div class="greeting"><?php echo $greeting; ?>, 👋</div>
               <div class="user-name"><?php echo htmlspecialchars($nmUser ?? 'Admin'); ?></div>
-              <div class="today-date">📅 <?php echo $todayFormatted; ?></div>
+              <div class="today-date d-flex align-items-center">
+                <span class="live-indicator-dot"></span>
+                <span id="live-clock-header">📅 <?php echo $todayFormatted; ?></span>
+              </div>
             </div>
             
             <div class="d-flex align-items-center gap-3 mt-2 mt-md-0 flex-wrap">
@@ -519,6 +547,32 @@ $progress_percent = $today_total > 0 ? round(($today_completed / $today_total) *
           }
         }
       });
+ 
+      // 3. Live Ticking Clock (Indonesian Date and Time)
+      function updateLiveClock() {
+        const clockEl = document.getElementById('live-clock-header');
+        if (!clockEl) return;
+        
+        const now = new Date();
+        
+        // Days and Months in Indonesian
+        const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+        const dayName = days[now.getDay()];
+        
+        const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+        const monthName = months[now.getMonth()];
+        
+        const date = now.getDate().toString().padStart(2, '0');
+        const year = now.getFullYear();
+        
+        const hours = now.getHours().toString().padStart(2, '0');
+        const minutes = now.getMinutes().toString().padStart(2, '0');
+        const seconds = now.getSeconds().toString().padStart(2, '0');
+        
+        clockEl.innerHTML = `${dayName}, ${date} ${monthName} ${year} • ${hours}:${minutes}:${seconds} <span style="font-size: 9px; font-weight: bold; color: #10b981; background-color: #ecfdf5; border: 1px solid #a7f3d0; padding: 1px 6px; border-radius: 6px; margin-left: 6px; vertical-align: middle; display: inline-block;">LIVE</span>`;
+      }
+      updateLiveClock();
+      setInterval(updateLiveClock, 1000);
     });
   </script>
 </body>
