@@ -2,8 +2,6 @@
 include "conn.php";
 include "session.php";
 
-file_put_contents('debug_visits.log', date('Y-m-d H:i:s') . ' - GET: ' . json_encode($_GET) . PHP_EOL, FILE_APPEND);
-
 header('Content-Type: application/json');
 
 if (!isset($_GET['customer_id']) || !isset($_GET['sales_id']) || empty($_GET['customer_id']) || empty($_GET['sales_id'])) {
@@ -26,8 +24,6 @@ $stmt = $conn->prepare($sql);
 $stmt->bind_param("ii", $customerId, $salesId);
 $stmt->execute();
 $result = $stmt->get_result();
-
-file_put_contents('debug_visits.log', date('Y-m-d H:i:s') . " - SQL executing: cust={$customerId}, sales={$salesId}, rows={$result->num_rows}" . PHP_EOL, FILE_APPEND);
 
 $visits = [];
 while ($row = $result->fetch_assoc()) {
