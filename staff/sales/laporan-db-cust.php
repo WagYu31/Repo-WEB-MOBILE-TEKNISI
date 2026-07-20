@@ -129,8 +129,8 @@ if ($resSalesList) {
                                     <div class="col-md-2">Jadwal Kunjungan</div>
                                     <div class="col-md-1">Waktu Mulai</div>
                                     <div class="col-md-1">Waktu Selesai</div>
-                                    <div class="col-md-3 text-center">Aksi</div>
-                                    <div class="col-md-1 text-center">Hasil</div>
+                                    <div class="col-md-2 text-center">Aksi</div>
+                                    <div class="col-md-2">Hasil</div>
                                 </div>
 
                                 <?php
@@ -219,30 +219,30 @@ if ($resSalesList) {
                                         </div>
 
                                         <!-- Aksi (Lihat, Edit, Hapus) -->
-                                        <div class="col-6 col-md-3 text-md-center mb-2 mb-md-0 d-flex gap-1 justify-content-center flex-wrap">
+                                        <div class="col-6 col-md-2 text-md-center mb-2 mb-md-0 d-flex gap-1.5 justify-content-center align-items-center">
                                             <span class="d-md-none text-xxs text-secondary d-block font-weight-bold w-100">Aksi</span>
-                                            <button class="btn btn-outline-primary btn-xs mb-0 px-2 py-1.5 font-weight-bold detailBtn" style="border-radius: 6px; font-size:11px;" data-bs-toggle="modal" data-bs-target="#detailModal" data-id="<?php echo $idT; ?>" data-kode="<?php echo $kodeTransaksi; ?>" title="Lihat Detail">
-                                                <i class="fa-solid fa-eye"></i> Rincian
+                                            <button class="btn btn-outline-primary btn-xs mb-0 px-2.5 py-1.5 detailBtn" style="border-radius: 6px;" data-bs-toggle="modal" data-bs-target="#detailModal" data-id="<?php echo $idT; ?>" data-kode="<?php echo $kodeTransaksi; ?>" title="Rincian Kunjungan">
+                                                <i class="fa-solid fa-eye"></i>
                                             </button>
-                                            <button class="btn btn-outline-success btn-xs mb-0 px-2 py-1.5 font-weight-bold editVisitBtn" style="border-radius: 6px; font-size:11px;" data-id="<?php echo $kodeTransaksi; ?>" data-sales="<?php echo $idT; ?>" title="Edit Laporan">
-                                                <i class="fa-solid fa-pen-to-square"></i> Edit
+                                            <button class="btn btn-outline-success btn-xs mb-0 px-2.5 py-1.5 editVisitBtn" style="border-radius: 6px;" data-id="<?php echo $kodeTransaksi; ?>" data-sales="<?php echo $idT; ?>" title="Edit Laporan">
+                                                <i class="fa-solid fa-pen-to-square"></i>
                                             </button>
-                                            <button class="btn btn-outline-danger btn-xs mb-0 px-2 py-1.5 font-weight-bold deleteVisitBtn" style="border-radius: 6px; font-size:11px;" data-id="<?php echo $kodeTransaksi; ?>" data-sales="<?php echo $idT; ?>" data-status="<?php echo $status; ?>" data-cust="<?php echo htmlspecialchars($namaC); ?>" title="Hapus/Reset Laporan">
-                                                <i class="fa-solid fa-trash"></i> Hapus
+                                            <button class="btn btn-outline-danger btn-xs mb-0 px-2.5 py-1.5 deleteVisitBtn" style="border-radius: 6px;" data-id="<?php echo $kodeTransaksi; ?>" data-sales="<?php echo $idT; ?>" data-status="<?php echo $status; ?>" data-cust="<?php echo htmlspecialchars($namaC); ?>" title="Hapus Laporan">
+                                                <i class="fa-solid fa-trash"></i>
                                             </button>
                                         </div>
 
                                         <!-- Hasil Visits -->
-                                        <div class="col-6 col-md-1 text-md-center">
+                                        <div class="col-6 col-md-2 mb-2 mb-md-0">
                                             <span class="d-md-none text-xxs text-secondary d-block font-weight-bold">Hasil</span>
                                             <?php if ($status == 'selesai') : 
-                                                $shortVisits = strlen($hslVisits) > 25 ? substr($hslVisits, 0, 25) . '...' : $hslVisits;
+                                                $shortVisits = strlen($hslVisits) > 60 ? substr($hslVisits, 0, 60) . '...' : $hslVisits;
                                             ?>
-                                                <div class="p-1 px-2 bg-light text-xxs text-dark border-radius-sm text-start d-inline-block font-weight-bold" style="max-width: 100%; border-radius: 6px;" title="<?php echo htmlspecialchars($hslVisits); ?>">
+                                                <div style="font-size: 12.5px; color: #475569; line-height: 1.4; font-weight: 500;" title="<?php echo htmlspecialchars($hslVisits); ?>">
                                                     <?php echo nl2br(htmlspecialchars($shortVisits)); ?>
                                                 </div>
                                             <?php else : ?>
-                                                <span class="badge text-xxs font-weight-bold px-2 py-1" style="background-color: #fee2e2; color: #dc2626; border: 1px solid #fecaca; border-radius: 12px; display: inline-block;">Belum Selesai</span>
+                                                <span class="badge text-xxs font-weight-bold px-2.5 py-1" style="background-color: #fee2e2; color: #dc2626; border: 1px solid #fecaca; border-radius: 12px; display: inline-block;">Belum Selesai</span>
                                             <?php endif; ?>
                                         </div>
                                     </div>
