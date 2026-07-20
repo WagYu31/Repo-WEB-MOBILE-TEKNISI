@@ -2168,7 +2168,7 @@ $salesData = mysqli_query($conn, $queryStr);
       const visitsContainer = document.getElementById('detail_visits_container');
       visitsContainer.innerHTML = '<div class="text-muted text-center py-3" style="font-size:12.5px;"><span class="material-symbols-outlined" style="font-size:16px; vertical-align:middle; animation:spin 1s linear infinite; margin-right:4px;">progress_activity</span> Memuat riwayat...</div>';
       
-      fetch('get_customer_visits.php?id=' + id)
+      fetch('get_customer_visits.php?id=' + id + '&_t=' + new Date().getTime())
         .then(res => res.json())
         .then(data => {
           visitsContainer.innerHTML = '';
@@ -2278,6 +2278,8 @@ $salesData = mysqli_query($conn, $queryStr);
 
   // Function to show visits timeline for a sales person and customer
   function openSalesVisitsDetail(salesId, salesName, custId, custName) {
+    console.log('openSalesVisitsDetail params:', { salesId, salesName, custId, custName });
+    
     document.getElementById('visits_detail_sales_name').textContent = salesName;
     document.getElementById('visits_detail_cust_name').textContent = custName;
     
@@ -2288,7 +2290,7 @@ $salesData = mysqli_query($conn, $queryStr);
     const subModal = new bootstrap.Modal(document.getElementById('visitsDetailModal'));
     subModal.show();
     
-    fetch(`get_sales_customer_visits.php?customer_id=${custId}&sales_id=${salesId}`)
+    fetch(`get_sales_customer_visits.php?customer_id=${custId}&sales_id=${salesId}&_t=${new Date().getTime()}`)
       .then(res => res.json())
       .then(data => {
         container.innerHTML = '';
