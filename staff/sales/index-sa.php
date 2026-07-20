@@ -215,14 +215,6 @@ $progress_percent = $today_total > 0 ? round(($today_completed / $today_total) *
             <div class="header-glow-2"></div>
             
             <div class="d-flex align-items-center gap-3" style="position: relative; z-index: 2;">
-              <!-- User Initial Avatar Badge -->
-              <div class="d-flex align-items-center justify-content-center text-white font-weight-bold shadow-sm" style="width: 52px; height: 52px; border-radius: 14px; background: linear-gradient(135deg, #4f46e5, #3b82f6); font-size: 16px; border: 2px solid #ffffff; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15); flex-shrink: 0;">
-                <?php 
-                  $words = explode(' ', $nmUser ?? 'Admin');
-                  echo strtoupper(substr($words[0], 0, 1) . (isset($words[1]) ? substr($words[1], 0, 1) : ''));
-                ?>
-              </div>
-              
               <div>
                 <div class="greeting"><?php echo $greeting; ?>, 👋</div>
                 <div class="user-name"><?php echo htmlspecialchars($nmUser ?? 'Admin'); ?></div>
