@@ -177,7 +177,7 @@ $currentPage = "Today";
                 <h5 class="modal-title" id="detailModalLabel">Riwayat Waktu Pengerjaan</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form id="detailForm" data-kode="">
+            
                 <div class="modal-body">
                     <div class="w-100 mt-2">
                         <div id="dataDetailTek" style="width: 100%;"></div>
@@ -186,7 +186,7 @@ $currentPage = "Today";
                 <div class="modal-footer">
                     <button type="button" class="btn bg-gradient-danger" data-bs-dismiss="modal">Tutup</button>
                 </div>
-            </form>
+            
         </div>
     </div>
 </div>
