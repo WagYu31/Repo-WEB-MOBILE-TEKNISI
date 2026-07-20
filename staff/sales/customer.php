@@ -2416,6 +2416,67 @@ $salesData = mysqli_query($conn, $queryStr);
       document.body.classList.add('modal-open');
     }
   });
+
+  // Make Modal Cards Draggable (Drag & Drop)
+  function makeModalDraggable(modalId) {
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
+    const dialog = modal.querySelector('.modal-dialog');
+    const header = modal.querySelector('.modal-header');
+    
+    if (!dialog || !header) return;
+    
+    header.style.cursor = 'move';
+    
+    let isDragging = false;
+    let startX, startY;
+    let modalLeft = 0, modalTop = 0;
+    
+    modal.addEventListener('show.bs.modal', () => {
+      dialog.style.left = '0px';
+      dialog.style.top = '0px';
+      dialog.style.transform = 'none';
+      modalLeft = 0;
+      modalTop = 0;
+    });
+    
+    header.addEventListener('mousedown', (e) => {
+      if (e.target.closest('.btn-close') || e.target.closest('button')) return;
+      
+      isDragging = true;
+      startX = e.clientX - modalLeft;
+      startY = e.clientY - modalTop;
+      
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
+      
+      document.body.style.userSelect = 'none';
+      dialog.style.transition = 'none';
+    });
+    
+    function onMouseMove(e) {
+      if (!isDragging) return;
+      
+      modalLeft = e.clientX - startX;
+      modalTop = e.clientY - startY;
+      
+      dialog.style.transform = `translate(${modalLeft}px, ${modalTop}px)`;
+    }
+    
+    function onMouseUp() {
+      isDragging = false;
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+      
+      document.body.style.userSelect = '';
+      dialog.style.transition = '';
+    }
+  }
+
+  // Initialize draggable modals
+  makeModalDraggable('detailModal');
+  makeModalDraggable('visitsDetailModal');
+  makeModalDraggable('editModal');
 </script>
 </body>
 </html>
