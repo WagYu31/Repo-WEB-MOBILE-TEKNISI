@@ -835,7 +835,7 @@ $salesData = mysqli_query($conn, $queryStr);
                     <label class="form-label-premium">
                       <span class="material-symbols-outlined" style="font-size:16px; color:#3b82f6;">call</span> No. Telepon (WhatsApp)
                     </label>
-                    <input type="text" name="telp" class="input-premium" placeholder="Contoh: 0812345678" required>
+                    <input type="text" name="telp" class="input-premium" placeholder="Contoh: 0812345678">
                   </div>
                   
                   <div class="col-md-6 form-group-premium">
@@ -1351,7 +1351,7 @@ $salesData = mysqli_query($conn, $queryStr);
                   
                   <div class="col-md-6 form-group-premium">
                     <label class="form-label-premium">No. Telepon</label>
-                    <input type="text" name="edit_telp" id="edit_telp" class="input-premium" required>
+                    <input type="text" name="edit_telp" id="edit_telp" class="input-premium">
                   </div>
                   
                   <div class="col-md-6 form-group-premium">
