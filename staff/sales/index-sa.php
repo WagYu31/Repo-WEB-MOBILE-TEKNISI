@@ -65,6 +65,56 @@ if (isset($_GET['customer'])) {
     $_SESSION['search_customer'] = trim($_GET['customer']);
 }
 $searchCustomer = $_SESSION['search_customer'] ?? '';
+ 
+// Calculate Today's Progress for Greeting Header
+$current_date_today = date("Y-m-d");
+$today_total = 0;
+$today_completed = 0;
+ 
+$qTotal = "SELECT COUNT(DISTINCT ks.id) AS c FROM kegiatan_sales ks 
+           LEFT JOIN sales_customer c ON ks.id_customer = c.id ";
+if ($selectedSales !== 'all') {
+    $qTotal .= "INNER JOIN team_kegiatan_sales tks ON ks.id = tks.id_kegiatan_sales ";
+}
+$qTotal .= "WHERE ks.deleted_at IS NULL AND DATE(ks.jadwal) = '$current_date_today' AND ks.status != 'waiting' ";
+if ($selectedWilayah !== 'all') {
+    $qTotal .= "AND c.id_wilayah = '$selectedWilayah' ";
+}
+if ($selectedSales !== 'all') {
+    $qTotal .= "AND tks.id_sales = '$selectedSales' AND tks.deleted_at IS NULL ";
+}
+if (!empty($searchCustomer)) {
+    $safeSearch = mysqli_real_escape_string($conn, $searchCustomer);
+    $qTotal .= "AND c.nama LIKE '%$safeSearch%' ";
+}
+ 
+$resTotal = mysqli_query($conn, $qTotal);
+if ($resTotal && $rowT = mysqli_fetch_assoc($resTotal)) {
+    $today_total = (int)$rowT['c'];
+}
+ 
+$qComp = "SELECT COUNT(DISTINCT ks.id) AS c FROM kegiatan_sales ks 
+          LEFT JOIN sales_customer c ON ks.id_customer = c.id ";
+if ($selectedSales !== 'all') {
+    $qComp .= "INNER JOIN team_kegiatan_sales tks ON ks.id = tks.id_kegiatan_sales ";
+}
+$qComp .= "WHERE ks.deleted_at IS NULL AND DATE(ks.jadwal) = '$current_date_today' AND ks.status = 'selesai' ";
+if ($selectedWilayah !== 'all') {
+    $qComp .= "AND c.id_wilayah = '$selectedWilayah' ";
+}
+if ($selectedSales !== 'all') {
+    $qComp .= "AND tks.id_sales = '$selectedSales' AND tks.deleted_at IS NULL ";
+}
+if (!empty($searchCustomer)) {
+    $safeSearch = mysqli_real_escape_string($conn, $searchCustomer);
+    $qComp .= "AND c.nama LIKE '%$safeSearch%' ";
+}
+$resComp = mysqli_query($conn, $qComp);
+if ($resComp && $rowC = mysqli_fetch_assoc($resComp)) {
+    $today_completed = (int)$rowC['c'];
+}
+ 
+$progress_percent = $today_total > 0 ? round(($today_completed / $today_total) * 100) : 0;
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -107,11 +157,34 @@ $searchCustomer = $_SESSION['search_customer'] ?? '';
       <!-- ── Dashboard Header ───────────────────────────────────────── -->
       <div class="row mb-2">
         <div class="col-12">
-          <div class="dashboard-header">
-            <div class="greeting"><?php echo $greeting; ?>, 👋</div>
-            <div class="user-name"><?php echo htmlspecialchars($nmUser ?? 'Admin'); ?></div>
-            <div class="today-date">📅 <?php echo $todayFormatted; ?></div>
-            <span class="material-symbols-outlined header-icon">bar_chart</span>
+          <div class="dashboard-header d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+              <div class="greeting"><?php echo $greeting; ?>, 👋</div>
+              <div class="user-name"><?php echo htmlspecialchars($nmUser ?? 'Admin'); ?></div>
+              <div class="today-date">📅 <?php echo $todayFormatted; ?></div>
+            </div>
+            
+            <div class="d-flex align-items-center gap-3 mt-2 mt-md-0 flex-wrap">
+                <!-- Progress Bar -->
+                <div class="d-flex align-items-center gap-3 px-3 py-2 rounded-3" style="border: 1px solid #e2e8f0; min-width: 250px; background-color: #f8fafc; height: 48px;">
+                    <div class="d-flex flex-column flex-grow-1">
+                        <span class="text-xxs font-weight-bold text-uppercase text-secondary" style="letter-spacing: 0.05em; line-height: 1;">Progress Hari Ini</span>
+                        <h6 class="mb-0 text-dark font-weight-bold text-xs mt-0.5"><?php echo $today_completed; ?> / <?php echo $today_total; ?> Selesai</h6>
+                        <div class="progress mt-1" style="height: 4px; background-color: #e2e8f0; border-radius: 4px; overflow: hidden; width: 100%;">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: <?php echo $progress_percent; ?>%; border-radius: 4px;" aria-valuenow="<?php echo $progress_percent; ?>" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center text-white rounded-2" style="width: 32px; height: 32px; flex-shrink: 0; background: linear-gradient(135deg, #10b981, #059669);">
+                        <span class="material-symbols-outlined" style="font-size: 16px;">done_all</span>
+                    </div>
+                </div>
+
+                <!-- Tambah Kegiatan Button -->
+                <a href="kegiatan-baru.php" class="btn btn-sm btn-primary mb-0 d-flex align-items-center justify-content-center gap-1.5 shadow-sm" style="border-radius: 8px; background: #3b82f6; border: none; font-weight: 700; height: 48px; padding: 0 16px;">
+                    <span class="material-symbols-outlined" style="font-size: 18px;">add_circle</span>
+                    Tambah Kegiatan
+                </a>
+            </div>
           </div>
         </div>
       </div>
