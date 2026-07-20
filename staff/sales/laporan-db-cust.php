@@ -127,9 +127,9 @@ if ($resSalesList) {
                                     <div class="col-md-2">Status / Kegiatan</div>
                                     <div class="col-md-2">Sales Agent</div>
                                     <div class="col-md-2">Jadwal Kunjungan</div>
-                                    <div class="col-md-2">Waktu Mulai</div>
-                                    <div class="col-md-2">Waktu Selesai</div>
-                                    <div class="col-md-1 text-center">Rincian</div>
+                                    <div class="col-md-1">Waktu Mulai</div>
+                                    <div class="col-md-1">Waktu Selesai</div>
+                                    <div class="col-md-3 text-center">Aksi</div>
                                     <div class="col-md-1 text-center">Hasil</div>
                                 </div>
 
@@ -193,12 +193,12 @@ if ($resSalesList) {
                                         </div>
 
                                         <!-- Mulai -->
-                                        <div class="col-6 col-md-2 mb-2 mb-md-0">
+                                        <div class="col-6 col-md-1 mb-2 mb-md-0">
                                             <span class="d-md-none text-xxs text-secondary d-block font-weight-bold">Mulai</span>
                                             <div class="d-flex flex-column">
                                                 <?php if ($formattedDateMli !== '-') : ?>
-                                                    <span class="text-xs text-dark font-weight-bold"><i class="fa-regular fa-clock me-1 text-secondary"></i><?php echo $formattedDateMli; ?></span>
-                                                    <span class="text-xxs text-secondary font-weight-bold ms-3.5"><?php echo $formattedTimeMli; ?></span>
+                                                    <span class="text-xs text-dark font-weight-bold"><?php echo $formattedDateMli; ?></span>
+                                                    <span class="text-xxs text-secondary font-weight-bold ms-0"><?php echo $formattedTimeMli; ?></span>
                                                 <?php else : ?>
                                                     <span class="text-xs text-secondary">—</span>
                                                 <?php endif; ?>
@@ -206,23 +206,29 @@ if ($resSalesList) {
                                         </div>
 
                                         <!-- Selesai -->
-                                        <div class="col-6 col-md-2 mb-2 mb-md-0">
+                                        <div class="col-6 col-md-1 mb-2 mb-md-0">
                                             <span class="d-md-none text-xxs text-secondary d-block font-weight-bold">Selesai</span>
                                             <div class="d-flex flex-column">
                                                 <?php if ($formattedDateSls !== '-') : ?>
-                                                    <span class="text-xs text-dark font-weight-bold"><i class="fa-regular fa-circle-check me-1 text-secondary"></i><?php echo $formattedDateSls; ?></span>
-                                                    <span class="text-xxs text-secondary font-weight-bold ms-3.5"><?php echo $formattedTimeSls; ?></span>
+                                                    <span class="text-xs text-dark font-weight-bold"><?php echo $formattedDateSls; ?></span>
+                                                    <span class="text-xxs text-secondary font-weight-bold ms-0"><?php echo $formattedTimeSls; ?></span>
                                                 <?php else : ?>
                                                     <span class="text-xs text-secondary">—</span>
                                                 <?php endif; ?>
                                             </div>
                                         </div>
 
-                                        <!-- Rincian (Detail button) -->
-                                        <div class="col-6 col-md-1 text-md-center mb-2 mb-md-0">
-                                            <span class="d-md-none text-xxs text-secondary d-block font-weight-bold">Rincian</span>
-                                            <button class="btn btn-outline-primary btn-xs mb-0 px-2.5 py-1.5 font-weight-bold detailBtn" style="border-radius: 6px;" data-bs-toggle="modal" data-bs-target="#detailModal" data-id="<?php echo $idT; ?>" data-kode="<?php echo $kodeTransaksi; ?>">
-                                                <i class="fa-solid fa-eye me-1"></i>Lihat
+                                        <!-- Aksi (Lihat, Edit, Hapus) -->
+                                        <div class="col-6 col-md-3 text-md-center mb-2 mb-md-0 d-flex gap-1 justify-content-center flex-wrap">
+                                            <span class="d-md-none text-xxs text-secondary d-block font-weight-bold w-100">Aksi</span>
+                                            <button class="btn btn-outline-primary btn-xs mb-0 px-2 py-1.5 font-weight-bold detailBtn" style="border-radius: 6px; font-size:11px;" data-bs-toggle="modal" data-bs-target="#detailModal" data-id="<?php echo $idT; ?>" data-kode="<?php echo $kodeTransaksi; ?>" title="Lihat Detail">
+                                                <i class="fa-solid fa-eye"></i> Rincian
+                                            </button>
+                                            <button class="btn btn-outline-success btn-xs mb-0 px-2 py-1.5 font-weight-bold editVisitBtn" style="border-radius: 6px; font-size:11px;" data-id="<?php echo $kodeTransaksi; ?>" data-sales="<?php echo $idT; ?>" title="Edit Laporan">
+                                                <i class="fa-solid fa-pen-to-square"></i> Edit
+                                            </button>
+                                            <button class="btn btn-outline-danger btn-xs mb-0 px-2 py-1.5 font-weight-bold deleteVisitBtn" style="border-radius: 6px; font-size:11px;" data-id="<?php echo $kodeTransaksi; ?>" data-sales="<?php echo $idT; ?>" data-status="<?php echo $status; ?>" data-cust="<?php echo htmlspecialchars($namaC); ?>" title="Hapus/Reset Laporan">
+                                                <i class="fa-solid fa-trash"></i> Hapus
                                             </button>
                                         </div>
 
@@ -326,9 +332,157 @@ if ($resSalesList) {
     </div>
 </div>
 
+<!-- Modal Edit Laporan Kunjungan -->
+<div class="modal fade" id="editVisitModal" tabindex="-1" aria-labelledby="editVisitModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="border-radius: 16px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title font-weight-bold text-dark" id="editVisitModalLabel">
+                    <i class="fa-solid fa-pen-to-square text-primary me-2"></i>Edit Laporan Kunjungan
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editVisitForm">
+                <input type="hidden" name="kegiatan_id" id="edit_kegiatan_id">
+                <input type="hidden" name="sales_id" id="edit_sales_id">
+                <input type="hidden" name="status_kegiatan" id="edit_status_kegiatan">
+                
+                <div class="modal-body py-3">
+                    <div class="row">
+                        <!-- Customer & Sales (Readonly) -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-xs font-weight-bold text-secondary text-uppercase mb-1">Customer</label>
+                            <input type="text" id="edit_customer_name" class="form-control border p-2 text-sm bg-light" readonly disabled style="border-radius: 8px;">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-xs font-weight-bold text-secondary text-uppercase mb-1">Sales Agent</label>
+                            <input type="text" id="edit_sales_name" class="form-control border p-2 text-sm bg-light" readonly disabled style="border-radius: 8px;">
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <!-- Jadwal Kunjungan (Editable) -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-xs font-weight-bold text-secondary text-uppercase mb-1">Jadwal Kunjungan</label>
+                            <input type="datetime-local" name="jadwal" id="edit_jadwal" class="form-control border p-2 text-sm" style="border-radius: 8px;" required>
+                        </div>
+                        <!-- Tipe Prospek (Editable for Selesai/Berjalan) -->
+                        <div class="col-md-6 mb-3 execution-field">
+                            <label class="form-label text-xs font-weight-bold text-secondary text-uppercase mb-1">Tipe Prospek</label>
+                            <select name="tipe_prospek" id="edit_tipe_prospek" class="form-select border p-2 text-sm" style="border-radius: 8px;">
+                                <option value="Biasa">Biasa</option>
+                                <option value="Peluang">Peluang</option>
+                                <option value="Rumit">Rumit</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row execution-field">
+                        <!-- Clock In (Editable) -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-xs font-weight-bold text-secondary text-uppercase mb-1">Waktu Mulai (Clock In)</label>
+                            <input type="datetime-local" name="ci_at" id="edit_ci_at" class="form-control border p-2 text-sm" style="border-radius: 8px;">
+                        </div>
+                        <!-- Clock Out (Editable) -->
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-xs font-weight-bold text-secondary text-uppercase mb-1">Waktu Selesai (Clock Out)</label>
+                            <input type="datetime-local" name="co_at" id="edit_co_at" class="form-control border p-2 text-sm" style="border-radius: 8px;">
+                        </div>
+                    </div>
+
+                    <div class="row execution-field">
+                        <!-- No Invoice (Editable) -->
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label text-xs font-weight-bold text-secondary text-uppercase mb-1">Nomor Invoice</label>
+                            <input type="text" name="no_invoice" id="edit_no_invoice" class="form-control border p-2 text-sm" style="border-radius: 8px;" placeholder="Contoh: INV.12345">
+                        </div>
+                    </div>
+                    
+                    <!-- Hasil Kunjungan (Editable) -->
+                    <div class="mb-3 execution-field">
+                        <label class="form-label text-xs font-weight-bold text-secondary text-uppercase mb-1">Hasil Kunjungan / Keterangan</label>
+                        <textarea name="keterangan" id="edit_keterangan" rows="2" class="form-control border p-2 text-sm" style="border-radius: 8px;" placeholder="Hasil kunjungan..."></textarea>
+                    </div>
+                    
+                    <!-- Catatan Tambahan (Editable) -->
+                    <div class="mb-3 execution-field">
+                        <label class="form-label text-xs font-weight-bold text-secondary text-uppercase mb-1">Catatan Tambahan</label>
+                        <textarea name="catatan_visit" id="edit_catatan_visit" rows="2" class="form-control border p-2 text-sm" style="border-radius: 8px;" placeholder="Catatan tambahan..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-link text-secondary mb-0" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn bg-gradient-primary mb-0" style="border-radius: 8px;">Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
 $(document).ready(function() {
+    // Make Modal Cards Draggable (Drag & Drop)
+    function makeModalDraggable(modalId) {
+        const modal = document.getElementById(modalId);
+        if (!modal) return;
+        const dialog = modal.querySelector('.modal-dialog');
+        const header = modal.querySelector('.modal-header');
+        
+        if (!dialog || !header) return;
+        
+        header.style.cursor = 'move';
+        
+        let isDragging = false;
+        let startX, startY;
+        let modalLeft = 0, modalTop = 0;
+        
+        modal.addEventListener('show.bs.modal', () => {
+            dialog.style.left = '0px';
+            dialog.style.top = '0px';
+            dialog.style.transform = 'none';
+            modalLeft = 0;
+            modalTop = 0;
+        });
+        
+        header.addEventListener('mousedown', (e) => {
+            if (e.target.closest('.btn-close') || e.target.closest('button')) return;
+            
+            isDragging = true;
+            startX = e.clientX - modalLeft;
+            startY = e.clientY - modalTop;
+            
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+            
+            document.body.style.userSelect = 'none';
+            dialog.style.transition = 'none';
+        });
+        
+        function onMouseMove(e) {
+            if (!isDragging) return;
+            
+            modalLeft = e.clientX - startX;
+            modalTop = e.clientY - startY;
+            
+            dialog.style.transform = `translate(${modalLeft}px, ${modalTop}px)`;
+        }
+        
+        function onMouseUp() {
+            isDragging = false;
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+            
+            document.body.style.userSelect = '';
+            dialog.style.transition = '';
+        }
+    }
+
+    // Initialize Draggability
+    makeModalDraggable('syncSheetsModal');
+    makeModalDraggable('editVisitModal');
+    makeModalDraggable('detailModal');
+
     // Dynamically update modal values when modal opens
     $("#syncSheetsModal").on('show.bs.modal', function() {
         const topSalesSelect = $('select[name="id_sales"]');
@@ -392,6 +546,110 @@ $(document).ready(function() {
                 alert("Terjadi kesalahan koneksi server: " + errMsg);
             }
         });
+    });
+
+    // ── EDIT VISIT ACTION ──
+    $(".editVisitBtn").click(function() {
+        const kegiatanId = $(this).data("id");
+        const salesId = $(this).data("sales");
+        
+        $.ajax({
+            url: "get_visit_details.php",
+            type: "GET",
+            data: { kegiatan_id: kegiatanId, sales_id: salesId },
+            dataType: "json",
+            success: function(res) {
+                if (res.status === 'success') {
+                    const d = res.data;
+                    $("#edit_kegiatan_id").val(d.kegiatan_id);
+                    $("#edit_sales_id").val(d.sales_id);
+                    $("#edit_status_kegiatan").val(d.status_kegiatan);
+                    $("#edit_customer_name").val(d.nama_cust);
+                    $("#edit_sales_name").val(d.nama_sales);
+                    $("#edit_jadwal").val(d.jadwal);
+                    
+                    // Show or hide execution fields depending on status
+                    if (d.status_kegiatan === 'selesai' || d.status_kegiatan === 'berjalan' || d.status_kegiatan === 'proses') {
+                        $(".execution-field").show();
+                        $("#edit_ci_at").val(d.ci_at);
+                        $("#edit_co_at").val(d.co_at);
+                        $("#edit_tipe_prospek").val(d.tipe_prospek);
+                        $("#edit_no_invoice").val(d.no_invoice);
+                        $("#edit_keterangan").val(d.keterangan);
+                        $("#edit_catatan_visit").val(d.catatan_visit);
+                    } else {
+                        $(".execution-field").hide();
+                    }
+                    
+                    // Open edit modal
+                    const editModal = new bootstrap.Modal(document.getElementById('editVisitModal'));
+                    editModal.show();
+                } else {
+                    alert("Gagal mengambil data rincian: " + res.message);
+                }
+            },
+            error: function() {
+                alert("Terjadi kesalahan koneksi server saat memuat rincian.");
+            }
+        });
+    });
+
+    // Submit Edit Form
+    $("#editVisitForm").submit(function(e) {
+        e.preventDefault();
+        
+        $.ajax({
+            url: "proses-edit-kunjungan.php",
+            type: "POST",
+            data: $(this).serialize(),
+            dataType: "json",
+            success: function(res) {
+                if (res.status === 'success') {
+                    alert(res.message);
+                    location.reload();
+                } else {
+                    alert("Gagal menyimpan perubahan: " + res.message);
+                }
+            },
+            error: function() {
+                alert("Terjadi kesalahan saat menyimpan perubahan.");
+            }
+        });
+    });
+
+    // ── DELETE/RESET VISIT ACTION ──
+    $(".deleteVisitBtn").click(function() {
+        const kegiatanId = $(this).data("id");
+        const salesId = $(this).data("sales");
+        const status = $(this).data("status");
+        const custName = $(this).data("cust");
+        
+        let confirmMsg = "";
+        if (status === 'selesai' || status === 'berjalan' || status === 'proses') {
+            confirmMsg = `Apakah Anda yakin ingin menghapus laporan kunjungan ke "${custName}"?\n\nTindakan ini akan menghapus detail pengerjaan (Clock In/Out, Foto, Catatan) dan mengembalikan status kunjungan menjadi "Dijadwalkan" agar sales bisa melakukan kunjungan ulang.`;
+        } else {
+            confirmMsg = `Apakah Anda yakin ingin menghapus jadwal kunjungan ke "${custName}" secara permanen?`;
+        }
+        
+        if (confirm(confirmMsg)) {
+            $.ajax({
+                url: "proses-hapus-kunjungan.php",
+                type: "POST",
+                data: { kegiatan_id: kegiatanId, sales_id: salesId, status_kegiatan: status },
+                dataType: "json",
+                success: function(res) {
+                    if (res.status === 'success') {
+                        alert(res.message);
+                        location.reload();
+                    } else {
+                        alert("Gagal menghapus kunjungan: " + res.message);
+                    }
+                },
+                error: function() {
+                    alert("Terjadi kesalahan saat memproses penghapusan.");
+                }
+            });
+        }
     });
 });
 </script>
