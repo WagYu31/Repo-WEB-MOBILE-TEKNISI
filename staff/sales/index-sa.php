@@ -75,38 +75,35 @@ $searchCustomer = $_SESSION['search_customer'] ?? '';
   <?php include "head.php"; ?>
   <style>
     .dashboard-header {
-      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-left: 5px solid #2563eb !important;
       border-radius: 16px;
-      padding: 24px 28px;
-      color: #fff;
+      padding: 20px 24px;
+      color: #0f172a;
       margin-bottom: 24px;
       position: relative;
       overflow: hidden;
+      box-shadow: 0 4px 18px rgba(148, 163, 184, 0.05);
     }
-    .dashboard-header::before {
-      content: '';
-      position: absolute; inset: 0;
-      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Ccircle cx='30' cy='30' r='20'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat;
-      pointer-events: none;
-    }
-    .dashboard-header .greeting { font-size: 13px; opacity: .7; margin-bottom: 4px; }
-    .dashboard-header .user-name { font-size: 22px; font-weight: 700; margin-bottom: 2px; }
-    .dashboard-header .today-date { font-size: 12px; opacity: .6; }
+    .dashboard-header .greeting { font-size: 12.5px; color: #64748b; font-weight: 600; margin-bottom: 4px; }
+    .dashboard-header .user-name { font-size: 20px; font-weight: 700; color: #0f172a; margin-bottom: 2px; }
+    .dashboard-header .today-date { font-size: 12px; color: #64748b; font-weight: 500; }
     .dashboard-header .header-icon {
       position: absolute; right: 24px; top: 50%; transform: translateY(-50%);
-      font-size: 72px; opacity: .08;
+      font-size: 64px; color: #2563eb; opacity: .08;
     }
   </style>
 </head>
-
+ 
 <body class="g-sidenav-show bg-gray-200">
   <?php include "cek-menu.php"; ?>
-
+ 
   <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg">
     <?php include "nav-top.php"; ?>
-
+ 
     <div class="container-fluid py-4">
-
+ 
       <!-- ── Dashboard Header ───────────────────────────────────────── -->
       <div class="row mb-2">
         <div class="col-12">
@@ -171,7 +168,7 @@ $searchCustomer = $_SESSION['search_customer'] ?? '';
 
               <!-- Tombol Aksi -->
               <div class="col-12 col-md-3 d-flex gap-2">
-                <button type="submit" class="btn btn-primary w-100 mb-0 py-2 d-flex align-items-center justify-content-center gap-1" style="border-radius: 8px; background: #1e3a8a; border: none; font-weight: 700; height: 38px;">
+                <button type="submit" class="btn btn-primary w-100 mb-0 py-2 d-flex align-items-center justify-content-center gap-1" style="border-radius: 8px; background: #3b82f6; border: none; font-weight: 700; height: 38px;">
                   <span class="material-symbols-outlined" style="font-size: 16px;">search</span>
                   Cari
                 </button>

@@ -45,15 +45,15 @@ foreach ($tab_meta as $k => $m) {
   <div class="row g-3">
     <!-- Card 1: Hari Ini -->
     <div class="col-6 col-md-3">
-      <div class="stat-card-premium" style="background: linear-gradient(135deg,#1e293b 0%,#334155 100%);" onclick="document.getElementById('tab-hari-ini').click()">
+      <div class="stat-card-premium" style="border-left: 4px solid #64748b;" onclick="document.getElementById('tab-hari-ini').click()">
         <div class="card-body p-3">
           <div class="d-flex justify-content-between align-items-start">
             <div>
               <p class="stat-label-premium">Hari Ini</p>
               <h3 class="stat-count-premium"><?php echo $counts['hari-ini']; ?></h3>
             </div>
-            <div class="stat-icon-premium">
-              <span class="material-symbols-outlined">event_available</span>
+            <div class="stat-icon-premium" style="background-color: #f1f5f9; color: #475569;">
+              <span class="material-symbols-outlined" style="color: #475569;">event_available</span>
             </div>
           </div>
         </div>
@@ -65,15 +65,15 @@ foreach ($tab_meta as $k => $m) {
 
     <!-- Card 2: Akan Datang -->
     <div class="col-6 col-md-3">
-      <div class="stat-card-premium" style="background: linear-gradient(135deg,#1e40af 0%,#3b82f6 100%);" onclick="document.getElementById('tab-akan-datang').click()">
+      <div class="stat-card-premium" style="border-left: 4px solid #3b82f6;" onclick="document.getElementById('tab-akan-datang').click()">
         <div class="card-body p-3">
           <div class="d-flex justify-content-between align-items-start">
             <div>
               <p class="stat-label-premium">Akan Datang</p>
               <h3 class="stat-count-premium"><?php echo $counts['akan-datang']; ?></h3>
             </div>
-            <div class="stat-icon-premium">
-              <span class="material-symbols-outlined">event</span>
+            <div class="stat-icon-premium" style="background-color: #eff6ff; color: #2563eb;">
+              <span class="material-symbols-outlined" style="color: #2563eb;">event</span>
             </div>
           </div>
         </div>
@@ -85,15 +85,15 @@ foreach ($tab_meta as $k => $m) {
 
     <!-- Card 3: Terlewat -->
     <div class="col-6 col-md-3">
-      <div class="stat-card-premium" style="background: linear-gradient(135deg,#dc2626 0%,#ef4444 100%);" onclick="document.getElementById('tab-terlewat').click()">
+      <div class="stat-card-premium" style="border-left: 4px solid #f43f5e;" onclick="document.getElementById('tab-terlewat').click()">
         <div class="card-body p-3">
           <div class="d-flex justify-content-between align-items-start">
             <div>
               <p class="stat-label-premium">Terlewat</p>
               <h3 class="stat-count-premium"><?php echo $counts['terlewat']; ?></h3>
             </div>
-            <div class="stat-icon-premium">
-              <span class="material-symbols-outlined">warning_amber</span>
+            <div class="stat-icon-premium" style="background-color: #fff1f2; color: #e11d48;">
+              <span class="material-symbols-outlined" style="color: #e11d48;">warning_amber</span>
             </div>
           </div>
         </div>
@@ -105,15 +105,15 @@ foreach ($tab_meta as $k => $m) {
 
     <!-- Card 4: Selesai -->
     <div class="col-6 col-md-3">
-      <div class="stat-card-premium" style="background: linear-gradient(135deg,#15803d 0%,#22c55e 100%);" onclick="document.getElementById('tab-selesai').click()">
+      <div class="stat-card-premium" style="border-left: 4px solid #10b981;" onclick="document.getElementById('tab-selesai').click()">
         <div class="card-body p-3">
           <div class="d-flex justify-content-between align-items-start">
             <div>
               <p class="stat-label-premium">Selesai</p>
               <h3 class="stat-count-premium"><?php echo $counts['selesai']; ?></h3>
             </div>
-            <div class="stat-icon-premium">
-              <span class="material-symbols-outlined">check_circle</span>
+            <div class="stat-icon-premium" style="background-color: #ecfdf5; color: #059669;">
+              <span class="material-symbols-outlined" style="color: #059669;">check_circle</span>
             </div>
           </div>
         </div>
@@ -384,40 +384,38 @@ foreach ($tab_meta as $k => $m) {
 <style>
 /* ── Premium Stat Cards (Sama dengan Web Teknisi) ── */
 .stat-card-premium {
-  border: none;
+  border: 1px solid #e2e8f0;
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+  box-shadow: 0 4px 12px rgba(148, 163, 184, 0.04);
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
+  background: #ffffff !important;
 }
 .stat-card-premium:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 28px rgba(0,0,0,0.12);
+  box-shadow: 0 12px 28px rgba(148, 163, 184, 0.1) !important;
 }
 .stat-label-premium {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
-  color: rgba(255,255,255,0.6);
+  color: #64748b !important;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   margin: 0 0 6px 0;
 }
 .stat-count-premium {
-  font-size: 32px;
+  font-size: 30px;
   font-weight: 800;
-  color: #fff;
+  color: #0f172a !important;
   margin: 0;
   line-height: 1;
 }
 .stat-icon-premium {
   width: 42px; height: 42px;
   border-radius: 10px;
-  background: rgba(255,255,255,0.15);
   display: flex; align-items: center; justify-content: center;
-  backdrop-filter: blur(4px);
-  color: rgba(255,255,255,0.8);
   transition: transform 0.25s;
 }
 .stat-card-premium:hover .stat-icon-premium {
@@ -425,16 +423,17 @@ foreach ($tab_meta as $k => $m) {
 }
 .stat-icon-premium .material-symbols-outlined {
   font-size: 22px;
-  color: #fff;
 }
 .stat-footer-premium {
   padding: 8px 16px;
-  background: rgba(0,0,0,0.15);
+  background: #f8fafc;
+  border-top: 1px solid #f1f5f9;
 }
 .stat-footer-premium p {
-  font-size: 10px;
-  color: rgba(255,255,255,0.5);
+  font-size: 11px;
+  color: #64748b !important;
   margin: 0;
+  font-weight: 600;
 }
 
 /* ── Section Header Premium (Sama dengan Web Teknisi) ── */
