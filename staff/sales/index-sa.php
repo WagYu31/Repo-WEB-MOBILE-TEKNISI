@@ -188,12 +188,68 @@ $progress_percent = $today_total > 0 ? round(($today_completed / $today_total) *
       }
     }
     .premium-action-btn {
+      position: relative;
+      overflow: hidden;
       transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+    .premium-action-btn::after {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 60%; height: 100%;
+      background: linear-gradient(
+        to right,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.25) 50%,
+        rgba(255, 255, 255, 0) 100%
+      );
+      transform: skewX(-25deg);
+      animation: shine-sweep 4s infinite;
+    }
+    @keyframes shine-sweep {
+      0% { left: -100%; }
+      20% { left: 100%; }
+      100% { left: 100%; }
     }
     .premium-action-btn:hover {
       transform: translateY(-2px);
       box-shadow: 0 8px 22px rgba(79, 70, 229, 0.28) !important;
       opacity: 0.95;
+    }
+    .premium-action-btn:hover .material-symbols-outlined {
+      transform: rotate(90deg);
+    }
+    .premium-action-btn .material-symbols-outlined {
+      transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    /* Liquid wave progress bar */
+    .progress-bar-glow-wave {
+      background: linear-gradient(90deg, #10b981, #34d399, #10b981) !important;
+      background-size: 200% auto !important;
+      animation: progress-wave 2s linear infinite !important;
+    }
+    @keyframes progress-wave {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    
+    /* Pulsing success badge */
+    .pulse-success-badge {
+      box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+      animation: pulse-badge 2s infinite;
+    }
+    @keyframes pulse-badge {
+      0% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+      }
+      70% {
+        box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+      }
     }
   </style>
 </head>
@@ -231,10 +287,10 @@ $progress_percent = $today_total > 0 ? round(($today_completed / $today_total) *
                         <span class="text-xxs font-weight-bold text-uppercase text-secondary" style="letter-spacing: 0.05em; line-height: 1;">Progress Hari Ini</span>
                         <h6 class="mb-0 text-dark font-weight-bold text-xs mt-0.5" style="letter-spacing: -0.01em;"><?php echo $today_completed; ?> / <?php echo $today_total; ?> Selesai</h6>
                         <div class="progress mt-1.5" style="height: 5px; background-color: #f1f5f9; border-radius: 10px; overflow: hidden; width: 100%;">
-                            <div class="progress-bar bg-success" role="progressbar" style="width: <?php echo $progress_percent; ?>%; border-radius: 10px; background: linear-gradient(to right, #10b981, #059669) !important;" aria-valuenow="<?php echo $progress_percent; ?>" aria-valuemin="0" aria-valuemax="100"></div>
+                            <div class="progress-bar progress-bar-glow-wave" role="progressbar" style="width: <?php echo $progress_percent; ?>%; border-radius: 10px;" aria-valuenow="<?php echo $progress_percent; ?>" aria-valuemin="0" aria-valuemax="100"></div>
                         </div>
                     </div>
-                    <div class="d-flex align-items-center justify-content-center text-white rounded-3 shadow-sm" style="width: 34px; height: 34px; flex-shrink: 0; background: linear-gradient(135deg, #10b981, #059669);">
+                    <div class="d-flex align-items-center justify-content-center text-white rounded-3 shadow-sm pulse-success-badge" style="width: 34px; height: 34px; flex-shrink: 0; background: linear-gradient(135deg, #10b981, #059669);">
                         <span class="material-symbols-outlined" style="font-size: 18px;">done_all</span>
                     </div>
                 </div>
