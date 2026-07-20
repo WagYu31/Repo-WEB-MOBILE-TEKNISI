@@ -2,36 +2,46 @@
 include "staff/conn.php";
 
 echo "<pre>";
-echo "<h2>Batch Update Customer Phone Numbers</h2>";
+echo "<h2>Batch Update Customer Phone Numbers (Robust)</h2>";
 
-$sql = "UPDATE sales_customer sc
-JOIN (
-    SELECT ks.id_customer, ps.nomer_client
+$q = mysqli_query($conn, "
+    SELECT ks.id_customer, ps.nomer_client, ps.co_at 
     FROM pelaksanaan_sales ps
     JOIN kegiatan_sales ks ON ps.kegiatan_id = ks.id
-    WHERE ps.status = 'selesai' 
-      AND ps.nomer_client IS NOT NULL 
+    WHERE ps.nomer_client IS NOT NULL 
       AND ps.nomer_client != '' 
       AND ps.nomer_client != '0'
-      AND ps.co_at = (
-          SELECT MAX(ps2.co_at)
-          FROM pelaksanaan_sales ps2
-          JOIN kegiatan_sales ks2 ON ps2.kegiatan_id = ks2.id
-          WHERE ks2.id_customer = ks.id_customer 
-            AND ps2.status = 'selesai' 
-            AND ps2.nomer_client IS NOT NULL 
-            AND ps2.nomer_client != '' 
-            AND ps2.nomer_client != '0'
-      )
-) latest_visits ON sc.id = latest_visits.id_customer
-SET sc.telp_pribadi = latest_visits.nomer_client
-WHERE sc.telp_pribadi IS NULL OR sc.telp_pribadi = '' OR sc.telp_pribadi = '0'";
+    ORDER BY ps.co_at ASC
+");
 
-if (mysqli_query($conn, $sql)) {
-    echo "<b>Success:</b> " . mysqli_affected_rows($conn) . " customer phone numbers updated from visit reports.\n";
-} else {
-    echo "<b>Error:</b> " . mysqli_error($conn) . "\n";
+if (!$q) {
+    echo "<b>Query Error:</b> " . mysqli_error($conn) . "\n";
+    exit;
 }
 
+$updated = 0;
+while ($row = mysqli_fetch_assoc($q)) {
+    $custId = $row['id_customer'];
+    $phone = trim($row['nomer_client']);
+    
+    // Check current telp_pribadi
+    $check = mysqli_query($conn, "SELECT telp_pribadi, nama FROM sales_customer WHERE id = $custId");
+    if ($check && $cust = mysqli_fetch_assoc($check)) {
+        $currentPhone = trim($cust['telp_pribadi']);
+        // If current phone is empty, '0', or empty string, update it!
+        if (empty($currentPhone) || $currentPhone === '0' || $currentPhone === '') {
+            $safePhone = mysqli_real_escape_string($conn, $phone);
+            $upd = mysqli_query($conn, "UPDATE sales_customer SET telp_pribadi = '$safePhone', updated_at = NOW() WHERE id = $custId");
+            if ($upd) {
+                echo "Updated customer: " . htmlspecialchars($cust['nama']) . " (ID: $custId) -> phone: $phone\n";
+                $updated++;
+            }
+        } else {
+            echo "Skipped customer: " . htmlspecialchars($cust['nama']) . " (ID: $custId) -> already has phone: $currentPhone\n";
+        }
+    }
+}
+
+echo "\n<b>Total customer phone numbers updated:</b> $updated\n";
 echo "</pre>";
 ?>
