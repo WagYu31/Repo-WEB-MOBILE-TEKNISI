@@ -226,7 +226,7 @@ $progress_percent = $today_total > 0 ? round(($today_completed / $today_total) *
             
             <div class="d-flex align-items-center gap-3 mt-2 mt-md-0 flex-wrap" style="position: relative; z-index: 2;">
                 <!-- Progress Bar -->
-                <div class="d-flex align-items-center gap-3 px-3.5 py-2.5 rounded-4" style="border: 1px solid #e2e8f0; min-width: 260px; background-color: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); height: 52px; box-shadow: 0 4px 12px -2px rgba(148, 163, 184, 0.04);">
+                <div class="d-flex align-items-center gap-3 rounded-4" style="border: 1px solid #e2e8f0; min-width: 260px; background-color: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); height: 52px; box-shadow: 0 4px 12px -2px rgba(148, 163, 184, 0.04); padding: 10px 16px;">
                     <div class="d-flex flex-column flex-grow-1">
                         <span class="text-xxs font-weight-bold text-uppercase text-secondary" style="letter-spacing: 0.05em; line-height: 1;">Progress Hari Ini</span>
                         <h6 class="mb-0 text-dark font-weight-bold text-xs mt-0.5" style="letter-spacing: -0.01em;"><?php echo $today_completed; ?> / <?php echo $today_total; ?> Selesai</h6>
