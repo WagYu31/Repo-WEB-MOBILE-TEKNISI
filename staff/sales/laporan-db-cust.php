@@ -110,7 +110,7 @@ if ($resSalesList) {
                                                  IFNULL(ps.status, 'dijadwalkan') AS status,
                                                  ps.ci_at AS tgl_mulai, ps.co_at AS tgl_selesai,
                                                  ks.id AS kode_transaksi, ks.jadwal AS tgl_visits,
-                                                 ps.keterangan AS hasil_visits
+                                                 COALESCE(NULLIF(ps.catatan_visit, ''), ps.keterangan) AS hasil_visits
                                           FROM team_kegiatan_sales tks
                                           JOIN sales s ON tks.id_sales = s.id
                                           JOIN kegiatan_sales ks ON tks.id_kegiatan_sales = ks.id
