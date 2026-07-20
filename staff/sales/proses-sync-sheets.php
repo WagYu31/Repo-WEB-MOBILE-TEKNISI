@@ -22,6 +22,7 @@ $spreadsheetId = trim($_POST['spreadsheet_id'] ?? '');
 $sheetName     = trim($_POST['sheet_name'] ?? 'Sheet1');
 $idSales       = intval($_POST['id_sales'] ?? 0);
 $bulan         = trim($_POST['bulan'] ?? '');
+$tanggal       = trim($_POST['tanggal'] ?? '');
 
 if (empty($spreadsheetId)) {
     echo json_encode(['status' => 'error', 'message' => 'ID Spreadsheet / URL harus diisi.']);
@@ -31,10 +32,6 @@ if (empty($spreadsheetId)) {
 // Extract Spreadsheet ID if a full URL was provided
 if (preg_match('/\/d\/([a-zA-Z0-9-_]+)/', $spreadsheetId, $matches)) {
     $spreadsheetId = $matches[1];
-}
-
-if (empty($bulan)) {
-    $bulan = date('Y-m');
 }
 
 // 1. Fetch Sales name
@@ -51,7 +48,9 @@ $whereClauses = ["ks.deleted_at IS NULL", "tks.deleted_at IS NULL"];
 if ($idSales > 0) {
     $whereClauses[] = "tks.id_sales = $idSales";
 }
-if (!empty($bulan)) {
+if (!empty($tanggal)) {
+    $whereClauses[] = "DATE(ks.jadwal) = '" . mysqli_real_escape_string($conn, $tanggal) . "'";
+} else if (!empty($bulan)) {
     $whereClauses[] = "DATE_FORMAT(ks.jadwal, '%Y-%m') = '" . mysqli_real_escape_string($conn, $bulan) . "'";
 }
 

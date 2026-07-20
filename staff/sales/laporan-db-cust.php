@@ -2,7 +2,13 @@
 // Filter variables
 $filterSales = isset($_GET['id_sales']) ? intval($_GET['id_sales']) : 0;
 $filterBulan = isset($_GET['bulan']) ? trim($_GET['bulan']) : date("Y-m");
-$current_date = $filterBulan . '-01'; // Define base date for compatibility/formatting
+$filterTanggal = isset($_GET['tanggal']) ? trim($_GET['tanggal']) : '';
+
+if (!empty($filterTanggal)) {
+    $current_date = $filterTanggal;
+} else {
+    $current_date = $filterBulan . '-01'; // Define base date for compatibility/formatting
+}
 
 // Fetch sales list for dropdown
 $resSalesList = mysqli_query($conn, "SELECT id, nama FROM sales WHERE deleted_at IS NULL ORDER BY nama ASC");
@@ -22,7 +28,7 @@ if ($resSalesList) {
                 </div>
                 <div class="col-12 col-xl-8">
                     <form method="GET" action="" class="row g-2 align-items-center justify-content-xl-end">
-                        <div class="col-12 col-sm-4">
+                        <div class="col-12 col-sm-3">
                             <select name="id_sales" class="form-select border p-2 bg-white text-dark" style="border-radius: 8px;">
                                 <option value="0">-- Semua Sales --</option>
                                 <?php foreach ($salesOptions as $opt) : ?>
@@ -32,8 +38,11 @@ if ($resSalesList) {
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        <div class="col-12 col-sm-3">
-                            <input type="month" class="form-control border p-2 bg-white text-dark" name="bulan" value="<?php echo $filterBulan; ?>" style="border-radius: 8px;">
+                        <div class="col-12 col-sm-2">
+                            <input type="month" class="form-control border p-2 bg-white text-dark" name="bulan" value="<?php echo $filterBulan; ?>" style="border-radius: 8px;" title="Filter Bulan">
+                        </div>
+                        <div class="col-12 col-sm-2">
+                            <input type="date" class="form-control border p-2 bg-white text-dark" name="tanggal" value="<?php echo $filterTanggal; ?>" style="border-radius: 8px;" title="Filter Tanggal">
                         </div>
                         <div class="col-6 col-sm-2 d-grid">
                             <button type="submit" class="btn bg-gradient-primary mb-0 p-2 text-white" style="border-radius: 8px;">Cari</button>
@@ -53,7 +62,9 @@ if ($resSalesList) {
         if ($filterSales > 0) {
             $whereClauses[] = "ks.id IN (SELECT id_kegiatan_sales FROM team_kegiatan_sales WHERE id_sales = $filterSales AND deleted_at IS NULL)";
         }
-        if (!empty($filterBulan)) {
+        if (!empty($filterTanggal)) {
+            $whereClauses[] = "DATE(ks.jadwal) = '" . mysqli_real_escape_string($conn, $filterTanggal) . "'";
+        } else if (!empty($filterBulan)) {
             $whereClauses[] = "DATE_FORMAT(ks.jadwal, '%Y-%m') = '" . mysqli_real_escape_string($conn, $filterBulan) . "'";
         }
         
@@ -297,12 +308,17 @@ if ($resSalesList) {
                     </div>
 
                     <div class="row mt-3">
-                        <div class="col-6">
+                        <div class="col-4">
                             <label class="form-label text-xs font-weight-bold text-secondary text-uppercase mb-1">Bulan</label>
                             <input type="text" id="displayBulanInput" class="form-control border p-2 text-sm bg-light" value="<?php echo date('F Y', strtotime($filterBulan . '-01')); ?>" style="border-radius: 8px;" readonly disabled>
                             <input type="hidden" id="hiddenBulanInput" name="bulan" value="<?php echo $filterBulan; ?>">
                         </div>
-                        <div class="col-6">
+                        <div class="col-4">
+                            <label class="form-label text-xs font-weight-bold text-secondary text-uppercase mb-1">Tanggal</label>
+                            <input type="text" id="displayTanggalInput" class="form-control border p-2 text-sm bg-light" value="<?php echo !empty($filterTanggal) ? date('d M Y', strtotime($filterTanggal)) : '-'; ?>" style="border-radius: 8px;" readonly disabled>
+                            <input type="hidden" id="hiddenTanggalInput" name="tanggal" value="<?php echo $filterTanggal; ?>">
+                        </div>
+                        <div class="col-4">
                             <label class="form-label text-xs font-weight-bold text-secondary text-uppercase mb-1">Sales Agent</label>
                             <?php
                             $selectedSalesName = "Semua Sales";
@@ -487,12 +503,13 @@ $(document).ready(function() {
     $("#syncSheetsModal").on('show.bs.modal', function() {
         const topSalesSelect = $('select[name="id_sales"]');
         const topBulanInput = $('input[name="bulan"]');
+        const topTanggalInput = $('input[name="tanggal"]');
         
         const selectedSalesId = topSalesSelect.val();
         const selectedSalesName = topSalesSelect.find('option:selected').text().trim();
         const selectedBulan = topBulanInput.val();
+        const selectedTanggal = topTanggalInput.val();
         
-        // Parse month to human readable format (e.g., "2026-07" -> "July 2026")
         let readableMonth = selectedBulan;
         if (selectedBulan) {
             const parts = selectedBulan.split('-');
@@ -505,10 +522,24 @@ $(document).ready(function() {
             }
         }
         
+        let readableTanggal = "-";
+        if (selectedTanggal) {
+            const dateParts = selectedTanggal.split('-');
+            if (dateParts.length === 3) {
+                const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                const monthIdx = parseInt(dateParts[1], 10) - 1;
+                if (monthIdx >= 0 && monthIdx < 12) {
+                    readableTanggal = dateParts[2] + " " + months[monthIdx] + " " + dateParts[0];
+                }
+            }
+        }
+        
         $("#displaySalesInput").val(selectedSalesName);
         $("#hiddenSalesInput").val(selectedSalesId);
         $("#displayBulanInput").val(readableMonth);
         $("#hiddenBulanInput").val(selectedBulan);
+        $("#displayTanggalInput").val(readableTanggal);
+        $("#hiddenTanggalInput").val(selectedTanggal);
     });
 
     $("#syncSheetsForm").on('submit', function(e) {
