@@ -192,14 +192,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['update_id'])) {
     $successMsg = "Customer baru berhasil ditambahkan!";
 }
 
-// Ambil data customer beserta wilayah
-$salesData = mysqli_query($conn, "
-    SELECT c.*, w.nama AS nama_wilayah 
-    FROM sales_customer c 
-    LEFT JOIN wilayah w ON c.id_wilayah = w.id 
-    WHERE c.deleted_at IS NULL 
-    ORDER BY c.id DESC
-");
+// Ambil data wilayah untuk filter
+$wilayahList = mysqli_query($conn, "SELECT id, nama FROM wilayah ORDER BY nama ASC");
+$kategoriList = ['Dealer', 'Installer', 'User'];
+
+$filterSearch = isset($_GET['search']) ? trim($_GET['search']) : '';
+$filterWilayah = isset($_GET['wilayah']) ? trim($_GET['wilayah']) : 'all';
+$filterKategori = isset($_GET['kategori']) ? trim($_GET['kategori']) : 'all';
+
+// Build the query
+$queryStr = "SELECT c.*, w.nama AS nama_wilayah 
+             FROM sales_customer c 
+             LEFT JOIN wilayah w ON c.id_wilayah = w.id 
+             WHERE c.deleted_at IS NULL ";
+
+if ($filterSearch !== '') {
+    $safeSearch = mysqli_real_escape_string($conn, $filterSearch);
+    $queryStr .= " AND (c.nama LIKE '%$safeSearch%' OR c.kode_customer LIKE '%$safeSearch%' OR c.telp_pribadi LIKE '%$safeSearch%' OR c.alamat LIKE '%$safeSearch%') ";
+}
+
+if ($filterWilayah !== 'all') {
+    $safeWilayah = mysqli_real_escape_string($conn, $filterWilayah);
+    $queryStr .= " AND c.id_wilayah = '$safeWilayah' ";
+}
+
+if ($filterKategori !== 'all') {
+    $safeKategori = mysqli_real_escape_string($conn, $filterKategori);
+    $queryStr .= " AND c.kategori = '$safeKategori' ";
+}
+
+$queryStr .= " ORDER BY c.id DESC";
+$salesData = mysqli_query($conn, $queryStr);
 ?>
 
 <!DOCTYPE html>
@@ -941,6 +964,53 @@ $salesData = mysqli_query($conn, "
               </div>
               <span class="badge bg-light text-dark font-weight-bold" style="font-size: 11px; padding: 6px 14px; border-radius: 10px; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.08);"><?= mysqli_num_rows($salesData); ?> Customer Terdaftar</span>
           </div>
+      </div>
+      
+      <!-- Premium Filter Bar -->
+      <div style="background:#f8fafc; padding:20px 28px; border-bottom:1px solid #e2e8f0;">
+          <form method="GET" action="customer.php" class="row g-3 align-items-end">
+              <div class="col-12 col-md-4">
+                  <label class="form-label text-xs font-weight-bold text-uppercase text-secondary mb-1">Cari Customer</label>
+                  <div class="input-group input-group-outline">
+                      <input type="text" name="search" class="form-control bg-white" placeholder="Nama, kode, telp, atau alamat..." value="<?= htmlspecialchars($filterSearch); ?>">
+                  </div>
+              </div>
+              <div class="col-6 col-md-3">
+                  <label class="form-label text-xs font-weight-bold text-uppercase text-secondary mb-1">Wilayah / Area</label>
+                  <div class="input-group input-group-outline">
+                      <select name="wilayah" class="form-select form-control bg-white px-3" style="border:1px solid #d2d6da; border-radius:0.375rem; -webkit-appearance: auto; -moz-appearance: auto; appearance: auto;">
+                          <option value="all">Semua Wilayah</option>
+                          <?php 
+                          mysqli_data_seek($wilayahList, 0);
+                          while($w = mysqli_fetch_assoc($wilayahList)): 
+                          ?>
+                              <option value="<?= $w['id']; ?>" <?= ($filterWilayah == $w['id']) ? 'selected' : ''; ?>><?= htmlspecialchars($w['nama']); ?></option>
+                          <?php endwhile; ?>
+                      </select>
+                  </div>
+              </div>
+              <div class="col-6 col-md-3">
+                  <label class="form-label text-xs font-weight-bold text-uppercase text-secondary mb-1">Kategori</label>
+                  <div class="input-group input-group-outline">
+                      <select name="kategori" class="form-select form-control bg-white px-3" style="border:1px solid #d2d6da; border-radius:0.375rem; -webkit-appearance: auto; -moz-appearance: auto; appearance: auto;">
+                          <option value="all">Semua Kategori</option>
+                          <?php foreach($kategoriList as $k): ?>
+                              <option value="<?= $k; ?>" <?= ($filterKategori === $k) ? 'selected' : ''; ?>><?= $k; ?></option>
+                          <?php endforeach; ?>
+                      </select>
+                  </div>
+              </div>
+              <div class="col-12 col-md-2 d-flex gap-2">
+                  <button type="submit" class="btn bg-gradient-info w-100 mb-0 font-weight-bold" style="padding:10.5px 20px;">
+                      <span class="material-symbols-outlined" style="font-size:16px; vertical-align:middle; margin-right:4px;">search</span> Cari
+                  </button>
+                  <?php if($filterSearch !== '' || $filterWilayah !== 'all' || $filterKategori !== 'all'): ?>
+                      <a href="customer.php" class="btn bg-gradient-secondary mb-0 font-weight-bold" style="padding:10.5px 15px;" title="Reset Filter">
+                          <span class="material-symbols-outlined" style="font-size:16px; vertical-align:middle;">restart_alt</span>
+                      </a>
+                  <?php endif; ?>
+              </div>
+          </form>
       </div>
       
       <div class="table-responsive">
