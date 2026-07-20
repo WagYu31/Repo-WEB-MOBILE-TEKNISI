@@ -244,14 +244,11 @@ if ($resSalesList) {
                                         </div>
 
                                         <!-- Hasil Visits -->
-                                        <div class="col-6 col-md-2 mb-2 mb-md-0">
+                                        <div class="col-12 col-md-2 mb-2 mb-md-0">
                                             <span class="d-md-none text-xxs text-secondary d-block font-weight-bold">Hasil</span>
-                                            <?php if ($status == 'selesai') : 
-                                                $cleanVisits = str_replace(["\r\n", "\r", "\n"], ' ', $hslVisits);
-                                                $shortVisits = strlen($cleanVisits) > 60 ? substr($cleanVisits, 0, 60) . '...' : $cleanVisits;
-                                            ?>
-                                                <div style="font-size: 12px; color: #475569; line-height: 1.4; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;" title="<?php echo htmlspecialchars($hslVisits); ?>">
-                                                    <?php echo htmlspecialchars($shortVisits); ?>
+                                            <?php if ($status == 'selesai') : ?>
+                                                <div style="font-size: 12.5px; color: #334155; line-height: 1.5; font-weight: 500; word-break: break-word;">
+                                                    <?php echo nl2br(htmlspecialchars($hslVisits)); ?>
                                                 </div>
                                             <?php else : ?>
                                                 <span class="badge text-xxs font-weight-bold px-2.5 py-1" style="background-color: #fee2e2; color: #dc2626; border: 1px solid #fecaca; border-radius: 12px; display: inline-block;">Belum Selesai</span>
