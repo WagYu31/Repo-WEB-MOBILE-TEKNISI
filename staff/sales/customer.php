@@ -1304,6 +1304,34 @@ $salesData = mysqli_query($conn, $queryStr);
       </div>
     </div>
 
+    <!-- Modal Detail Kunjungan Sales -->
+    <div class="modal fade" id="visitsDetailModal" tabindex="-1" aria-hidden="true" style="z-index: 1065; background: rgba(0,0,0,0.3);">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content modal-content-premium" style="border: 2px solid #e2e8f0; box-shadow: 0 20px 45px rgba(0,0,0,0.25);">
+          <div class="modal-header modal-header-premium" style="background: linear-gradient(135deg, #1e293b 0%, #3b82f6 100%);">
+            <h5 class="modal-title modal-title-premium">
+              <span class="material-symbols-outlined">history_edu</span>
+              Detail Riwayat Kunjungan
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body modal-body-premium" style="background: #f8fafc; max-height: 520px; overflow-y: auto;">
+            <div id="visits_detail_title" style="margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px;">
+              <h5 id="visits_detail_sales_name" style="margin: 0; font-weight: 800; color: #0f172a;">-</h5>
+              <span style="font-size: 13px; color: #64748b;">Kunjungan ke Customer: <strong id="visits_detail_cust_name" style="color: #0f172a;">-</strong></span>
+            </div>
+            
+            <div id="visits_timeline_container" style="padding: 10px;">
+              <!-- Timeline items injected here -->
+            </div>
+          </div>
+          <div class="modal-footer modal-footer-premium">
+            <button type="button" class="btn bg-gradient-secondary font-weight-bold" data-bs-dismiss="modal" style="border-radius:10px; padding:10px 20px; margin:0;">Kembali</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Modal Edit -->
     <div class="modal fade" id="editModal" tabindex="-1">
       <div class="modal-dialog modal-xl">
@@ -2147,7 +2175,23 @@ $salesData = mysqli_query($conn, $queryStr);
           if (data.length > 0) {
             data.forEach(visit => {
               const item = document.createElement('div');
-              item.style.cssText = 'display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1.5px solid #f1f5f9;';
+              item.style.cssText = 'display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1.5px solid #f1f5f9; cursor:pointer; transition:all 0.2s;';
+              item.title = 'Klik untuk melihat rincian kunjungan';
+              
+              item.addEventListener('mouseenter', () => {
+                item.style.backgroundColor = '#f8fafc';
+                item.style.paddingLeft = '6px';
+                item.style.paddingRight = '6px';
+              });
+              item.addEventListener('mouseleave', () => {
+                item.style.backgroundColor = 'transparent';
+                item.style.paddingLeft = '0';
+                item.style.paddingRight = '0';
+              });
+              
+              item.addEventListener('click', () => {
+                openSalesVisitsDetail(visit.sales_id, visit.nama, id, nama);
+              });
               
               // Avatar
               let avatarHtml = '';
@@ -2230,6 +2274,107 @@ $salesData = mysqli_query($conn, $queryStr);
       };
       detailModalEl.addEventListener('shown.bs.modal', onModalShown);
     });
+  });
+
+  // Function to show visits timeline for a sales person and customer
+  function openSalesVisitsDetail(salesId, salesName, custId, custName) {
+    document.getElementById('visits_detail_sales_name').textContent = salesName;
+    document.getElementById('visits_detail_cust_name').textContent = custName;
+    
+    const container = document.getElementById('visits_timeline_container');
+    container.innerHTML = '<div class="text-muted text-center py-5" style="font-size:13px;"><span class="material-symbols-outlined" style="font-size:20px; vertical-align:middle; animation:spin 1s linear infinite; margin-right:6px; color:#2563eb;">progress_activity</span> Memuat rincian kunjungan...</div>';
+    
+    // Open modal first so the user gets instant feedback
+    const subModal = new bootstrap.Modal(document.getElementById('visitsDetailModal'));
+    subModal.show();
+    
+    fetch(`get_sales_customer_visits.php?customer_id=${custId}&sales_id=${salesId}`)
+      .then(res => res.json())
+      .then(data => {
+        container.innerHTML = '';
+        if (data.length > 0) {
+          data.forEach(v => {
+            const item = document.createElement('div');
+            item.style.cssText = 'position:relative; padding-left:28px; margin-bottom:24px; border-left: 2px solid #cbd5e1;';
+            
+            // Dot indicator
+            const dot = document.createElement('div');
+            dot.style.cssText = 'position:absolute; left:-5px; top:4px; width:12px; height:12px; border-radius:50%; background:#2563eb; border:2.5px solid #fff; box-shadow: 0 0 0 1.5px #cbd5e1;';
+            item.appendChild(dot);
+            
+            // Card content
+            const card = document.createElement('div');
+            card.className = 'card border-0 shadow-sm rounded-4 p-3';
+            card.style.cssText = 'background:#fff; margin-top:-6px; border:1px solid #e2e8f0 !important;';
+            
+            // Header info
+            let invoiceBadge = v.no_invoice ? `<span class="badge" style="background:#f0fdf4; color:#166534; border:1px solid #bbf7d0; font-size:10px; font-weight:700; text-transform:none; box-shadow:none;">Inv: ${v.no_invoice}</span>` : '';
+            
+            // Photos rendering
+            let photosHtml = '';
+            if (v.images.length > 0) {
+              photosHtml = `
+                <div style="margin-top:12px;">
+                  <strong style="color:#0f172a; font-size:11px; display:block; margin-bottom:6px; text-transform:uppercase;">Dokumentasi Foto:</strong>
+                  <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                    ${v.images.map(img => `
+                      <div style="width:64px; height:64px; border-radius:8px; overflow:hidden; border:1px solid #e2e8f0; cursor:pointer;" onclick="window.open('https://api-teknisi.id-giti.com/storage/image/${img}', '_blank')">
+                        <img src="https://api-teknisi.id-giti.com/storage/image/${img}" style="width:100%; height:100%; object-fit:cover;">
+                      </div>
+                    `).join('')}
+                  </div>
+                </div>
+              `;
+            }
+            
+            card.innerHTML = `
+              <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; border-bottom:1.5px solid #f1f5f9; padding-bottom:8px; margin-bottom:10px;">
+                <div>
+                  <span style="font-size:10px; color:#64748b; text-transform:uppercase; font-weight:700; letter-spacing:0.05em; display:block;">JADWAL KUNJUNGAN</span>
+                  <span style="font-size:13px; font-weight:800; color:#0f172a;">${v.jadwal}</span>
+                </div>
+                <div style="display:flex; gap:6px;">
+                  <span class="badge" style="background:#eff6ff; color:#1e40af; border:1px solid #bfdbfe; font-size:10px; font-weight:700; text-transform:none; box-shadow:none;">Prospek: ${v.tipe_prospek}</span>
+                  ${invoiceBadge}
+                </div>
+              </div>
+              
+              <div class="row mb-2" style="font-size:12px; color:#475569;">
+                <div class="col-sm-6 mb-1">
+                  <span style="display:block; color:#64748b; font-size:10px; font-weight:700; text-transform:uppercase; margin-bottom:2px;">CLOCK IN</span>
+                  <span style="color:#0f172a; font-weight:600;"><span class="material-symbols-outlined" style="font-size:13px; vertical-align:middle; color:#10b981; margin-right:3px;">login</span> ${v.ci_at}</span>
+                </div>
+                <div class="col-sm-6 mb-1">
+                  <span style="display:block; color:#64748b; font-size:10px; font-weight:700; text-transform:uppercase; margin-bottom:2px;">CLOCK OUT</span>
+                  <span style="color:#0f172a; font-weight:600;"><span class="material-symbols-outlined" style="font-size:13px; vertical-align:middle; color:#ef4444; margin-right:3px;">logout</span> ${v.co_at}</span>
+                </div>
+              </div>
+              
+              <div class="p-2 bg-light rounded-3" style="font-size:12px; color:#334155; line-height:1.4; border: 1px solid #e2e8f0;">
+                <strong style="color:#0f172a; font-size:10.5px; display:block; margin-bottom:2px; text-transform:uppercase;">Catatan Kunjungan:</strong>
+                "${v.catatan_visit || 'Tidak ada catatan.'}"
+              </div>
+              
+              ${photosHtml}
+            `;
+            
+            item.appendChild(card);
+            container.appendChild(item);
+          });
+        } else {
+          container.innerHTML = '<div class="text-muted text-center py-5" style="font-size:13px;">Belum ada riwayat kunjungan.</div>';
+        }
+      })
+      .catch(() => {
+        container.innerHTML = '<div class="text-danger text-center py-5" style="font-size:13px;">Gagal memuat riwayat kunjungan.</div>';
+      });
+  }
+
+  // Fix body scroll locking when nesting modals
+  document.getElementById('visitsDetailModal').addEventListener('hidden.bs.modal', function () {
+    if (document.getElementById('detailModal').classList.contains('show')) {
+      document.body.classList.add('modal-open');
+    }
   });
 </script>
 </body>
