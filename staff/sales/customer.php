@@ -1271,16 +1271,26 @@ $salesData = mysqli_query($conn, $queryStr);
                 </div>
               </div>
 
-              <!-- Right Side: Live Leaflet Geofence Map -->
+              <!-- Right Side: Live Leaflet Geofence Map & Sales Visits History -->
               <div class="col-lg-6">
-                <div class="card border-0 shadow-sm rounded-4 p-4 h-100" style="background: #fff; min-height:480px; display:flex; flex-direction:column;">
+                <div class="card border-0 shadow-sm rounded-4 p-4" style="background: #fff; min-height:360px; display:flex; flex-direction:column; margin-bottom: 24px;">
                   <h6 style="font-size:12px; font-weight:800; color:#64748b; text-transform:uppercase; margin-bottom:12px; letter-spacing:0.05em;">Peta Geofence Lokasi Toko</h6>
                   
-                  <div id="map_detail" style="flex: 1; min-height: 320px; border-radius:12px; border:1.5px solid #e2e8f0;"></div>
+                  <div id="map_detail" style="flex: 1; min-height: 200px; border-radius:12px; border:1.5px solid #e2e8f0;"></div>
                   
                   <div class="mt-3 p-3 bg-light rounded-3" style="font-size:12.5px; color:#475569; line-height:1.4;">
                     <span style="font-weight:700; color:#0f172a; display:block; margin-bottom:2px;">Alamat Geocoder Peta:</span>
                     <span id="detail_alamat_peta">-</span>
+                  </div>
+                </div>
+                
+                <div class="card border-0 shadow-sm rounded-4 p-4" style="background: #fff;">
+                  <h6 style="font-size:12px; font-weight:800; color:#64748b; text-transform:uppercase; margin-bottom:16px; letter-spacing:0.05em; display:flex; align-items:center; gap:6px;">
+                    <span class="material-symbols-outlined" style="font-size:18px; color:#2563eb;">history</span>
+                    Riwayat Kunjungan Sales
+                  </h6>
+                  <div id="detail_visits_container" style="max-height:220px; overflow-y:auto; padding-right:4px;">
+                    <!-- visits list injected via JS -->
                   </div>
                 </div>
               </div>
@@ -2125,6 +2135,54 @@ $salesData = mysqli_query($conn, $queryStr);
       } else {
         document.getElementById('detail_telp_container').style.display = 'none';
       }
+
+      // Fetch and populate visits history
+      const visitsContainer = document.getElementById('detail_visits_container');
+      visitsContainer.innerHTML = '<div class="text-muted text-center py-3" style="font-size:12.5px;"><span class="material-symbols-outlined" style="font-size:16px; vertical-align:middle; animation:spin 1s linear infinite; margin-right:4px;">progress_activity</span> Memuat riwayat...</div>';
+      
+      fetch('get_customer_visits.php?id=' + id)
+        .then(res => res.json())
+        .then(data => {
+          visitsContainer.innerHTML = '';
+          if (data.length > 0) {
+            data.forEach(visit => {
+              const item = document.createElement('div');
+              item.style.cssText = 'display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1.5px solid #f1f5f9;';
+              
+              // Avatar
+              let avatarHtml = '';
+              if (visit.foto) {
+                avatarHtml = `<img src="https://api-teknisi.id-giti.com/storage/profile/${visit.foto}" style="width:32px; height:32px; border-radius:50%; object-fit:cover; border:1px solid #e2e8f0;">`;
+              } else {
+                const words = visit.nama.split(' ');
+                const initials = ((words[0] ? words[0][0] : '') + (words[1] ? words[1][0] : '')).toUpperCase();
+                avatarHtml = `<div style="width:32px; height:32px; font-size:11.5px; margin:0; background:#475569; color:#fff; display:flex; align-items:center; justify-content:center; border-radius:50%; font-weight:700;">${initials}</div>`;
+              }
+              
+              item.innerHTML = `
+                <div style="display:flex; align-items:center; gap:12px;">
+                  ${avatarHtml}
+                  <div>
+                    <span style="font-size:13px; font-weight:700; color:#0f172a; display:block;">${visit.nama}</span>
+                    <span style="font-size:10.5px; color:#64748b; display:flex; align-items:center; gap:3px; margin-top:2px;">
+                      <span class="material-symbols-outlined" style="font-size:12px;">calendar_month</span>
+                      Terakhir: ${visit.terakhir_kunjung}
+                    </span>
+                  </div>
+                </div>
+                <span class="badge" style="font-size:9.5px; font-weight:700; background:#eff6ff; color:#1e40af; border:1px solid #bfdbfe; padding:4px 8px; border-radius:6px; box-shadow:none; text-transform:none;">
+                  ${visit.total_kunjungan} Kunjungan
+                </span>
+              `;
+              visitsContainer.appendChild(item);
+            });
+          } else {
+            visitsContainer.innerHTML = '<div class="text-muted text-center py-3" style="font-size:12.5px;">Belum ada riwayat kunjungan sales.</div>';
+          }
+        })
+        .catch(() => {
+          visitsContainer.innerHTML = '<div class="text-danger text-center py-3" style="font-size:12.5px;">Gagal memuat riwayat kunjungan.</div>';
+        });
 
       // Populate photos documentation grid
       const photosGrid = document.getElementById('detail_photos_container');
