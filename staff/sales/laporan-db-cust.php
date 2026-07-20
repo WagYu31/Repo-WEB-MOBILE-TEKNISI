@@ -20,6 +20,18 @@ if ($resSalesList) {
     }
 }
 ?>
+<style>
+.premium-hover-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.premium-hover-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 16px 36px -4px rgba(148, 163, 184, 0.16), 0 6px 16px -2px rgba(148, 163, 184, 0.08) !important;
+}
+.activity-row-item:hover {
+    background-color: #f8fafc;
+}
+</style>
 <div class="col-lg-12">
     <div class="card h-100 py-3" style="border-radius: 16px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05); border: none;">
         <div class="card-header pb-3 p-3 bg-transparent border-bottom">
@@ -118,12 +130,12 @@ if ($resSalesList) {
                         $tgl_visits = $row['tgl_visits'];
                 ?>
                     <!-- Customer Activity Card -->
-                    <div class="card mb-4" style="border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 4px 12px rgba(0,0,0,0.02); overflow: hidden; background-color: #ffffff;">
+                    <div class="card mb-4 premium-hover-card" style="border-radius: 16px; border: 1px solid #e2e8f0; border-left: 5px solid #3b82f6 !important; box-shadow: 0 4px 20px -2px rgba(148, 163, 184, 0.05); overflow: hidden; background-color: #ffffff;">
                         
                         <!-- Customer Name Title Header -->
-                        <div class="p-3 border-bottom d-flex align-items-center" style="background-color: #f8fafc;">
+                        <div class="p-3 border-bottom d-flex align-items-center justify-content-between" style="background-color: #ffffff;">
                             <div class="d-flex align-items-center">
-                                <span class="bg-gradient-primary p-2 text-white d-flex align-items-center justify-content-center me-2" style="border-radius: 10px; width: 32px; height: 32px;">
+                                <span class="d-flex align-items-center justify-content-center me-2.5" style="background-color: #eff6ff; color: #1d4ed8; border-radius: 8px; width: 32px; height: 32px;">
                                     <i class="fa-solid fa-building text-xs"></i>
                                 </span>
                                 <h6 class="mb-0 text-dark font-weight-bold text-sm" style="letter-spacing: 0.02em;">
@@ -161,7 +173,7 @@ if ($resSalesList) {
                             if ($resLapTek && mysqli_num_rows($resLapTek) > 0) {
                             ?>
                                 <!-- Header Row for Desktop -->
-                                <div class="row px-3 py-2 bg-light d-none d-md-flex font-weight-bold text-xxs text-uppercase text-secondary mb-2" style="border-radius: 8px; letter-spacing: 0.5px;">
+                                <div class="row px-3 py-2.5 bg-light d-none d-md-flex font-weight-bold text-xxs text-uppercase text-secondary mb-2" style="background-color: #f8fafc; border-radius: 8px; letter-spacing: 0.05em; border: 1px solid #e2e8f0;">
                                     <div class="col-md-2">Status / Kegiatan</div>
                                     <div class="col-md-2">Sales Agent</div>
                                     <div class="col-md-2">Jadwal Kunjungan</div>
@@ -189,13 +201,13 @@ if ($resSalesList) {
                                     $status = strtolower($rowLT['status']);
 
                                     $badgeStyle = match($status) {
-                                        'selesai' => 'background-color: #dcfce7; color: #15803d; border: 1px solid #bbf7d0;',
-                                        'berjalan' => 'background-color: #fef3c7; color: #b45309; border: 1px solid #fde68a;',
-                                        default => 'background-color: #f1f5f9; color: #475569; border: 1px solid #e2e8f0;'
+                                        'selesai' => 'background-color: #f0fdf4; color: #166534; border: 1px solid #bbf7d0;',
+                                        'berjalan' => 'background-color: #fffbeb; color: #92400e; border: 1px solid #fde68a;',
+                                        default => 'background-color: #f8fafc; color: #475569; border: 1px solid #e2e8f0;'
                                     };
                                 ?>
                                     <!-- Activity Row -->
-                                    <div class="row px-3 py-3 align-items-center mb-2" style="border-bottom: 1px solid #f1f5f9; border-radius: 8px; transition: background 0.15s ease;">
+                                    <div class="row px-3 py-3 align-items-center mb-2 activity-row-item" style="border-bottom: 1px solid #f1f5f9; border-radius: 8px; transition: all 0.2s ease;">
                                         
                                         <!-- Status / Kegiatan -->
                                         <div class="col-6 col-md-2 mb-2 mb-md-0">
@@ -214,8 +226,8 @@ if ($resSalesList) {
                                         <div class="col-6 col-md-2 mb-2 mb-md-0">
                                             <span class="d-md-none text-xxs text-secondary d-block font-weight-bold">Sales</span>
                                             <div class="d-flex align-items-center">
-                                                <div class="avatar avatar-xs bg-gradient-light me-2 d-flex align-items-center justify-content-center" style="border-radius: 50%; width: 24px; height: 24px;">
-                                                    <i class="fa-solid fa-user text-secondary text-xxs"></i>
+                                                <div class="avatar avatar-xs me-2 d-flex align-items-center justify-content-center" style="border-radius: 50%; width: 26px; height: 26px; background-color: #f1f5f9; border: 1px solid #e2e8f0;">
+                                                    <i class="fa-solid fa-user text-secondary" style="font-size: 10px;"></i>
                                                 </div>
                                                 <h6 class="text-dark font-weight-bold text-xs mb-0"><?php echo htmlspecialchars($rowLT['nama_sales']); ?></h6>
                                             </div>
