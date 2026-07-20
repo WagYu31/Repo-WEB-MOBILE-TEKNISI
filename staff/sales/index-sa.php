@@ -251,6 +251,36 @@ $progress_percent = $today_total > 0 ? round(($today_completed / $today_total) *
         box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
       }
     }
+    
+    /* Premium Styled Progress Capsule */
+    .progress-capsule-premium {
+      border: 1px solid #ccfbf1 !important;
+      min-width: 270px;
+      background: linear-gradient(135deg, rgba(240, 253, 250, 0.95) 0%, rgba(255, 255, 255, 0.95) 100%) !important;
+      backdrop-filter: blur(10px);
+      height: 52px;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.08) !important;
+      padding: 10px 16px 10px 20px !important;
+      border-radius: 14px !important;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .progress-label-text {
+      font-size: 10px !important;
+      font-weight: 800 !important;
+      text-uppercase: uppercase;
+      color: #0d9488 !important;
+      letter-spacing: 0.06em !important;
+      line-height: 1;
+    }
+    .progress-value-text {
+      font-size: 12.5px !important;
+      font-weight: 800 !important;
+      color: #0f766e !important;
+      letter-spacing: -0.01em;
+      line-height: 1.2;
+    }
   </style>
 </head>
  
@@ -282,15 +312,18 @@ $progress_percent = $today_total > 0 ? round(($today_completed / $today_total) *
             
             <div class="d-flex align-items-center gap-3 mt-2 mt-md-0 flex-wrap" style="position: relative; z-index: 2;">
                 <!-- Progress Bar -->
-                <div class="d-flex align-items-center gap-3 rounded-4" style="border: 1px solid #e2e8f0; min-width: 260px; background-color: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); height: 52px; box-shadow: 0 4px 12px -2px rgba(148, 163, 184, 0.04); padding: 10px 16px !important;">
+                <div class="progress-capsule-premium">
                     <div class="d-flex flex-column flex-grow-1" style="padding-left: 4px;">
-                        <span class="text-xxs font-weight-bold text-uppercase text-secondary" style="letter-spacing: 0.05em; line-height: 1;">Progress Hari Ini</span>
-                        <h6 class="mb-0 text-dark font-weight-bold text-xs mt-0.5" style="letter-spacing: -0.01em;"><?php echo $today_completed; ?> / <?php echo $today_total; ?> Selesai</h6>
-                        <div class="progress mt-1.5" style="height: 5px; background-color: #f1f5f9; border-radius: 10px; overflow: hidden; width: 100%;">
+                        <span class="progress-label-text">
+                            Progress Hari Ini
+                            <span class="live-indicator-dot" style="width: 5px; height: 5px; background-color: #10b981; margin-bottom: 1px; margin-left: 3px;"></span>
+                        </span>
+                        <h6 class="mb-0 progress-value-text mt-0.5"><?php echo $today_completed; ?> / <?php echo $today_total; ?> Selesai</h6>
+                        <div class="progress mt-1.5" style="height: 5px; background-color: #e6f4f1; border-radius: 10px; overflow: hidden; width: 100%;">
                             <div class="progress-bar progress-bar-glow-wave" role="progressbar" style="width: <?php echo $progress_percent; ?>%; border-radius: 10px;" aria-valuenow="<?php echo $progress_percent; ?>" aria-valuemin="0" aria-valuemax="100"></div>
                         </div>
                     </div>
-                    <div class="d-flex align-items-center justify-content-center text-white rounded-3 shadow-sm pulse-success-badge" style="width: 34px; height: 34px; flex-shrink: 0; background: linear-gradient(135deg, #10b981, #059669);">
+                    <div class="d-flex align-items-center justify-content-center text-white rounded-3 shadow-sm pulse-success-badge" style="width: 34px; height: 34px; flex-shrink: 0; background: linear-gradient(135deg, #0d9488, #0f766e);">
                         <span class="material-symbols-outlined" style="font-size: 18px;">done_all</span>
                     </div>
                 </div>
