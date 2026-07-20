@@ -346,9 +346,9 @@ foreach ($tab_meta as $k => $m) {
             <!-- Aksi -->
             <div class="keg-cell keg-actions">
               <?php if ($kegStatus === 'waiting'): ?>
-              <a href="approve_kegiatan.php?id=<?php echo $row['id']; ?>" class="btn-action" title="Setujui Reschedule" style="background:#e8f5e9; color:#2e7d32; border:1.5px solid #a5d6a7;" onclick="return confirm('Apakah Anda yakin ingin menyetujui jadwal reschedule ini?')">
+              <button type="button" class="btn-action" title="Setujui Reschedule" style="background:#e8f5e9; color:#2e7d32; border:1.5px solid #a5d6a7; cursor:pointer;" onclick="confirmApprove(<?php echo $row['id']; ?>, '<?php echo addslashes(htmlspecialchars($row['nama_customer'] ?? '')); ?>')">
                 <span class="material-symbols-outlined">check_circle</span>
-              </a>
+              </button>
               <?php endif; ?>
               <a href="detail_kegiatan.php?id=<?php echo $row['id']; ?>" class="btn-action btn-view" title="Lihat Detail">
                 <span class="material-symbols-outlined">visibility</span>
@@ -693,7 +693,67 @@ foreach ($tab_meta as $k => $m) {
   .stat-count { font-size: 24px; }
   .empty-state-premium { padding: 40px 20px; margin: 15px auto; }
 }
+
+/* ── Approve Confirmation Modal ── */
+.modal-overlay-approve {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  justify-content: center; align-items: center;
+}
+.modal-overlay-approve.active { display: flex; }
+.modal-card-approve {
+  background: #fff;
+  border-radius: 20px;
+  padding: 36px;
+  width: 90%; max-width: 420px;
+  text-align: center;
+  box-shadow: 0 25px 60px rgba(0,0,0,0.15);
+  animation: modalSlideIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.modal-icon-approve {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 20px;
+}
+.modal-icon-approve span { font-size: 30px; color: #2e7d32; }
+.modal-title-approve { font-size: 18px; font-weight: 700; color: #1e293b; margin-bottom: 8px; }
+.modal-desc-approve { font-size: 13px; color: #64748b; line-height: 1.6; margin-bottom: 28px; }
+.modal-desc-approve strong { color: #2e7d32; }
+.modal-btn-confirm-approve {
+  padding: 12px 28px; border-radius: 12px;
+  background: linear-gradient(135deg, #2e7d32, #1b5e20);
+  color: #fff; border: none;
+  font-weight: 700; font-size: 14px;
+  cursor: pointer; transition: all 0.2s;
+  box-shadow: 0 4px 14px rgba(46, 125, 50, 0.3);
+}
+.modal-btn-confirm-approve:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(46,125,50,0.4); }
 </style>
+
+<!-- ═══ Approve Confirmation Modal ═══ -->
+<div class="modal-overlay-approve" id="approveModal">
+  <div class="modal-card-approve">
+    <div class="modal-icon-approve">
+      <span class="material-symbols-outlined">check_circle</span>
+    </div>
+    <div class="modal-title-approve">Setujui Reschedule?</div>
+    <div class="modal-desc-approve">
+      Jadwal reschedule untuk kunjungan ke <strong id="approveCustomerName"></strong> akan disetujui dan diaktifkan.
+    </div>
+    <div class="modal-actions-delete">
+      <button class="modal-btn-cancel" onclick="closeApproveModal()">Batal</button>
+      <button class="modal-btn-confirm-approve" id="btnConfirmApprove" onclick="executeApprove()">
+        <span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;margin-right:4px;">check</span>
+        Ya, Setujui
+      </button>
+    </div>
+  </div>
+</div>
 
 <!-- ═══ Delete Confirmation Modal ═══ -->
 <div class="modal-overlay-delete" id="deleteModal">
@@ -762,5 +822,33 @@ function executeDelete() {
     btn.disabled = false;
     btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;margin-right:4px;">delete</span> Ya, Hapus';
   });
+}
+
+let approveId = null;
+
+function confirmApprove(id, customerName) {
+  approveId = id;
+  document.getElementById('approveCustomerName').textContent = customerName || 'customer ini';
+  document.getElementById('approveModal').classList.add('active');
+}
+
+function closeApproveModal() {
+  document.getElementById('approveModal').classList.remove('active');
+  approveId = null;
+}
+
+// Close modal on overlay click
+document.getElementById('approveModal').addEventListener('click', function(e) {
+  if (e.target === this) closeApproveModal();
+});
+
+function executeApprove() {
+  if (!approveId) return;
+  
+  const btn = document.getElementById('btnConfirmApprove');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;margin-right:4px;animation:spin 1s linear infinite;">progress_activity</span> Menyetujui...';
+
+  window.location.href = 'approve_kegiatan.php?id=' + approveId;
 }
 </script>
