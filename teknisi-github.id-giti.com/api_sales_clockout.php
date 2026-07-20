@@ -197,8 +197,24 @@ if (!empty($telpCustomer) || !empty($namaCustomer)) {
             $updCust = $conn->prepare("UPDATE sales_customer SET nama = ? WHERE id = ?");
             $updCust->bind_param('si', $namaCustomer, $customerId);
             $updCust->execute();
-            $updCust->close();
         }
+    }
+}
+
+// Auto fill/update customer phone number if it is provided
+if (!empty($nomerClient)) {
+    $stmtCust = $conn->prepare("SELECT id_customer FROM kegiatan_sales WHERE id = ? LIMIT 1");
+    $stmtCust->bind_param('i', $kegiatanId);
+    $stmtCust->execute();
+    $custRow = $stmtCust->get_result()->fetch_assoc();
+    $stmtCust->close();
+    
+    if ($custRow) {
+        $customerId = $custRow['id_customer'];
+        $updCust = $conn->prepare("UPDATE sales_customer SET telp_pribadi = ?, updated_at = NOW() WHERE id = ?");
+        $updCust->bind_param('si', $nomerClient, $customerId);
+        $updCust->execute();
+        $updCust->close();
     }
 }
 

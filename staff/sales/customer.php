@@ -2435,7 +2435,6 @@ $salesData = mysqli_query($conn, $queryStr);
     modal.addEventListener('show.bs.modal', () => {
       dialog.style.left = '0px';
       dialog.style.top = '0px';
-      dialog.style.transform = 'none';
       modalLeft = 0;
       modalTop = 0;
     });
@@ -2460,7 +2459,8 @@ $salesData = mysqli_query($conn, $queryStr);
       modalLeft = e.clientX - startX;
       modalTop = e.clientY - startY;
       
-      dialog.style.transform = `translate(${modalLeft}px, ${modalTop}px)`;
+      dialog.style.left = modalLeft + 'px';
+      dialog.style.top = modalTop + 'px';
     }
     
     function onMouseUp() {
