@@ -192,6 +192,18 @@ foreach ($tab_meta as $k => $m) {
         </div>
       </div>
 
+      <!-- Inline Customer Search Bar -->
+      <div class="inline-search-bar">
+        <div class="inline-search-wrapper">
+          <span class="material-symbols-outlined inline-search-icon">search</span>
+          <input type="text" class="inline-search-input" placeholder="Cari nama customer..." data-tab="<?php echo $k; ?>" oninput="filterCustomerRows(this)">
+          <span class="inline-search-count" data-tab-count="<?php echo $k; ?>"></span>
+          <button type="button" class="inline-search-clear" data-tab="<?php echo $k; ?>" onclick="clearInlineSearch(this)" style="display:none;">
+            <span class="material-symbols-outlined" style="font-size:16px;">close</span>
+          </button>
+        </div>
+      </div>
+
       <div class="keg-list-container">
         <?php if (mysqli_num_rows($result) > 0): ?>
 
@@ -244,7 +256,7 @@ foreach ($tab_meta as $k => $m) {
             $rowAccent = ($kegStatus === 'dibatalkan') ? '#ef4444' : $borderColor;
           ?>
 
-          <div class="keg-row" style="--row-accent:<?php echo $rowAccent; ?>">
+          <div class="keg-row" style="--row-accent:<?php echo $rowAccent; ?>" data-customer="<?php echo strtolower(htmlspecialchars($row['nama_customer'] ?? '')); ?>">
             <!-- Jadwal -->
             <div class="keg-cell">
               <span class="cell-label d-md-none">Jadwal</span>
@@ -849,5 +861,155 @@ function executeApprove() {
   btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;margin-right:4px;animation:spin 1s linear infinite;">progress_activity</span> Menyetujui...';
 
   window.location.href = 'approve_kegiatan.php?id=' + approveId;
+}
+</script>
+
+<!-- ── Inline Customer Search Styles ── -->
+<style>
+.inline-search-bar {
+  padding: 12px 20px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+.inline-search-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  max-width: 420px;
+}
+.inline-search-icon {
+  position: absolute;
+  left: 12px;
+  font-size: 18px;
+  color: #94a3b8;
+  pointer-events: none;
+  transition: color 0.2s;
+}
+.inline-search-input {
+  width: 100%;
+  padding: 9px 80px 9px 40px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #1e293b;
+  background: #fff;
+  outline: none;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: inherit;
+}
+.inline-search-input::placeholder {
+  color: #94a3b8;
+  font-weight: 400;
+}
+.inline-search-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+.inline-search-input:focus ~ .inline-search-icon,
+.inline-search-input:not(:placeholder-shown) ~ .inline-search-icon {
+  color: #3b82f6;
+}
+.inline-search-count {
+  position: absolute;
+  right: 40px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #64748b;
+  background: #f1f5f9;
+  padding: 2px 8px;
+  border-radius: 6px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+  white-space: nowrap;
+}
+.inline-search-count.visible {
+  opacity: 1;
+}
+.inline-search-clear {
+  position: absolute;
+  right: 8px;
+  width: 26px;
+  height: 26px;
+  border: none;
+  background: #f1f5f9;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  transition: all 0.15s;
+  padding: 0;
+}
+.inline-search-clear:hover {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+.keg-row.filtered-hidden {
+  display: none !important;
+}
+.keg-row.filtered-highlight {
+  animation: rowHighlight 0.4s ease;
+}
+@keyframes rowHighlight {
+  0% { background: rgba(59, 130, 246, 0.08); }
+  100% { background: transparent; }
+}
+@media (max-width: 767px) {
+  .inline-search-wrapper {
+    max-width: 100%;
+  }
+}
+</style>
+
+<!-- ── Inline Customer Search Script ── -->
+<script>
+function filterCustomerRows(input) {
+  const query = input.value.toLowerCase().trim();
+  const tabKey = input.dataset.tab;
+  const pane = document.getElementById('pane-' + tabKey);
+  const rows = pane.querySelectorAll('.keg-row');
+  const clearBtn = pane.closest('.tab-pane').querySelector('.inline-search-clear[data-tab="' + tabKey + '"]');
+  const countEl = pane.closest('.tab-pane').querySelector('[data-tab-count="' + tabKey + '"]');
+
+  // Show/hide clear button
+  clearBtn.style.display = query.length > 0 ? 'flex' : 'none';
+
+  let matched = 0;
+  let total = rows.length;
+
+  rows.forEach(row => {
+    const name = row.dataset.customer || '';
+    if (query === '' || name.includes(query)) {
+      row.classList.remove('filtered-hidden');
+      if (query !== '') {
+        row.classList.add('filtered-highlight');
+        setTimeout(() => row.classList.remove('filtered-highlight'), 400);
+      }
+      matched++;
+    } else {
+      row.classList.add('filtered-hidden');
+      row.classList.remove('filtered-highlight');
+    }
+  });
+
+  // Update count badge
+  if (query.length > 0) {
+    countEl.textContent = matched + '/' + total;
+    countEl.classList.add('visible');
+  } else {
+    countEl.classList.remove('visible');
+  }
+}
+
+function clearInlineSearch(btn) {
+  const tabKey = btn.dataset.tab;
+  const pane = document.getElementById('pane-' + tabKey);
+  const input = pane.closest('.tab-pane').querySelector('.inline-search-input[data-tab="' + tabKey + '"]');
+  input.value = '';
+  filterCustomerRows(input);
+  input.focus();
 }
 </script>
