@@ -203,7 +203,8 @@ foreach ($tab_meta as $k => $m) {
               <span class="material-symbols-outlined" style="font-size:16px;">close</span>
             </button>
           </div>
-          <!-- Filter Tanggal -->
+          <!-- Filter Tanggal (tidak untuk tab Hari Ini) -->
+          <?php if ($k !== 'hari-ini'): ?>
           <div class="inline-date-wrapper">
             <span class="material-symbols-outlined inline-date-icon">calendar_month</span>
             <input type="date" class="inline-date-input" data-tab="<?php echo $k; ?>" onchange="applyInlineFilters('<?php echo $k; ?>')">
@@ -211,6 +212,7 @@ foreach ($tab_meta as $k => $m) {
               <span class="material-symbols-outlined" style="font-size:16px;">close</span>
             </button>
           </div>
+          <?php endif; ?>
           <!-- Result Count -->
           <span class="inline-search-count" data-tab-count="<?php echo $k; ?>"></span>
         </div>
