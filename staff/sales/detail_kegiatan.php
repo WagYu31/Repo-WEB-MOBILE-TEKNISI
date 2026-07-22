@@ -67,8 +67,11 @@ $sqlSales = "SELECT s.nama AS nama_sales, s.foto AS foto_sales, ps.status, ps.ke
 $resultSales = mysqli_query($conn, $sqlSales);
 $sales_count = mysqli_num_rows($resultSales);
 
-// Cek apakah lokasi koordinat customer tersedia
-$has_coords = !empty($data['cust_lat']) && !empty($data['cust_lon']);
+// Cek apakah lokasi koordinat tersedia — prioritaskan kegiatan, fallback ke customer
+$map_lat = !empty($data['lat']) ? $data['lat'] : ($data['cust_lat'] ?? null);
+$map_lon = !empty($data['lon']) ? $data['lon'] : ($data['cust_lon'] ?? null);
+$map_rad = !empty($data['rad']) ? $data['rad'] : ($data['cust_rad'] ?? 100);
+$has_coords = !empty($map_lat) && !empty($map_lon);
 $left_col_class = $has_coords ? "col-lg-7" : "col-lg-12";
 ?>
 <!DOCTYPE html>
@@ -931,9 +934,9 @@ $left_col_class = $has_coords ? "col-lg-7" : "col-lg-12";
   <?php if ($has_coords): ?>
   <script>
     setTimeout(() => {
-        const lat = <?= floatval($data['cust_lat']); ?>;
-        const lon = <?= floatval($data['cust_lon']); ?>;
-        const rad = <?= intval($data['cust_rad'] ?? 100); ?>;
+        const lat = <?= floatval($map_lat); ?>;
+        const lon = <?= floatval($map_lon); ?>;
+        const rad = <?= intval($map_rad); ?>;
         const latlng = L.latLng(lat, lon);
         
         const map = L.map('map_detail').setView(latlng, 16);
