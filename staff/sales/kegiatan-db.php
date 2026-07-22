@@ -192,15 +192,27 @@ foreach ($tab_meta as $k => $m) {
         </div>
       </div>
 
-      <!-- Inline Customer Search Bar -->
+      <!-- Inline Filter Bar (Customer + Tanggal) -->
       <div class="inline-search-bar">
-        <div class="inline-search-wrapper">
-          <span class="material-symbols-outlined inline-search-icon">search</span>
-          <input type="text" class="inline-search-input" placeholder="Cari nama customer..." data-tab="<?php echo $k; ?>" oninput="filterCustomerRows(this)">
+        <div class="inline-filter-row">
+          <!-- Search Customer -->
+          <div class="inline-search-wrapper">
+            <span class="material-symbols-outlined inline-search-icon">search</span>
+            <input type="text" class="inline-search-input" placeholder="Cari nama customer..." data-tab="<?php echo $k; ?>" oninput="applyInlineFilters('<?php echo $k; ?>')">
+            <button type="button" class="inline-search-clear" data-clear="name" data-tab="<?php echo $k; ?>" onclick="clearField(this, 'name')" style="display:none;">
+              <span class="material-symbols-outlined" style="font-size:16px;">close</span>
+            </button>
+          </div>
+          <!-- Filter Tanggal -->
+          <div class="inline-date-wrapper">
+            <span class="material-symbols-outlined inline-date-icon">calendar_month</span>
+            <input type="date" class="inline-date-input" data-tab="<?php echo $k; ?>" onchange="applyInlineFilters('<?php echo $k; ?>')">
+            <button type="button" class="inline-search-clear" data-clear="date" data-tab="<?php echo $k; ?>" onclick="clearField(this, 'date')" style="display:none;">
+              <span class="material-symbols-outlined" style="font-size:16px;">close</span>
+            </button>
+          </div>
+          <!-- Result Count -->
           <span class="inline-search-count" data-tab-count="<?php echo $k; ?>"></span>
-          <button type="button" class="inline-search-clear" data-tab="<?php echo $k; ?>" onclick="clearInlineSearch(this)" style="display:none;">
-            <span class="material-symbols-outlined" style="font-size:16px;">close</span>
-          </button>
         </div>
       </div>
 
@@ -256,7 +268,7 @@ foreach ($tab_meta as $k => $m) {
             $rowAccent = ($kegStatus === 'dibatalkan') ? '#ef4444' : $borderColor;
           ?>
 
-          <div class="keg-row" style="--row-accent:<?php echo $rowAccent; ?>" data-customer="<?php echo strtolower(htmlspecialchars($row['nama_customer'] ?? '')); ?>">
+          <div class="keg-row" style="--row-accent:<?php echo $rowAccent; ?>" data-customer="<?php echo strtolower(htmlspecialchars($row['nama_customer'] ?? '')); ?>" data-date="<?php echo date('Y-m-d', strtotime($row['jadwal'])); ?>">
             <!-- Jadwal -->
             <div class="keg-cell">
               <span class="cell-label d-md-none">Jadwal</span>
@@ -864,30 +876,46 @@ function executeApprove() {
 }
 </script>
 
-<!-- ── Inline Customer Search Styles ── -->
+<!-- ── Inline Filter Styles ── -->
 <style>
 .inline-search-bar {
   padding: 12px 20px;
   background: #f8fafc;
   border-bottom: 1px solid #e2e8f0;
 }
+.inline-filter-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
 .inline-search-wrapper {
   position: relative;
   display: flex;
   align-items: center;
-  max-width: 420px;
+  flex: 1;
+  min-width: 200px;
+  max-width: 340px;
 }
-.inline-search-icon {
+.inline-date-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 160px;
+  max-width: 200px;
+}
+.inline-search-icon, .inline-date-icon {
   position: absolute;
   left: 12px;
   font-size: 18px;
   color: #94a3b8;
   pointer-events: none;
   transition: color 0.2s;
+  z-index: 1;
 }
-.inline-search-input {
+.inline-search-input, .inline-date-input {
   width: 100%;
-  padding: 9px 80px 9px 40px;
+  padding: 9px 36px 9px 40px;
   border: 1.5px solid #e2e8f0;
   border-radius: 10px;
   font-size: 13px;
@@ -902,7 +930,7 @@ function executeApprove() {
   color: #94a3b8;
   font-weight: 400;
 }
-.inline-search-input:focus {
+.inline-search-input:focus, .inline-date-input:focus {
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
@@ -910,28 +938,37 @@ function executeApprove() {
 .inline-search-input:not(:placeholder-shown) ~ .inline-search-icon {
   color: #3b82f6;
 }
-.inline-search-count {
+.inline-date-input:focus ~ .inline-date-icon {
+  color: #3b82f6;
+}
+.inline-date-input::-webkit-calendar-picker-indicator {
+  opacity: 0;
   position: absolute;
-  right: 40px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+}
+.inline-search-count {
   font-size: 10px;
   font-weight: 700;
   color: #64748b;
   background: #f1f5f9;
-  padding: 2px 8px;
+  padding: 3px 10px;
   border-radius: 6px;
-  pointer-events: none;
   opacity: 0;
   transition: opacity 0.2s;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 .inline-search-count.visible {
   opacity: 1;
 }
 .inline-search-clear {
   position: absolute;
-  right: 8px;
-  width: 26px;
-  height: 26px;
+  right: 6px;
+  width: 24px;
+  height: 24px;
   border: none;
   background: #f1f5f9;
   border-radius: 6px;
@@ -942,6 +979,7 @@ function executeApprove() {
   color: #64748b;
   transition: all 0.15s;
   padding: 0;
+  z-index: 1;
 }
 .inline-search-clear:hover {
   background: #e2e8f0;
@@ -958,33 +996,50 @@ function executeApprove() {
   100% { background: transparent; }
 }
 @media (max-width: 767px) {
-  .inline-search-wrapper {
+  .inline-filter-row {
+    flex-direction: column;
+  }
+  .inline-search-wrapper, .inline-date-wrapper {
     max-width: 100%;
+    width: 100%;
   }
 }
 </style>
 
-<!-- ── Inline Customer Search Script ── -->
+<!-- ── Inline Filter Script ── -->
 <script>
-function filterCustomerRows(input) {
-  const query = input.value.toLowerCase().trim();
-  const tabKey = input.dataset.tab;
+function applyInlineFilters(tabKey) {
   const pane = document.getElementById('pane-' + tabKey);
+  if (!pane) return;
+
+  const nameInput = pane.querySelector('.inline-search-input[data-tab="' + tabKey + '"]');
+  const dateInput = pane.querySelector('.inline-date-input[data-tab="' + tabKey + '"]');
+  const countEl = pane.querySelector('[data-tab-count="' + tabKey + '"]');
+  const nameClear = pane.querySelector('.inline-search-clear[data-clear="name"][data-tab="' + tabKey + '"]');
+  const dateClear = pane.querySelector('.inline-search-clear[data-clear="date"][data-tab="' + tabKey + '"]');
   const rows = pane.querySelectorAll('.keg-row');
-  const clearBtn = pane.closest('.tab-pane').querySelector('.inline-search-clear[data-tab="' + tabKey + '"]');
-  const countEl = pane.closest('.tab-pane').querySelector('[data-tab-count="' + tabKey + '"]');
 
-  // Show/hide clear button
-  clearBtn.style.display = query.length > 0 ? 'flex' : 'none';
+  const query = (nameInput ? nameInput.value.toLowerCase().trim() : '');
+  const dateVal = (dateInput ? dateInput.value : '');
 
+  // Show/hide clear buttons
+  if (nameClear) nameClear.style.display = query.length > 0 ? 'flex' : 'none';
+  if (dateClear) dateClear.style.display = dateVal.length > 0 ? 'flex' : 'none';
+
+  const hasFilter = query.length > 0 || dateVal.length > 0;
   let matched = 0;
   let total = rows.length;
 
   rows.forEach(row => {
     const name = row.dataset.customer || '';
-    if (query === '' || name.includes(query)) {
+    const rowDate = row.dataset.date || '';
+
+    const nameMatch = (query === '' || name.includes(query));
+    const dateMatch = (dateVal === '' || rowDate === dateVal);
+
+    if (nameMatch && dateMatch) {
       row.classList.remove('filtered-hidden');
-      if (query !== '') {
+      if (hasFilter) {
         row.classList.add('filtered-highlight');
         setTimeout(() => row.classList.remove('filtered-highlight'), 400);
       }
@@ -996,7 +1051,7 @@ function filterCustomerRows(input) {
   });
 
   // Update count badge
-  if (query.length > 0) {
+  if (hasFilter) {
     countEl.textContent = matched + '/' + total;
     countEl.classList.add('visible');
   } else {
@@ -1004,12 +1059,17 @@ function filterCustomerRows(input) {
   }
 }
 
-function clearInlineSearch(btn) {
+function clearField(btn, fieldType) {
   const tabKey = btn.dataset.tab;
   const pane = document.getElementById('pane-' + tabKey);
-  const input = pane.closest('.tab-pane').querySelector('.inline-search-input[data-tab="' + tabKey + '"]');
-  input.value = '';
-  filterCustomerRows(input);
-  input.focus();
+  if (fieldType === 'name') {
+    const input = pane.querySelector('.inline-search-input[data-tab="' + tabKey + '"]');
+    input.value = '';
+    input.focus();
+  } else if (fieldType === 'date') {
+    const input = pane.querySelector('.inline-date-input[data-tab="' + tabKey + '"]');
+    input.value = '';
+  }
+  applyInlineFilters(tabKey);
 }
 </script>
