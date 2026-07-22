@@ -379,6 +379,11 @@ foreach ($tab_meta as $k => $m) {
               <a href="detail_kegiatan.php?id=<?php echo $row['id']; ?>" class="btn-action btn-view" title="Lihat Detail">
                 <span class="material-symbols-outlined">visibility</span>
               </a>
+              <?php if ($kegStatus !== 'selesai'): ?>
+              <button type="button" class="btn-action" title="Jadwalkan Ulang" style="background:#eff6ff; color:#2563eb; border:1.5px solid #bfdbfe; cursor:pointer;" onclick="openRescheduleModal(<?php echo $row['id']; ?>, '<?php echo addslashes(htmlspecialchars($row['nama_customer'] ?? '')); ?>', '<?php echo date('Y-m-d\TH:i', strtotime($row['jadwal'])); ?>')">
+                <span class="material-symbols-outlined">event_repeat</span>
+              </button>
+              <?php endif; ?>
               <a href="edit_kegiatan.php?id=<?php echo $row['id']; ?>" class="btn-action btn-edit" title="Edit Jadwal">
                 <span class="material-symbols-outlined">edit</span>
               </a>
@@ -800,6 +805,139 @@ foreach ($tab_meta as $k => $m) {
   </div>
 </div>
 
+<!-- ═══ Admin Reschedule Modal ═══ -->
+<style>
+.modal-overlay-resched {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  display: none; align-items: center; justify-content: center;
+  z-index: 9999;
+}
+.modal-overlay-resched.active { display: flex; }
+.modal-card-resched {
+  background: #fff;
+  border-radius: 20px;
+  width: 90%; max-width: 460px;
+  box-shadow: 0 25px 60px rgba(0,0,0,0.15);
+  animation: modalSlideIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  overflow: hidden;
+}
+.resched-header {
+  background: linear-gradient(135deg, #1e3a5f, #2563eb);
+  padding: 24px 28px;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+}
+.resched-header::before {
+  content: '';
+  position: absolute;
+  top: -30px; right: -10px;
+  width: 100px; height: 100px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.06);
+}
+.resched-header h4 {
+  font-size: 17px; font-weight: 800; margin: 0 0 4px;
+  display: flex; align-items: center; gap: 8px;
+}
+.resched-header p {
+  font-size: 12px; color: rgba(255,255,255,0.7); margin: 0;
+}
+.resched-body {
+  padding: 24px 28px;
+}
+.resched-label {
+  font-size: 11px; font-weight: 700; color: #475569;
+  text-transform: uppercase; letter-spacing: 0.05em;
+  margin-bottom: 6px; display: flex; align-items: center; gap: 4px;
+}
+.resched-input {
+  width: 100%; padding: 10px 14px;
+  border: 1.5px solid #e2e8f0; border-radius: 10px;
+  font-size: 13px; font-weight: 500; color: #1e293b;
+  background: #f8fafc; outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  font-family: inherit;
+}
+.resched-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  background: #fff;
+}
+textarea.resched-input {
+  resize: vertical; min-height: 70px;
+}
+.resched-footer {
+  padding: 0 28px 24px;
+  display: flex; gap: 10px; justify-content: flex-end;
+}
+.resched-btn-cancel {
+  padding: 10px 20px; border-radius: 10px;
+  background: #f1f5f9; color: #475569;
+  border: 1.5px solid #e2e8f0;
+  font-weight: 700; font-size: 13px;
+  cursor: pointer; transition: all 0.2s;
+}
+.resched-btn-cancel:hover { background: #e2e8f0; }
+.resched-btn-submit {
+  padding: 10px 24px; border-radius: 10px;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #fff; border: none;
+  font-weight: 700; font-size: 13px;
+  cursor: pointer; transition: all 0.2s;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+  display: flex; align-items: center; gap: 6px;
+}
+.resched-btn-submit:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(37,99,235,0.4); }
+.resched-btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+.resched-customer-badge {
+  display: inline-block;
+  background: rgba(255,255,255,0.15);
+  padding: 3px 12px; border-radius: 20px;
+  font-size: 11px; font-weight: 700;
+  margin-top: 6px;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+</style>
+
+<div class="modal-overlay-resched" id="reschedModal">
+  <div class="modal-card-resched">
+    <div class="resched-header">
+      <h4>
+        <span class="material-symbols-outlined" style="font-size:22px;">event_repeat</span>
+        Jadwalkan Ulang
+      </h4>
+      <p>Buat jadwal baru untuk kunjungan ini</p>
+      <div class="resched-customer-badge" id="reschedCustomerBadge"></div>
+    </div>
+    <div class="resched-body">
+      <div style="margin-bottom: 16px;">
+        <div class="resched-label">
+          <span class="material-symbols-outlined" style="font-size:14px; color:#3b82f6;">calendar_month</span>
+          Tanggal & Waktu Baru <span style="color:#ef4444;">*</span>
+        </div>
+        <input type="datetime-local" class="resched-input" id="reschedNewDate" required>
+      </div>
+      <div>
+        <div class="resched-label">
+          <span class="material-symbols-outlined" style="font-size:14px; color:#3b82f6;">edit_note</span>
+          Alasan Reschedule (Opsional)
+        </div>
+        <textarea class="resched-input" id="reschedReason" placeholder="Contoh: Customer minta ganti hari, lokasi belum siap, dll."></textarea>
+      </div>
+    </div>
+    <div class="resched-footer">
+      <button class="resched-btn-cancel" onclick="closeReschedModal()">Batal</button>
+      <button class="resched-btn-submit" id="btnExecResched" onclick="executeReschedule()">
+        <span class="material-symbols-outlined" style="font-size:16px;">event_repeat</span>
+        Jadwalkan Ulang
+      </button>
+    </div>
+  </div>
+</div>
+
 <script>
 let deleteId = null;
 
@@ -875,6 +1013,72 @@ function executeApprove() {
   btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:16px;vertical-align:middle;margin-right:4px;animation:spin 1s linear infinite;">progress_activity</span> Menyetujui...';
 
   window.location.href = 'approve_kegiatan.php?id=' + approveId;
+}
+</script>
+
+<!-- ═══ Admin Reschedule Script ═══ -->
+<script>
+let reschedId = null;
+
+function openRescheduleModal(id, customerName, currentDate) {
+  reschedId = id;
+  document.getElementById('reschedCustomerBadge').textContent = '\ud83d\udccd ' + (customerName || 'Customer');
+  const dt = new Date(currentDate);
+  dt.setDate(dt.getDate() + 1);
+  const y = dt.getFullYear();
+  const m = String(dt.getMonth() + 1).padStart(2, '0');
+  const d = String(dt.getDate()).padStart(2, '0');
+  const h = String(dt.getHours()).padStart(2, '0');
+  const min = String(dt.getMinutes()).padStart(2, '0');
+  document.getElementById('reschedNewDate').value = y + '-' + m + '-' + d + 'T' + h + ':' + min;
+  document.getElementById('reschedReason').value = '';
+  document.getElementById('reschedModal').classList.add('active');
+}
+
+function closeReschedModal() {
+  document.getElementById('reschedModal').classList.remove('active');
+  reschedId = null;
+}
+
+document.getElementById('reschedModal').addEventListener('click', function(e) {
+  if (e.target === this) closeReschedModal();
+});
+
+function executeReschedule() {
+  if (!reschedId) return;
+  const newDate = document.getElementById('reschedNewDate').value;
+  const reason = document.getElementById('reschedReason').value;
+
+  if (!newDate) {
+    alert('Silakan pilih tanggal & waktu baru!');
+    return;
+  }
+
+  const btn = document.getElementById('btnExecResched');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:16px;animation:spin 1s linear infinite;">progress_activity</span> Memproses...';
+
+  fetch('proses_reschedule_admin.php', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: 'kegiatan_id=' + reschedId + '&new_jadwal=' + encodeURIComponent(newDate) + '&reason=' + encodeURIComponent(reason)
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.status === 'success') {
+      closeReschedModal();
+      window.location.reload();
+    } else {
+      alert(data.message || 'Gagal menjadwalkan ulang.');
+      btn.disabled = false;
+      btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:16px;">event_repeat</span> Jadwalkan Ulang';
+    }
+  })
+  .catch(() => {
+    alert('Terjadi kesalahan jaringan.');
+    btn.disabled = false;
+    btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:16px;">event_repeat</span> Jadwalkan Ulang';
+  });
 }
 </script>
 
