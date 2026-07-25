@@ -9,11 +9,12 @@
 // ══════════════════════════════════════════════════
 // KONFIGURASI — UBAH DI SINI
 // ══════════════════════════════════════════════════
-define('GMAPS_API_KEY', 'AIzaSyDm07QPGP4-Zm76TqxShHFnNlbkhKmR5H4');
+// API Key tidak diperlukan (pakai web scraping gratis)
+// define('GMAPS_API_KEY', 'tidak_diperlukan');
 
-// Batas penggunaan — proteksi budget
-define('GMAPS_DAILY_LIMIT',   50);    // Max request ke Google per hari
-define('GMAPS_MONTHLY_LIMIT', 500);   // Max request ke Google per bulan
+// Batas penggunaan — proteksi agar tidak diblock Google
+define('GMAPS_DAILY_LIMIT',   10);    // Max request ke Google per hari (ketat = aman)
+define('GMAPS_MONTHLY_LIMIT', 200);   // Max request ke Google per bulan
 
 // File counter
 define('GMAPS_USAGE_FILE', __DIR__ . '/gmaps_usage.json');
