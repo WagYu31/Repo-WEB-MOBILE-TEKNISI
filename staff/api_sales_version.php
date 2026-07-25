@@ -22,7 +22,7 @@ header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
 $response = [
     'min_version'     => '1.8.0',   // Versi minimum yang dibolehkan
     'latest_version'  => '1.8.0',   // Versi terbaru yang tersedia
-    'update_url'      => 'https://jadwal.id-giti.com/staff/download/LoewixSales-v1.8.0.apk',
+    'update_url'      => 'https://jadwal.id-giti.com/staff/download/index.php?file=LoewixSales-v1.8.0.apk',
     'update_message'  => 'Versi terbaru (v1.8.0) tersedia! Fitur baru: Tap kartu statistik (Total, Berjalan, Selesai, Belum) untuk filter daftar kunjungan.',
     'force_message'   => 'Versi aplikasi Anda sudah tidak didukung. Silakan update ke versi terbaru.',
 ];
