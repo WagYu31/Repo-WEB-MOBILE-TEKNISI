@@ -9,13 +9,13 @@
 // ══════════════════════════════════════════════════
 // KONFIGURASI — UBAH DI SINI
 // ══════════════════════════════════════════════════
-// Foursquare API Key (GRATIS - 100.000 request/bulan, tanpa kartu kredit)
-// Register di: https://foursquare.com/developers → Create Project → Copy API Key
-define('FOURSQUARE_API_KEY', 'MEJPMYMDIBD2C2LCMHH5DI4PV3V5KT1HFUR1BAQ1Y5KJYJNC'); // Loewix Scraping
+// Foursquare V2 API (GRATIS - 100.000 request/bulan, tanpa kartu kredit)
+define('FSQ_CLIENT_ID',     'MFHK512CLBUAUI4EEDTONWBH3TU1PALWBXGYQM325Y5L412W');
+define('FSQ_CLIENT_SECRET', 'B3UFRKWQGUJ51AHGIZL0ASVLP2A3KFHNXO4OGRISMU1YCJB1');
 
 // Batas penggunaan — proteksi internal
 define('GMAPS_DAILY_LIMIT',   50);    // Max request per hari
-define('GMAPS_MONTHLY_LIMIT', 1000);  // Max request per bulan (Foursquare: 100K free)
+define('GMAPS_MONTHLY_LIMIT', 1000);  // Max request per bulan
 
 // File counter
 define('GMAPS_USAGE_FILE', __DIR__ . '/gmaps_usage.json');
