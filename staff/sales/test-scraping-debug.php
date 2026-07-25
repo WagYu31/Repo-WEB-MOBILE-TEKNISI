@@ -1,103 +1,124 @@
 <?php
 /**
- * Google Maps Scraping — DEBUG TOOL
- * Cek apa yang Google kirim balik ke server
+ * Debug: Analisis format data Google Search
  */
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
-
-echo "<h2>Google Scraping Debug</h2>";
+header('Content-Type: text/plain; charset=utf-8');
 
 $query = 'Toko CCTV di Tangerang';
 $url = 'https://www.google.com/search?' . http_build_query([
-    'q'   => $query,
-    'tbm' => 'lcl',
-    'hl'  => 'id',
-    'gl'  => 'id',
-    'num' => 10,
+    'q' => $query, 'hl' => 'id', 'gl' => 'id', 'num' => 20,
 ]);
-
-echo "<p><b>URL:</b> " . htmlspecialchars($url) . "</p>";
 
 $ch = curl_init();
 curl_setopt_array($ch, [
     CURLOPT_URL            => $url,
     CURLOPT_RETURNTRANSFER => true,
     CURLOPT_FOLLOWLOCATION => true,
-    CURLOPT_TIMEOUT        => 15,
+    CURLOPT_TIMEOUT        => 20,
     CURLOPT_USERAGENT      => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
     CURLOPT_ENCODING       => 'gzip',
     CURLOPT_SSL_VERIFYPEER => false,
     CURLOPT_COOKIE         => 'CONSENT=PENDING+987; SOCS=CAESHAgBEhJnd3NfMjAyMzA4MTUtMF9SQzIaAmVuIAEaBgiAo_CmBg',
-    CURLOPT_HTTPHEADER     => [
-        'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language: id-ID,id;q=0.9,en;q=0.7',
-    ],
+    CURLOPT_HTTPHEADER     => ['Accept: text/html', 'Accept-Language: id-ID,id;q=0.9'],
 ]);
-
 $html = curl_exec($ch);
-$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-$curlError = curl_error($ch);
-$finalUrl = curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
+$code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 curl_close($ch);
 
-echo "<p><b>HTTP Code:</b> $httpCode</p>";
-echo "<p><b>Final URL:</b> " . htmlspecialchars($finalUrl) . "</p>";
-echo "<p><b>cURL Error:</b> " . ($curlError ?: 'None') . "</p>";
-echo "<p><b>Response Length:</b> " . strlen($html) . " bytes</p>";
+echo "=== GOOGLE SEARCH DEBUG ===\n";
+echo "HTTP: $code | Size: " . strlen($html) . " bytes\n\n";
 
-if ($html) {
-    // Check for CAPTCHA/consent
-    $hasCaptcha = (stripos($html, 'captcha') !== false || stripos($html, 'recaptcha') !== false);
-    $hasConsent = (stripos($html, 'consent') !== false || stripos($html, 'Before you continue') !== false);
-    $hasResults = (stripos($html, 'CCTV') !== false);
-    
-    echo "<p><b>Has CAPTCHA:</b> " . ($hasCaptcha ? '⛔ YES' : '✅ NO') . "</p>";
-    echo "<p><b>Has Consent Page:</b> " . ($hasConsent ? '⛔ YES' : '✅ NO') . "</p>";
-    echo "<p><b>Has 'CCTV' in response:</b> " . ($hasResults ? '✅ YES' : '⛔ NO') . "</p>";
-    
-    // Show first 3000 chars
-    echo "<h3>First 3000 chars of HTML:</h3>";
-    echo "<pre style='background:#f5f5f5; padding:10px; max-height:400px; overflow:auto; font-size:11px;'>" . htmlspecialchars(substr($html, 0, 3000)) . "</pre>";
-    
-    // Try to find business names
-    echo "<h3>Regex Extraction Attempts:</h3>";
-    
-    // Pattern 1: OSrXXb class
-    preg_match_all('/<span class="OSrXXb"[^>]*>([^<]+)<\/span>/', $html, $m1);
-    echo "<p><b>Pattern OSrXXb:</b> " . count($m1[1]) . " matches</p>";
-    if (!empty($m1[1])) echo "<pre>" . htmlspecialchars(implode("\n", array_slice($m1[1], 0, 10))) . "</pre>";
-    
-    // Pattern 2: dbg0pd class
-    preg_match_all('/class="[^"]*dbg0pd[^"]*"[^>]*>([^<]+)/', $html, $m2);
-    echo "<p><b>Pattern dbg0pd:</b> " . count($m2[1]) . " matches</p>";
-    if (!empty($m2[1])) echo "<pre>" . htmlspecialchars(implode("\n", array_slice($m2[1], 0, 10))) . "</pre>";
-    
-    // Pattern 3: aria-label with maps
-    preg_match_all('/aria-label="([^"]{3,100})"[^>]*href="[^"]*google\.com\/maps/', $html, $m3);
-    echo "<p><b>Pattern aria-label+maps:</b> " . count($m3[1]) . " matches</p>";
-    if (!empty($m3[1])) echo "<pre>" . htmlspecialchars(implode("\n", array_slice($m3[1], 0, 10))) . "</pre>";
-    
-    // Pattern 4: h3 titles
-    preg_match_all('/<h3[^>]*>([^<]+)<\/h3>/', $html, $m4);
-    echo "<p><b>Pattern h3 titles:</b> " . count($m4[1]) . " matches</p>";
-    if (!empty($m4[1])) echo "<pre>" . htmlspecialchars(implode("\n", array_slice($m4[1], 0, 10))) . "</pre>";
-    
-    // Pattern 5: data-cid
-    preg_match_all('/data-cid="([^"]*)"/', $html, $m5);
-    echo "<p><b>Pattern data-cid:</b> " . count($m5[1]) . " matches</p>";
-    
-    // Pattern 6: JSON-LD
-    preg_match_all('/<script type="application\/ld\+json">(.*?)<\/script>/s', $html, $m6);
-    echo "<p><b>JSON-LD blocks:</b> " . count($m6[1]) . "</p>";
-    
-    // Pattern 7: Any mention of CCTV
-    preg_match_all('/[>"]([^<"]{3,80}CCTV[^<"]{0,80})[<"]/', $html, $m7);
-    echo "<p><b>CCTV mentions:</b> " . count($m7[1]) . " matches</p>";
-    if (!empty($m7[1])) echo "<pre>" . htmlspecialchars(implode("\n", array_unique(array_slice($m7[1], 0, 15)))) . "</pre>";
+// Decode hex and unicode escapes
+$decoded = preg_replace_callback('/\\\\x([0-9a-fA-F]{2})/', function($m) {
+    return chr(hexdec($m[1]));
+}, $html);
+$decoded = preg_replace_callback('/\\\\u([0-9a-fA-F]{4})/', function($m) {
+    return mb_convert_encoding(pack('H*', $m[1]), 'UTF-8', 'UCS-2BE');
+}, $decoded);
 
-    // Save full HTML for analysis
-    file_put_contents(__DIR__ . '/gmaps_debug_response.html', $html);
-    echo "<p>Full HTML saved to gmaps_debug_response.html (" . strlen($html) . " bytes)</p>";
+echo "=== ALL CCTV MENTIONS (context ±100 chars) ===\n\n";
+$offset = 0;
+$count = 0;
+while (($pos = stripos($decoded, 'CCTV', $offset)) !== false && $count < 30) {
+    $start = max(0, $pos - 100);
+    $chunk = substr($decoded, $start, 300);
+    // Clean for display
+    $chunk = preg_replace('/[\x00-\x08\x0b\x0c\x0e-\x1f]/', '', $chunk);
+    echo "--- Match " . (++$count) . " at position $pos ---\n";
+    echo $chunk . "\n\n";
+    $offset = $pos + 4;
+}
+
+echo "\n=== LOOKING FOR /maps/place/ URLs ===\n";
+preg_match_all('/\/maps\/place\/([^\/\\"]+)/', $decoded, $placeUrls);
+if (!empty($placeUrls[1])) {
+    foreach (array_unique($placeUrls[1]) as $p) {
+        echo "  - " . urldecode(str_replace('+', ' ', $p)) . "\n";
+    }
+} else {
+    echo "  None found\n";
+}
+
+echo "\n=== LOOKING FOR PHONE NUMBERS ===\n";
+preg_match_all('/(?:\+62|0)\s*[\d][\d\s\-]{7,14}/', $decoded, $phones);
+if (!empty($phones[0])) {
+    foreach (array_unique($phones[0]) as $p) {
+        echo "  - " . trim($p) . "\n";
+    }
+} else {
+    echo "  None found\n";
+}
+
+echo "\n=== LOOKING FOR Jl./Jalan ADDRESSES ===\n";
+preg_match_all('/(?:Jl\.|Jalan|Ruko|Komp)[^"\\\\<]{5,150}/', $decoded, $addrs);
+if (!empty($addrs[0])) {
+    foreach (array_unique(array_slice($addrs[0], 0, 20)) as $a) {
+        echo "  - " . trim($a) . "\n";
+    }
+} else {
+    echo "  None found\n";
+}
+
+echo "\n=== LOOKING FOR RATINGS (X.Y pattern) ===\n";
+preg_match_all('/(\d\.\d)\x{2605}/u', $decoded, $ratings); // star character
+echo "  Star ratings: " . count($ratings[0]) . "\n";
+preg_match_all('/(\d[.,]\d)\s*(?:\((\d+)\)|\x{2605})/u', $decoded, $ratingsFull, PREG_SET_ORDER);
+foreach (array_slice($ratingsFull, 0, 20) as $rf) {
+    echo "  - Rating: " . $rf[1] . (isset($rf[2]) ? " ({$rf[2]} reviews)" : "") . "\n";
+}
+
+echo "\n=== LOOKING FOR BUSINESS NAME PATTERNS ===\n";
+// Pattern: text between quotes that contains CCTV
+preg_match_all('/"([^"]{5,80}(?:CCTV|cctv|Security|Kamera|Camera|Hikvision|Dahua)[^"]{0,40})"/', $decoded, $bizNames);
+if (!empty($bizNames[1])) {
+    echo "  Found " . count($bizNames[1]) . " matches:\n";
+    foreach (array_unique(array_slice($bizNames[1], 0, 30)) as $bn) {
+        // Filter noise
+        if (preg_match('/[{}<>\\\\]/', $bn)) continue;
+        if (strpos($bn, 'function') !== false) continue;
+        if (strpos($bn, 'http') !== false) continue;
+        echo "  - " . $bn . "\n";
+    }
+} else {
+    echo "  None found\n";
+}
+
+echo "\n=== SAMPLE OF ALL QUOTED STRINGS (3-80 chars, alphabetic) ===\n";
+preg_match_all('/"([^"]{3,80})"/', $decoded, $allQuoted);
+$filtered = [];
+foreach ($allQuoted[1] as $q) {
+    if (preg_match('/[{}<>\\\\\/;=()]/', $q)) continue;
+    if (preg_match('/^(function|var|const|let|return|null|undefined|true|false|none|this)/i', $q)) continue;
+    if (preg_match('/\.(js|css|html|php|png|jpg|svg|woff)/i', $q)) continue;
+    if (preg_match('/^[\d\s\.\-,]+$/', $q)) continue;
+    if (preg_match_all('/[a-zA-Z]/', $q) < 3) continue;
+    $filtered[] = $q;
+}
+$filtered = array_unique($filtered);
+echo "  Total: " . count($filtered) . " unique strings\n";
+foreach (array_slice($filtered, 0, 50) as $f) {
+    echo "  - " . $f . "\n";
 }
 ?>
