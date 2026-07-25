@@ -11,7 +11,7 @@
 // ══════════════════════════════════════════════════
 // Foursquare API Key (GRATIS - 100.000 request/bulan, tanpa kartu kredit)
 // Register di: https://foursquare.com/developers → Create Project → Copy API Key
-define('FOURSQUARE_API_KEY', ''); // ← PASTE API KEY DI SINI
+define('FOURSQUARE_API_KEY', 'MEJPMYMDIBD2C2LCMHH5DI4PV3V5KT1HFUR1BAQ1Y5KJYJNC'); // Loewix Scraping
 
 // Batas penggunaan — proteksi internal
 define('GMAPS_DAILY_LIMIT',   50);    // Max request per hari
