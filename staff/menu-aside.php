@@ -418,7 +418,7 @@ if ($isSalesDir) {
 
                 // Category: Aplikasi Sales
                 if ($showDashboardSales || $showDataSales || $showJadwalKunjungan || $showLaporanVisit || $showCustomerSales) {
-                    $isSalesActive = ($pageNow == "Dashboard Sales" || ($pageNow == "Dashboard" && $isSalesDir)) || ($pageNow == "Kegiatan Baru" && $isSalesDir) || ($pageNow == "Laporan" && $isSalesDir) || ($pageNow == "Data Customer" && $isSalesDir) || ($pageNow == "Sales" && $isSalesDir);
+                    $isSalesActive = ($pageNow == "Dashboard Sales" || ($pageNow == "Dashboard" && $isSalesDir)) || ($pageNow == "Kegiatan Baru" && $isSalesDir) || ($pageNow == "Laporan" && $isSalesDir) || ($pageNow == "Data Customer" && $isSalesDir) || ($pageNow == "Sales" && $isSalesDir) || ($pageNow == "Scraping GMaps");
                     $salesCollapse = $isSalesActive ? 'show' : '';
                     $salesAria = $isSalesActive ? 'true' : 'false';
                     $salesLinkClass = $isSalesActive ? '' : 'collapsed';
@@ -437,6 +437,7 @@ if ($isSalesDir) {
                                 if ($showLaporanVisit) renderSubNavItem(($pageNow == "Laporan" && $isSalesDir), $salesPrefix . "laporan-cust.php", "fa-solid fa-file-contract", "Laporan Visit");
                                 if ($showCustomerSales) renderSubNavItem(($pageNow == "Data Customer" && $isSalesDir), $salesPrefix . "customer.php", "fa-solid fa-address-book", "Customer Sales");
                                 if ($showDataSales) renderSubNavItem(($pageNow == "Sales" && $isSalesDir), $salesPrefix . "sales.php", "fa-solid fa-user-group", "Data Sales");
+                                if ($role == 'Super Admin' || $role == 'Admin') renderSubNavItem(($pageNow == "Scraping GMaps"), $salesPrefix . "scraping-gmaps.php", "fa-solid fa-satellite-dish", "Scraping GMaps");
                                 ?>
                             </ul>
                         </div>
