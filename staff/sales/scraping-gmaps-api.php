@@ -11,11 +11,18 @@
  *   Body: { action: "stats" }  // Get usage stats
  */
 
+// Suppress PHP errors from corrupting JSON output
+error_reporting(0);
+ini_set('display_errors', 0);
+ob_start();
+
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 
+// Clean any output from included files
 require_once 'conn.php';
 require_once 'gmaps-config.php';
+ob_clean(); // Remove any output from conn.php
 
 // Pastikan method POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
