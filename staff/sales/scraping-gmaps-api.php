@@ -1,11 +1,12 @@
 <?php
 /**
- * Google Maps Scraping — Parser untuk format udm=1 (Google Local 2025+)
+ * Google Maps Scraping — Foursquare Places API (GRATIS 100K req/bulan)
  * 
- * Google redirect tbm=lcl ke udm=1 yang berisi data dalam JavaScript.
- * Data toko tersimpan dalam escaped JSON di dalam <script> tags.
+ * Google Search tidak bisa di-scrape karena 100% JavaScript-rendered.
+ * Foursquare Places API = FREE, no credit card, 100K requests/month.
+ * Data: nama toko, alamat, telepon, rating, kategori, foto, dll.
  * 
- * Anti-block: 10 req/hari, cache 7 hari, random delay, rotasi UA
+ * Register gratis: https://foursquare.com/developers
  */
 
 error_reporting(0);
@@ -18,6 +19,10 @@ header('Access-Control-Allow-Origin: *');
 require_once 'conn.php';
 require_once 'gmaps-config.php';
 ob_clean();
+
+// Foursquare API Key (FREE - 100K req/bulan)
+// Register di: https://foursquare.com/developers → Create Project → Copy API Key
+define('FSQ_API_KEY', defined('FOURSQUARE_API_KEY') ? FOURSQUARE_API_KEY : '');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode(['error' => true, 'message' => 'Method not allowed']);
@@ -35,6 +40,7 @@ if ($action === 'stats') {
 if ($action === 'search') {
     $keyword = trim($input['keyword'] ?? '');
     $city    = trim($input['city'] ?? '');
+    $radius  = intval($input['radius'] ?? 25000);
 
     if (empty($keyword) || empty($city)) {
         echo json_encode(['error' => true, 'message' => 'Kata kunci dan kota wajib diisi']);
@@ -48,10 +54,10 @@ if ($action === 'search') {
         exit;
     }
 
-    // Cache
+    // Cache (7 hari)
     $cacheDir = __DIR__ . '/gmaps_cache';
-    if (!is_dir($cacheDir)) @mkdir($cacheDir, 0755, true);
-    $cacheKey = md5($keyword . '|' . $city);
+    if (!is_dir($cacheDir)) @mkdir($cacheDir, 0777, true);
+    $cacheKey = md5($keyword . '|' . $city . '|' . $radius);
     $cacheFile = $cacheDir . '/' . $cacheKey . '.json';
     
     if (file_exists($cacheFile) && (time() - filemtime($cacheFile)) < 604800) {
@@ -64,275 +70,240 @@ if ($action === 'search') {
         }
     }
 
-    // Delay
-    usleep(rand(1500000, 4000000));
+    // ═══ City coordinates lookup ═══
+    $cityCoords = getCityCoordinates();
+    $cityKey = strtolower(trim($city));
+    
+    $lat = null;
+    $lng = null;
+    foreach ($cityCoords as $name => $coords) {
+        if (strtolower($name) === $cityKey || stripos($name, $city) !== false || stripos($city, $name) !== false) {
+            $lat = $coords[0];
+            $lng = $coords[1];
+            break;
+        }
+    }
 
-    $uas = [
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
-        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0',
-    ];
-
-    $query = $keyword . ' di ' . $city;
-    $allResults = [];
-
-    // ═══ Fetch Google Search ═══
-    $url = 'https://www.google.com/search?' . http_build_query([
-        'q'   => $query,
-        'hl'  => 'id',
-        'gl'  => 'id',
-        'num' => 20,
-    ]);
-
-    $html = curlFetch($url, $uas[array_rand($uas)]);
-    gmaps_increment_usage();
-
-    if (!$html) {
-        echo json_encode(['error' => true, 'message' => 'Gagal mengakses Google Search', 'stats' => gmaps_get_stats()]);
+    if (!$lat || !$lng) {
+        echo json_encode(['error' => true, 'message' => "Koordinat untuk kota '$city' tidak ditemukan"]);
         exit;
     }
 
-    // ═══ Parse data dari HTML ═══
-    // Google menyimpan data bisnis dalam JavaScript code di dalam <script> tags
-    // Data mengandung nama toko, alamat, rating, review count, telepon, dll.
+    $apiKey = FSQ_API_KEY;
+    if (empty($apiKey)) {
+        echo json_encode([
+            'error' => true, 
+            'message' => 'Foursquare API Key belum dikonfigurasi. Register GRATIS di https://foursquare.com/developers lalu masukkan API Key di gmaps-config.php'
+        ]);
+        exit;
+    }
+
+    // ═══ Foursquare Places Search ═══
+    $results = [];
     
-    // Decode semua unicode escapes di HTML
-    $decoded = preg_replace_callback('/\\\\x([0-9a-fA-F]{2})/', function($m) {
-        return chr(hexdec($m[1]));
-    }, $html);
-    $decoded = preg_replace_callback('/\\\\u([0-9a-fA-F]{4})/', function($m) {
-        return mb_convert_encoding(pack('H*', $m[1]), 'UTF-8', 'UCS-2BE');
-    }, $decoded);
+    // Search up to 50 places
+    $fsqUrl = 'https://api.foursquare.com/v3/places/search?' . http_build_query([
+        'query'  => $keyword,
+        'll'     => "$lat,$lng",
+        'radius' => min($radius, 50000),
+        'limit'  => 50,
+        'fields' => 'fsq_id,name,location,tel,website,rating,stats,categories,photos,hours,verified,price,popularity,link',
+        'sort'   => 'RELEVANCE',
+    ]);
 
-    // ─── Strategy 1: Extract business data from JavaScript arrays ───
-    // Pattern: business name followed by address, in JS string literals
-    // Google stores: ["business name","address","lat,lng",rating,reviewcount,...]
-    
-    // Look for patterns like: "Nama Toko","Jl. Alamat"
-    if (preg_match_all('/"([^"]{3,80})"\s*,\s*"((?:Jl\.|Jalan|Ruko|Komp|Blok|Perum|Gg\.|Gang|Kav|No\.|Gedung|Lt\.|Lantai|Perumahan)[^"]{5,200})"/', $decoded, $matches, PREG_SET_ORDER)) {
-        foreach ($matches as $m) {
-            $name = cleanText($m[1]);
-            $address = cleanText($m[2]);
-            if (isValidName($name)) {
-                $r = makeResult($name, $address, $city);
-                // Look for rating/review near this match
-                $pos = strpos($decoded, $m[0]);
-                if ($pos !== false) {
-                    $chunk = substr($decoded, max(0, $pos - 200), 600);
-                    if (preg_match('/(\d[.,]\d)\s*(?:bintang|star|rating)?\s*[\s,]*\(?\s*(\d+)\s*(?:ulasan|review|rating)/i', $chunk, $rm)) {
-                        $r['rating'] = floatval(str_replace(',', '.', $rm[1]));
-                        $r['review_count'] = intval($rm[2]);
-                    } elseif (preg_match('/,(\d[.,]\d),(\d+),/', $chunk, $rm2)) {
-                        $rating = floatval(str_replace(',', '.', $rm2[1]));
-                        $reviews = intval($rm2[2]);
-                        if ($rating >= 1 && $rating <= 5 && $reviews > 0 && $reviews < 50000) {
-                            $r['rating'] = $rating;
-                            $r['review_count'] = $reviews;
-                        }
-                    }
-                    // Phone
-                    if (preg_match('/(?:\+62|062|0)\s*[\d\s\-()]{8,16}/', $chunk, $pm)) {
-                        $r['phone'] = trim(preg_replace('/\s+/', '', $pm[0]));
-                    }
-                }
-                $r = recalcTrust($r);
-                $allResults[] = $r;
-            }
-        }
+    $ch = curl_init();
+    curl_setopt_array($ch, [
+        CURLOPT_URL            => $fsqUrl,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT        => 15,
+        CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_HTTPHEADER     => [
+            'Authorization: ' . $apiKey,
+            'Accept: application/json',
+        ],
+    ]);
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curlError = curl_error($ch);
+    curl_close($ch);
+
+    gmaps_increment_usage();
+
+    if ($response === false || $httpCode !== 200) {
+        $errorMsg = 'Gagal mengakses Foursquare API. HTTP ' . $httpCode;
+        if ($httpCode === 401) $errorMsg = 'API Key tidak valid. Cek kembali Foursquare API Key di gmaps-config.php';
+        if ($httpCode === 429) $errorMsg = 'Rate limit tercapai. Coba lagi nanti.';
+        if ($curlError) $errorMsg .= ': ' . $curlError;
+        
+        // Try parse error message
+        $errData = json_decode($response, true);
+        if (isset($errData['message'])) $errorMsg .= ' - ' . $errData['message'];
+        
+        echo json_encode(['error' => true, 'message' => $errorMsg, 'stats' => gmaps_get_stats()]);
+        exit;
     }
 
-    // ─── Strategy 2: Extract from "title" or "aria-label" attributes ───
-    if (preg_match_all('/(?:aria-label|title|data-tooltip)="([^"]{5,100})"/i', $decoded, $labelMatches)) {
-        foreach ($labelMatches[1] as $label) {
-            $label = cleanText($label);
-            // Filter: harus mengandung keyword terkait
-            if (!containsCCTVKeyword($label) && !containsCCTVKeyword($keyword)) continue;
-            if (!isValidName($label)) continue;
-            // Remove common prefixes
-            $label = preg_replace('/^(?:Situs web|Website|Petunjuk arah|Directions|Telepon|Rute ke)\s+(?:untuk\s+)?/i', '', $label);
-            if (strlen($label) >= 3 && !isAlreadyInResults($label, $allResults)) {
-                $allResults[] = makeResult($label, '', $city);
-            }
+    $data = json_decode($response, true);
+    $places = $data['results'] ?? [];
+
+    foreach ($places as $place) {
+        $name = $place['name'] ?? '';
+        if (empty($name)) continue;
+
+        $address = '';
+        if (isset($place['location'])) {
+            $loc = $place['location'];
+            $parts = array_filter([
+                $loc['address'] ?? '',
+                $loc['locality'] ?? '',
+                $loc['region'] ?? '',
+            ]);
+            $address = implode(', ', $parts);
         }
+
+        $phone = $place['tel'] ?? '';
+        $website = $place['website'] ?? '';
+        $rating = isset($place['rating']) ? round($place['rating'] / 2, 1) : 0; // FSQ uses 0-10, convert to 0-5
+        $totalRatings = $place['stats']['total_ratings'] ?? 0;
+        $totalPhotos = $place['stats']['total_photos'] ?? 0;
+        $verified = $place['verified'] ?? false;
+
+        // Category
+        $category = '';
+        if (!empty($place['categories'])) {
+            $category = $place['categories'][0]['name'] ?? '';
+        }
+
+        // Photo URL
+        $photoUrl = '';
+        if (!empty($place['photos'])) {
+            $photo = $place['photos'][0];
+            $photoUrl = ($photo['prefix'] ?? '') . '200x200' . ($photo['suffix'] ?? '');
+        }
+
+        // Coordinates
+        $placeLat = $place['location']['lat'] ?? $lat;
+        $placeLng = $place['location']['lng'] ?? $lng;
+
+        // Google Maps URL
+        $mapsUrl = 'https://www.google.com/maps/search/' . urlencode($name . ' ' . $city);
+
+        // Trust Score
+        $trustScore = 10;
+        if (!empty($address)) $trustScore += 15;
+        if (!empty($phone)) $trustScore += 20;
+        if (!empty($website)) $trustScore += 10;
+        if ($totalRatings >= 20) $trustScore += 20;
+        elseif ($totalRatings >= 10) $trustScore += 15;
+        elseif ($totalRatings >= 5) $trustScore += 10;
+        if ($rating >= 4.0) $trustScore += 15;
+        elseif ($rating >= 3.0) $trustScore += 5;
+        if ($totalPhotos >= 5) $trustScore += 5;
+        if ($verified) $trustScore += 5;
+
+        $trustLevel = 'berisiko';
+        if ($trustScore >= 70) $trustLevel = 'terpercaya';
+        elseif ($trustScore >= 40) $trustLevel = 'perlu_cek';
+
+        $results[] = [
+            'place_id'        => $place['fsq_id'] ?? md5($name . $city),
+            'name'            => $name,
+            'address'         => $address,
+            'phone'           => $phone,
+            'website'         => $website,
+            'maps_url'        => $mapsUrl,
+            'rating'          => $rating,
+            'review_count'    => $totalRatings,
+            'photo_count'     => $totalPhotos,
+            'photo_ref'       => $photoUrl,
+            'lat'             => $placeLat,
+            'lng'             => $placeLng,
+            'business_status' => $verified ? 'Verified' : '',
+            'types'           => [$category],
+            'primary_type'    => $category,
+            'trust_score'     => $trustScore,
+            'trust_level'     => $trustLevel,
+        ];
     }
 
-    // ─── Strategy 3: Extract from Google Business Profile data ───
-    // Pattern: data between specific markers that contain business info
-    if (preg_match_all('/\[(?:null,?)*"([^"]{3,80})"(?:,(?:null|"[^"]*"))*,"([^"]*(?:Jl|Jalan|Ruko|Komp)[^"]*)"(?:,(?:null|"[^"]*"|[\d.]+))*,(\d\.\d),(\d+)/', $decoded, $gbpMatches, PREG_SET_ORDER)) {
-        foreach ($gbpMatches as $m) {
-            $name = cleanText($m[1]);
-            if (isValidName($name) && !isAlreadyInResults($name, $allResults)) {
-                $r = makeResult($name, cleanText($m[2]), $city);
-                $r['rating'] = floatval($m[3]);
-                $r['review_count'] = intval($m[4]);
-                $r = recalcTrust($r);
-                $allResults[] = $r;
-            }
-        }
-    }
+    // Sort by trust score
+    usort($results, function($a, $b) { return $b['trust_score'] - $a['trust_score']; });
 
-    // ─── Strategy 4: Extract CCTV-related business names ───
-    $cctvWords = ['CCTV', 'Hikvision', 'Dahua', 'Security', 'Kamera', 'Camera', 'Alarm', 'Surveillance', 'Toko Elektronik'];
-    foreach ($cctvWords as $cctvWord) {
-        if (preg_match_all('/"([^"]{5,80}' . preg_quote($cctvWord, '/') . '[^"]{0,50})"/', $decoded, $cctvM)) {
-            foreach ($cctvM[1] as $name) {
-                $name = cleanText($name);
-                if (isValidName($name) && !isAlreadyInResults($name, $allResults)) {
-                    $allResults[] = makeResult($name, '', $city);
-                }
-            }
-        }
-    }
-
-    // ─── Strategy 5: Parse from visible text with ratings ───
-    // Pattern: "Nama Toko 4.5 (120)" or "Nama Toko · 4.5(120)"
-    if (preg_match_all('/>([^<]{5,80}(?:CCTV|Security|Kamera|Camera|Hikvision|Dahua|Alarm|Elektronik|Toko)[^<]{0,30})</', $decoded, $visibleM)) {
-        foreach ($visibleM[1] as $text) {
-            $text = cleanText($text);
-            if (isValidName($text) && !isAlreadyInResults($text, $allResults)) {
-                $allResults[] = makeResult($text, '', $city);
-            }
-        }
-    }
-
-    // ─── Strategy 6: Extract from href URLs containing place data ───
-    if (preg_match_all('/\/maps\/place\/([^\/]+)\//', $decoded, $placeUrls)) {
-        foreach ($placeUrls[1] as $placeName) {
-            $name = cleanText(urldecode(str_replace('+', ' ', $placeName)));
-            if (isValidName($name) && strlen($name) >= 5 && !isAlreadyInResults($name, $allResults)) {
-                $allResults[] = makeResult($name, '', $city);
-            }
-        }
-    }
-
-    // Deduplicate
-    $unique = [];
-    $seen = [];
-    foreach ($allResults as $r) {
-        $key = strtolower(preg_replace('/[^a-z0-9]/i', '', $r['name']));
-        if (!isset($seen[$key])) {
-            $seen[$key] = true;
-            $unique[] = $r;
-        }
-    }
-
-    usort($unique, function($a, $b) { return $b['trust_score'] - $a['trust_score']; });
-    $unique = array_slice($unique, 0, 20);
-
-    $response = [
+    $responseData = [
         'error'         => false,
         'keyword'       => $keyword,
         'city'          => $city,
-        'total_results' => count($unique),
-        'results'       => $unique,
+        'total_results' => count($results),
+        'results'       => $results,
         'scraped_at'    => date('Y-m-d H:i:s'),
         'from_cache'    => false,
+        'source'        => 'Foursquare Places API',
     ];
-    @file_put_contents($cacheFile, json_encode($response, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
 
-    $response['stats'] = gmaps_get_stats();
-    echo json_encode($response);
+    @file_put_contents($cacheFile, json_encode($responseData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
+
+    $responseData['stats'] = gmaps_get_stats();
+    echo json_encode($responseData);
     exit;
 }
 
 echo json_encode(['error' => true, 'message' => 'Action tidak valid']);
 
 // ══════════════════════════════════════════════════
-// HELPER FUNCTIONS
+// CITY COORDINATES
 // ══════════════════════════════════════════════════
-
-function curlFetch($url, $ua) {
-    $ch = curl_init();
-    curl_setopt_array($ch, [
-        CURLOPT_URL            => $url,
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_TIMEOUT        => 20,
-        CURLOPT_USERAGENT      => $ua,
-        CURLOPT_ENCODING       => 'gzip',
-        CURLOPT_SSL_VERIFYPEER => false,
-        CURLOPT_COOKIE         => 'CONSENT=PENDING+987; SOCS=CAESHAgBEhJnd3NfMjAyMzA4MTUtMF9SQzIaAmVuIAEaBgiAo_CmBg',
-        CURLOPT_HTTPHEADER     => [
-            'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-            'Accept-Language: id-ID,id;q=0.9,en;q=0.7',
-        ],
-    ]);
-    $html = curl_exec($ch);
-    $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
-    return ($html !== false && $code === 200) ? $html : null;
-}
-
-function cleanText($str) {
-    $str = html_entity_decode($str, ENT_QUOTES, 'UTF-8');
-    $str = preg_replace('/\\\\[nrt]/', ' ', $str);
-    $str = preg_replace('/\s+/', ' ', trim($str));
-    return $str;
-}
-
-function isValidName($name) {
-    if (strlen($name) < 3 || strlen($name) > 100) return false;
-    if (preg_match('/[{}<>\\\\\/\[\]]/', $name)) return false;
-    if (preg_match('/^(http|www\.|function|var |const |let |return |null|undefined|true|false)/i', $name)) return false;
-    if (preg_match('/\.(js|css|html|php|png|jpg|svg)$/i', $name)) return false;
-    if (preg_match('/^[\d\s\.\-,]+$/', $name)) return false; // Only numbers/symbols
-    // Must contain at least 2 letters
-    if (preg_match_all('/[a-zA-Z]/', $name) < 2) return false;
-    return true;
-}
-
-function containsCCTVKeyword($text) {
-    $keywords = ['CCTV', 'cctv', 'Security', 'Kamera', 'Camera', 'Hikvision', 'Dahua', 
-                 'Alarm', 'Surveillance', 'Elektronik', 'Toko', 'Distributor', 'Supplier',
-                 'Installer', 'Pasang', 'Jual'];
-    foreach ($keywords as $kw) {
-        if (stripos($text, $kw) !== false) return true;
-    }
-    return false;
-}
-
-function isAlreadyInResults($name, $results) {
-    $key = strtolower(preg_replace('/[^a-z0-9]/i', '', $name));
-    foreach ($results as $r) {
-        $rKey = strtolower(preg_replace('/[^a-z0-9]/i', '', $r['name']));
-        if ($key === $rKey) return true;
-    }
-    return false;
-}
-
-function makeResult($name, $address, $city) {
+function getCityCoordinates() {
     return [
-        'place_id'        => md5($name . $city),
-        'name'            => $name,
-        'address'         => $address,
-        'phone'           => '',
-        'website'         => '',
-        'maps_url'        => 'https://www.google.com/maps/search/' . urlencode($name . ' ' . $city),
-        'rating'          => 0,
-        'review_count'    => 0,
-        'photo_count'     => 0,
-        'photo_ref'       => '',
-        'lat'             => 0,
-        'lng'             => 0,
-        'business_status' => '',
-        'types'           => [],
-        'primary_type'    => '',
-        'trust_score'     => 15,
-        'trust_level'     => 'berisiko',
+        'Tangerang'       => [-6.1783, 106.6319],
+        'Tangerang Selatan' => [-6.2886, 106.7183],
+        'Jakarta Pusat'   => [-6.1862, 106.8345],
+        'Jakarta Selatan' => [-6.2615, 106.8106],
+        'Jakarta Barat'   => [-6.1484, 106.7558],
+        'Jakarta Timur'   => [-6.2250, 106.9004],
+        'Jakarta Utara'   => [-6.1380, 106.8631],
+        'Bekasi'          => [-6.2383, 106.9756],
+        'Bogor'           => [-6.5971, 106.8060],
+        'Depok'           => [-6.4025, 106.7942],
+        'Bandung'         => [-6.9175, 107.6191],
+        'Surabaya'        => [-7.2575, 112.7521],
+        'Semarang'        => [-6.9666, 110.4196],
+        'Yogyakarta'      => [-7.7972, 110.3688],
+        'Medan'           => [3.5952, 98.6722],
+        'Makassar'        => [-5.1477, 119.4327],
+        'Palembang'       => [-2.9761, 104.7754],
+        'Denpasar'        => [-8.6500, 115.2167],
+        'Malang'          => [-7.9666, 112.6326],
+        'Surakarta'       => [-7.5755, 110.8243],
+        'Pekanbaru'       => [0.5071, 101.4478],
+        'Balikpapan'      => [-1.2379, 116.8529],
+        'Manado'          => [1.4748, 124.8421],
+        'Pontianak'       => [-0.0263, 109.3425],
+        'Banjarmasin'     => [-3.3194, 114.5907],
+        'Samarinda'       => [-0.4948, 117.1436],
+        'Serang'          => [-6.1103, 106.1512],
+        'Cilegon'         => [-6.0023, 106.0507],
+        'Karawang'        => [-6.3227, 107.3376],
+        'Cirebon'         => [-6.7320, 108.5523],
+        'Tasikmalaya'     => [-7.3274, 108.2207],
+        'Sukabumi'        => [-6.9277, 106.9300],
+        'Purwokerto'      => [-7.4214, 109.2342],
+        'Tegal'           => [-6.8797, 109.1426],
+        'Pekalongan'      => [-6.8886, 109.6753],
+        'Kediri'          => [-7.8167, 112.0170],
+        'Madiun'          => [-7.6298, 111.5300],
+        'Jember'          => [-8.1727, 113.6881],
+        'Jambi'           => [-1.6101, 103.6131],
+        'Padang'          => [-0.9471, 100.4172],
+        'Bandar Lampung'  => [-5.3971, 105.2668],
+        'Mataram'         => [-8.5833, 116.1167],
+        'Kupang'          => [-10.1772, 123.6070],
+        'Ambon'           => [-3.6954, 128.1814],
+        'Jayapura'        => [-2.5916, 140.6690],
+        'Batam'           => [1.0456, 104.0305],
+        'Cikarang'        => [-6.3103, 107.1731],
+        'Sidoarjo'        => [-7.4478, 112.7183],
+        'Gresik'          => [-7.1625, 112.6513],
+        'Kudus'           => [-6.8048, 110.8405],
     ];
-}
-
-function recalcTrust($r) {
-    $ts = 15;
-    if (!empty($r['address'])) $ts += 15;
-    if (!empty($r['phone'])) $ts += 20;
-    if ($r['review_count'] >= 20) $ts += 25;
-    elseif ($r['review_count'] >= 10) $ts += 15;
-    elseif ($r['review_count'] >= 5) $ts += 10;
-    if ($r['rating'] >= 4.0) $ts += 15;
-    elseif ($r['rating'] >= 3.0) $ts += 5;
-    $r['trust_score'] = $ts;
-    $r['trust_level'] = $ts >= 70 ? 'terpercaya' : ($ts >= 40 ? 'perlu_cek' : 'berisiko');
-    return $r;
 }
 ?>

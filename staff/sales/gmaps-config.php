@@ -9,12 +9,13 @@
 // ══════════════════════════════════════════════════
 // KONFIGURASI — UBAH DI SINI
 // ══════════════════════════════════════════════════
-// API Key tidak diperlukan (pakai web scraping gratis)
-// define('GMAPS_API_KEY', 'tidak_diperlukan');
+// Foursquare API Key (GRATIS - 100.000 request/bulan, tanpa kartu kredit)
+// Register di: https://foursquare.com/developers → Create Project → Copy API Key
+define('FOURSQUARE_API_KEY', ''); // ← PASTE API KEY DI SINI
 
-// Batas penggunaan — proteksi agar tidak diblock Google
-define('GMAPS_DAILY_LIMIT',   10);    // Max request ke Google per hari (ketat = aman)
-define('GMAPS_MONTHLY_LIMIT', 200);   // Max request ke Google per bulan
+// Batas penggunaan — proteksi internal
+define('GMAPS_DAILY_LIMIT',   50);    // Max request per hari
+define('GMAPS_MONTHLY_LIMIT', 1000);  // Max request per bulan (Foursquare: 100K free)
 
 // File counter
 define('GMAPS_USAGE_FILE', __DIR__ . '/gmaps_usage.json');
