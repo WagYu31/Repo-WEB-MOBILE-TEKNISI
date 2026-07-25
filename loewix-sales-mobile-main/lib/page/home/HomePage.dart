@@ -148,8 +148,8 @@ class _BottomNavBar extends StatelessWidget {
   }
 }
 
-// ── Kunjungan Tab ────────────────────────────────────────
-class _KunjunganTab extends StatelessWidget {
+// ── Kunjungan Tab ────────────────────────────────────────────────
+class _KunjunganTab extends StatefulWidget {
   final int taskTab;
   final String greeting;
   final ValueChanged<int> onTaskTabChange;
@@ -158,6 +158,14 @@ class _KunjunganTab extends StatelessWidget {
     required this.greeting,
     required this.onTaskTabChange,
   });
+
+  @override
+  State<_KunjunganTab> createState() => _KunjunganTabState();
+}
+
+class _KunjunganTabState extends State<_KunjunganTab> {
+  // null = no filter (show all), 'total', 'berjalan', 'selesai', 'belum'
+  String? _activeFilter;
 
   @override
   Widget build(BuildContext context) {
@@ -169,6 +177,19 @@ class _KunjunganTab extends StatelessWidget {
     final berjalan = tasks.where((t) => t.sedangBerjalan).length;
     final selesai  = tasks.where((t) => t.selesai).length;
     final belum    = tasks.where((t) => !t.sudahClockIn).length;
+
+    // Apply client-side filter based on active stat card
+    final filteredTasks = _activeFilter == null
+        ? tasks
+        : tasks.where((t) {
+            switch (_activeFilter) {
+              case 'berjalan': return t.sedangBerjalan;
+              case 'selesai':  return t.selesai;
+              case 'belum':    return !t.sudahClockIn;
+              case 'total':
+              default:         return true;
+            }
+          }).toList();
 
     return Column(
       children: [
@@ -224,7 +245,7 @@ class _KunjunganTab extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text('$greeting,',
+                            Text('${widget.greeting},',
                                 style: S.caption(AppColors.textSecondary))
                                 .animate().fadeIn(duration: 500.ms),
                             Text(
@@ -272,16 +293,28 @@ class _KunjunganTab extends StatelessWidget {
                   ),
                   const SizedBox(height: 22),
 
-                  // ── Stat Cards ─────────────────────
+                  // ── Stat Cards (Tappable Filters) ───────────────────
                   Row(
                     children: [
-                      _StatCard('Total', total, Icons.list_alt_rounded, AppColors.primary),
+                      _StatCard('Total', total, Icons.list_alt_rounded, AppColors.primary,
+                        isActive: _activeFilter == 'total',
+                        onTap: () => setState(() => _activeFilter = _activeFilter == 'total' ? null : 'total'),
+                      ),
                       const SizedBox(width: 10),
-                      _StatCard('Berjalan', berjalan, Icons.directions_walk, AppColors.warning),
+                      _StatCard('Berjalan', berjalan, Icons.directions_walk, AppColors.warning,
+                        isActive: _activeFilter == 'berjalan',
+                        onTap: () => setState(() => _activeFilter = _activeFilter == 'berjalan' ? null : 'berjalan'),
+                      ),
                       const SizedBox(width: 10),
-                      _StatCard('Selesai', selesai, Icons.check_circle_rounded, AppColors.success),
+                      _StatCard('Selesai', selesai, Icons.check_circle_rounded, AppColors.success,
+                        isActive: _activeFilter == 'selesai',
+                        onTap: () => setState(() => _activeFilter = _activeFilter == 'selesai' ? null : 'selesai'),
+                      ),
                       const SizedBox(width: 10),
-                      _StatCard('Belum', belum, Icons.schedule_rounded, AppColors.pending),
+                      _StatCard('Belum', belum, Icons.schedule_rounded, AppColors.pending,
+                        isActive: _activeFilter == 'belum',
+                        onTap: () => setState(() => _activeFilter = _activeFilter == 'belum' ? null : 'belum'),
+                      ),
                     ],
                   ).animate(delay: 250.ms).fadeIn(duration: 500.ms).slideY(begin: 0.15, end: 0),
                 ],
@@ -290,7 +323,7 @@ class _KunjunganTab extends StatelessWidget {
           ),
         ),
 
-        // ── Tab Bar ──────────────────────────────────
+        // ── Tab Bar ────────────────────────────────────────────
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
           child: Container(
@@ -302,30 +335,60 @@ class _KunjunganTab extends StatelessWidget {
             ),
             child: Row(
               children: [
-                _TabBtn('Hari Ini', 0, taskTab, onTaskTabChange),
-                _TabBtn('Akan Datang', 1, taskTab, onTaskTabChange),
-                _TabBtn('Semua', 2, taskTab, onTaskTabChange),
+                _TabBtn('Hari Ini', 0, widget.taskTab, widget.onTaskTabChange),
+                _TabBtn('Akan Datang', 1, widget.taskTab, widget.onTaskTabChange),
+                _TabBtn('Semua', 2, widget.taskTab, widget.onTaskTabChange),
               ],
             ),
           ),
         ).animate(delay: 350.ms).fadeIn(duration: 400.ms),
 
-        // ── Task List ─────────────────────────────────
+        // ── Active Filter Indicator ────────────────────────────
+        if (_activeFilter != null)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: GestureDetector(
+              onTap: () => setState(() => _activeFilter = null),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.filter_alt_rounded, size: 14, color: AppColors.primary),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Filter: ${_activeFilter![0].toUpperCase()}${_activeFilter!.substring(1)}',
+                      style: S.caption(AppColors.primary).copyWith(fontWeight: FontWeight.w700),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(Icons.close_rounded, size: 14, color: AppColors.primary),
+                  ],
+                ),
+              ),
+            ),
+          ).animate().fadeIn(duration: 200.ms),
+
+        // ── Task List ───────────────────────────────────────────
         Expanded(
           child: prov.isLoading
               ? const Center(
                   child: CircularProgressIndicator(color: AppColors.primary))
-              : tasks.isEmpty
+              : filteredTasks.isEmpty
                   ? _EmptyKunjungan(
                       onRefresh: () => prov.fetchTasks(
-                          filter: ['today', 'upcoming', 'all'][taskTab]),
+                          filter: ['today', 'upcoming', 'all'][widget.taskTab]),
                     )
                   : RefreshIndicator(
                       onRefresh: () => prov.fetchTasks(
-                          filter: ['today', 'upcoming', 'all'][taskTab]),
+                          filter: ['today', 'upcoming', 'all'][widget.taskTab]),
                       color: AppColors.primary,
                       backgroundColor: AppColors.card,
-                      child: TaskListPage(tasks: tasks),
+                      child: TaskListPage(tasks: filteredTasks),
                     ),
         ),
       ],
@@ -333,63 +396,87 @@ class _KunjunganTab extends StatelessWidget {
   }
 }
 
-// ── Animated Stat Card ───────────────────────────────────
+// ── Animated Stat Card (Tappable Filter) ─────────────────────
 class _StatCard extends StatelessWidget {
   final String label;
   final int value;
   final IconData icon;
   final Color color;
-  const _StatCard(this.label, this.value, this.icon, this.color);
+  final bool isActive;
+  final VoidCallback? onTap;
+  const _StatCard(this.label, this.value, this.icon, this.color, {
+    this.isActive = false,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
-        decoration: BoxDecoration(
-          color: AppColors.card,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.02),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOut,
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+          decoration: BoxDecoration(
+            color: isActive ? color.withOpacity(0.08) : AppColors.card,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isActive ? color : AppColors.border,
+              width: isActive ? 2 : 1,
             ),
-          ],
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Circular Icon Badge
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.12),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, color: color, size: 16),
+            boxShadow: isActive
+                ? [
+                    BoxShadow(
+                      color: color.withOpacity(0.15),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ]
+                : [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.02),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+          ),
+          child: AnimatedScale(
+            scale: isActive ? 1.03 : 1.0,
+            duration: const Duration(milliseconds: 200),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(isActive ? 0.2 : 0.12),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(icon, color: color, size: 16),
+                ),
+                const SizedBox(height: 8),
+                TweenAnimationBuilder<int>(
+                  tween: IntTween(begin: 0, end: value),
+                  duration: const Duration(milliseconds: 600),
+                  curve: Curves.easeOut,
+                  builder: (_, v, __) => Text(
+                    '$v',
+                    style: S.h2(isActive ? color : AppColors.textPrimary)
+                        .copyWith(fontWeight: FontWeight.w700),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  label,
+                  style: S.label(isActive ? color : AppColors.textSecondary)
+                      .copyWith(fontWeight: isActive ? FontWeight.w700 : FontWeight.w500),
+                  textAlign: TextAlign.center,
+                ),
+              ],
             ),
-            const SizedBox(height: 8),
-            // Value
-            TweenAnimationBuilder<int>(
-              tween: IntTween(begin: 0, end: value),
-              duration: const Duration(milliseconds: 600),
-              curve: Curves.easeOut,
-              builder: (_, v, __) => Text(
-                '$v',
-                style: S.h2(AppColors.textPrimary).copyWith(fontWeight: FontWeight.w700),
-                textAlign: TextAlign.center,
-              ),
-            ),
-            const SizedBox(height: 2),
-            // Label
-            Text(
-              label,
-              style: S.label(AppColors.textSecondary),
-              textAlign: TextAlign.center,
-            ),
-          ],
+          ),
         ),
       ),
     );
