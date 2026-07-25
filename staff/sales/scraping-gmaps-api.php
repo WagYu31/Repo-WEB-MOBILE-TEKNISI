@@ -1,15 +1,11 @@
 <?php
 /**
- * Google Maps Scraping — Google Local Search (GRATIS)
+ * Google Maps Scraping — Parser untuk format udm=1 (Google Local 2025+)
  * 
- * Menggunakan Google Search local results (tbm=lcl) yang mengembalikan
- * data bisnis dalam HTML yang bisa di-parse tanpa JavaScript.
+ * Google redirect tbm=lcl ke udm=1 yang berisi data dalam JavaScript.
+ * Data toko tersimpan dalam escaped JSON di dalam <script> tags.
  * 
- * Anti-block:
- * - Max 10 request/hari, 200/bulan
- * - Cache 7 hari
- * - Random delay 2-5 detik
- * - Rotasi User-Agent
+ * Anti-block: 10 req/hari, cache 7 hari, random delay, rotasi UA
  */
 
 error_reporting(0);
@@ -29,15 +25,13 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 $input = json_decode(file_get_contents('php://input'), true);
-$action = $input['action'] ?? $_POST['action'] ?? 'search';
+$action = $input['action'] ?? 'search';
 
-// ═══ Stats ═══
 if ($action === 'stats') {
     echo json_encode(['error' => false, 'stats' => gmaps_get_stats()]);
     exit;
 }
 
-// ═══ Search ═══
 if ($action === 'search') {
     $keyword = trim($input['keyword'] ?? '');
     $city    = trim($input['city'] ?? '');
@@ -54,9 +48,9 @@ if ($action === 'search') {
         exit;
     }
 
-    // Cache check
+    // Cache
     $cacheDir = __DIR__ . '/gmaps_cache';
-    if (!is_dir($cacheDir)) mkdir($cacheDir, 0755, true);
+    if (!is_dir($cacheDir)) @mkdir($cacheDir, 0755, true);
     $cacheKey = md5($keyword . '|' . $city);
     $cacheFile = $cacheDir . '/' . $cacheKey . '.json';
     
@@ -70,69 +64,161 @@ if ($action === 'search') {
         }
     }
 
-    // Random delay
-    usleep(rand(2000000, 5000000));
+    // Delay
+    usleep(rand(1500000, 4000000));
 
-    // User agents
     $uas = [
         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
         'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
-        'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
         'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0',
     ];
 
     $query = $keyword . ' di ' . $city;
-    $results = [];
+    $allResults = [];
 
-    // ═══ Method 1: Google Local Search (tbm=lcl) ═══
-    $url1 = 'https://www.google.com/search?' . http_build_query([
-        'q'     => $query,
-        'tbm'   => 'lcl',
-        'hl'    => 'id',
-        'gl'    => 'id',
-        'num'   => 20,
+    // ═══ Fetch Google Search ═══
+    $url = 'https://www.google.com/search?' . http_build_query([
+        'q'   => $query,
+        'hl'  => 'id',
+        'gl'  => 'id',
+        'num' => 20,
     ]);
 
-    $html1 = curlFetch($url1, $uas[array_rand($uas)]);
+    $html = curlFetch($url, $uas[array_rand($uas)]);
     gmaps_increment_usage();
 
-    if ($html1) {
-        $results = array_merge($results, parseLocalSearch($html1, $city));
+    if (!$html) {
+        echo json_encode(['error' => true, 'message' => 'Gagal mengakses Google Search', 'stats' => gmaps_get_stats()]);
+        exit;
     }
 
-    // ═══ Method 2: Regular Google Search (fallback) ═══
-    if (count($results) < 3) {
-        usleep(rand(1500000, 3000000));
-        
-        $url2 = 'https://www.google.com/search?' . http_build_query([
-            'q'  => $query . ' alamat telepon',
-            'hl' => 'id',
-            'gl' => 'id',
-            'num'=> 20,
-        ]);
-        
-        $html2 = curlFetch($url2, $uas[array_rand($uas)]);
-        if ($html2) {
-            $results = array_merge($results, parseRegularSearch($html2, $city, $keyword));
+    // ═══ Parse data dari HTML ═══
+    // Google menyimpan data bisnis dalam JavaScript code di dalam <script> tags
+    // Data mengandung nama toko, alamat, rating, review count, telepon, dll.
+    
+    // Decode semua unicode escapes di HTML
+    $decoded = preg_replace_callback('/\\\\x([0-9a-fA-F]{2})/', function($m) {
+        return chr(hexdec($m[1]));
+    }, $html);
+    $decoded = preg_replace_callback('/\\\\u([0-9a-fA-F]{4})/', function($m) {
+        return mb_convert_encoding(pack('H*', $m[1]), 'UTF-8', 'UCS-2BE');
+    }, $decoded);
+
+    // ─── Strategy 1: Extract business data from JavaScript arrays ───
+    // Pattern: business name followed by address, in JS string literals
+    // Google stores: ["business name","address","lat,lng",rating,reviewcount,...]
+    
+    // Look for patterns like: "Nama Toko","Jl. Alamat"
+    if (preg_match_all('/"([^"]{3,80})"\s*,\s*"((?:Jl\.|Jalan|Ruko|Komp|Blok|Perum|Gg\.|Gang|Kav|No\.|Gedung|Lt\.|Lantai|Perumahan)[^"]{5,200})"/', $decoded, $matches, PREG_SET_ORDER)) {
+        foreach ($matches as $m) {
+            $name = cleanText($m[1]);
+            $address = cleanText($m[2]);
+            if (isValidName($name)) {
+                $r = makeResult($name, $address, $city);
+                // Look for rating/review near this match
+                $pos = strpos($decoded, $m[0]);
+                if ($pos !== false) {
+                    $chunk = substr($decoded, max(0, $pos - 200), 600);
+                    if (preg_match('/(\d[.,]\d)\s*(?:bintang|star|rating)?\s*[\s,]*\(?\s*(\d+)\s*(?:ulasan|review|rating)/i', $chunk, $rm)) {
+                        $r['rating'] = floatval(str_replace(',', '.', $rm[1]));
+                        $r['review_count'] = intval($rm[2]);
+                    } elseif (preg_match('/,(\d[.,]\d),(\d+),/', $chunk, $rm2)) {
+                        $rating = floatval(str_replace(',', '.', $rm2[1]));
+                        $reviews = intval($rm2[2]);
+                        if ($rating >= 1 && $rating <= 5 && $reviews > 0 && $reviews < 50000) {
+                            $r['rating'] = $rating;
+                            $r['review_count'] = $reviews;
+                        }
+                    }
+                    // Phone
+                    if (preg_match('/(?:\+62|062|0)\s*[\d\s\-()]{8,16}/', $chunk, $pm)) {
+                        $r['phone'] = trim(preg_replace('/\s+/', '', $pm[0]));
+                    }
+                }
+                $r = recalcTrust($r);
+                $allResults[] = $r;
+            }
+        }
+    }
+
+    // ─── Strategy 2: Extract from "title" or "aria-label" attributes ───
+    if (preg_match_all('/(?:aria-label|title|data-tooltip)="([^"]{5,100})"/i', $decoded, $labelMatches)) {
+        foreach ($labelMatches[1] as $label) {
+            $label = cleanText($label);
+            // Filter: harus mengandung keyword terkait
+            if (!containsCCTVKeyword($label) && !containsCCTVKeyword($keyword)) continue;
+            if (!isValidName($label)) continue;
+            // Remove common prefixes
+            $label = preg_replace('/^(?:Situs web|Website|Petunjuk arah|Directions|Telepon|Rute ke)\s+(?:untuk\s+)?/i', '', $label);
+            if (strlen($label) >= 3 && !isAlreadyInResults($label, $allResults)) {
+                $allResults[] = makeResult($label, '', $city);
+            }
+        }
+    }
+
+    // ─── Strategy 3: Extract from Google Business Profile data ───
+    // Pattern: data between specific markers that contain business info
+    if (preg_match_all('/\[(?:null,?)*"([^"]{3,80})"(?:,(?:null|"[^"]*"))*,"([^"]*(?:Jl|Jalan|Ruko|Komp)[^"]*)"(?:,(?:null|"[^"]*"|[\d.]+))*,(\d\.\d),(\d+)/', $decoded, $gbpMatches, PREG_SET_ORDER)) {
+        foreach ($gbpMatches as $m) {
+            $name = cleanText($m[1]);
+            if (isValidName($name) && !isAlreadyInResults($name, $allResults)) {
+                $r = makeResult($name, cleanText($m[2]), $city);
+                $r['rating'] = floatval($m[3]);
+                $r['review_count'] = intval($m[4]);
+                $r = recalcTrust($r);
+                $allResults[] = $r;
+            }
+        }
+    }
+
+    // ─── Strategy 4: Extract CCTV-related business names ───
+    $cctvWords = ['CCTV', 'Hikvision', 'Dahua', 'Security', 'Kamera', 'Camera', 'Alarm', 'Surveillance', 'Toko Elektronik'];
+    foreach ($cctvWords as $cctvWord) {
+        if (preg_match_all('/"([^"]{5,80}' . preg_quote($cctvWord, '/') . '[^"]{0,50})"/', $decoded, $cctvM)) {
+            foreach ($cctvM[1] as $name) {
+                $name = cleanText($name);
+                if (isValidName($name) && !isAlreadyInResults($name, $allResults)) {
+                    $allResults[] = makeResult($name, '', $city);
+                }
+            }
+        }
+    }
+
+    // ─── Strategy 5: Parse from visible text with ratings ───
+    // Pattern: "Nama Toko 4.5 (120)" or "Nama Toko · 4.5(120)"
+    if (preg_match_all('/>([^<]{5,80}(?:CCTV|Security|Kamera|Camera|Hikvision|Dahua|Alarm|Elektronik|Toko)[^<]{0,30})</', $decoded, $visibleM)) {
+        foreach ($visibleM[1] as $text) {
+            $text = cleanText($text);
+            if (isValidName($text) && !isAlreadyInResults($text, $allResults)) {
+                $allResults[] = makeResult($text, '', $city);
+            }
+        }
+    }
+
+    // ─── Strategy 6: Extract from href URLs containing place data ───
+    if (preg_match_all('/\/maps\/place\/([^\/]+)\//', $decoded, $placeUrls)) {
+        foreach ($placeUrls[1] as $placeName) {
+            $name = cleanText(urldecode(str_replace('+', ' ', $placeName)));
+            if (isValidName($name) && strlen($name) >= 5 && !isAlreadyInResults($name, $allResults)) {
+                $allResults[] = makeResult($name, '', $city);
+            }
         }
     }
 
     // Deduplicate
     $unique = [];
     $seen = [];
-    foreach ($results as $r) {
+    foreach ($allResults as $r) {
         $key = strtolower(preg_replace('/[^a-z0-9]/i', '', $r['name']));
-        if (!isset($seen[$key]) && strlen($r['name']) >= 3) {
+        if (!isset($seen[$key])) {
             $seen[$key] = true;
             $unique[] = $r;
         }
     }
 
-    // Sort by trust score
     usort($unique, function($a, $b) { return $b['trust_score'] - $a['trust_score']; });
     $unique = array_slice($unique, 0, 20);
 
-    // Cache
     $response = [
         'error'         => false,
         'keyword'       => $keyword,
@@ -142,7 +228,7 @@ if ($action === 'search') {
         'scraped_at'    => date('Y-m-d H:i:s'),
         'from_cache'    => false,
     ];
-    file_put_contents($cacheFile, json_encode($response, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
+    @file_put_contents($cacheFile, json_encode($response, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
 
     $response['stats'] = gmaps_get_stats();
     echo json_encode($response);
@@ -150,25 +236,25 @@ if ($action === 'search') {
 }
 
 echo json_encode(['error' => true, 'message' => 'Action tidak valid']);
-exit;
 
 // ══════════════════════════════════════════════════
-// CURL FETCH
+// HELPER FUNCTIONS
 // ══════════════════════════════════════════════════
+
 function curlFetch($url, $ua) {
     $ch = curl_init();
     curl_setopt_array($ch, [
         CURLOPT_URL            => $url,
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_TIMEOUT        => 15,
+        CURLOPT_TIMEOUT        => 20,
         CURLOPT_USERAGENT      => $ua,
         CURLOPT_ENCODING       => 'gzip',
         CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_COOKIE         => 'CONSENT=PENDING+987; SOCS=CAESHAgBEhJnd3NfMjAyMzA4MTUtMF9SQzIaAmVuIAEaBgiAo_CmBg',
         CURLOPT_HTTPHEADER     => [
             'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
             'Accept-Language: id-ID,id;q=0.9,en;q=0.7',
-            'Connection: keep-alive',
         ],
     ]);
     $html = curl_exec($ch);
@@ -177,190 +263,62 @@ function curlFetch($url, $ua) {
     return ($html !== false && $code === 200) ? $html : null;
 }
 
-// ══════════════════════════════════════════════════
-// PARSER: Google Local Search Results
-// ══════════════════════════════════════════════════
-function parseLocalSearch($html, $city) {
-    $results = [];
-
-    // Method A: Parse business cards dari local results
-    // Pattern: <div class="VkpGBb"> contains business name, or data-cid attributes
-    
-    // Extract business names from aria-label or title attributes in local results
-    // Google Local search has consistent patterns for business listings
-    
-    // Pattern 1: Extract from structured data divs
-    // Business name biasanya dalam <span> atau <div> dengan class tertentu
-    if (preg_match_all('/<span class="OSrXXb"[^>]*>([^<]+)<\/span>/', $html, $names)) {
-        foreach ($names[1] as $i => $name) {
-            $name = html_entity_decode(trim($name), ENT_QUOTES, 'UTF-8');
-            if (strlen($name) < 3 || strlen($name) > 100) continue;
-            
-            $result = makeResult($name, $city);
-            
-            // Try to find rating near this name
-            $pos = strpos($html, $name);
-            if ($pos !== false) {
-                $chunk = substr($html, $pos, 500);
-                // Rating pattern
-                if (preg_match('/(\d[.,]\d)\s*</', $chunk, $rm)) {
-                    $result['rating'] = floatval(str_replace(',', '.', $rm[1]));
-                }
-                // Review count
-                if (preg_match('/\((\d+)\)/', $chunk, $rcm)) {
-                    $result['review_count'] = intval($rcm[1]);
-                }
-                // Address
-                if (preg_match('/(?:Jl\.|Jalan|Ruko|Komp|Blok|No\.|Perum|Gg\.)[^<]{5,150}/', $chunk, $am)) {
-                    $result['address'] = html_entity_decode(trim($am[0]), ENT_QUOTES, 'UTF-8');
-                }
-                // Phone
-                if (preg_match('/(?:\+62|62|0)\s*[\d\s\-]{8,15}/', $chunk, $pm)) {
-                    $result['phone'] = trim($pm[0]);
-                }
-            }
-            
-            $result = recalcTrust($result);
-            $results[] = $result;
-        }
-    }
-    
-    // Pattern 2: Alternative class names Google uses
-    if (empty($results)) {
-        // Try dbg0pd class (another common local result class)
-        if (preg_match_all('/<div[^>]*class="[^"]*dbg0pd[^"]*"[^>]*>([^<]+)<\/div>/', $html, $names2)) {
-            foreach ($names2[1] as $name) {
-                $name = html_entity_decode(trim($name), ENT_QUOTES, 'UTF-8');
-                if (strlen($name) >= 3 && strlen($name) <= 100) {
-                    $results[] = makeResult($name, $city);
-                }
-            }
-        }
-    }
-
-    // Pattern 3: aria-label on result links (most reliable)
-    if (empty($results)) {
-        if (preg_match_all('/aria-label="([^"]{3,100})"[^>]*href="[^"]*google\.com\/maps/', $html, $ariaMatches)) {
-            foreach ($ariaMatches[1] as $name) {
-                $name = html_entity_decode(trim($name), ENT_QUOTES, 'UTF-8');
-                // Remove "Situs web untuk " prefix if present
-                $name = preg_replace('/^(?:Situs web untuk|Website for|Petunjuk arah ke|Directions to)\s*/i', '', $name);
-                if (strlen($name) >= 3 && strlen($name) <= 100) {
-                    $results[] = makeResult($name, $city);
-                }
-            }
-        }
-    }
-
-    // Pattern 4: Parse dari JSON-LD structured data
-    if (preg_match_all('/<script type="application\/ld\+json">(.*?)<\/script>/s', $html, $jsonLd)) {
-        foreach ($jsonLd[1] as $json) {
-            $data = json_decode($json, true);
-            if (!$data) continue;
-            
-            // Handle single item or array
-            $items = isset($data['@type']) ? [$data] : ($data['@graph'] ?? [$data]);
-            foreach ($items as $item) {
-                if (isset($item['name']) && isset($item['@type']) && 
-                    in_array($item['@type'], ['LocalBusiness', 'Store', 'Organization', 'Place'])) {
-                    $r = makeResult($item['name'], $city);
-                    if (isset($item['address']['streetAddress'])) $r['address'] = $item['address']['streetAddress'];
-                    if (isset($item['telephone'])) $r['phone'] = $item['telephone'];
-                    if (isset($item['aggregateRating']['ratingValue'])) $r['rating'] = floatval($item['aggregateRating']['ratingValue']);
-                    if (isset($item['aggregateRating']['reviewCount'])) $r['review_count'] = intval($item['aggregateRating']['reviewCount']);
-                    $r = recalcTrust($r);
-                    $results[] = $r;
-                }
-            }
-        }
-    }
-
-    // Pattern 5: Generic business name extraction from result containers
-    if (empty($results)) {
-        // Google wraps each local result in a div, the business name is typically in an <a> or <span> with data attributes
-        if (preg_match_all('/data-cid="[^"]*"[^>]*>.*?<(?:a|span)[^>]*>([^<]{3,80})<\/(?:a|span)>/s', $html, $cidMatches)) {
-            foreach ($cidMatches[1] as $name) {
-                $name = html_entity_decode(trim($name), ENT_QUOTES, 'UTF-8');
-                if (strlen($name) >= 3) {
-                    $results[] = makeResult($name, $city);
-                }
-            }
-        }
-    }
-
-    // Pattern 6: Extract all business-looking names from the page
-    if (empty($results)) {
-        // Look for patterns that look like business names near map/location content
-        if (preg_match_all('/<(?:h[23]|a|div|span)[^>]*>([^<]*(?:CCTV|Security|Kamera|Camera|Hikvision|Dahua|Alarm|Elektronik|Toko)[^<]*)</', $html, $bm)) {
-            foreach ($bm[1] as $name) {
-                $name = html_entity_decode(trim($name), ENT_QUOTES, 'UTF-8');
-                if (strlen($name) >= 5 && strlen($name) <= 100 && !preg_match('/[<>{}]/', $name)) {
-                    $results[] = makeResult($name, $city);
-                }
-            }
-        }
-    }
-
-    return $results;
+function cleanText($str) {
+    $str = html_entity_decode($str, ENT_QUOTES, 'UTF-8');
+    $str = preg_replace('/\\\\[nrt]/', ' ', $str);
+    $str = preg_replace('/\s+/', ' ', trim($str));
+    return $str;
 }
 
-// ══════════════════════════════════════════════════
-// PARSER: Regular Google Search Results  
-// ══════════════════════════════════════════════════
-function parseRegularSearch($html, $city, $keyword) {
-    $results = [];
-    
-    // Extract from search result titles (<h3> tags)
-    if (preg_match_all('/<h3[^>]*>([^<]+)<\/h3>/', $html, $titles)) {
-        foreach ($titles[1] as $title) {
-            $title = html_entity_decode(trim($title), ENT_QUOTES, 'UTF-8');
-            
-            // Filter: harus mengandung keyword terkait CCTV/security atau nama toko
-            $keywords = ['CCTV', 'cctv', 'Security', 'Kamera', 'Camera', 'Hikvision', 'Dahua', 
-                         'Alarm', 'Toko', 'Distributor', 'Supplier', 'Installer', 'Jual', 'Pasang'];
-            $match = false;
-            foreach ($keywords as $kw) {
-                if (stripos($title, $kw) !== false) { $match = true; break; }
-            }
-            
-            if (!$match) continue;
-            if (strlen($title) < 5 || strlen($title) > 120) continue;
-            
-            // Clean up title — hapus suffix seperti " - Google Maps", " | Tokopedia", dll
-            $title = preg_replace('/\s*[-|·–—]\s*(Google Maps|Maps|Tokopedia|Shopee|Bukalapak|Lazada|Blibli|Instagram|Facebook|Reviews|Review|Ulasan).*$/i', '', $title);
-            $title = trim($title);
-            
-            if (strlen($title) >= 3) {
-                $results[] = makeResult($title, $city);
-            }
-        }
-    }
-
-    return $results;
+function isValidName($name) {
+    if (strlen($name) < 3 || strlen($name) > 100) return false;
+    if (preg_match('/[{}<>\\\\\/\[\]]/', $name)) return false;
+    if (preg_match('/^(http|www\.|function|var |const |let |return |null|undefined|true|false)/i', $name)) return false;
+    if (preg_match('/\.(js|css|html|php|png|jpg|svg)$/i', $name)) return false;
+    if (preg_match('/^[\d\s\.\-,]+$/', $name)) return false; // Only numbers/symbols
+    // Must contain at least 2 letters
+    if (preg_match_all('/[a-zA-Z]/', $name) < 2) return false;
+    return true;
 }
 
-// ══════════════════════════════════════════════════
-// HELPERS
-// ══════════════════════════════════════════════════
-function makeResult($name, $city) {
+function containsCCTVKeyword($text) {
+    $keywords = ['CCTV', 'cctv', 'Security', 'Kamera', 'Camera', 'Hikvision', 'Dahua', 
+                 'Alarm', 'Surveillance', 'Elektronik', 'Toko', 'Distributor', 'Supplier',
+                 'Installer', 'Pasang', 'Jual'];
+    foreach ($keywords as $kw) {
+        if (stripos($text, $kw) !== false) return true;
+    }
+    return false;
+}
+
+function isAlreadyInResults($name, $results) {
+    $key = strtolower(preg_replace('/[^a-z0-9]/i', '', $name));
+    foreach ($results as $r) {
+        $rKey = strtolower(preg_replace('/[^a-z0-9]/i', '', $r['name']));
+        if ($key === $rKey) return true;
+    }
+    return false;
+}
+
+function makeResult($name, $address, $city) {
     return [
-        'place_id'     => md5($name . $city),
-        'name'         => $name,
-        'address'      => '',
-        'phone'        => '',
-        'website'      => '',
-        'maps_url'     => 'https://www.google.com/maps/search/' . urlencode($name . ' ' . $city),
-        'rating'       => 0,
-        'review_count' => 0,
-        'photo_count'  => 0,
-        'photo_ref'    => '',
-        'lat'          => 0,
-        'lng'          => 0,
+        'place_id'        => md5($name . $city),
+        'name'            => $name,
+        'address'         => $address,
+        'phone'           => '',
+        'website'         => '',
+        'maps_url'        => 'https://www.google.com/maps/search/' . urlencode($name . ' ' . $city),
+        'rating'          => 0,
+        'review_count'    => 0,
+        'photo_count'     => 0,
+        'photo_ref'       => '',
+        'lat'             => 0,
+        'lng'             => 0,
         'business_status' => '',
-        'types'        => [],
-        'primary_type' => '',
-        'trust_score'  => 15,
-        'trust_level'  => 'berisiko',
+        'types'           => [],
+        'primary_type'    => '',
+        'trust_score'     => 15,
+        'trust_level'     => 'berisiko',
     ];
 }
 
@@ -373,7 +331,6 @@ function recalcTrust($r) {
     elseif ($r['review_count'] >= 5) $ts += 10;
     if ($r['rating'] >= 4.0) $ts += 15;
     elseif ($r['rating'] >= 3.0) $ts += 5;
-    
     $r['trust_score'] = $ts;
     $r['trust_level'] = $ts >= 70 ? 'terpercaya' : ($ts >= 40 ? 'perlu_cek' : 'berisiko');
     return $r;
