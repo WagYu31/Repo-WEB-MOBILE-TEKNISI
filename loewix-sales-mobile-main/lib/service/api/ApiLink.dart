@@ -4,5 +4,5 @@ class Api {
   // static const String Url = 'http://10.0.2.2/loewix/teknisi-github.id-giti.com';
 
   /// Versi app saat ini — naikkan setiap rilis baru
-  static const String AppVersion = '1.7.0';
+  static const String AppVersion = '1.8.0';
 }

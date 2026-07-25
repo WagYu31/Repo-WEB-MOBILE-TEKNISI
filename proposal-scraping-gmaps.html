@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Proposal — Fitur Scraping Google Maps untuk Sales Customer</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        @page {
+            size: A4;
+            margin: 20mm 18mm 20mm 18mm;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            color: #1e293b;
+            font-size: 11px;
+            line-height: 1.6;
+            background: #fff;
+        }
+
+        /* ── Cover Page ── */
+        .cover {
+            page-break-after: always;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 90vh;
+            text-align: center;
+            position: relative;
+        }
+        .cover::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 6px;
+            background: linear-gradient(90deg, #0f172a 0%, #2563eb 50%, #06b6d4 100%);
+        }
+        .cover-badge {
+            display: inline-block;
+            padding: 6px 20px;
+            background: linear-gradient(135deg, #0f172a, #1e3a5f);
+            color: #fff;
+            border-radius: 30px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-bottom: 24px;
+        }
+        .cover h1 {
+            font-size: 32px;
+            font-weight: 900;
+            color: #0f172a;
+            line-height: 1.2;
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+        .cover h1 span { color: #2563eb; }
+        .cover .subtitle {
+            font-size: 14px;
+            color: #64748b;
+            font-weight: 400;
+            max-width: 480px;
+            margin: 0 auto 40px;
+        }
+        .cover-meta {
+            display: flex;
+            gap: 32px;
+            justify-content: center;
+            margin-top: 24px;
+        }
+        .cover-meta-item {
+            text-align: center;
+        }
+        .cover-meta-item .label {
+            font-size: 9px;
+            color: #94a3b8;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+        .cover-meta-item .value {
+            font-size: 13px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-top: 4px;
+        }
+        .cover-logo {
+            font-size: 28px;
+            font-weight: 900;
+            color: #2563eb;
+            letter-spacing: -1px;
+            margin-bottom: 40px;
+        }
+
+        /* ── Section Headers ── */
+        h2 {
+            font-size: 18px;
+            font-weight: 800;
+            color: #0f172a;
+            margin: 28px 0 14px;
+            padding-bottom: 8px;
+            border-bottom: 3px solid #2563eb;
+            display: inline-block;
+        }
+        h3 {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1e3a5f;
+            margin: 20px 0 10px;
+        }
+        h4 {
+            font-size: 12px;
+            font-weight: 700;
+            color: #334155;
+            margin: 14px 0 8px;
+        }
+
+        /* ── Body Text ── */
+        p { margin-bottom: 10px; }
+
+        /* ── Lists ── */
+        ul, ol {
+            padding-left: 20px;
+            margin-bottom: 12px;
+        }
+        li {
+            margin-bottom: 4px;
+        }
+
+        /* ── Info Boxes ── */
+        .box {
+            padding: 14px 18px;
+            border-radius: 10px;
+            margin: 14px 0;
+            border-left: 4px solid;
+        }
+        .box-blue { background: #eff6ff; border-color: #2563eb; }
+        .box-amber { background: #fffbeb; border-color: #f59e0b; }
+        .box-green { background: #f0fdf4; border-color: #10b981; }
+        .box-red { background: #fef2f2; border-color: #ef4444; }
+        .box-title {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+        .box-blue .box-title { color: #1d4ed8; }
+        .box-amber .box-title { color: #b45309; }
+        .box-green .box-title { color: #059669; }
+        .box-red .box-title { color: #dc2626; }
+
+        /* ── Table ── */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+            font-size: 10px;
+        }
+        th {
+            background: #0f172a;
+            color: #fff;
+            padding: 8px 10px;
+            text-align: left;
+            font-weight: 700;
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        td {
+            padding: 7px 10px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        tr:nth-child(even) td { background: #f8fafc; }
+
+        /* ── Chip/Badge ── */
+        .chip {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 9px;
+            font-weight: 700;
+        }
+        .chip-blue { background: #dbeafe; color: #1d4ed8; }
+        .chip-green { background: #dcfce7; color: #15803d; }
+        .chip-amber { background: #fef3c7; color: #92400e; }
+        .chip-purple { background: #f3e8ff; color: #7c3aed; }
+
+        /* ── Page Break ── */
+        .page-break { page-break-before: always; }
+
+        /* ── Footer ── */
+        .doc-footer {
+            margin-top: 40px;
+            padding-top: 16px;
+            border-top: 1px solid #e2e8f0;
+            text-align: center;
+            font-size: 9px;
+            color: #94a3b8;
+        }
+
+        /* ── Keyword Grid ── */
+        .keyword-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin: 10px 0;
+        }
+        .keyword-tag {
+            display: inline-block;
+            padding: 4px 12px;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 600;
+            color: #475569;
+        }
+
+        /* ── City Grid ── */
+        .city-group { margin-bottom: 10px; }
+        .city-group-title {
+            font-size: 10px;
+            font-weight: 800;
+            color: #1e3a5f;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .city-list {
+            font-size: 10px;
+            color: #475569;
+            line-height: 1.7;
+        }
+
+        /* ── Two Column ── */
+        .two-col {
+            display: flex;
+            gap: 20px;
+        }
+        .two-col > div { flex: 1; }
+
+        /* ── Trust Score Visual ── */
+        .score-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 4px 0;
+        }
+        .score-bar .label {
+            width: 160px;
+            font-size: 10px;
+            font-weight: 500;
+        }
+        .score-bar .bar {
+            flex: 1;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .score-bar .bar-fill {
+            height: 100%;
+            border-radius: 4px;
+        }
+        .score-bar .pts {
+            font-size: 10px;
+            font-weight: 700;
+            width: 40px;
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+
+<!-- ═══════════════════ COVER PAGE ═══════════════════ -->
+<div class="cover">
+    <div class="cover-logo">Loewix</div>
+    <div class="cover-badge">📋 Proposal Fitur Baru</div>
+    <h1>Fitur Scraping <span>Google Maps</span><br>Pencarian Toko CCTV Otomatis</h1>
+    <p class="subtitle">Otomatisasi pencarian dan validasi calon customer toko CCTV se-Indonesia langsung dari Google Maps, terintegrasi dengan sistem Data Customer Loewix.</p>
+    <div class="cover-meta">
+        <div class="cover-meta-item">
+            <div class="label">Dipersiapkan Untuk</div>
+            <div class="value">PT. Gravitti Technology</div>
+        </div>
+        <div class="cover-meta-item">
+            <div class="label">Tanggal</div>
+            <div class="value">21 Juli 2026</div>
+        </div>
+        <div class="cover-meta-item">
+            <div class="label">Platform</div>
+            <div class="value">jadwal.id-giti.com</div>
+        </div>
+        <div class="cover-meta-item">
+            <div class="label">Versi</div>
+            <div class="value">v1.0</div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════ PAGE 2: RINGKASAN ═══════════════════ -->
+<h2>1. Ringkasan Eksekutif</h2>
+<p>Saat ini, tim Sales mengumpulkan data calon customer (toko CCTV) secara <strong>manual</strong> — mencari satu per satu di Google Maps, mencatat nama/alamat/telepon, lalu menginputnya ke sistem. Proses ini memakan waktu <strong>2-4 jam per kota</strong> dan rawan kesalahan input.</p>
+
+<p>Fitur <strong>Scraping Google Maps</strong> akan mengotomatisasi proses ini sehingga:</p>
+<ul>
+    <li>✅ Pencarian ratusan toko CCTV per kota dalam <strong>hitungan detik</strong></li>
+    <li>✅ Data sudah <strong>terfilter otomatis</strong> untuk menghindari lokasi palsu/fiktif</li>
+    <li>✅ Import langsung ke database customer dengan <strong>satu klik</strong></li>
+    <li>✅ Mengurangi waktu kerja dari <strong>4 jam → 15 menit per kota</strong></li>
+</ul>
+
+<div class="box box-green">
+    <div class="box-title">💰 Estimasi Penghematan</div>
+    <p style="margin:0;">Jika tim Sales mencari data di 20 kota/bulan × 3 jam/kota = <strong>60 jam/bulan</strong>. Dengan fitur ini, menjadi 20 kota × 15 menit = <strong>5 jam/bulan</strong>. Penghematan: <strong>55 jam/bulan</strong> (92%).</p>
+</div>
+
+<!-- ═══════════════════ PAGE 3: CARA KERJA ═══════════════════ -->
+<h2>2. Cara Kerja Sistem</h2>
+
+<h3>A. Alur Proses (Workflow)</h3>
+<table>
+    <thead>
+        <tr>
+            <th style="width:40px;">No</th>
+            <th>Langkah</th>
+            <th>Deskripsi</th>
+            <th style="width:80px;">Pelaku</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><strong>1</strong></td>
+            <td>Pilih Kata Kunci & Kota</td>
+            <td>Admin/Sales memilih kata kunci (misal: "Toko CCTV") dan kota target (misal: "Tangerang")</td>
+            <td><span class="chip chip-blue">Admin</span></td>
+        </tr>
+        <tr>
+            <td><strong>2</strong></td>
+            <td>Scraping Google Maps</td>
+            <td>Sistem mengirim request ke Google Maps Places API dan mengambil data toko (nama, alamat, rating, review, telepon, foto, koordinat)</td>
+            <td><span class="chip chip-purple">Otomatis</span></td>
+        </tr>
+        <tr>
+            <td><strong>3</strong></td>
+            <td>Filter Anti-Fake</td>
+            <td>Sistem otomatis menghitung Trust Score dan menyaring lokasi fiktif berdasarkan review, foto, telepon, dan website</td>
+            <td><span class="chip chip-purple">Otomatis</span></td>
+        </tr>
+        <tr>
+            <td><strong>4</strong></td>
+            <td>Review & Seleksi</td>
+            <td>Admin meninjau hasil, mencentang toko yang valid, dan membuang yang mencurigakan</td>
+            <td><span class="chip chip-blue">Admin</span></td>
+        </tr>
+        <tr>
+            <td><strong>5</strong></td>
+            <td>Import ke Database</td>
+            <td>Data toko terpilih langsung masuk ke tabel Sales Customer dengan kode CUST-XXX otomatis</td>
+            <td><span class="chip chip-purple">Otomatis</span></td>
+        </tr>
+    </tbody>
+</table>
+
+<h3>B. Teknologi yang Digunakan</h3>
+<table>
+    <thead>
+        <tr>
+            <th>Komponen</th>
+            <th>Teknologi</th>
+            <th>Keterangan</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Sumber Data</td>
+            <td><strong>Google Maps Places API (New)</strong></td>
+            <td>API resmi dari Google — data akurat, legal, dan stabil</td>
+        </tr>
+        <tr>
+            <td>Backend</td>
+            <td><strong>PHP (Server Proxy)</strong></td>
+            <td>API key tersimpan aman di server, tidak terekspos ke browser</td>
+        </tr>
+        <tr>
+            <td>Frontend</td>
+            <td><strong>JavaScript + AJAX</strong></td>
+            <td>Pencarian real-time tanpa reload halaman</td>
+        </tr>
+        <tr>
+            <td>Database</td>
+            <td><strong>MySQL (sales_customer)</strong></td>
+            <td>Terintegrasi langsung dengan tabel customer yang sudah ada</td>
+        </tr>
+    </tbody>
+</table>
+
+<div class="page-break"></div>
+
+<!-- ═══════════════════ PAGE 4: FILTER ANTI-FAKE ═══════════════════ -->
+<h2>3. Sistem Filter Anti-Fake Location</h2>
+<p>Tidak semua titik di Google Maps adalah toko fisik yang valid. Banyak lokasi palsu yang dibuat hanya untuk keperluan SEO. Sistem kami memiliki <strong>5 lapisan filter</strong> untuk menyaring lokasi fiktif:</p>
+
+<h3>A. Trust Score (Skor Kepercayaan)</h3>
+<p>Setiap hasil pencarian akan dihitung skor kepercayaannya secara otomatis (0-100 poin):</p>
+
+<div class="score-bar">
+    <div class="label">⭐ Review ≥ 20 ulasan</div>
+    <div class="bar"><div class="bar-fill" style="width:30%; background:#2563eb;"></div></div>
+    <div class="pts" style="color:#2563eb;">+30 pts</div>
+</div>
+<div class="score-bar">
+    <div class="label">📸 Foto ≥ 3 buah</div>
+    <div class="bar"><div class="bar-fill" style="width:25%; background:#7c3aed;"></div></div>
+    <div class="pts" style="color:#7c3aed;">+25 pts</div>
+</div>
+<div class="score-bar">
+    <div class="label">📞 Ada Nomor Telepon</div>
+    <div class="bar"><div class="bar-fill" style="width:20%; background:#10b981;"></div></div>
+    <div class="pts" style="color:#10b981;">+20 pts</div>
+</div>
+<div class="score-bar">
+    <div class="label">🌐 Ada Website</div>
+    <div class="bar"><div class="bar-fill" style="width:15%; background:#f59e0b;"></div></div>
+    <div class="pts" style="color:#f59e0b;">+15 pts</div>
+</div>
+<div class="score-bar">
+    <div class="label">⭐ Rating ≥ 4.0</div>
+    <div class="bar"><div class="bar-fill" style="width:10%; background:#06b6d4;"></div></div>
+    <div class="pts" style="color:#06b6d4;">+10 pts</div>
+</div>
+
+<h3 style="margin-top:18px;">B. Indikator Visual</h3>
+<table>
+    <thead>
+        <tr>
+            <th>Skor</th>
+            <th>Badge</th>
+            <th>Artinya</th>
+            <th>Rekomendasi</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><strong>70 – 100</strong></td>
+            <td><span class="chip chip-green">🟢 Terpercaya</span></td>
+            <td>Toko fisik valid dengan reputasi baik</td>
+            <td>Langsung import & jadwalkan kunjungan</td>
+        </tr>
+        <tr>
+            <td><strong>40 – 69</strong></td>
+            <td><span class="chip chip-amber">🟡 Perlu Cek</span></td>
+            <td>Data cukup, tapi perlu verifikasi manual</td>
+            <td>Cek foto & review sebelum import</td>
+        </tr>
+        <tr>
+            <td><strong>0 – 39</strong></td>
+            <td><span class="chip" style="background:#fee2e2;color:#dc2626;">🔴 Berisiko</span></td>
+            <td>Kemungkinan besar lokasi fiktif/rumah biasa</td>
+            <td>Sebaiknya abaikan</td>
+        </tr>
+    </tbody>
+</table>
+
+<h3>C. Filter Interaktif</h3>
+<ul>
+    <li><strong>Min. Review:</strong> Hanya tampilkan toko dengan minimal N ulasan (default: 15)</li>
+    <li><strong>Min. Rating:</strong> Hanya tampilkan toko dengan rating di atas N bintang (default: 3.5)</li>
+    <li><strong>Wajib Ada Foto:</strong> Toggle ON/OFF — menyembunyikan toko tanpa foto fisik</li>
+    <li><strong>Wajib Ada Telepon:</strong> Toggle ON/OFF — menyembunyikan toko tanpa nomor telepon</li>
+    <li><strong>Punya Website:</strong> Toggle ON/OFF — bonus filter untuk toko yang memiliki website resmi</li>
+</ul>
+
+<div class="page-break"></div>
+
+<!-- ═══════════════════ PAGE 5: KATA KUNCI & KOTA ═══════════════════ -->
+<h2>4. Kata Kunci & Cakupan Wilayah</h2>
+
+<h3>A. 14 Kata Kunci Bawaan</h3>
+<div class="keyword-grid">
+    <span class="keyword-tag">Toko CCTV</span>
+    <span class="keyword-tag">Distributor CCTV</span>
+    <span class="keyword-tag">Installer CCTV</span>
+    <span class="keyword-tag">Toko Keamanan</span>
+    <span class="keyword-tag">Jual CCTV</span>
+    <span class="keyword-tag">Supplier CCTV</span>
+    <span class="keyword-tag">CCTV Hikvision</span>
+    <span class="keyword-tag">CCTV Dahua</span>
+    <span class="keyword-tag">Pasang CCTV</span>
+    <span class="keyword-tag">Toko Elektronik CCTV</span>
+    <span class="keyword-tag">Security System</span>
+    <span class="keyword-tag">Alarm CCTV</span>
+    <span class="keyword-tag">Jasa CCTV</span>
+    <span class="keyword-tag">Agen CCTV</span>
+</div>
+<p style="font-size:10px; color:#64748b;">Admin juga bisa mengetik kata kunci kustom sesuai kebutuhan.</p>
+
+<h3>B. 150+ Kota/Kabupaten Se-Indonesia</h3>
+
+<div class="two-col">
+    <div>
+        <div class="city-group">
+            <div class="city-group-title">🏙️ Jabodetabek & Banten (14)</div>
+            <div class="city-list">Jakarta Pusat, Jakarta Utara, Jakarta Barat, Jakarta Selatan, Jakarta Timur, Tangerang, Tangerang Selatan, Bekasi, Depok, Bogor, Cilegon, Serang, Lebak, Pandeglang</div>
+        </div>
+        <div class="city-group">
+            <div class="city-group-title">🏔️ Jawa Barat (15)</div>
+            <div class="city-list">Bandung, Cimahi, Karawang, Purwakarta, Subang, Sukabumi, Cianjur, Garut, Tasikmalaya, Cirebon, Indramayu, Majalengka, Kuningan, Sumedang, Banjar</div>
+        </div>
+        <div class="city-group">
+            <div class="city-group-title">🌿 Jawa Tengah (22)</div>
+            <div class="city-list">Semarang, Solo, Salatiga, Magelang, Pekalongan, Tegal, Brebes, Cilacap, Purwokerto, Kebumen, Kudus, Demak, Jepara, Klaten, Boyolali, Karanganyar, Wonogiri, Blora, Rembang, Kendal, Batang, Pemalang</div>
+        </div>
+        <div class="city-group">
+            <div class="city-group-title">🌋 Jawa Timur (25)</div>
+            <div class="city-list">Surabaya, Malang, Sidoarjo, Gresik, Mojokerto, Pasuruan, Probolinggo, Lumajang, Jember, Banyuwangi, Kediri, Blitar, Tulungagung, Trenggalek, Nganjuk, Madiun, Ponorogo, Pacitan, Lamongan, Tuban, Bojonegoro, Bangkalan, Sampang, Pamekasan, Sumenep</div>
+        </div>
+        <div class="city-group">
+            <div class="city-group-title">🏛️ DIY — Yogyakarta (5)</div>
+            <div class="city-list">Yogyakarta, Sleman, Bantul, Gunung Kidul, Kulon Progo</div>
+        </div>
+        <div class="city-group">
+            <div class="city-group-title">🏝️ Bali & Nusa Tenggara (10)</div>
+            <div class="city-list">Denpasar, Badung, Gianyar, Tabanan, Buleleng, Karangasem, Mataram, Bima, Kupang, Ende</div>
+        </div>
+    </div>
+    <div>
+        <div class="city-group">
+            <div class="city-group-title">🌴 Sumatera Utara (10)</div>
+            <div class="city-list">Medan, Binjai, Deli Serdang, Pematang Siantar, Tebing Tinggi, Kisaran, Rantau Prapat, Padang Sidempuan, Sibolga, Tanjung Balai</div>
+        </div>
+        <div class="city-group">
+            <div class="city-group-title">🏔️ Sumatera Barat & Riau (11)</div>
+            <div class="city-list">Padang, Bukittinggi, Payakumbuh, Solok, Sawahlunto, Pekanbaru, Dumai, Batam, Tanjung Pinang, Bengkalis, Siak</div>
+        </div>
+        <div class="city-group">
+            <div class="city-group-title">🌊 Sumatera Selatan & Lampung (9)</div>
+            <div class="city-list">Palembang, Prabumulih, Lubuklinggau, Pagar Alam, Lahat, Bandar Lampung, Metro, Pringsewu, Lampung Tengah</div>
+        </div>
+        <div class="city-group">
+            <div class="city-group-title">🌿 Bengkulu, Jambi, Babel, Aceh (8)</div>
+            <div class="city-list">Bengkulu, Jambi, Pangkal Pinang, Belitung, Banda Aceh, Lhokseumawe, Langsa, Meulaboh</div>
+        </div>
+        <div class="city-group">
+            <div class="city-group-title">🌳 Kalimantan (9)</div>
+            <div class="city-list">Pontianak, Singkawang, Banjarmasin, Banjarbaru, Balikpapan, Samarinda, Tarakan, Palangka Raya, Nusantara (IKN)</div>
+        </div>
+        <div class="city-group">
+            <div class="city-group-title">🏔️ Sulawesi (10)</div>
+            <div class="city-list">Makassar, Manado, Palu, Kendari, Gorontalo, Mamuju, Pare-Pare, Palopo, Bitung, Tomohon</div>
+        </div>
+        <div class="city-group">
+            <div class="city-group-title">🌊 Maluku & Papua (7)</div>
+            <div class="city-list">Ambon, Ternate, Jayapura, Sorong, Manokwari, Merauke, Timika</div>
+        </div>
+    </div>
+</div>
+
+<h3>C. Radius Pencarian</h3>
+<p>Setiap pencarian mendukung 3 opsi radius: <strong>10 km</strong> (kecamatan), <strong>25 km</strong> (kota), <strong>50 km</strong> (kabupaten).</p>
+
+<div class="page-break"></div>
+
+<!-- ═══════════════════ PAGE 6: BIAYA & KEBUTUHAN ═══════════════════ -->
+<h2>5. Biaya & Kebutuhan Teknis</h2>
+
+<h3>A. Google Maps Places API — Biaya</h3>
+<table>
+    <thead>
+        <tr>
+            <th>Item</th>
+            <th>Harga</th>
+            <th>Keterangan</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Google Cloud Free Credit</td>
+            <td><strong>$200/bulan (GRATIS)</strong></td>
+            <td>Diberikan otomatis oleh Google untuk semua project baru</td>
+        </tr>
+        <tr>
+            <td>Text Search (New)</td>
+            <td>$32 per 1.000 request</td>
+            <td>Free credit $200 = ~6.250 pencarian/bulan</td>
+        </tr>
+        <tr>
+            <td>Place Details (New)</td>
+            <td>$17 per 1.000 request</td>
+            <td>Untuk mengambil detail telepon & website</td>
+        </tr>
+    </tbody>
+</table>
+
+<div class="box box-blue">
+    <div class="box-title">💡 Estimasi Penggunaan</div>
+    <p style="margin:0;">Jika tim melakukan 10 pencarian/hari × 30 hari = 300 request/bulan. Ini <strong>jauh di bawah batas gratis</strong> ($200 credit). Untuk penggunaan normal, <strong>biaya API = Rp 0</strong>.</p>
+</div>
+
+<h3>B. Kebutuhan Teknis</h3>
+<table>
+    <thead>
+        <tr>
+            <th>Kebutuhan</th>
+            <th>Status</th>
+            <th>Aksi Diperlukan</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Google Cloud Account</td>
+            <td><span class="chip chip-amber">Perlu dibuat</span></td>
+            <td>Daftar di console.cloud.google.com (gratis)</td>
+        </tr>
+        <tr>
+            <td>API Key (Places API)</td>
+            <td><span class="chip chip-amber">Perlu dibuat</span></td>
+            <td>Aktifkan Places API (New) di Google Cloud Console</td>
+        </tr>
+        <tr>
+            <td>Billing Account</td>
+            <td><span class="chip chip-amber">Perlu dibuat</span></td>
+            <td>Diperlukan Google, tapi $200 credit gratis diberikan otomatis</td>
+        </tr>
+        <tr>
+            <td>Server (Backend)</td>
+            <td><span class="chip chip-green">Sudah ada</span></td>
+            <td>Menggunakan server jadwal.id-giti.com yang sudah berjalan</td>
+        </tr>
+        <tr>
+            <td>Database</td>
+            <td><span class="chip chip-green">Sudah ada</span></td>
+            <td>Menggunakan tabel sales_customer yang sudah ada</td>
+        </tr>
+    </tbody>
+</table>
+
+<div class="box box-amber">
+    <div class="box-title">⚠️ Penting: Billing Account</div>
+    <p style="margin:0;">Google mewajibkan pendaftaran Billing Account untuk mengakses Places API, meskipun $200 credit gratis per bulan tetap diberikan. Kartu kredit/debit diperlukan sebagai jaminan, namun <strong>tidak akan dicharge selama penggunaan masih di bawah $200/bulan</strong>.</p>
+</div>
+
+<!-- ═══════════════════ PAGE 7: TIMELINE ═══════════════════ -->
+<h2>6. Timeline Implementasi</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th style="width:40px;">No</th>
+            <th>Fase</th>
+            <th>Detail Pekerjaan</th>
+            <th style="width:80px;">Durasi</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><strong>1</strong></td>
+            <td>Setup API Key</td>
+            <td>Membuat Google Cloud Project, mengaktifkan Places API, generate API Key</td>
+            <td>30 menit</td>
+        </tr>
+        <tr>
+            <td><strong>2</strong></td>
+            <td>Backend Development</td>
+            <td>Membuat PHP proxy server (scraping-gmaps-api.php) + import handler (import-gmaps-customer.php)</td>
+            <td>2-3 jam</td>
+        </tr>
+        <tr>
+            <td><strong>3</strong></td>
+            <td>Frontend Development</td>
+            <td>Membuat halaman scraping dengan search bar, filter, tabel hasil, dan trust score</td>
+            <td>3-4 jam</td>
+        </tr>
+        <tr>
+            <td><strong>4</strong></td>
+            <td>Integrasi & Testing</td>
+            <td>Menghubungkan frontend-backend, testing import, cek duplikat</td>
+            <td>1-2 jam</td>
+        </tr>
+        <tr>
+            <td><strong>5</strong></td>
+            <td>Deploy & Training</td>
+            <td>Deploy ke server produksi, pengarahan ke tim Sales</td>
+            <td>30 menit</td>
+        </tr>
+    </tbody>
+</table>
+
+<div class="box box-green">
+    <div class="box-title">📅 Total Estimasi</div>
+    <p style="margin:0;">Setelah API Key disiapkan, fitur bisa <strong>selesai dan live dalam 1 hari kerja</strong>.</p>
+</div>
+
+<!-- ═══════════════════ FOOTER ═══════════════════ -->
+<div class="doc-footer">
+    <p><strong>Proposal Fitur Scraping Google Maps — Loewix Sales Platform</strong></p>
+    <p>Dokumen ini disiapkan oleh tim development untuk review internal PT. Gravitti Technology</p>
+    <p>© 2026 Gravitti Technology — jadwal.id-giti.com</p>
+</div>
+
+</body>
+</html>
