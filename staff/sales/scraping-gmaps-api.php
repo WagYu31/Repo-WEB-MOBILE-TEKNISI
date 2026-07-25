@@ -59,26 +59,81 @@ if ($action === 'search') {
         exit;
     }
 
-    // ─── Geocode kota untuk mendapatkan koordinat ───
-    $geoUrl = 'https://maps.googleapis.com/maps/api/geocode/json?' . http_build_query([
-        'address' => $city . ', Indonesia',
-        'key'     => GMAPS_API_KEY,
-    ]);
+    // ─── Lookup koordinat kota (hardcoded — tanpa Geocoding API) ───
+    $cityCoords = [
+        // Jabodetabek & Banten
+        'Jakarta Pusat' => [-6.1862, 106.8340], 'Jakarta Utara' => [-6.1384, 106.8638],
+        'Jakarta Barat' => [-6.1683, 106.7588], 'Jakarta Selatan' => [-6.2615, 106.8106],
+        'Jakarta Timur' => [-6.2250, 106.9004], 'Tangerang' => [-6.1702, 106.6403],
+        'Tangerang Selatan' => [-6.2886, 106.7177], 'Bekasi' => [-6.2383, 106.9756],
+        'Depok' => [-6.4025, 106.7942], 'Bogor' => [-6.5971, 106.8060],
+        'Cilegon' => [-6.0023, 106.0507], 'Serang' => [-6.1103, 106.1640],
+        'Lebak' => [-6.5645, 106.2522], 'Pandeglang' => [-6.3089, 106.1053],
+        // Jawa Barat
+        'Bandung' => [-6.9175, 107.6191], 'Cimahi' => [-6.8842, 107.5413],
+        'Karawang' => [-6.3227, 107.3376], 'Purwakarta' => [-6.5569, 107.4462],
+        'Subang' => [-6.5714, 107.7522], 'Sukabumi' => [-6.9277, 106.9300],
+        'Cianjur' => [-6.7340, 107.0428], 'Garut' => [-7.2167, 107.9008],
+        'Tasikmalaya' => [-7.3274, 108.2207], 'Cirebon' => [-6.7320, 108.5523],
+        'Indramayu' => [-6.3276, 108.3247], 'Majalengka' => [-6.8362, 108.2275],
+        'Kuningan' => [-6.9756, 108.4836], 'Sumedang' => [-6.8563, 107.9191],
+        'Banjar' => [-7.3715, 108.5357],
+        // Jawa Tengah
+        'Semarang' => [-6.9667, 110.4196], 'Solo' => [-7.5755, 110.8243],
+        'Salatiga' => [-7.3306, 110.5084], 'Magelang' => [-7.4797, 110.2177],
+        'Pekalongan' => [-6.8886, 109.6753], 'Tegal' => [-6.8797, 109.1256],
+        'Brebes' => [-6.8713, 109.0399], 'Cilacap' => [-7.7268, 109.0154],
+        'Purwokerto' => [-7.4214, 109.2342], 'Kebumen' => [-7.6666, 109.6522],
+        'Kudus' => [-6.8048, 110.8405], 'Demak' => [-6.8937, 110.6372],
+        'Jepara' => [-6.5936, 110.6717], 'Klaten' => [-7.7056, 110.6042],
+        'Boyolali' => [-7.5323, 110.5956], 'Karanganyar' => [-7.6003, 110.9581],
+        'Wonogiri' => [-7.8149, 110.9222], 'Blora' => [-6.9666, 111.4112],
+        'Rembang' => [-6.7073, 111.3468], 'Kendal' => [-6.9186, 110.2031],
+        'Batang' => [-6.9044, 109.7253], 'Pemalang' => [-6.8912, 109.3813],
+        // Jawa Timur
+        'Surabaya' => [-7.2575, 112.7521], 'Malang' => [-7.9666, 112.6326],
+        'Sidoarjo' => [-7.4478, 112.7183], 'Gresik' => [-7.1625, 112.6531],
+        'Mojokerto' => [-7.4704, 112.4401], 'Pasuruan' => [-7.6469, 112.9075],
+        'Probolinggo' => [-7.7543, 113.2159], 'Lumajang' => [-8.1349, 113.2246],
+        'Jember' => [-8.1845, 113.6681], 'Banyuwangi' => [-8.2193, 114.3691],
+        'Kediri' => [-7.8167, 112.0167], 'Blitar' => [-8.0983, 112.1681],
+        'Tulungagung' => [-8.0654, 111.9024], 'Nganjuk' => [-7.6052, 111.8973],
+        'Madiun' => [-7.6298, 111.5300], 'Ponorogo' => [-7.8684, 111.4632],
+        'Lamongan' => [-7.1189, 112.4175], 'Tuban' => [-6.8987, 112.0497],
+        'Bojonegoro' => [-7.1501, 111.8819],
+        // DIY
+        'Yogyakarta' => [-7.7956, 110.3695], 'Sleman' => [-7.7166, 110.3558],
+        'Bantul' => [-7.8880, 110.3275],
+        // Bali & NTT
+        'Denpasar' => [-8.6500, 115.2167], 'Badung' => [-8.5819, 115.1770],
+        'Mataram' => [-8.5833, 116.1167], 'Kupang' => [-10.1787, 123.6070],
+        // Sumatera
+        'Medan' => [3.5952, 98.6722], 'Pekanbaru' => [0.5071, 101.4478],
+        'Padang' => [-0.9471, 100.4172], 'Palembang' => [-2.9761, 104.7754],
+        'Bandar Lampung' => [-5.3971, 105.2668], 'Batam' => [1.0456, 104.0305],
+        'Jambi' => [-1.6101, 103.6131], 'Bengkulu' => [-3.7928, 102.2608],
+        'Banda Aceh' => [5.5483, 95.3238],
+        // Kalimantan
+        'Pontianak' => [-0.0263, 109.3425], 'Banjarmasin' => [-3.3186, 114.5944],
+        'Balikpapan' => [-1.2654, 116.8312], 'Samarinda' => [-0.4948, 117.1436],
+        'Palangka Raya' => [-2.2136, 113.9108],
+        // Sulawesi
+        'Makassar' => [-5.1477, 119.4327], 'Manado' => [1.4748, 124.8421],
+        'Palu' => [-0.9003, 119.8779], 'Kendari' => [-3.9985, 122.5130],
+        'Gorontalo' => [0.5435, 123.0568],
+        // Maluku & Papua
+        'Ambon' => [-3.6954, 128.1814], 'Jayapura' => [-2.5337, 140.7181],
+        'Sorong' => [-0.8618, 131.2869],
+    ];
 
-    $geoResponse = @file_get_contents($geoUrl);
-    if ($geoResponse === false) {
-        echo json_encode(['error' => true, 'message' => 'Gagal menghubungi Google Geocoding API. Periksa koneksi server.']);
+    $coordKey = $city;
+    if (!isset($cityCoords[$coordKey])) {
+        echo json_encode(['error' => true, 'message' => 'Koordinat kota "' . htmlspecialchars($city) . '" belum tersedia. Hubungi developer untuk menambahkan.']);
         exit;
     }
 
-    $geoData = json_decode($geoResponse, true);
-    if (empty($geoData['results'])) {
-        echo json_encode(['error' => true, 'message' => 'Kota "' . htmlspecialchars($city) . '" tidak ditemukan di Google Maps']);
-        exit;
-    }
-
-    $lat = $geoData['results'][0]['geometry']['location']['lat'];
-    $lng = $geoData['results'][0]['geometry']['location']['lng'];
+    $lat = $cityCoords[$coordKey][0];
+    $lng = $cityCoords[$coordKey][1];
 
     // ─── Places API (New) — Text Search ─────────────
     $searchQuery = $keyword . ' di ' . $city;
