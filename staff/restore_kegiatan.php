@@ -211,14 +211,20 @@ $deletedKegiatan = $result ? mysqli_fetch_all($result, MYSQLI_ASSOC) : [];
                                                     </td>
                                                     <td>
                                                         <div class="d-flex flex-column">
-                                                            <span class="user-badge mb-1">
-                                                                <i class="material-icons text-xs me-1">person</i>
-                                                                <?php echo htmlspecialchars($userName); ?>
-                                                            </span>
-                                                            <?php if (!empty($userEmail)): ?>
-                                                                <span class="email-text">
-                                                                    <i class="material-icons text-xxs me-1" style="font-size:11px;vertical-align:middle;">email</i><?php echo htmlspecialchars($userEmail); ?>
+                                                            <?php if ($userName === 'System/Admin' || empty($userName)): ?>
+                                                                <span class="user-badge mb-1" style="background:#F8FAFC;color:#64748B;border-color:#E2E8F0;">
+                                                                    <i class="material-icons text-xs me-1">settings_suggest</i> System / Otomatis
                                                                 </span>
+                                                            <?php else: ?>
+                                                                <span class="user-badge mb-1">
+                                                                    <i class="material-icons text-xs me-1">person</i>
+                                                                    <?php echo htmlspecialchars($userName); ?>
+                                                                </span>
+                                                                <?php if (!empty($userEmail)): ?>
+                                                                    <span class="email-text">
+                                                                        <i class="material-icons text-xxs me-1" style="font-size:11px;vertical-align:middle;">email</i><?php echo htmlspecialchars($userEmail); ?>
+                                                                    </span>
+                                                                <?php endif; ?>
                                                             <?php endif; ?>
                                                         </div>
                                                     </td>
