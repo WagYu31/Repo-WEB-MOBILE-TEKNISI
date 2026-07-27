@@ -573,11 +573,11 @@ $pageNow = "Data Teknisi";
             if (rangeMonths <= 1) { info.classList.remove('show'); return; }
             const sel = document.getElementById('filterMonth').value;
             const [y, m] = sel.split('-').map(Number);
-            // Calculate start month (go back rangeMonths-1)
-            const startDate = new Date(y, m - rangeMonths, 1);
-            const startM = startDate.getMonth() + 1;
-            const startY = startDate.getFullYear();
-            info.textContent = `📅 ${bulanNames[startM]} ${startY} — ${bulanNames[m]} ${y}`;
+            // Selected month is the START month (go forward rangeMonths - 1)
+            const endDate = new Date(y, m - 1 + (rangeMonths - 1), 1);
+            const endM = endDate.getMonth() + 1;
+            const endY = endDate.getFullYear();
+            info.textContent = `📅 ${bulanNames[m]} ${y} — ${bulanNames[endM]} ${endY}`;
             info.classList.add('show');
         }
         const formatRupiah = angka => 'Rp ' + (angka ? parseInt(angka).toLocaleString('id-ID') : '0');
@@ -627,6 +627,7 @@ $pageNow = "Data Teknisi";
             });
 
             document.getElementById('filterBtn').addEventListener('click', fetchDataAndUpdate);
+            document.getElementById('filterMonth').addEventListener('change', updateRangeInfo);
             fetchDataAndUpdate();
         });
 
