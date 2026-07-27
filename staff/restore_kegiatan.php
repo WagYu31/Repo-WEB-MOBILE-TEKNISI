@@ -26,7 +26,7 @@ $isUnlocked = isset($_SESSION['restore_unlocked']) && $_SESSION['restore_unlocke
 $message = '';
 $messageType = '';
 
-// Only process restore if unlocked
+// Process single restore if unlocked
 if ($isUnlocked && isset($_GET['action']) && $_GET['action'] === 'restore' && !empty($_GET['kode'])) {
     $kodeRestore = trim($_GET['kode']);
     date_default_timezone_set('Asia/Jakarta');
@@ -67,6 +67,50 @@ if ($isUnlocked && isset($_GET['action']) && $_GET['action'] === 'restore' && !e
     } else {
         $message = "Gagal mempulihkan kegiatan atau data tidak ditemukan.";
         $messageType = "danger";
+    }
+}
+
+// Process bulk restore request
+if ($isUnlocked && isset($_POST['submit_bulk_restore']) && !empty($_POST['selected_kodes']) && is_array($_POST['selected_kodes'])) {
+    $selectedKodes = array_map('trim', $_POST['selected_kodes']);
+    date_default_timezone_set('Asia/Jakarta');
+    $now = date('Y-m-d H:i:s');
+    $user_display = (!empty($nmUser)) ? $nmUser : "System/Admin";
+    
+    $restoredCount = 0;
+    foreach ($selectedKodes as $kode) {
+        if (empty($kode)) continue;
+        
+        $stmt1 = $conn->prepare("UPDATE kegiatan SET deleted_at = NULL WHERE kode = ?");
+        $stmt1->bind_param("s", $kode);
+        $stmt1->execute();
+        if ($stmt1->affected_rows > 0) $restoredCount++;
+        $stmt1->close();
+
+        $stmt2 = $conn->prepare("UPDATE pelaksanaan_kegiatan SET deleted_at = NULL WHERE kode = ?");
+        $stmt2->bind_param("s", $kode);
+        $stmt2->execute();
+        $stmt2->close();
+
+        $stmt3 = $conn->prepare("UPDATE pendapatan_kegiatan SET deleted_at = NULL WHERE kode = ?");
+        $stmt3->bind_param("s", $kode);
+        $stmt3->execute();
+        $stmt3->close();
+
+        $jenis_aksi = "Bulk Restore";
+        if ($stmt_log = $conn->prepare("INSERT INTO log_kegiatan (jenis_aksi, nama_user, waktu, kode_transaksi) VALUES (?, ?, ?, ?)")) {
+            $stmt_log->bind_param("ssss", $jenis_aksi, $user_display, $now, $kode);
+            $stmt_log->execute();
+            $stmt_log->close();
+        }
+    }
+
+    if ($restoredCount > 0) {
+        $message = "Berhasil mempulihkan <strong>$restoredCount</strong> kegiatan terpilih!";
+        $messageType = "success";
+    } else {
+        $message = "Tidak ada kegiatan yang dipulihkan.";
+        $messageType = "warning";
     }
 }
 
@@ -111,16 +155,16 @@ if ($isUnlocked) {
             background: linear-gradient(135deg, #22C55E 0%, #16A34A 100%);
             color: #FFFFFF !important;
             font-weight: 700;
-            padding: 8px 14px;
+            padding: 7px 12px;
             border-radius: 8px;
             border: none;
             box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
             transition: all 0.2s ease;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
             text-decoration: none;
-            font-size: 12px;
+            font-size: 11.5px;
             white-space: nowrap;
         }
         .btn-restore-main:hover {
@@ -128,13 +172,39 @@ if ($isUnlocked) {
             box-shadow: 0 6px 16px rgba(34, 197, 94, 0.4);
             color: #FFFFFF !important;
         }
+        .btn-bulk-restore {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            color: #FFFFFF !important;
+            font-weight: 700;
+            padding: 9px 18px;
+            border-radius: 10px;
+            border: none;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+        .btn-bulk-restore:disabled {
+            background: #CBD5E1 !important;
+            box-shadow: none !important;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        .btn-bulk-restore:not(:disabled):hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(16, 185, 129, 0.45);
+        }
         .search-box-restore {
             border: 1.5px solid #E2E8F0;
             border-radius: 10px;
-            padding: 10px 16px;
-            font-size: 14px;
+            padding: 9px 16px;
+            font-size: 13.5px;
             width: 100%;
-            max-width: 400px;
+            max-width: 380px;
             outline: none;
             transition: all 0.2s;
         }
@@ -170,6 +240,12 @@ if ($isUnlocked) {
             color: #64748B;
             font-size: 10.5px;
             font-weight: 600;
+        }
+        .custom-chk {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #10B981;
         }
 
         /* Lock Screen Styling */
@@ -270,118 +346,132 @@ if ($isUnlocked) {
                     </div>
                 </div>
             <?php else: ?>
-                <!-- UNLOCKED CONTENT (RESTORE TABLE) -->
-                <div class="row">
-                    <div class="col-12">
-                        <?php if (!empty($message)): ?>
-                            <div class="alert alert-<?php echo $messageType; ?> text-white alert-dismissible fade show mb-4" role="alert">
-                                <?php echo $message; ?>
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                            </div>
-                        <?php endif; ?>
+                <!-- UNLOCKED CONTENT (RESTORE FORM & TABLE) -->
+                <form method="POST" action="restore_kegiatan.php" id="bulkForm">
+                    <div class="row">
+                        <div class="col-12">
+                            <?php if (!empty($message)): ?>
+                                <div class="alert alert-<?php echo $messageType; ?> text-white alert-dismissible fade show mb-4" role="alert">
+                                    <?php echo $message; ?>
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            <?php endif; ?>
 
-                        <div class="card my-4">
-                            <div class="card-header p-0 position-relative mt-n4 mx-3 z-index-2">
-                                <div class="bg-gradient-primary shadow-primary border-radius-lg pt-4 pb-3 px-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
-                                    <h6 class="text-white text-capitalize mb-0"><i class="material-icons me-2" style="vertical-align:middle;">restore_from_trash</i> Pulihkan Data Kegiatan Terhapus (Trash)</h6>
-                                    <div class="d-flex align-items-center gap-2">
-                                        <span class="badge bg-white text-dark font-weight-bold" id="totalCountBadge"><?php echo count($deletedKegiatan); ?> Data Terhapus</span>
-                                        <a href="restore_kegiatan.php?action=lock" class="btn btn-xs btn-outline-white mb-0 text-white" style="border: 1px solid rgba(255,255,255,0.4);" title="Kunci Kembali Halaman">
-                                            <i class="material-icons text-xs me-1">lock</i> Kunci
-                                        </a>
+                            <div class="card my-4">
+                                <div class="card-header p-0 position-relative mt-n4 mx-3 z-index-2">
+                                    <div class="bg-gradient-primary shadow-primary border-radius-lg pt-4 pb-3 px-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+                                        <h6 class="text-white text-capitalize mb-0"><i class="material-icons me-2" style="vertical-align:middle;">restore_from_trash</i> Pulihkan Data Kegiatan Terhapus (Trash)</h6>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="badge bg-white text-dark font-weight-bold" id="totalCountBadge"><?php echo count($deletedKegiatan); ?> Data Terhapus</span>
+                                            <a href="restore_kegiatan.php?action=lock" class="btn btn-xs btn-outline-white mb-0 text-white" style="border: 1px solid rgba(255,255,255,0.4);" title="Kunci Kembali Halaman">
+                                                <i class="material-icons text-xs me-1">lock</i> Kunci
+                                            </a>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="card-body px-4 pb-4">
-                                <!-- Search Bar -->
-                                <div class="d-flex justify-content-between align-items-center mb-3 mt-2">
-                                    <input type="text" id="restoreSearch" class="search-box-restore" placeholder="🔍 Cari nama customer, email, user penghapus, atau kode...">
-                                    <span class="text-xs text-muted font-weight-bold">Total: <span id="visibleCount"><?php echo count($deletedKegiatan); ?></span> data</span>
-                                </div>
+                                <div class="card-body px-4 pb-4">
+                                    <!-- Search & Bulk Action Controls -->
+                                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3 mt-2">
+                                        <input type="text" id="restoreSearch" class="search-box-restore" placeholder="🔍 Cari nama customer, email, user penghapus, atau kode...">
+                                        
+                                        <div class="d-flex align-items-center gap-2">
+                                            <button type="submit" name="submit_bulk_restore" id="bulkRestoreBtn" class="btn-bulk-restore" disabled onclick="return confirmBulkRestore();">
+                                                <i class="material-icons text-sm">settings_backup_restore</i> Pulihkan (<span id="selectedCount">0</span>) Terpilih
+                                            </button>
+                                            <span class="text-xs text-muted font-weight-bold ms-2">Total: <span id="visibleCount"><?php echo count($deletedKegiatan); ?></span> data</span>
+                                        </div>
+                                    </div>
 
-                                <div class="table-responsive p-0">
-                                    <table class="table align-middle mb-0" id="restoreTable">
-                                        <thead>
-                                            <tr>
-                                                <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="width: 130px;">AKSI</th>
-                                                <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="width: 180px;">DIHAPUS OLEH</th>
-                                                <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="width: 150px;">KODE / JENIS</th>
-                                                <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="width: 160px;">TGL TERHAPUS</th>
-                                                <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="width: 200px;">CUSTOMER</th>
-                                                <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">KETERANGAN</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <?php if (!empty($deletedKegiatan)): ?>
-                                                <?php foreach ($deletedKegiatan as $row): ?>
-                                                    <?php 
-                                                    $userName = $row['user_penghapus_name'] ?? $row['user_penghapus_raw'] ?? 'System/Admin';
-                                                    $userEmail = $row['user_penghapus_email'] ?? '';
-                                                    ?>
-                                                    <tr class="restore-row">
-                                                        <td class="align-middle text-center">
-                                                            <a href="restore_kegiatan.php?action=restore&kode=<?php echo urlencode($row['kode']); ?>" 
-                                                               class="btn-restore-main" 
-                                                               onclick="return confirm('Apakah Anda yakin ingin mempulihkan kegiatan <?php echo htmlspecialchars($row['kode']); ?>?');">
-                                                                <i class="material-icons text-sm">settings_backup_restore</i> PULIHKAN
-                                                            </a>
-                                                        </td>
-                                                        <td>
-                                                            <div class="d-flex flex-column">
-                                                                <?php if ($userName === 'System/Admin' || empty($userName)): ?>
-                                                                    <span class="user-badge mb-1" style="background:#F8FAFC;color:#64748B;border-color:#E2E8F0;">
-                                                                        <i class="material-icons text-xs me-1">settings_suggest</i> System / Otomatis
-                                                                    </span>
-                                                                <?php else: ?>
-                                                                    <span class="user-badge mb-1">
-                                                                        <i class="material-icons text-xs me-1">person</i>
-                                                                        <?php echo htmlspecialchars($userName); ?>
-                                                                    </span>
-                                                                    <?php if (!empty($userEmail)): ?>
-                                                                        <span class="email-text">
-                                                                            <i class="material-icons text-xxs me-1" style="font-size:11px;vertical-align:middle;">email</i><?php echo htmlspecialchars($userEmail); ?>
+                                    <div class="table-responsive p-0">
+                                        <table class="table align-middle mb-0" id="restoreTable">
+                                            <thead>
+                                                <tr>
+                                                    <th class="text-center" style="width: 40px;">
+                                                        <input type="checkbox" id="selectAll" class="custom-chk" title="Pilih Semua Data">
+                                                    </th>
+                                                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="width: 110px;">AKSI</th>
+                                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="width: 170px;">DIHAPUS OLEH</th>
+                                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="width: 140px;">KODE / JENIS</th>
+                                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="width: 150px;">TGL TERHAPUS</th>
+                                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="width: 200px;">CUSTOMER</th>
+                                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">KETERANGAN</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php if (!empty($deletedKegiatan)): ?>
+                                                    <?php foreach ($deletedKegiatan as $row): ?>
+                                                        <?php 
+                                                        $userName = $row['user_penghapus_name'] ?? $row['user_penghapus_raw'] ?? 'System/Admin';
+                                                        $userEmail = $row['user_penghapus_email'] ?? '';
+                                                        ?>
+                                                        <tr class="restore-row">
+                                                            <td class="text-center">
+                                                                <input type="checkbox" name="selected_kodes[]" value="<?php echo htmlspecialchars($row['kode']); ?>" class="row-checkbox custom-chk">
+                                                            </td>
+                                                            <td class="align-middle text-center">
+                                                                <a href="restore_kegiatan.php?action=restore&kode=<?php echo urlencode($row['kode']); ?>" 
+                                                                   class="btn-restore-main" 
+                                                                   onclick="return confirm('Apakah Anda yakin ingin mempulihkan kegiatan <?php echo htmlspecialchars($row['kode']); ?>?');">
+                                                                    <i class="material-icons text-xs">settings_backup_restore</i> PULIHKAN
+                                                                </a>
+                                                            </td>
+                                                            <td>
+                                                                <div class="d-flex flex-column">
+                                                                    <?php if ($userName === 'System/Admin' || empty($userName)): ?>
+                                                                        <span class="user-badge mb-1" style="background:#F8FAFC;color:#64748B;border-color:#E2E8F0;">
+                                                                            <i class="material-icons text-xs me-1">settings_suggest</i> System / Otomatis
                                                                         </span>
+                                                                    <?php else: ?>
+                                                                        <span class="user-badge mb-1">
+                                                                            <i class="material-icons text-xs me-1">person</i>
+                                                                            <?php echo htmlspecialchars($userName); ?>
+                                                                        </span>
+                                                                        <?php if (!empty($userEmail)): ?>
+                                                                            <span class="email-text">
+                                                                                <i class="material-icons text-xxs me-1" style="font-size:11px;vertical-align:middle;">email</i><?php echo htmlspecialchars($userEmail); ?>
+                                                                            </span>
+                                                                        <?php endif; ?>
                                                                     <?php endif; ?>
-                                                                <?php endif; ?>
-                                                            </div>
-                                                        </td>
-                                                        <td>
-                                                            <span class="badge-kegiatan bg-gradient-info text-white me-1">
-                                                                <?php echo strtoupper(htmlspecialchars($row['kegiatan'] ?? 'KEGIATAN')); ?>
-                                                            </span>
-                                                            <strong class="text-dark text-xs"><?php echo htmlspecialchars($row['kode']); ?></strong>
-                                                        </td>
-                                                        <td>
-                                                            <span class="date-badge">
-                                                                <i class="material-icons text-xs me-1">schedule</i>
-                                                                <?php echo date('d M Y, H:i', strtotime($row['deleted_at'])); ?>
-                                                            </span>
-                                                        </td>
-                                                        <td>
-                                                            <p class="text-xs font-weight-bold mb-0 text-dark"><?php echo htmlspecialchars($row['nama_customer'] ?? 'Unknown'); ?></p>
-                                                        </td>
-                                                        <td>
-                                                            <p class="text-xs text-secondary mb-0 text-truncate" style="max-width:300px;" title="<?php echo htmlspecialchars($row['keterangan'] ?? ''); ?>">
-                                                                <?php echo htmlspecialchars($row['keterangan'] ?? '-'); ?>
-                                                            </p>
+                                                                </div>
+                                                            </td>
+                                                            <td>
+                                                                <span class="badge-kegiatan bg-gradient-info text-white me-1">
+                                                                    <?php echo strtoupper(htmlspecialchars($row['kegiatan'] ?? 'KEGIATAN')); ?>
+                                                                </span>
+                                                                <strong class="text-dark text-xs"><?php echo htmlspecialchars($row['kode']); ?></strong>
+                                                            </td>
+                                                            <td>
+                                                                <span class="date-badge">
+                                                                    <i class="material-icons text-xs me-1">schedule</i>
+                                                                    <?php echo date('d M Y, H:i', strtotime($row['deleted_at'])); ?>
+                                                                </span>
+                                                            </td>
+                                                            <td>
+                                                                <p class="text-xs font-weight-bold mb-0 text-dark"><?php echo htmlspecialchars($row['nama_customer'] ?? 'Unknown'); ?></p>
+                                                            </td>
+                                                            <td>
+                                                                <p class="text-xs text-secondary mb-0 text-truncate" style="max-width:280px;" title="<?php echo htmlspecialchars($row['keterangan'] ?? ''); ?>">
+                                                                    <?php echo htmlspecialchars($row['keterangan'] ?? '-'); ?>
+                                                                </p>
+                                                            </td>
+                                                        </tr>
+                                                    <?php endforeach; ?>
+                                                <?php else: ?>
+                                                    <tr>
+                                                        <td colspan="7" class="text-center py-5 text-secondary">
+                                                            <i class="material-icons text-secondary mb-2" style="font-size: 48px;">delete_outline</i>
+                                                            <p class="mb-0 font-weight-bold">Tidak ada data kegiatan yang terhapus.</p>
                                                         </td>
                                                     </tr>
-                                                <?php endforeach; ?>
-                                            <?php else: ?>
-                                                <tr>
-                                                    <td colspan="6" class="text-center py-5 text-secondary">
-                                                        <i class="material-icons text-secondary mb-2" style="font-size: 48px;">delete_outline</i>
-                                                        <p class="mb-0 font-weight-bold">Tidak ada data kegiatan yang terhapus.</p>
-                                                    </td>
-                                                </tr>
-                                            <?php endif; ?>
-                                        </tbody>
-                                    </table>
+                                                <?php endif; ?>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                </form>
             <?php endif; ?>
             <?php include "footer.php"; ?>
         </div>
@@ -389,6 +479,42 @@ if ($isUnlocked) {
     <?php include "js-include.php"; ?>
 
     <script>
+    // Selection and search handler
+    const selectAllChk = document.getElementById('selectAll');
+    const rowCheckboxes = document.querySelectorAll('.row-checkbox');
+    const bulkBtn = document.getElementById('bulkRestoreBtn');
+    const selectedCountSpan = document.getElementById('selectedCount');
+
+    function updateSelectionState() {
+        const checkedRows = Array.from(document.querySelectorAll('.row-checkbox:checked'));
+        const visibleRows = Array.from(document.querySelectorAll('.restore-row')).filter(r => r.style.display !== 'none');
+        const checkedVisibleRows = visibleRows.filter(r => r.querySelector('.row-checkbox').checked);
+        
+        const count = checkedRows.length;
+        selectedCountSpan.textContent = count;
+        bulkBtn.disabled = (count === 0);
+
+        if (selectAllChk) {
+            selectAllChk.checked = (visibleRows.length > 0 && checkedVisibleRows.length === visibleRows.length);
+            selectAllChk.indeterminate = (checkedVisibleRows.length > 0 && checkedVisibleRows.length < visibleRows.length);
+        }
+    }
+
+    selectAllChk?.addEventListener('change', function() {
+        const isChecked = this.checked;
+        document.querySelectorAll('.restore-row').forEach(row => {
+            if (row.style.display !== 'none') {
+                const chk = row.querySelector('.row-checkbox');
+                if (chk) chk.checked = isChecked;
+            }
+        });
+        updateSelectionState();
+    });
+
+    rowCheckboxes.forEach(chk => {
+        chk.addEventListener('change', updateSelectionState);
+    });
+
     document.getElementById('restoreSearch')?.addEventListener('input', function() {
         const query = this.value.toLowerCase().trim();
         const rows = document.querySelectorAll('.restore-row');
@@ -403,7 +529,14 @@ if ($isUnlocked) {
             }
         });
         document.getElementById('visibleCount').textContent = count;
+        updateSelectionState();
     });
+
+    function confirmBulkRestore() {
+        const count = document.querySelectorAll('.row-checkbox:checked').length;
+        if (count === 0) return false;
+        return confirm(`Apakah Anda yakin ingin mempulihkan ${count} kegiatan terpilih sekaligus?`);
+    }
     </script>
 </body>
 </html>
