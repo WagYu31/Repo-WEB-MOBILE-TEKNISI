@@ -51,14 +51,22 @@ if (isset($_GET['action']) && $_GET['action'] === 'restore' && !empty($_GET['kod
     }
 }
 
-// Fetch soft-deleted kegiatan along with user_penghapus mapped to users table (name & email)
+// Fetch soft-deleted kegiatan along with user_penghapus name & email mapped to users table
 $sql = "SELECT k.id, k.kode, k.kegiatan, k.keterangan, k.created_at, k.deleted_at, c.nama AS nama_customer,
-        (SELECT COALESCE(u.name, l.nama_user, 'System/Admin')
-         FROM log_kegiatan l 
+        (SELECT u.name FROM log_kegiatan l 
          LEFT JOIN users u ON (u.name = l.nama_user OR u.email = l.nama_user OR CAST(u.id AS CHAR) = l.nama_user)
          WHERE (l.kode_transaksi = k.kode OR l.kode_transaksi LIKE CONCAT(k.kode, ' - %')) 
          AND (l.jenis_aksi LIKE '%Delete%' OR l.jenis_aksi LIKE '%hapus%')
-         ORDER BY l.waktu DESC LIMIT 1) AS user_penghapus
+         ORDER BY l.waktu DESC LIMIT 1) AS user_penghapus_name,
+        (SELECT u.email FROM log_kegiatan l 
+         LEFT JOIN users u ON (u.name = l.nama_user OR u.email = l.nama_user OR CAST(u.id AS CHAR) = l.nama_user)
+         WHERE (l.kode_transaksi = k.kode OR l.kode_transaksi LIKE CONCAT(k.kode, ' - %')) 
+         AND (l.jenis_aksi LIKE '%Delete%' OR l.jenis_aksi LIKE '%hapus%')
+         ORDER BY l.waktu DESC LIMIT 1) AS user_penghapus_email,
+        (SELECT l.nama_user FROM log_kegiatan l 
+         WHERE (l.kode_transaksi = k.kode OR l.kode_transaksi LIKE CONCAT(k.kode, ' - %')) 
+         AND (l.jenis_aksi LIKE '%Delete%' OR l.jenis_aksi LIKE '%hapus%')
+         ORDER BY l.waktu DESC LIMIT 1) AS user_penghapus_raw
         FROM kegiatan k 
         LEFT JOIN customer c ON k.customer_id = c.id 
         WHERE k.deleted_at IS NOT NULL 
@@ -136,6 +144,11 @@ $deletedKegiatan = $result ? mysqli_fetch_all($result, MYSQLI_ASSOC) : [];
             align-items: center;
             white-space: nowrap;
         }
+        .email-text {
+            color: #64748B;
+            font-size: 10.5px;
+            font-weight: 600;
+        }
     </style>
 </head>
 
@@ -165,7 +178,7 @@ $deletedKegiatan = $result ? mysqli_fetch_all($result, MYSQLI_ASSOC) : [];
                         <div class="card-body px-4 pb-4">
                             <!-- Search Bar -->
                             <div class="d-flex justify-content-between align-items-center mb-3 mt-2">
-                                <input type="text" id="restoreSearch" class="search-box-restore" placeholder="🔍 Cari nama customer, user penghapus, atau kode...">
+                                <input type="text" id="restoreSearch" class="search-box-restore" placeholder="🔍 Cari nama customer, email, user penghapus, atau kode...">
                                 <span class="text-xs text-muted font-weight-bold">Total: <span id="visibleCount"><?php echo count($deletedKegiatan); ?></span> data</span>
                             </div>
 
@@ -174,7 +187,7 @@ $deletedKegiatan = $result ? mysqli_fetch_all($result, MYSQLI_ASSOC) : [];
                                     <thead>
                                         <tr>
                                             <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="width: 130px;">AKSI</th>
-                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="width: 150px;">DIHAPUS OLEH</th>
+                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="width: 180px;">DIHAPUS OLEH</th>
                                             <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="width: 150px;">KODE / JENIS</th>
                                             <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="width: 160px;">TGL TERHAPUS</th>
                                             <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="width: 200px;">CUSTOMER</th>
@@ -184,6 +197,10 @@ $deletedKegiatan = $result ? mysqli_fetch_all($result, MYSQLI_ASSOC) : [];
                                     <tbody>
                                         <?php if (!empty($deletedKegiatan)): ?>
                                             <?php foreach ($deletedKegiatan as $row): ?>
+                                                <?php 
+                                                $userName = $row['user_penghapus_name'] ?? $row['user_penghapus_raw'] ?? 'System/Admin';
+                                                $userEmail = $row['user_penghapus_email'] ?? '';
+                                                ?>
                                                 <tr class="restore-row">
                                                     <td class="align-middle text-center">
                                                         <a href="restore_kegiatan.php?action=restore&kode=<?php echo urlencode($row['kode']); ?>" 
@@ -193,10 +210,17 @@ $deletedKegiatan = $result ? mysqli_fetch_all($result, MYSQLI_ASSOC) : [];
                                                         </a>
                                                     </td>
                                                     <td>
-                                                        <span class="user-badge">
-                                                            <i class="material-icons text-xs me-1">person</i>
-                                                            <?php echo htmlspecialchars($row['user_penghapus'] ?? 'System/Admin'); ?>
-                                                        </span>
+                                                        <div class="d-flex flex-column">
+                                                            <span class="user-badge mb-1">
+                                                                <i class="material-icons text-xs me-1">person</i>
+                                                                <?php echo htmlspecialchars($userName); ?>
+                                                            </span>
+                                                            <?php if (!empty($userEmail)): ?>
+                                                                <span class="email-text">
+                                                                    <i class="material-icons text-xxs me-1" style="font-size:11px;vertical-align:middle;">email</i><?php echo htmlspecialchars($userEmail); ?>
+                                                                </span>
+                                                            <?php endif; ?>
+                                                        </div>
                                                     </td>
                                                     <td>
                                                         <span class="badge-kegiatan bg-gradient-info text-white me-1">
