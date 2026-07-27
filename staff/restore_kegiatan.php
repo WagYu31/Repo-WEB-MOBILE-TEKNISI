@@ -250,45 +250,55 @@ if ($isUnlocked) {
 
         /* Lock Screen Styling */
         .lock-card {
-            max-width: 440px;
+            max-width: 460px;
             margin: 60px auto;
             border-radius: 20px;
             border: none;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+            box-shadow: 0 16px 40px rgba(15, 23, 42, 0.15);
             overflow: hidden;
             background: #ffffff;
         }
         .lock-header {
-            background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
-            padding: 32px 24px;
+            background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+            padding: 36px 24px;
             text-align: center;
             color: white;
+            position: relative;
         }
         .lock-icon-box {
             width: 72px;
             height: 72px;
-            background: rgba(255,255,255,0.1);
+            background: rgba(59, 130, 246, 0.15);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             margin: 0 auto 16px;
-            border: 2px solid rgba(255,255,255,0.2);
+            border: 2px solid rgba(59, 130, 246, 0.4);
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
+        }
+        .it-info-box {
+            background: #F0F9FF;
+            border: 1px solid #BAE6FD;
+            border-radius: 12px;
+            padding: 14px 16px;
         }
         .lock-input {
             border: 2px solid #E2E8F0;
             border-radius: 12px;
             padding: 14px 18px;
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 700;
-            letter-spacing: 4px;
+            letter-spacing: 6px;
             text-align: center;
             width: 100%;
             outline: none;
             transition: all 0.2s;
+            background: #F8FAFC;
         }
         .lock-input:focus {
             border-color: #0284C7;
+            background: #FFFFFF;
             box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.15);
         }
         .btn-unlock {
@@ -322,12 +332,21 @@ if ($isUnlocked) {
                 <div class="card lock-card">
                     <div class="lock-header">
                         <div class="lock-icon-box">
-                            <i class="material-icons text-white" style="font-size: 36px;">lock</i>
+                            <i class="material-icons text-info" style="font-size: 36px;">security</i>
                         </div>
                         <h5 class="text-white font-weight-bold mb-1">Akses Terkunci 🔒</h5>
-                        <p class="text-xs text-slate-300 mb-0 opacity-8">Masukkan Sandi Keamanan untuk mengakses Restore Kegiatan</p>
+                        <p class="text-xs text-slate-300 mb-0 opacity-8">Menu pemulihan data kegiatan terhapus</p>
                     </div>
                     <div class="card-body p-4">
+                        <!-- Professional IT Info Alert -->
+                        <div class="it-info-box mb-4">
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <i class="material-icons text-info text-sm">info</i>
+                                <strong class="text-xs text-dark font-weight-bold">Bantuan Akses:</strong>
+                            </div>
+                            <p class="text-xs text-secondary mb-0">Silakan hubungi <strong>Tim IT / Administrator System</strong> untuk membuka menu ini.</p>
+                        </div>
+
                         <?php if (!empty($passcodeError)): ?>
                             <div class="alert alert-danger text-white text-xs text-center py-2 px-3 mb-3 border-radius-lg" role="alert">
                                 <i class="material-icons text-xs me-1" style="vertical-align:middle;">error</i> <?php echo $passcodeError; ?>
@@ -336,11 +355,11 @@ if ($isUnlocked) {
 
                         <form method="POST" action="restore_kegiatan.php">
                             <div class="mb-4">
-                                <label class="form-label text-xs font-weight-bold text-secondary text-uppercase mb-2">Sandi Keamanan (6 Digit)</label>
-                                <input type="password" name="passcode" class="lock-input" placeholder="******" maxlength="10" required autofocus autocomplete="off">
+                                <label class="form-label text-xs font-weight-bold text-secondary text-uppercase mb-2">MASUKKAN SANDI KEAMANAN</label>
+                                <input type="password" name="passcode" class="lock-input" placeholder="••••••" maxlength="10" required autofocus autocomplete="off">
                             </div>
                             <button type="submit" name="submit_passcode" class="btn-unlock">
-                                Buka Akses 🔓
+                                Verifikasi & Buka Akses 🔓
                             </button>
                         </form>
                     </div>
