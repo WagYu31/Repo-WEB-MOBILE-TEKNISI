@@ -43,7 +43,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'restore' && !empty($_GET['kod
             $stmt_log->close();
         }
 
-        $message = "Kegiatan dengan kode <strong>" . htmlspecialchars($kodeRestore) . "</strong> berhasil dipulihkan!";
+        $message = "Kegiatan <strong>" . htmlspecialchars($kodeRestore) . "</strong> berhasil dipulihkan!";
         $messageType = "success";
     } else {
         $message = "Gagal mempulihkan kegiatan atau data tidak ditemukan.";
@@ -71,6 +71,40 @@ $deletedKegiatan = $result ? mysqli_fetch_all($result, MYSQLI_ASSOC) : [];
         .table th, .table td { vertical-align: middle !important; }
         .card { border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
         .badge-kegiatan { font-size: 11px; padding: 4px 8px; border-radius: 6px; font-weight: 700; }
+        .btn-restore-main {
+            background: linear-gradient(135deg, #22C55E 0%, #16A34A 100%);
+            color: #FFFFFF !important;
+            font-weight: 700;
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+            font-size: 12px;
+        }
+        .btn-restore-main:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(34, 197, 94, 0.4);
+            color: #FFFFFF !important;
+        }
+        .search-box-restore {
+            border: 1.5px solid #E2E8F0;
+            border-radius: 10px;
+            padding: 10px 16px;
+            font-size: 14px;
+            width: 100%;
+            max-width: 400px;
+            outline: none;
+            transition: all 0.2s;
+        }
+        .search-box-restore:focus {
+            border-color: #3B82F6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
     </style>
 </head>
 
@@ -92,29 +126,42 @@ $deletedKegiatan = $result ? mysqli_fetch_all($result, MYSQLI_ASSOC) : [];
 
                     <div class="card my-4">
                         <div class="card-header p-0 position-relative mt-n4 mx-3 z-index-2">
-                            <div class="bg-gradient-primary shadow-primary border-radius-lg pt-4 pb-3 px-3 d-flex justify-content-between align-items-center">
+                            <div class="bg-gradient-primary shadow-primary border-radius-lg pt-4 pb-3 px-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
                                 <h6 class="text-white text-capitalize mb-0"><i class="material-icons me-2" style="vertical-align:middle;">restore_from_trash</i> Pulihkan Data Kegiatan Terhapus (Trash)</h6>
-                                <span class="badge bg-white text-dark font-weight-bold"><?php echo count($deletedKegiatan); ?> Data Terhapus</span>
+                                <span class="badge bg-white text-dark font-weight-bold" id="totalCountBadge"><?php echo count($deletedKegiatan); ?> Data Terhapus</span>
                             </div>
                         </div>
-                        <div class="card-body px-0 pb-2">
+                        <div class="card-body px-4 pb-4">
+                            <!-- Search Bar -->
+                            <div class="d-flex justify-content-between align-items-center mb-3 mt-2">
+                                <input type="text" id="restoreSearch" class="search-box-restore" placeholder="🔍 Cari nama customer / kode transaksi...">
+                                <span class="text-xs text-muted font-weight-bold">Total: <span id="visibleCount"><?php echo count($deletedKegiatan); ?></span> data</span>
+                            </div>
+
                             <div class="table-responsive p-0">
-                                <table class="table align-items-center mb-0">
+                                <table class="table align-items-center mb-0" id="restoreTable">
                                     <thead>
                                         <tr>
-                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-4">Kode / Jenis</th>
-                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Customer</th>
-                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Keterangan</th>
-                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Waktu Dihapus</th>
-                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Aksi</th>
+                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="width: 140px;">AKSI PULIHKAN</th>
+                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">KODE / JENIS</th>
+                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">CUSTOMER</th>
+                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">KETERANGAN</th>
+                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">WAKTU DIHAPUS</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <?php if (!empty($deletedKegiatan)): ?>
                                             <?php foreach ($deletedKegiatan as $row): ?>
-                                                <tr>
-                                                    <td class="ps-4">
-                                                        <span class="badge-kegiatan bg-gradient-info text-white me-2">
+                                                <tr class="restore-row">
+                                                    <td class="align-middle text-center">
+                                                        <a href="restore_kegiatan.php?action=restore&kode=<?php echo urlencode($row['kode']); ?>" 
+                                                           class="btn-restore-main" 
+                                                           onclick="return confirm('Apakah Anda yakin ingin mempulihkan kegiatan <?php echo htmlspecialchars($row['kode']); ?>?');">
+                                                            <i class="material-icons text-sm">settings_backup_restore</i> PULIHKAN
+                                                        </a>
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge-kegiatan bg-gradient-info text-white me-1">
                                                             <?php echo strtoupper(htmlspecialchars($row['kegiatan'] ?? 'KEGIATAN')); ?>
                                                         </span>
                                                         <strong class="text-dark text-xs"><?php echo htmlspecialchars($row['kode']); ?></strong>
@@ -130,13 +177,6 @@ $deletedKegiatan = $result ? mysqli_fetch_all($result, MYSQLI_ASSOC) : [];
                                                             <i class="material-icons text-xs me-1" style="vertical-align:middle;">schedule</i>
                                                             <?php echo date('d M Y, H:i', strtotime($row['deleted_at'])); ?>
                                                         </span>
-                                                    </td>
-                                                    <td class="align-middle text-center">
-                                                        <a href="restore_kegiatan.php?action=restore&kode=<?php echo urlencode($row['kode']); ?>" 
-                                                           class="btn btn-sm btn-success mb-0 py-1 px-3" 
-                                                           onclick="return confirm('Apakah Anda yakin ingin mempulihkan kegiatan ini?');">
-                                                            <i class="material-icons text-sm me-1" style="vertical-align:middle;">settings_backup_restore</i> Pulihkan
-                                                        </a>
                                                     </td>
                                                 </tr>
                                             <?php endforeach; ?>
@@ -159,5 +199,23 @@ $deletedKegiatan = $result ? mysqli_fetch_all($result, MYSQLI_ASSOC) : [];
         </div>
     </main>
     <?php include "js-include.php"; ?>
+
+    <script>
+    document.getElementById('restoreSearch')?.addEventListener('input', function() {
+        const query = this.value.toLowerCase().trim();
+        const rows = document.querySelectorAll('.restore-row');
+        let count = 0;
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            if (text.includes(query)) {
+                row.style.display = '';
+                count++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+        document.getElementById('visibleCount').textContent = count;
+    });
+    </script>
 </body>
 </html>
