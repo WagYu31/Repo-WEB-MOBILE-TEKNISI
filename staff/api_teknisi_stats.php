@@ -159,5 +159,5 @@ echo json_encode([
     'total_pendapatan' => intval($totalPendapatan),
     'total_keseluruhan' => intval($totalKeseluruhan),
     'bonus' => intval($bonus),
-    'grand_total' => intval($totalKeseluruhan),
+    'grand_total' => intval($totalPendapatan),
 ]);
