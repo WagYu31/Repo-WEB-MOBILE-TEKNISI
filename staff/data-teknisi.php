@@ -636,12 +636,12 @@ $pageNow = "Data Teknisi";
             const selectedDate = document.getElementById('filterMonth').value;
             const [selY, selM] = selectedDate.split('-').map(Number);
 
-            // Calculate date range based on rangeMonths
+            // Calculate date range: selected month is the START month
             let dateStart, dateEnd;
             if (rangeMonths > 1) {
-                const startDate = new Date(selY, selM - rangeMonths, 1);
-                dateStart = startDate.getFullYear() + '-' + String(startDate.getMonth() + 1).padStart(2, '0');
-                dateEnd = selectedDate;
+                dateStart = selectedDate;
+                const endDate = new Date(selY, selM - 1 + (rangeMonths - 1), 1);
+                dateEnd = endDate.getFullYear() + '-' + String(endDate.getMonth() + 1).padStart(2, '0');
             } else {
                 dateStart = selectedDate;
                 dateEnd = selectedDate;
@@ -653,7 +653,8 @@ $pageNow = "Data Teknisi";
             // Update period badge
             if (rangeMonths > 1) {
                 const [sY, sM] = dateStart.split('-').map(Number);
-                document.getElementById('report-period').textContent = `${bulanNames[sM]} ${sY} — ${bulanNames[selM]} ${selY} (${rangeMonths} Bulan)`;
+                const [eY, eM] = dateEnd.split('-').map(Number);
+                document.getElementById('report-period').textContent = `${bulanNames[sM]} ${sY} — ${bulanNames[eM]} ${eY} (${rangeMonths} Bulan)`;
             } else {
                 document.getElementById('report-period').textContent = `${bulanNames[selM]} ${selY}`;
             }
@@ -666,7 +667,7 @@ $pageNow = "Data Teknisi";
                 const fetchUrl = `get_teknisi_data.php?date=${dateStart}&date_end=${dateEnd}`;
                 const prevUrl = compareMode
                     ? (rangeMonths > 1
-                        ? (() => { const ps = new Date(selY, selM - rangeMonths * 2, 1); const pe = new Date(selY, selM - rangeMonths, 0); return `get_teknisi_data.php?date=${ps.getFullYear()}-${String(ps.getMonth()+1).padStart(2,'0')}&date_end=${pe.getFullYear()}-${String(pe.getMonth()+1).padStart(2,'0')}`; })()
+                        ? (() => { const [sY, sM] = dateStart.split('-').map(Number); const ps = new Date(sY, sM - 1 - rangeMonths, 1); const pe = new Date(sY, sM - 1 - 1, 1); return `get_teknisi_data.php?date=${ps.getFullYear()}-${String(ps.getMonth()+1).padStart(2,'0')}&date_end=${pe.getFullYear()}-${String(pe.getMonth()+1).padStart(2,'0')}`; })()
                         : `get_teknisi_data.php?date=${getPrevMonth(selectedDate)}`)
                     : null;
 
