@@ -51,9 +51,11 @@ if (isset($_GET['action']) && $_GET['action'] === 'restore' && !empty($_GET['kod
     }
 }
 
-// Fetch soft-deleted kegiatan along with user_penghapus from log_kegiatan
+// Fetch soft-deleted kegiatan along with user_penghapus mapped to users table (name & email)
 $sql = "SELECT k.id, k.kode, k.kegiatan, k.keterangan, k.created_at, k.deleted_at, c.nama AS nama_customer,
-        (SELECT l.nama_user FROM log_kegiatan l 
+        (SELECT COALESCE(u.name, l.nama_user, 'System/Admin')
+         FROM log_kegiatan l 
+         LEFT JOIN users u ON (u.name = l.nama_user OR u.email = l.nama_user OR CAST(u.id AS CHAR) = l.nama_user)
          WHERE (l.kode_transaksi = k.kode OR l.kode_transaksi LIKE CONCAT(k.kode, ' - %')) 
          AND (l.jenis_aksi LIKE '%Delete%' OR l.jenis_aksi LIKE '%hapus%')
          ORDER BY l.waktu DESC LIMIT 1) AS user_penghapus
