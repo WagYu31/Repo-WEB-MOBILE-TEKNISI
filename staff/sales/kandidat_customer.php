@@ -132,6 +132,119 @@ $is_superadmin = ($_SESSION['role'] === 'superadmin');
     font-weight: 800;
     margin-right: 8px;
 }
+
+/* ============ FILTER BAR ============ */
+.filter-bar {
+    background: #FFFFFF;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 16px;
+    padding: 18px 22px;
+    margin-bottom: 22px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+    transition: box-shadow 0.3s ease;
+}
+
+.filter-bar:focus-within {
+    border-color: #BFDBFE;
+    box-shadow: 0 4px 20px rgba(37, 99, 235, 0.1);
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    min-width: 160px;
+}
+
+.filter-group.search-group {
+    flex: 1.5;
+    min-width: 220px;
+}
+
+.filter-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #94A3B8;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.filter-input,
+.filter-select {
+    border: 1.5px solid #E2E8F0;
+    border-radius: 10px;
+    padding: 9px 14px;
+    font-size: 13.5px;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    color: #1E293B;
+    background: #F8FAFC;
+    transition: all 0.25s ease;
+    outline: none;
+    width: 100%;
+}
+
+.filter-input:focus,
+.filter-select:focus {
+    border-color: #3B82F6;
+    background: #FFFFFF;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+.filter-input::placeholder {
+    color: #94A3B8;
+    font-weight: 400;
+}
+
+.filter-btn-reset {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 18px;
+    border-radius: 10px;
+    border: 1.5px solid #E2E8F0;
+    background: #F1F5F9;
+    color: #64748B;
+    font-size: 13px;
+    font-weight: 700;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    align-self: flex-end;
+    white-space: nowrap;
+}
+
+.filter-btn-reset:hover {
+    background: #FEE2E2;
+    color: #EF4444;
+    border-color: #FECACA;
+}
+
+.filter-count {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #EFF6FF, #DBEAFE);
+    color: #2563EB;
+    font-size: 13px;
+    font-weight: 700;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    align-self: flex-end;
+    white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+    .filter-bar { flex-direction: column; }
+    .filter-group { min-width: 100%; }
+}
 </style>
 
 <!-- Hero Header -->
@@ -168,6 +281,68 @@ $is_superadmin = ($_SESSION['role'] === 'superadmin');
             </a>
         </li>
     </ul>
+</div>
+
+<!-- Filter Bar -->
+<div class="filter-bar" id="filterBar">
+    <div class="filter-group search-group">
+        <label class="filter-label">🔍 Cari</label>
+        <input type="text" class="filter-input" id="filterSearch" placeholder="Cari nama toko, PIC, nomor...">
+    </div>
+    <div class="filter-group">
+        <label class="filter-label">📁 Kategori</label>
+        <select class="filter-select" id="filterKategori">
+            <option value="">Semua Kategori</option>
+            <?php
+            $kategoriList = array_unique(array_filter(array_column($customers, 'kategori')));
+            sort($kategoriList);
+            foreach ($kategoriList as $kat) {
+                echo '<option value="' . htmlspecialchars($kat) . '">' . htmlspecialchars($kat) . '</option>';
+            }
+            ?>
+        </select>
+    </div>
+    <div class="filter-group">
+        <label class="filter-label">📍 Kota</label>
+        <select class="filter-select" id="filterKota">
+            <option value="">Semua Kota</option>
+            <?php
+            $kotaList = [];
+            foreach ($customers as $c) {
+                if (!empty($c['all_cities'])) {
+                    foreach (explode(', ', $c['all_cities']) as $k) {
+                        $k = trim($k);
+                        if (!empty($k) && $k !== '-') $kotaList[$k] = true;
+                    }
+                }
+            }
+            ksort($kotaList);
+            foreach (array_keys($kotaList) as $kota) {
+                echo '<option value="' . htmlspecialchars($kota) . '">' . htmlspecialchars($kota) . '</option>';
+            }
+            ?>
+        </select>
+    </div>
+    <div class="filter-group">
+        <label class="filter-label">👤 Sales</label>
+        <select class="filter-select" id="filterSales">
+            <option value="">Semua Sales</option>
+            <?php
+            $salesList = array_unique(array_filter(array_column($customers, 'nama_sales')));
+            sort($salesList);
+            foreach ($salesList as $sl) {
+                echo '<option value="' . htmlspecialchars($sl) . '">' . htmlspecialchars($sl) . '</option>';
+            }
+            ?>
+        </select>
+    </div>
+    <button class="filter-btn-reset" id="filterReset" onclick="resetFilters()">
+        <i class="bi bi-x-circle"></i> Reset
+    </button>
+    <div class="filter-count" id="filterCount">
+        <i class="bi bi-funnel-fill"></i>
+        <span id="filterCountText"><?php echo count($customers); ?> data</span>
+    </div>
 </div>
 
 <div id="notification" class="alert" style="display:none;"></div>
@@ -373,5 +548,63 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Fetch error:', error);
         });
     }
+});
+
+// ============ CLIENT-SIDE FILTERING ============
+const filterSearch = document.getElementById('filterSearch');
+const filterKategori = document.getElementById('filterKategori');
+const filterKota = document.getElementById('filterKota');
+const filterSales = document.getElementById('filterSales');
+const filterCountText = document.getElementById('filterCountText');
+const allRows = document.querySelectorAll('tbody tr[id^="customer-row-"]');
+
+function applyFilters() {
+    const search = filterSearch.value.toLowerCase().trim();
+    const kategori = filterKategori.value.toLowerCase();
+    const kota = filterKota.value.toLowerCase();
+    const sales = filterSales.value.toLowerCase();
+    let visible = 0;
+
+    allRows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        const textContent = row.textContent.toLowerCase();
+        const namaToko = (cells[0]?.textContent || '').toLowerCase();
+        const picKontak = (cells[1]?.textContent || '').toLowerCase();
+        const kat = (cells[2]?.textContent || '').trim().toLowerCase();
+        const kotaCell = (cells[3]?.textContent || '').toLowerCase();
+        const salesCell = (cells[4]?.textContent || '').trim().toLowerCase();
+
+        let show = true;
+
+        // Search: match across all text
+        if (search && !textContent.includes(search)) show = false;
+
+        // Kategori filter
+        if (kategori && kat !== kategori) show = false;
+
+        // Kota filter
+        if (kota && !kotaCell.includes(kota)) show = false;
+
+        // Sales filter
+        if (sales && !salesCell.includes(sales)) show = false;
+
+        row.style.display = show ? '' : 'none';
+        if (show) visible++;
+    });
+
+    filterCountText.textContent = visible + ' data';
+}
+
+function resetFilters() {
+    filterSearch.value = '';
+    filterKategori.value = '';
+    filterKota.value = '';
+    filterSales.value = '';
+    applyFilters();
+}
+
+[filterSearch, filterKategori, filterKota, filterSales].forEach(el => {
+    el.addEventListener('input', applyFilters);
+    el.addEventListener('change', applyFilters);
 });
 </script>
