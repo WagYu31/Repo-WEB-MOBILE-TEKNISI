@@ -358,7 +358,7 @@ if ($isSalesDir) {
                                 if ($showLaporanKegiatan) renderSubNavItem(($pageNow == "Laporan" && !$isSalesDir), $rootPrefix . "lap-kegiatan.php", "fa-solid fa-file-invoice", "Laporan Kegiatan");
                                 if ($showTargetTercapai) renderSubNavItem(($pageNow == "Target Tercapai" && !$isSalesDir), $rootPrefix . "laporan.php", "fa-solid fa-hand-holding-dollar", "Target Tercapai Teknisi");
                                 if ($showProgressKegiatan) renderSubNavItem(($pageNow == "Progress Kegiatan" && !$isSalesDir), $rootPrefix . "lap-progress.php", "fa-solid fa-bars-progress", "Progress Kegiatan");
-                                if ($showLaporanKegiatan) renderSubNavItem(($pageNow == "Restore Kegiatan" && !$isSalesDir), $rootPrefix . "restore_kegiatan.php", "fa-solid fa-trash-can-arrow-up", "Pulihkan Kegiatan");
+                                if ($showLaporanKegiatan) renderSubNavItem(($pageNow == "Backup Data Teknisi" && !$isSalesDir), $rootPrefix . "restore_kegiatan.php", "fa-solid fa-database", "Backup Data Teknisi");
                                 ?>
                             </ul>
                         </div>

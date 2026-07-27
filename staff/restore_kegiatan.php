@@ -1,7 +1,7 @@
 <?php
 include "conn.php";
 include "session.php";
-$pageNow = "Restore Kegiatan";
+$pageNow = "Backup Data Teknisi";
 include "get-user-data.php";
 
 // Passcode verification logic (PIN: 312226)
@@ -334,8 +334,8 @@ if ($isUnlocked) {
                         <div class="lock-icon-box">
                             <i class="material-icons text-info" style="font-size: 36px;">security</i>
                         </div>
-                        <h5 class="text-white font-weight-bold mb-1">Akses Terkunci 🔒</h5>
-                        <p class="text-xs text-slate-300 mb-0 opacity-8">Menu pemulihan data kegiatan terhapus</p>
+                        <h5 class="text-white font-weight-bold mb-1">Backup Data Teknisi 🔒</h5>
+                        <p class="text-xs text-slate-300 mb-0 opacity-8">Menu backup dan pemulihan data kegiatan teknisi</p>
                     </div>
                     <div class="card-body p-4">
                         <!-- Professional IT Info Alert -->
@@ -379,7 +379,7 @@ if ($isUnlocked) {
                             <div class="card my-4">
                                 <div class="card-header p-0 position-relative mt-n4 mx-3 z-index-2">
                                     <div class="bg-gradient-primary shadow-primary border-radius-lg pt-4 pb-3 px-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
-                                        <h6 class="text-white text-capitalize mb-0"><i class="material-icons me-2" style="vertical-align:middle;">restore_from_trash</i> Pulihkan Data Kegiatan Terhapus (Trash)</h6>
+                                        <h6 class="text-white text-capitalize mb-0"><i class="material-icons me-2" style="vertical-align:middle;">backup</i> Backup Data Teknisi</h6>
                                         <div class="d-flex align-items-center gap-2">
                                             <span class="badge bg-white text-dark font-weight-bold" id="totalCountBadge"><?php echo count($deletedKegiatan); ?> Data Terhapus</span>
                                             <a href="restore_kegiatan.php?action=lock" class="btn btn-xs btn-outline-white mb-0 text-white" style="border: 1px solid rgba(255,255,255,0.4);" title="Kunci Kembali Halaman">
