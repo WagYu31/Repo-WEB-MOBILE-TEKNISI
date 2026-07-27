@@ -75,7 +75,7 @@ $deletedKegiatan = $result ? mysqli_fetch_all($result, MYSQLI_ASSOC) : [];
             background: linear-gradient(135deg, #22C55E 0%, #16A34A 100%);
             color: #FFFFFF !important;
             font-weight: 700;
-            padding: 8px 16px;
+            padding: 8px 14px;
             border-radius: 8px;
             border: none;
             box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
@@ -85,6 +85,7 @@ $deletedKegiatan = $result ? mysqli_fetch_all($result, MYSQLI_ASSOC) : [];
             gap: 6px;
             text-decoration: none;
             font-size: 12px;
+            white-space: nowrap;
         }
         .btn-restore-main:hover {
             transform: translateY(-2px);
@@ -104,6 +105,18 @@ $deletedKegiatan = $result ? mysqli_fetch_all($result, MYSQLI_ASSOC) : [];
         .search-box-restore:focus {
             border-color: #3B82F6;
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+        .date-badge {
+            background: #FEF2F2;
+            color: #EF4444;
+            border: 1px solid #FECACA;
+            font-size: 11.5px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            white-space: nowrap;
         }
     </style>
 </head>
@@ -139,14 +152,14 @@ $deletedKegiatan = $result ? mysqli_fetch_all($result, MYSQLI_ASSOC) : [];
                             </div>
 
                             <div class="table-responsive p-0">
-                                <table class="table align-items-center mb-0" id="restoreTable">
+                                <table class="table align-middle mb-0" id="restoreTable">
                                     <thead>
                                         <tr>
-                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="width: 140px;">AKSI PULIHKAN</th>
-                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">KODE / JENIS</th>
-                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">CUSTOMER</th>
+                                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="width: 130px;">AKSI</th>
+                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="width: 150px;">KODE / JENIS</th>
+                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="width: 170px;">TGL TERHAPUS</th>
+                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="width: 220px;">CUSTOMER</th>
                                             <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">KETERANGAN</th>
-                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">WAKTU DIHAPUS</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -167,16 +180,18 @@ $deletedKegiatan = $result ? mysqli_fetch_all($result, MYSQLI_ASSOC) : [];
                                                         <strong class="text-dark text-xs"><?php echo htmlspecialchars($row['kode']); ?></strong>
                                                     </td>
                                                     <td>
+                                                        <span class="date-badge">
+                                                            <i class="material-icons text-xs me-1">schedule</i>
+                                                            <?php echo date('d M Y, H:i', strtotime($row['deleted_at'])); ?>
+                                                        </span>
+                                                    </td>
+                                                    <td>
                                                         <p class="text-xs font-weight-bold mb-0 text-dark"><?php echo htmlspecialchars($row['nama_customer'] ?? 'Unknown'); ?></p>
                                                     </td>
                                                     <td>
-                                                        <p class="text-xs text-secondary mb-0"><?php echo htmlspecialchars($row['keterangan'] ?? '-'); ?></p>
-                                                    </td>
-                                                    <td>
-                                                        <span class="text-xs font-weight-bold text-danger">
-                                                            <i class="material-icons text-xs me-1" style="vertical-align:middle;">schedule</i>
-                                                            <?php echo date('d M Y, H:i', strtotime($row['deleted_at'])); ?>
-                                                        </span>
+                                                        <p class="text-xs text-secondary mb-0 text-truncate" style="max-width:350px;" title="<?php echo htmlspecialchars($row['keterangan'] ?? ''); ?>">
+                                                            <?php echo htmlspecialchars($row['keterangan'] ?? '-'); ?>
+                                                        </p>
                                                     </td>
                                                 </tr>
                                             <?php endforeach; ?>
