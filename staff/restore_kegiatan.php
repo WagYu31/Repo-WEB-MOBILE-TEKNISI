@@ -51,8 +51,12 @@ if (isset($_GET['action']) && $_GET['action'] === 'restore' && !empty($_GET['kod
     }
 }
 
-// Fetch soft-deleted kegiatan
-$sql = "SELECT k.id, k.kode, k.kegiatan, k.keterangan, k.created_at, k.deleted_at, c.nama AS nama_customer 
+// Fetch soft-deleted kegiatan along with user_penghapus from log_kegiatan
+$sql = "SELECT k.id, k.kode, k.kegiatan, k.keterangan, k.created_at, k.deleted_at, c.nama AS nama_customer,
+        (SELECT l.nama_user FROM log_kegiatan l 
+         WHERE (l.kode_transaksi = k.kode OR l.kode_transaksi LIKE CONCAT(k.kode, ' - %')) 
+         AND (l.jenis_aksi LIKE '%Delete%' OR l.jenis_aksi LIKE '%hapus%')
+         ORDER BY l.waktu DESC LIMIT 1) AS user_penghapus
         FROM kegiatan k 
         LEFT JOIN customer c ON k.customer_id = c.id 
         WHERE k.deleted_at IS NOT NULL 
@@ -118,6 +122,18 @@ $deletedKegiatan = $result ? mysqli_fetch_all($result, MYSQLI_ASSOC) : [];
             align-items: center;
             white-space: nowrap;
         }
+        .user-badge {
+            background: #F1F5F9;
+            color: #334155;
+            border: 1px solid #CBD5E1;
+            font-size: 11.5px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            white-space: nowrap;
+        }
     </style>
 </head>
 
@@ -147,7 +163,7 @@ $deletedKegiatan = $result ? mysqli_fetch_all($result, MYSQLI_ASSOC) : [];
                         <div class="card-body px-4 pb-4">
                             <!-- Search Bar -->
                             <div class="d-flex justify-content-between align-items-center mb-3 mt-2">
-                                <input type="text" id="restoreSearch" class="search-box-restore" placeholder="🔍 Cari nama customer / kode transaksi...">
+                                <input type="text" id="restoreSearch" class="search-box-restore" placeholder="🔍 Cari nama customer, user penghapus, atau kode...">
                                 <span class="text-xs text-muted font-weight-bold">Total: <span id="visibleCount"><?php echo count($deletedKegiatan); ?></span> data</span>
                             </div>
 
@@ -156,9 +172,10 @@ $deletedKegiatan = $result ? mysqli_fetch_all($result, MYSQLI_ASSOC) : [];
                                     <thead>
                                         <tr>
                                             <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="width: 130px;">AKSI</th>
+                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="width: 150px;">DIHAPUS OLEH</th>
                                             <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="width: 150px;">KODE / JENIS</th>
-                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="width: 170px;">TGL TERHAPUS</th>
-                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="width: 220px;">CUSTOMER</th>
+                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="width: 160px;">TGL TERHAPUS</th>
+                                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7" style="width: 200px;">CUSTOMER</th>
                                             <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">KETERANGAN</th>
                                         </tr>
                                     </thead>
@@ -172,6 +189,12 @@ $deletedKegiatan = $result ? mysqli_fetch_all($result, MYSQLI_ASSOC) : [];
                                                            onclick="return confirm('Apakah Anda yakin ingin mempulihkan kegiatan <?php echo htmlspecialchars($row['kode']); ?>?');">
                                                             <i class="material-icons text-sm">settings_backup_restore</i> PULIHKAN
                                                         </a>
+                                                    </td>
+                                                    <td>
+                                                        <span class="user-badge">
+                                                            <i class="material-icons text-xs me-1">person</i>
+                                                            <?php echo htmlspecialchars($row['user_penghapus'] ?? 'System/Admin'); ?>
+                                                        </span>
                                                     </td>
                                                     <td>
                                                         <span class="badge-kegiatan bg-gradient-info text-white me-1">
@@ -189,7 +212,7 @@ $deletedKegiatan = $result ? mysqli_fetch_all($result, MYSQLI_ASSOC) : [];
                                                         <p class="text-xs font-weight-bold mb-0 text-dark"><?php echo htmlspecialchars($row['nama_customer'] ?? 'Unknown'); ?></p>
                                                     </td>
                                                     <td>
-                                                        <p class="text-xs text-secondary mb-0 text-truncate" style="max-width:350px;" title="<?php echo htmlspecialchars($row['keterangan'] ?? ''); ?>">
+                                                        <p class="text-xs text-secondary mb-0 text-truncate" style="max-width:300px;" title="<?php echo htmlspecialchars($row['keterangan'] ?? ''); ?>">
                                                             <?php echo htmlspecialchars($row['keterangan'] ?? '-'); ?>
                                                         </p>
                                                     </td>
@@ -197,7 +220,7 @@ $deletedKegiatan = $result ? mysqli_fetch_all($result, MYSQLI_ASSOC) : [];
                                             <?php endforeach; ?>
                                         <?php else: ?>
                                             <tr>
-                                                <td colspan="5" class="text-center py-5 text-secondary">
+                                                <td colspan="6" class="text-center py-5 text-secondary">
                                                     <i class="material-icons text-secondary mb-2" style="font-size: 48px;">delete_outline</i>
                                                     <p class="mb-0 font-weight-bold">Tidak ada data kegiatan yang terhapus.</p>
                                                 </td>
