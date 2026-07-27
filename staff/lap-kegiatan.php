@@ -45,10 +45,13 @@ $sql_main = "SELECT k.id, k.kode AS kode_transaksi, k.keterangan, k.catatan_admi
              ) req_inv ON k.kode = req_inv.kode
              WHERE k.status != 'waiting' AND (k.paid IS NULL OR k.paid = '')
              AND k.deleted_at IS NULL
-             AND NOT EXISTS (
-                 SELECT 1 FROM pelaksanaan_kegiatan px
-                 WHERE px.kegiatan_id = k.id AND px.deleted_at IS NULL
-                 AND px.status IN ('Lanjut Nanti', 'Lanjutan', 'berjalan', 'dijadwalkan')
+             AND (
+                 k.status = 'selesai'
+                 OR NOT EXISTS (
+                     SELECT 1 FROM pelaksanaan_kegiatan px
+                     WHERE px.kegiatan_id = k.id AND px.deleted_at IS NULL
+                     AND px.status IN ('Lanjut Nanti', 'Lanjutan', 'berjalan', 'dijadwalkan')
+                 )
              )";
 
 $bindTypes = '';
