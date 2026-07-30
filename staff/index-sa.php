@@ -1200,10 +1200,10 @@ if (isset($_GET['export'])) {
                       </div>
                       <div style="margin-bottom:16px;">
                         <label style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;display:block;">Upload Bukti</label>
-                        <label style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:1.5px dashed #cbd5e1;border-radius:10px;cursor:pointer;transition:all 0.15s;background:#fafbfc;" onmouseover="this.style.borderColor='#6366f1';this.style.background='#f5f3ff'" onmouseout="this.style.borderColor='#cbd5e1';this.style.background='#fafbfc'">
-                          <i class="material-icons" style="font-size:20px;color:#94a3b8;">cloud_upload</i>
-                          <span style="font-size:12px;color:#64748b;font-weight:500;">Pilih file gambar atau PDF</span>
-                          <input type="file" name="media" accept="image/*,.pdf" style="display:none;">
+                        <label id="reasonFileContainer" style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:1.5px dashed #cbd5e1;border-radius:10px;cursor:pointer;transition:all 0.15s;background:#fafbfc;">
+                          <i class="material-icons" id="reasonFileIcon" style="font-size:20px;color:#94a3b8;">cloud_upload</i>
+                          <span id="reasonFileText" style="font-size:12px;color:#64748b;font-weight:500;word-break:break-all;">Pilih file gambar atau PDF</span>
+                          <input type="file" name="media" id="reasonMediaInput" accept="image/*,.pdf" style="display:none;">
                         </label>
                       </div>
                       <button type="submit" class="btn w-100" id="saveReasonBtn" style="background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;font-size:12px;font-weight:600;border:none;border-radius:10px;padding:10px;box-shadow:0 2px 8px rgba(99,102,241,0.3);">
@@ -1413,25 +1413,86 @@ if (isset($_GET['export'])) {
       $.ajax({ url: 'update_lokasi.php', type: 'POST', data: new FormData(this), contentType: false, processData: false, success: r => { alert('Berhasil'); location.reload(); } });
     });
 
+    function resetReasonFileLabel() {
+      $('#reasonMediaInput').val('');
+      $('#reasonFileText').text('Pilih file gambar atau PDF').css({ color: '#64748b', fontWeight: '500' });
+      $('#reasonFileIcon').text('cloud_upload').css({ color: '#94a3b8' });
+      $('#reasonFileContainer').css({ borderColor: '#cbd5e1', background: '#fafbfc' });
+    }
+
+    $(document).on('change', '#reasonMediaInput', function() {
+      if (this.files && this.files[0]) {
+        const file = this.files[0];
+        const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+        const iconName = isPdf ? 'picture_as_pdf' : 'image';
+        $('#reasonFileText').text('Terpilih: ' + file.name).css({ color: '#4f46e5', fontWeight: '600' });
+        $('#reasonFileIcon').text(iconName).css({ color: '#6366f1' });
+        $('#reasonFileContainer').css({ borderColor: '#6366f1', background: '#eef2ff' });
+      } else {
+        resetReasonFileLabel();
+      }
+    });
+
     $(document).on('click', '.reason-btn', function() {
       const id = $(this).data('id');
       $('#reasonKegiatanId').val(id);
-      $('#reasonHistoryList').html('Memuat...');
-      $.getJSON('get_reasons.php', {id: id}, function(data) {
-        let h = '';
-        if(data.length > 0) {
-          data.forEach(i => {
-            h += `<div class="bg-white p-2 mb-2 border rounded shadow-sm"><small class="badge bg-light text-dark">${i.created_at}</small><p class="text-sm mb-1">${i.reason}</p>${i.media ? `<a href="uploads/reasons/${i.media}" target="_blank" class="text-xs text-primary">Lihat Bukti</a>` : ''}</div>`;
-          });
-        } else { h = 'Belum ada catatan.'; }
-        $('#reasonHistoryList').html(h);
-      });
+      $('#reasonText').val('');
+      resetReasonFileLabel();
+      $('#reasonHistoryList').html('<div class="text-center p-3 text-secondary"><div class="spinner-border spinner-border-sm me-1"></div> Memuat catatan...</div>');
+      loadReasonHistory(id);
       new bootstrap.Modal($('#reasonModal')[0]).show();
     });
 
+    function loadReasonHistory(id) {
+      $.getJSON('get_reasons.php', {id: id}, function(data) {
+        let h = '';
+        if(data && data.length > 0) {
+          data.forEach(i => {
+            const dateFormatted = i.formatted_date || i.created_at || '';
+            h += `<div class="bg-white p-2 mb-2 border rounded shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                      <small class="badge bg-light text-dark font-weight-bold">${dateFormatted}</small>
+                    </div>
+                    <p class="text-sm mb-1 text-dark" style="white-space:pre-wrap;">${i.reason}</p>
+                    ${i.media ? `<a href="uploads/reasons/${i.media}" target="_blank" class="text-xs text-primary font-weight-bold d-inline-flex align-items-center gap-1 mt-1"><i class="material-icons" style="font-size:14px;">attach_file</i> Lihat Lampiran (${i.media.split('.').pop().toUpperCase()})</a>` : ''}
+                  </div>`;
+          });
+        } else { h = '<div class="text-center text-muted py-4"><i class="material-icons opacity-4 mb-1" style="font-size:32px;">chat_bubble_outline</i><br>Belum ada catatan penangguhan.</div>'; }
+        $('#reasonHistoryList').html(h);
+      });
+    }
+
     $('#reasonForm').submit(function(e) {
       e.preventDefault();
-      $.ajax({ url: 'save_reason.php', type: 'POST', data: new FormData(this), contentType: false, processData: false, success: () => { alert('Tersimpan'); location.reload(); } });
+      const btn = $('#saveReasonBtn');
+      const originalHtml = btn.html();
+      btn.prop('disabled', true).html('<i class="material-icons" style="font-size:14px;vertical-align:middle;margin-right:4px;">sync</i> Menyimpan...');
+
+      $.ajax({
+        url: 'save_reason.php',
+        type: 'POST',
+        data: new FormData(this),
+        contentType: false,
+        processData: false,
+        dataType: 'json',
+        success: function(res) {
+          if (res.status === 'success') {
+            const currentId = $('#reasonKegiatanId').val();
+            $('#reasonText').val('');
+            resetReasonFileLabel();
+            loadReasonHistory(currentId);
+            alert('Catatan & Bukti berhasil disimpan!');
+          } else {
+            alert('Gagal: ' + (res.message || 'Terjadi kesalahan saat menyimpan.'));
+          }
+        },
+        error: function(xhr, status, err) {
+          alert('Terjadi kesalahan koneksi atau file melebihi batas ukuran.');
+        },
+        complete: function() {
+          btn.prop('disabled', false).html(originalHtml);
+        }
+      });
     });
 
     $(document).on('click', '.jadwalkan-btn', function() {

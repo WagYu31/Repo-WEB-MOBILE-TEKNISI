@@ -437,7 +437,7 @@ $pageNow = "Waiting List";
                             <form id="reasonForm">
                                 <input type="hidden" name="kegiatan_id" id="reKegId">
                                 <textarea name="reason" class="form-control border p-2 mb-2" rows="4" placeholder="Tulis alasan penangguhan..." required></textarea>
-                                <input type="file" name="media" class="form-control border mb-2">
+                                <input type="file" name="media" accept="image/*,.pdf" class="form-control border mb-2">
                                 <button type="submit" class="btn btn-primary w-100">Simpan Catatan</button>
                             </form>
                         </div>
