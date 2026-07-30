@@ -652,6 +652,39 @@ function getStatusInfo($status)
 </script>
 
 <script>
+window.showImageTooltip = function(e, src) {
+    let tt = document.getElementById('imgHoverPreviewTooltip');
+    if (!tt) {
+        tt = document.createElement('div');
+        tt.id = 'imgHoverPreviewTooltip';
+        tt.style.cssText = 'position:fixed;z-index:999999;display:none;pointer-events:none;background:rgba(15,23,42,0.95);padding:8px;border-radius:12px;box-shadow:0 12px 36px rgba(0,0,0,0.35);border:1.5px solid rgba(255,255,255,0.25);backdrop-filter:blur(10px);max-width:420px;max-height:420px;transition:opacity 0.15s ease;';
+        tt.innerHTML = '<img id="imgHoverPreviewTag" src="" style="max-width:400px;max-height:400px;border-radius:8px;display:block;object-fit:contain;background:#000;" />';
+        document.body.appendChild(tt);
+    }
+    document.getElementById('imgHoverPreviewTag').src = src;
+    tt.style.display = 'block';
+    moveImageTooltip(e);
+};
+
+window.moveImageTooltip = function(e) {
+    const tt = document.getElementById('imgHoverPreviewTooltip');
+    if (!tt || tt.style.display === 'none') return;
+    const padding = 15;
+    let x = e.clientX + padding;
+    let y = e.clientY + padding;
+
+    if (x + 420 > window.innerWidth) x = Math.max(10, e.clientX - 430);
+    if (y + 420 > window.innerHeight) y = Math.max(10, window.innerHeight - 430);
+
+    tt.style.left = x + 'px';
+    tt.style.top = y + 'px';
+};
+
+window.hideImageTooltip = function() {
+    const tt = document.getElementById('imgHoverPreviewTooltip');
+    if (tt) tt.style.display = 'none';
+};
+
 $(document).ready(function() {
     
     // Fungsi untuk load history alasan
@@ -676,7 +709,23 @@ $(document).ready(function() {
                         
                         var mediaHtml = '';
                         if (item.media) {
-                            mediaHtml = `<a href="uploads/reasons/${item.media}" target="_blank" class="badge bg-secondary text-white mt-1 text-decoration-none"><i class="material-icons align-middle" style="font-size:12px;">attach_file</i> Lihat Lampiran</a>`;
+                            var ext = item.media.split('.').pop().toLowerCase();
+                            var isImg = ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext);
+                            var mediaUrl = `uploads/reasons/${item.media}`;
+                            if (isImg) {
+                                mediaHtml = `<div class="mt-2 mb-1">
+                                  <a href="${mediaUrl}" target="_blank" class="d-inline-block text-decoration-none" onmouseover="showImageTooltip(event, '${mediaUrl}')" onmousemove="moveImageTooltip(event)" onmouseout="hideImageTooltip()">
+                                    <div style="position:relative;display:inline-block;max-width:100%;">
+                                      <img src="${mediaUrl}" alt="Bukti" style="max-height:140px;max-width:100%;border-radius:8px;border:1.5px solid #cbd5e1;box-shadow:0 2px 8px rgba(0,0,0,0.08);object-fit:cover;cursor:pointer;display:block;" />
+                                      <div style="font-size:10px;font-weight:700;background:rgba(15,23,42,0.8);color:#fff;padding:2px 6px;border-radius:4px;position:absolute;bottom:4px;right:4px;backdrop-filter:blur(4px);pointer-events:none;">
+                                        🔍 Hover perbesar
+                                      </div>
+                                    </div>
+                                  </a>
+                                </div>`;
+                            } else {
+                                mediaHtml = `<a href="${mediaUrl}" target="_blank" class="badge bg-secondary text-white mt-1 text-decoration-none"><i class="material-icons align-middle" style="font-size:12px;">picture_as_pdf</i> Lihat Lampiran (${ext.toUpperCase()})</a>`;
+                            }
                         }
 
                         html += `

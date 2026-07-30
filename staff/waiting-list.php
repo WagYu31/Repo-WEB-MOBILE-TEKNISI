@@ -543,17 +543,73 @@ $pageNow = "Waiting List";
 
         $('#btnSaveLoc').click(function() { $.post('update_lokasi.php', $('#locationForm').serialize(), function() { location.reload(); }); });
 
+        window.showImageTooltip = function(e, src) {
+            let tt = document.getElementById('imgHoverPreviewTooltip');
+            if (!tt) {
+                tt = document.createElement('div');
+                tt.id = 'imgHoverPreviewTooltip';
+                tt.style.cssText = 'position:fixed;z-index:999999;display:none;pointer-events:none;background:rgba(15,23,42,0.95);padding:8px;border-radius:12px;box-shadow:0 12px 36px rgba(0,0,0,0.35);border:1.5px solid rgba(255,255,255,0.25);backdrop-filter:blur(10px);max-width:420px;max-height:420px;transition:opacity 0.15s ease;';
+                tt.innerHTML = '<img id="imgHoverPreviewTag" src="" style="max-width:400px;max-height:400px;border-radius:8px;display:block;object-fit:contain;background:#000;" />';
+                document.body.appendChild(tt);
+            }
+            document.getElementById('imgHoverPreviewTag').src = src;
+            tt.style.display = 'block';
+            moveImageTooltip(e);
+        };
+
+        window.moveImageTooltip = function(e) {
+            const tt = document.getElementById('imgHoverPreviewTooltip');
+            if (!tt || tt.style.display === 'none') return;
+            const padding = 15;
+            let x = e.clientX + padding;
+            let y = e.clientY + padding;
+
+            if (x + 420 > window.innerWidth) x = Math.max(10, e.clientX - 430);
+            if (y + 420 > window.innerHeight) y = Math.max(10, window.innerHeight - 430);
+
+            tt.style.left = x + 'px';
+            tt.style.top = y + 'px';
+        };
+
+        window.hideImageTooltip = function() {
+            const tt = document.getElementById('imgHoverPreviewTooltip');
+            if (tt) tt.style.display = 'none';
+        };
+
         function loadReasons(id) {
             $('#reasonList').html('<div style="text-align:center;padding:20px;color:#94a3b8;">Memuat...</div>');
             $.getJSON('get_reasons.php?id=' + id, function(data) {
                 let h = '';
-                data.forEach(i => {
-                    h += `<div style="padding:12px;border-bottom:1px solid #f1f5f9;margin-bottom:8px;background:#f8fafc;border-radius:8px;">
-                            <div style="font-size:12px;font-weight:700;color:#1e293b;margin-bottom:4px;">${i.formatted_date}</div>
-                            <div style="font-size:12px;color:#475569;line-height:1.5;">${i.reason}</div>
-                            ${i.media ? `<a href="uploads/reasons/${i.media}" target="_blank" style="font-size:11px;color:#3b82f6;text-decoration:none;margin-top:6px;display:inline-flex;align-items:center;gap:4px;"><i class="material-icons" style="font-size:14px;">attach_file</i> Lampiran</a>` : ''}
-                          </div>`;
-                });
+                if (data && data.length > 0) {
+                    data.forEach(i => {
+                        let mediaHtml = '';
+                        if (i.media) {
+                            const ext = i.media.split('.').pop().toLowerCase();
+                            const isImg = ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext);
+                            const mediaUrl = `uploads/reasons/${i.media}`;
+                            if (isImg) {
+                                mediaHtml = `<div style="margin-top:8px;">
+                                  <a href="${mediaUrl}" target="_blank" style="display:inline-block;text-decoration:none;" onmouseover="showImageTooltip(event, '${mediaUrl}')" onmousemove="moveImageTooltip(event)" onmouseout="hideImageTooltip()">
+                                    <div style="position:relative;display:inline-block;max-width:100%;">
+                                      <img src="${mediaUrl}" alt="Bukti" style="max-height:140px;max-width:100%;border-radius:8px;border:1.5px solid #cbd5e1;box-shadow:0 2px 8px rgba(0,0,0,0.08);object-fit:cover;cursor:pointer;display:block;" />
+                                      <div style="font-size:10px;font-weight:700;background:rgba(15,23,42,0.8);color:#fff;padding:2px 6px;border-radius:4px;position:absolute;bottom:4px;right:4px;backdrop-filter:blur(4px);pointer-events:none;">
+                                        🔍 Hover perbesar
+                                      </div>
+                                    </div>
+                                  </a>
+                                </div>`;
+                            } else {
+                                mediaHtml = `<a href="${mediaUrl}" target="_blank" style="font-size:11px;color:#3b82f6;text-decoration:none;margin-top:6px;display:inline-flex;align-items:center;gap:4px;"><i class="material-icons" style="font-size:14px;">picture_as_pdf</i> Lihat Lampiran (${ext.toUpperCase()})</a>`;
+                            }
+                        }
+
+                        h += `<div style="padding:12px;border-bottom:1px solid #f1f5f9;margin-bottom:8px;background:#f8fafc;border-radius:8px;">
+                                <div style="font-size:12px;font-weight:700;color:#1e293b;margin-bottom:4px;">${i.formatted_date}</div>
+                                <div style="font-size:12px;color:#475569;line-height:1.5;">${i.reason}</div>
+                                ${mediaHtml}
+                              </div>`;
+                    });
+                }
                 $('#reasonList').html(h || '<div style="text-align:center;padding:24px;color:#94a3b8;">Belum ada catatan.</div>');
             });
         }
