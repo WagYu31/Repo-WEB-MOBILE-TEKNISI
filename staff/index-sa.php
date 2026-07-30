@@ -686,7 +686,7 @@ if (isset($_GET['export'])) {
             
             
 
-            $sql_today = "SELECT k.*, c.nama AS nama_customer, c.telp AS cust_nomor, c.alamat, c.id AS customer_id FROM kegiatan k LEFT JOIN customer c ON k.customer_id = c.id WHERE k.status NOT IN ('waiting', 'selesai by admin') AND DATE(k.jadwal) = ? AND k.deleted_at IS NULL ORDER BY k.jadwal ASC";
+            $sql_today = "SELECT k.*, c.nama AS nama_customer, c.telp AS cust_nomor, c.alamat, c.id AS customer_id, (SELECT COUNT(*) FROM kegiatan_reasons kr WHERE kr.kegiatan_id = k.id) as reason_count FROM kegiatan k LEFT JOIN customer c ON k.customer_id = c.id WHERE k.status NOT IN ('waiting', 'selesai by admin') AND DATE(k.jadwal) = ? AND k.deleted_at IS NULL ORDER BY k.jadwal ASC";
 
             $stmt_today = $conn->prepare($sql_today);
             $stmt_today->bind_param("s", $current_date);
@@ -833,6 +833,9 @@ if (isset($_GET['export'])) {
                             <span><?= getInitials($data['request']); ?></span>
                           </div>
                           <div class="d-flex gap-1 ms-1">
+                            <button type="button" class="btn-premium-act <?= (!empty($data['reason_count']) && $data['reason_count'] > 0) ? 'btn-premium-act-note-has' : 'btn-premium-act-note' ?> reason-view-btn" data-id="<?= $data['id'] ?>" title="<?= (!empty($data['reason_count']) && $data['reason_count'] > 0) ? $data['reason_count'].' Catatan Admin (Lihat)' : 'Lihat Catatan' ?>">
+                              <i class="material-icons" style="font-size:16px;">history</i>
+                            </button>
                             <a class="btn-premium-act btn-premium-act-view" href="view-kegiatan.php?kode_transaksi=<?= $kodeTransaksi; ?>" title="Detail Kegiatan"><i class="material-icons" style="font-size:16px;">visibility</i></a>
                             <?php if ($pageNow != 'Task') : ?>
                               <a class="btn-premium-act btn-premium-act-edit-orange" href="edit_kegiatan.php?kode_transaksi=<?= $kodeTransaksi; ?>" title="Edit Kegiatan"><i class="material-icons" style="font-size:16px;">edit</i></a>
@@ -889,7 +892,7 @@ if (isset($_GET['export'])) {
             // $result_upcoming = $stmt_upcoming->get_result();
             ?>
             <?php
-            $sql_upcoming = "SELECT k.*, c.nama AS nama_customer, c.telp AS cust_nomor, c.alamat, c.id AS customer_id 
+            $sql_upcoming = "SELECT k.*, c.nama AS nama_customer, c.telp AS cust_nomor, c.alamat, c.id AS customer_id, (SELECT COUNT(*) FROM kegiatan_reasons kr WHERE kr.kegiatan_id = k.id) as reason_count 
                              FROM kegiatan k 
                              LEFT JOIN customer c ON k.customer_id = c.id 
                              WHERE k.id IN (
@@ -998,6 +1001,9 @@ if (isset($_GET['export'])) {
                             <span><?= getInitials($data['request']); ?></span>
                           </div>
                           <div class="d-flex gap-1 ms-1">
+                            <button type="button" class="btn-premium-act <?= (!empty($data['reason_count']) && $data['reason_count'] > 0) ? 'btn-premium-act-note-has' : 'btn-premium-act-note' ?> reason-view-btn" data-id="<?= $data['id'] ?>" title="<?= (!empty($data['reason_count']) && $data['reason_count'] > 0) ? $data['reason_count'].' Catatan Admin (Lihat)' : 'Lihat Catatan' ?>">
+                              <i class="material-icons" style="font-size:16px;">history</i>
+                            </button>
                             <a class="btn-premium-act btn-premium-act-view" href="view-kegiatan.php?kode_transaksi=<?= $kodeTransaksi; ?>" title="Detail Kegiatan"><i class="material-icons" style="font-size:16px;">visibility</i></a>
                             <?php if ($pageNow != 'Task') : ?>
                               <a class="btn-premium-act btn-premium-act-edit-orange" href="edit_kegiatan.php?kode_transaksi=<?= $kodeTransaksi; ?>" title="Edit Kegiatan"><i class="material-icons" style="font-size:16px;">edit</i></a>
@@ -1185,13 +1191,13 @@ if (isset($_GET['export'])) {
                   <span style="background:rgba(251,191,36,0.2);width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;">
                     <i class="material-icons" style="font-size:16px;color:#fcd34d;">history</i>
                   </span>
-                  Riwayat Penangguhan
+                  <span id="reasonModalTitleText">Riwayat Penangguhan</span>
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" style="opacity:0.7;"></button>
               </div>
               <div class="modal-body" style="padding:0;">
                 <div class="row g-0">
-                  <div class="col-md-5" style="padding:20px 24px;border-right:1px solid #f1f5f9;">
+                  <div class="col-md-5" id="reasonFormCol" style="padding:20px 24px;border-right:1px solid #f1f5f9;">
                     <form id="reasonForm">
                       <input type="hidden" id="reasonKegiatanId" name="kegiatan_id">
                       <div style="margin-bottom:14px;">
@@ -1211,7 +1217,7 @@ if (isset($_GET['export'])) {
                       </button>
                     </form>
                   </div>
-                  <div class="col-md-7" style="padding:20px 24px;background:#f8fafc;">
+                  <div class="col-md-7" id="reasonHistoryCol" style="padding:20px 24px;background:#f8fafc;">
                     <label style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:10px;display:block;">Riwayat Catatan</label>
                     <div id="reasonHistoryList" style="max-height:300px;overflow-y:auto;border-radius:10px;border:1px solid #e2e8f0;background:#fff;padding:12px;"></div>
                   </div>
@@ -1438,6 +1444,19 @@ if (isset($_GET['export'])) {
       $('#reasonKegiatanId').val(id);
       $('#reasonText').val('');
       resetReasonFileLabel();
+      $('#reasonModalTitleText').text('Riwayat Penangguhan');
+      $('#reasonFormCol').show();
+      $('#reasonHistoryCol').removeClass('col-md-12').addClass('col-md-7');
+      $('#reasonHistoryList').html('<div class="text-center p-3 text-secondary"><div class="spinner-border spinner-border-sm me-1"></div> Memuat catatan...</div>');
+      loadReasonHistory(id);
+      new bootstrap.Modal($('#reasonModal')[0]).show();
+    });
+
+    $(document).on('click', '.reason-view-btn', function() {
+      const id = $(this).data('id');
+      $('#reasonModalTitleText').text('Riwayat Catatan & Bukti');
+      $('#reasonFormCol').hide();
+      $('#reasonHistoryCol').removeClass('col-md-7').addClass('col-md-12');
       $('#reasonHistoryList').html('<div class="text-center p-3 text-secondary"><div class="spinner-border spinner-border-sm me-1"></div> Memuat catatan...</div>');
       loadReasonHistory(id);
       new bootstrap.Modal($('#reasonModal')[0]).show();

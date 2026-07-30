@@ -154,6 +154,7 @@ function getStatusInfo($status)
                             </div>
                             <div class="col-md-1 text-center">
                                 <div class="btn-group btn-group-sm" role="group">
+                                    <button type="button" class="btn btn-secondary reason-view-btn" data-id="<?= $data['id']; ?>" title="Lihat Catatan Admin"><i class="material-icons" style="font-size:12px;">history</i></button>
                                     <?php if ($pageNow != 'Task') : ?>
                                         <a class="btn btn-info" href="view-kegiatan.php?kode_transaksi=<?= $kodeTransaksi; ?>" title="Lihat Detail"><i class="material-icons" style="font-size:12px;">visibility</i></a>
                                         <button class="btn btn-warning edit-btn" data-id="<?= $kodeTransaksi; ?>" title="Edit"><i class="material-icons" style="font-size:12px;">edit</i></button>
@@ -263,6 +264,7 @@ function getStatusInfo($status)
                             </div>
                             <div class="col-md-1 text-center">
                                 <div class="btn-group btn-group-sm" role="group">
+                                    <button type="button" class="btn btn-secondary reason-view-btn" data-id="<?= $data['id']; ?>" title="Lihat Catatan Admin"><i class="material-icons" style="font-size:12px;">history</i></button>
                                     <?php if ($pageNow != 'Task') : ?>
                                         <a class="btn btn-info" href="view-kegiatan.php?kode_transaksi=<?= $kodeTransaksi; ?>" title="Lihat Detail"><i class="material-icons" style="font-size:12px;">visibility</i></a>
                                         <button class="btn btn-warning edit-btn" data-id="<?= $kodeTransaksi; ?>" title="Edit"><i class="material-icons" style="font-size:12px;">edit</i></button>
@@ -415,7 +417,7 @@ function getStatusInfo($status)
             </div>
             <div class="modal-body">
                 <div class="row">
-                    <div class="col-md-5 border-end">
+                    <div class="col-md-5 border-end" id="reasonFormCol">
                         <h6 class="text-sm font-weight-bold mb-3">Tambah Catatan Baru</h6>
                         <form id="reasonForm" enctype="multipart/form-data">
                             <input type="hidden" id="reasonKegiatanId" name="kegiatan_id">
@@ -437,7 +439,7 @@ function getStatusInfo($status)
                         </form>
                     </div>
 
-                    <div class="col-md-7">
+                    <div class="col-md-7" id="reasonHistoryCol">
                          <h6 class="text-sm font-weight-bold mb-3">Riwayat Catatan</h6>
                          
                          <div id="reasonHistoryList" class="p-2 rounded border" 
@@ -749,11 +751,24 @@ $(document).ready(function() {
         });
     }
 
-    // Event saat tombol Reason diklik
+    // Event saat tombol Reason diklik (Edit mode)
     $(document).on('click', '.reason-btn', function() {
         var id = $(this).data('id');
         $('#reasonForm')[0].reset();
         $('#reasonKegiatanId').val(id);
+        $('#reasonModalLabel').text('Riwayat Penangguhan Jadwal');
+        $('#reasonFormCol').show();
+        $('#reasonHistoryCol').removeClass('col-md-12').addClass('col-md-7');
+        loadReasons(id);
+        $('#reasonModal').modal('show');
+    });
+
+    // Event saat tombol View Reason diklik (View-only mode)
+    $(document).on('click', '.reason-view-btn', function() {
+        var id = $(this).data('id');
+        $('#reasonModalLabel').text('Riwayat Catatan & Bukti Admin');
+        $('#reasonFormCol').hide();
+        $('#reasonHistoryCol').removeClass('col-md-7').addClass('col-md-12');
         loadReasons(id);
         $('#reasonModal').modal('show');
     });
