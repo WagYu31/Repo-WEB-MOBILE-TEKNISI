@@ -54,6 +54,7 @@ class DataTask {
     DataCustomer dataCustomer;
     List<DataTeknisi> dataTeknisi;
     List<Pelaksanaan> pelaksanaan;
+    List<DataReason>? reasons;
 
     DataTask({
         required this.id,
@@ -77,6 +78,7 @@ class DataTask {
         required this.dataCustomer,
         required this.dataTeknisi,
         required this.pelaksanaan,
+        this.reasons,
     });
 
     factory DataTask.fromJson(Map<String, dynamic> json) => DataTask(
@@ -95,12 +97,13 @@ class DataTask {
         lat: json["lat"],
         lon: json["lon"],
         rad: json["rad"],
-        createdAt: DateTime.parse(json["created_at"]),
-        updatedAt: DateTime.parse(json["updated_at"]),
+        createdAt: json["created_at"] != null ? DateTime.parse(json["created_at"]) : DateTime.now(),
+        updatedAt: json["updated_at"] != null ? DateTime.parse(json["updated_at"]) : DateTime.now(),
         deletedAt: json["deleted_at"],
-        dataCustomer: DataCustomer.fromJson(json["customer"]),
-        dataTeknisi: List<DataTeknisi>.from(json["teknisi"].map((x) => DataTeknisi.fromJson(x))),
-        pelaksanaan: List<Pelaksanaan>.from(json["pelaksanaan"].map((x) => Pelaksanaan.fromJson(x))),
+        dataCustomer: DataCustomer.fromJson(json["customer"] ?? json["data_customer"] ?? {}),
+        dataTeknisi: json["teknisi"] != null ? List<DataTeknisi>.from(json["teknisi"].map((x) => DataTeknisi.fromJson(x))) : (json["data_teknisi"] != null ? List<DataTeknisi>.from(json["data_teknisi"].map((x) => DataTeknisi.fromJson(x))) : []),
+        pelaksanaan: json["pelaksanaan"] != null ? List<Pelaksanaan>.from(json["pelaksanaan"].map((x) => Pelaksanaan.fromJson(x))) : [],
+        reasons: json["reasons"] != null ? List<DataReason>.from(json["reasons"].map((x) => DataReason.fromJson(x))) : [],
     );
 
     Map<String, dynamic> toJson() => {
@@ -332,6 +335,42 @@ class DataTeknisi {
         "created_at": createdAt.toIso8601String(),
         "updated_at": updatedAt.toIso8601String(),
         "deleted_at": deletedAt,
+    };
+}
+
+class DataReason {
+    int id;
+    int? kegiatanId;
+    String reason;
+    String? media;
+    String? mediaUrl;
+    String? createdAt;
+
+    DataReason({
+        required this.id,
+        this.kegiatanId,
+        required this.reason,
+        this.media,
+        this.mediaUrl,
+        this.createdAt,
+    });
+
+    factory DataReason.fromJson(Map<String, dynamic> json) => DataReason(
+        id: json["id"] ?? 0,
+        kegiatanId: json["kegiatan_id"],
+        reason: json["reason"] ?? '',
+        media: json["media"],
+        mediaUrl: json["media_url"],
+        createdAt: json["created_at"]?.toString(),
+    );
+
+    Map<String, dynamic> toJson() => {
+        "id": id,
+        "kegiatan_id": kegiatanId,
+        "reason": reason,
+        "media": media,
+        "media_url": mediaUrl,
+        "created_at": createdAt,
     };
 }
 
