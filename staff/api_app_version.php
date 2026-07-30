@@ -25,7 +25,7 @@ header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
 $response = [
     'min_version'     => '4.0.33',   // Versi minimum yang dibolehkan
     'latest_version'  => '4.0.33',   // Versi terbaru yang tersedia
-    'update_url'      => 'https://jadwal.id-giti.com/staff/download/teknisi-v4.0.33.apk', // URL download APK
+    'update_url'      => 'https://jadwal.id-giti.com/staff/download/teknisi-v4.0.33-b2.apk?v=' . time(), // URL download APK (bypassing CDN cache)
     'update_message'  => 'Versi terbaru (v4.0.33) tersedia! Menampilkan riwayat catatan & lampiran bukti admin.',
     'force_message'   => 'Versi aplikasi Anda perlu diperbarui (v4.0.33). Silakan update ke versi terbaru untuk melihat riwayat catatan admin.',
 ];
