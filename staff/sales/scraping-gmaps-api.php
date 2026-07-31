@@ -85,49 +85,121 @@ if ($action === 'search') {
         exit;
     }
 
-    $results = [];
+    // ═══ Foursquare V2 Venues Search ═══
+    $clientId = defined('FSQ_CLIENT_ID') ? FSQ_CLIENT_ID : '';
+    $clientSecret = defined('FSQ_CLIENT_SECRET') ? FSQ_CLIENT_SECRET : '';
     
-    $fsqUrl = 'https://api.foursquare.com/v2/venues/search?' . http_build_query([
-        'client_id'     => $clientId,
-        'client_secret' => $clientSecret,
-        'v'             => '20260717',
-        'query'         => $keyword,
-        'll'            => "$lat,$lng",
-        'radius'        => min($radius, 100000),
-        'limit'         => 50,
-        'intent'        => 'browse',
-    ]);
-
-    $ch = curl_init();
-    curl_setopt_array($ch, [
-        CURLOPT_URL            => $fsqUrl,
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_TIMEOUT        => 15,
-        CURLOPT_SSL_VERIFYPEER => false,
-        CURLOPT_HTTPHEADER     => ['Accept: application/json'],
-    ]);
-    $response = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $curlError = curl_error($ch);
-    curl_close($ch);
-
-    gmaps_increment_usage();
-
-    if ($response === false || $httpCode !== 200) {
-        $errorMsg = 'Gagal mengakses Foursquare API. HTTP ' . $httpCode;
-        if ($curlError) $errorMsg .= ': ' . $curlError;
-        $errData = json_decode($response, true);
-        if (isset($errData['meta']['errorDetail'])) $errorMsg .= ' - ' . $errData['meta']['errorDetail'];
-        echo json_encode(['error' => true, 'message' => $errorMsg, 'stats' => gmaps_get_stats()]);
+    if (empty($clientId) || empty($clientSecret)) {
+        echo json_encode(['error' => true, 'message' => 'Foursquare Client ID/Secret belum dikonfigurasi di gmaps-config.php']);
         exit;
     }
 
-    $data = json_decode($response, true);
-    $venues = $data['response']['venues'] ?? [];
+    // Determine query terms: if user typed "Toko CCTV", query both "CCTV" and "Toko CCTV" for precision
+    $queryTerms = [$keyword];
+    if (preg_match('/\b(cctv|security|kamera|camera|alarm|fingerprint|access control)\b/i', $keyword, $m)) {
+        $coreTerm = $m[1];
+        if (strtolower($coreTerm) !== strtolower($keyword)) {
+            array_unshift($queryTerms, $coreTerm);
+        }
+    }
 
-    foreach ($venues as $venue) {
+    $rawVenues = [];
+    $seenIds = [];
+
+    foreach ($queryTerms as $qTerm) {
+        $fsqUrl = 'https://api.foursquare.com/v2/venues/search?' . http_build_query([
+            'client_id'     => $clientId,
+            'client_secret' => $clientSecret,
+            'v'             => '20260717',
+            'query'         => $qTerm,
+            'll'            => "$lat,$lng",
+            'radius'        => min($radius, 100000),
+            'limit'         => 50,
+            'intent'        => 'browse',
+        ]);
+
+        $ch = curl_init();
+        curl_setopt_array($ch, [
+            CURLOPT_URL            => $fsqUrl,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT        => 12,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_HTTPHEADER     => ['Accept: application/json'],
+        ]);
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($response !== false && $httpCode === 200) {
+            $data = json_decode($response, true);
+            $vList = $data['response']['venues'] ?? [];
+            foreach ($vList as $v) {
+                $vId = $v['id'] ?? md5($v['name'] ?? '');
+                if (!isset($seenIds[$vId])) {
+                    $seenIds[$vId] = true;
+                    $rawVenues[] = $v;
+                }
+            }
+        }
+    }
+
+    gmaps_increment_usage();
+
+    // ═══ RELEVANCE & NEGATIVE FILTERING ═══
+    $cctvKeywords = ['cctv', 'security', 'kamera', 'camera', 'hikvision', 'dahua', 'ezviz', 'imou', 'alarm', 'fingerprint', 'access control', 'absen', 'keamanan', 'ip cam', 'surveillance'];
+    $negativeKeywords = [
+        'mas', 'emas', 'jewel', 'perhiasan', 'bata', 'sepatu', 'shoes', 'baju', 'pakaian', 'fashion', 'clothing',
+        'kue', 'bakery', 'roti', 'kelontong', 'sembako', 'warung', 'obat', 'apotek', 'pharmacy', 'farmasi',
+        'salon', 'barber', 'laundry', 'optik', 'optical', 'jam', 'nasi', 'resto', 'restaurant', 'cafe', 'kuliner',
+        'daging', 'ikan', 'buah', 'sayur', 'mainan', 'toy', 'sepeda', 'motor', 'mobil', 'bengkel', 'tambal',
+        'minimarket', 'indomaret', 'alfamart', 'fotocopy', 'fotokopi', 'atk', 'buku'
+    ];
+
+    $isCctvSearch = false;
+    foreach ($cctvKeywords as $ck) {
+        if (stripos($keyword, $ck) !== false) {
+            $isCctvSearch = true;
+            break;
+        }
+    }
+
+    $results = [];
+
+    foreach ($rawVenues as $venue) {
         $name = $venue['name'] ?? '';
         if (empty($name)) continue;
+
+        $nameLower = strtolower($name);
+        $catName = !empty($venue['categories']) ? ($venue['categories'][0]['name'] ?? '') : '';
+        $catLower = strtolower($catName);
+
+        // Strict filter for CCTV / Security searches
+        if ($isCctvSearch) {
+            $hasCctvTerm = false;
+            foreach ($cctvKeywords as $ck) {
+                if (stripos($nameLower, $ck) !== false || stripos($catLower, $ck) !== false) {
+                    $hasCctvTerm = true;
+                    break;
+                }
+            }
+
+            $isTechOrElec = (stripos($catLower, 'electronic') !== false || stripos($catLower, 'computer') !== false || stripos($catLower, 'technology') !== false || stripos($catLower, 'it services') !== false || stripos($nameLower, 'elektronik') !== false || stripos($nameLower, 'komputer') !== false || stripos($nameLower, 'tech') !== false);
+
+            if (!$hasCctvTerm) {
+                // If it doesn't mention CCTV/Security explicitly, check for negative retail terms
+                $isNegative = false;
+                foreach ($negativeKeywords as $neg) {
+                    if (preg_match('/\b' . preg_quote($neg, '/') . '\b/i', $nameLower) || preg_match('/\b' . preg_quote($neg, '/') . '\b/i', $catLower)) {
+                        $isNegative = true;
+                        break;
+                    }
+                }
+                // Reject if negative match OR not even tech/elec related
+                if ($isNegative || !$isTechOrElec) {
+                    continue;
+                }
+            }
+        }
 
         // Address
         $loc = $venue['location'] ?? [];
@@ -142,10 +214,7 @@ if ($action === 'search') {
         $website = $venue['url'] ?? '';
         
         // Category
-        $category = '';
-        if (!empty($venue['categories'])) {
-            $category = $venue['categories'][0]['name'] ?? '';
-        }
+        $category = $catName;
 
         // Coordinates
         $placeLat = $loc['lat'] ?? $lat;
@@ -161,7 +230,7 @@ if ($action === 'search') {
         if (!empty($phone)) $trustScore += 20;
         if (!empty($website)) $trustScore += 10;
         if (!empty($category)) $trustScore += 10;
-        if ($placeLat != $lat) $trustScore += 10; // Has own coordinates
+        if ($placeLat != $lat) $trustScore += 10;
         if ($distance < 5000) $trustScore += 10;
 
         $trustLevel = 'berisiko';
@@ -169,28 +238,28 @@ if ($action === 'search') {
         elseif ($trustScore >= 35) $trustLevel = 'perlu_cek';
 
         $results[] = [
-            'place_id'        => $venue['id'] ?? md5($name),
-            'name'            => $name,
-            'address'         => $address,
+            'place_id'          => $venue['id'] ?? md5($name),
+            'name'              => $name,
+            'address'           => $address,
             'formatted_address' => $formattedAddr,
-            'phone'           => $phone,
-            'website'         => $website,
-            'maps_url'        => $mapsUrl,
-            'rating'          => 0,
-            'review_count'    => 0,
-            'photo_count'     => 0,
-            'photo_ref'       => '',
-            'lat'             => $placeLat,
-            'lng'             => $placeLng,
-            'distance_m'      => $distance,
-            'business_status' => $venue['closed'] ?? false ? 'Tutup' : 'Buka',
-            'types'           => [$category],
-            'primary_type'    => $category,
-            'trust_score'     => $trustScore,
-            'trust_level'     => $trustLevel,
-            'city'            => $loc['city'] ?? $city,
-            'state'           => $loc['state'] ?? '',
-            'postal_code'     => $loc['postalCode'] ?? '',
+            'phone'             => $phone,
+            'website'           => $website,
+            'maps_url'          => $mapsUrl,
+            'rating'            => 0,
+            'review_count'      => 0,
+            'photo_count'       => 0,
+            'photo_ref'         => '',
+            'lat'               => $placeLat,
+            'lng'               => $placeLng,
+            'distance_m'        => $distance,
+            'business_status'   => ($venue['closed'] ?? false) ? 'Tutup' : 'Buka',
+            'types'             => [$category],
+            'primary_type'      => $category,
+            'trust_score'       => $trustScore,
+            'trust_level'       => $trustLevel,
+            'city'              => $loc['city'] ?? $city,
+            'state'             => $loc['state'] ?? '',
+            'postal_code'       => $loc['postalCode'] ?? '',
         ];
     }
 
