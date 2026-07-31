@@ -210,6 +210,7 @@ function makeLinksClickable($text) {
                     <th style="width:22%;">Nama</th>
                     <th style="width:14%;">No Handphone</th>
                     <th>Alamat</th>
+                    <th style="width:120px; text-align:center;">Tgl Daftar</th>
                     <th style="width:80px; text-align:center;">Aksi</th>
                 </tr>
             </thead>
@@ -221,6 +222,7 @@ function makeLinksClickable($text) {
                         $nomor_wa = '62' . substr($nomor_clean, 1);
                         $url_wa = 'https://api.whatsapp.com/send?phone=' . $nomor_wa;
                         $alamat = makeLinksClickable($row['alamat'] ?? '');
+                        $tglDaftar = !empty($row['created_at']) && $row['created_at'] !== '0000-00-00 00:00:00' ? date('d/m/Y', strtotime($row['created_at'])) : '-';
                     ?>
                     <tr>
                         <td style="text-align:center; padding-left:20px;">
@@ -241,6 +243,11 @@ function makeLinksClickable($text) {
                             <div class="cust-addr"><?= $alamat ?></div>
                         </td>
                         <td style="text-align:center;">
+                            <span style="font-size:12px; font-weight:700; color:#334155; white-space:nowrap; font-family:sans-serif;">
+                                <?= $tglDaftar ?>
+                            </span>
+                        </td>
+                        <td style="text-align:center;">
                             <div style="display:flex; gap:4px; justify-content:center;">
                                 <a href="edit-customer.php?id=<?= $row['id'] ?>" class="cust-act-btn cust-act-edit" title="Edit">
                                     <i class="fa-solid fa-pen"></i>
@@ -254,7 +261,7 @@ function makeLinksClickable($text) {
                     <?php $no++; endforeach; ?>
                 <?php else: ?>
                     <tr>
-                        <td colspan="5" style="text-align:center; padding:60px 20px; color:#94a3b8;">
+                        <td colspan="6" style="text-align:center; padding:60px 20px; color:#94a3b8;">
                             <i class="fa-solid fa-user-slash" style="font-size:36px; display:block; margin-bottom:12px;"></i>
                             Tidak ada data customer.
                         </td>

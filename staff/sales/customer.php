@@ -1017,12 +1017,13 @@ $salesData = mysqli_query($conn, $queryStr);
         <table class="premium-table">
           <thead>
             <tr>
-              <th style="width: 60px; text-align: center;">No</th>
-              <th style="min-width: 250px;">Customer / Toko</th>
-              <th style="width: 200px;">Kontak Utama</th>
+              <th style="width: 50px; text-align: center;">No</th>
+              <th style="min-width: 220px;">Customer / Toko</th>
+              <th style="width: 170px;">Kontak Utama</th>
               <th>Alamat &amp; Kota</th>
+              <th style="width: 130px; text-align: center;">Tgl Daftar</th>
               <th style="width: 70px; text-align: center;">Geofence</th>
-              <th style="width: 160px; text-align: center;">Aksi</th>
+              <th style="width: 150px; text-align: center;">Aksi</th>
             </tr>
           </thead>
           <tbody>
@@ -1138,6 +1139,27 @@ $salesData = mysqli_query($conn, $queryStr);
               </td>
               
               <td style="text-align: center;">
+                <?php 
+                  $tglDaftar = '-';
+                  $jamDaftar = '';
+                  if (!empty($row['created_at']) && $row['created_at'] !== '0000-00-00 00:00:00') {
+                      $ts = strtotime($row['created_at']);
+                      $tglDaftar = date('d/m/Y', $ts);
+                      $jamDaftar = date('H:i', $ts);
+                  }
+                ?>
+                <div style="display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                  <span style="font-size:12px; font-weight:700; color:#1e293b; white-space:nowrap; display:inline-flex; align-items:center; gap:4px;">
+                    <span class="material-symbols-outlined" style="font-size:14px; color:#3b82f6;">calendar_today</span>
+                    <?= $tglDaftar ?>
+                  </span>
+                  <?php if ($jamDaftar): ?>
+                    <span style="font-size:10.5px; font-weight:600; color:#64748b; font-family:monospace;"><?= $jamDaftar ?> WIB</span>
+                  <?php endif; ?>
+                </div>
+              </td>
+              
+              <td style="text-align: center;">
                 <?php if (!empty($row['lat']) && !empty($row['lon'])): ?>
                   <button type="button" class="btn-map-pin openMapModalBtn" 
                           data-lat="<?= htmlspecialchars($row['lat']); ?>"
@@ -1170,6 +1192,7 @@ $salesData = mysqli_query($conn, $queryStr);
                   data-lon="<?= htmlspecialchars($row['lon'] ?? ''); ?>"
                   data-rad="<?= htmlspecialchars($row['rad'] ?? ''); ?>"
                   data-alamat-lokasi="<?= htmlspecialchars($row['alamat_lokasi'] ?? ''); ?>"
+                  data-created="<?= htmlspecialchars(!empty($row['created_at']) && $row['created_at'] !== '0000-00-00 00:00:00' ? date('d F Y, H:i', strtotime($row['created_at'])).' WIB' : '-'); ?>"
                   data-bs-toggle="modal" data-bs-target="#detailModal" title="Lihat Detail Customer">
                   <span class="material-symbols-outlined">visibility</span>
                 </button>
@@ -1254,6 +1277,11 @@ $salesData = mysqli_query($conn, $queryStr);
                   <div class="detail-info-row">
                     <div class="detail-info-label">Kota</div>
                     <div class="detail-info-value" id="detail_kota">-</div>
+                  </div>
+
+                  <div class="detail-info-row">
+                    <div class="detail-info-label">Tanggal Terdaftar</div>
+                    <div class="detail-info-value" id="detail_created_at" style="font-weight:700; color:#1e293b;">-</div>
                   </div>
 
                   <div class="detail-info-row" style="border-bottom:none;">
@@ -2117,6 +2145,7 @@ $salesData = mysqli_query($conn, $queryStr);
       const alamat = btn.dataset.alamat || "-";
       const kota = btn.dataset.kota || "-";
       const wilayah = btn.dataset.wilayah || "Tanpa Wilayah";
+      const createdAt = btn.dataset.created || "-";
       const photos = JSON.parse(btn.dataset.foto || '[]');
       
       const latVal = parseFloat(btn.dataset.lat);
@@ -2130,6 +2159,7 @@ $salesData = mysqli_query($conn, $queryStr);
       document.getElementById('detail_alamat').innerText = alamat;
       document.getElementById('detail_kota').innerText = kota;
       document.getElementById('detail_wilayah').innerText = wilayah;
+      document.getElementById('detail_created_at').innerText = createdAt;
       document.getElementById('detail_alamat_peta').innerText = alamatPeta;
 
       // Populate category badge style
