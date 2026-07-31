@@ -21,34 +21,74 @@ define('GMAPS_MONTHLY_LIMIT', 1000);  // Max request per bulan
 define('GMAPS_USAGE_FILE', __DIR__ . '/gmaps_usage.json');
 
 // ══════════════════════════════════════════════════
-// FUNGSI RATE LIMITER
+// FUNGSI RATE LIMITER (DATABASE + FILE FALLBACK)
 // ══════════════════════════════════════════════════
 
 /**
- * Baca data usage dari file JSON
+ * Ensure DB table for usage tracking exists
+ */
+function gmaps_ensure_table() {
+    global $conn;
+    if (!$conn) return;
+    $sql = "CREATE TABLE IF NOT EXISTS `gmaps_usage_log` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `req_date` DATE NOT NULL,
+        `req_month` VARCHAR(7) NOT NULL,
+        `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+        INDEX (`req_date`),
+        INDEX (`req_month`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
+    @$conn->query($sql);
+}
+
+/**
+ * Baca data usage dari DB (dengan JSON fallback)
  */
 function gmaps_read_usage() {
-    if (!file_exists(GMAPS_USAGE_FILE)) {
+    global $conn;
+    date_default_timezone_set('Asia/Jakarta');
+    $today = date('Y-m-d');
+    $month = date('Y-m');
+
+    gmaps_ensure_table();
+
+    if ($conn) {
+        $daily = 0;
+        $monthly = 0;
+        $total = 0;
+
+        $resD = @$conn->query("SELECT COUNT(*) as cnt FROM gmaps_usage_log WHERE req_date = '$today'");
+        if ($resD && $rowD = $resD->fetch_assoc()) $daily = intval($rowD['cnt']);
+
+        $resM = @$conn->query("SELECT COUNT(*) as cnt FROM gmaps_usage_log WHERE req_month = '$month'");
+        if ($resM && $rowM = $resM->fetch_assoc()) $monthly = intval($rowM['cnt']);
+
+        $resT = @$conn->query("SELECT COUNT(*) as cnt FROM gmaps_usage_log");
+        if ($resT && $rowT = $resT->fetch_assoc()) $total = intval($rowT['cnt']);
+
         return [
-            'daily'   => [],
-            'monthly' => [],
-            'total'   => 0
+            'daily'   => [$today => $daily],
+            'monthly' => [$month => $monthly],
+            'total'   => $total
         ];
     }
-    $data = json_decode(file_get_contents(GMAPS_USAGE_FILE), true);
+
+    if (!file_exists(GMAPS_USAGE_FILE)) {
+        return ['daily' => [], 'monthly' => [], 'total' => 0];
+    }
+    $data = json_decode(@file_get_contents(GMAPS_USAGE_FILE), true);
     return $data ?: ['daily' => [], 'monthly' => [], 'total' => 0];
 }
 
 /**
- * Simpan data usage ke file JSON
+ * Simpan data usage
  */
 function gmaps_write_usage($data) {
-    file_put_contents(GMAPS_USAGE_FILE, json_encode($data, JSON_PRETTY_PRINT), LOCK_EX);
+    @file_put_contents(GMAPS_USAGE_FILE, json_encode($data, JSON_PRETTY_PRINT), LOCK_EX);
 }
 
 /**
  * Cek apakah masih bisa request (belum melebihi limit)
- * @return array ['allowed' => bool, 'reason' => string, 'daily_used' => int, 'monthly_used' => int]
  */
 function gmaps_check_limit() {
     $usage = gmaps_read_usage();
@@ -58,7 +98,6 @@ function gmaps_check_limit() {
     $dailyUsed   = $usage['daily'][$today] ?? 0;
     $monthlyUsed = $usage['monthly'][$month] ?? 0;
 
-    // Cek batas harian
     if ($dailyUsed >= GMAPS_DAILY_LIMIT) {
         return [
             'allowed'      => false,
@@ -70,7 +109,6 @@ function gmaps_check_limit() {
         ];
     }
 
-    // Cek batas bulanan
     if ($monthlyUsed >= GMAPS_MONTHLY_LIMIT) {
         return [
             'allowed'      => false,
@@ -96,37 +134,17 @@ function gmaps_check_limit() {
  * Tambah 1 ke counter setelah request berhasil
  */
 function gmaps_increment_usage() {
-    $usage = gmaps_read_usage();
+    global $conn;
+    date_default_timezone_set('Asia/Jakarta');
     $today = date('Y-m-d');
     $month = date('Y-m');
 
-    // Increment daily
-    if (!isset($usage['daily'][$today])) {
-        $usage['daily'][$today] = 0;
-    }
-    $usage['daily'][$today]++;
-
-    // Increment monthly
-    if (!isset($usage['monthly'][$month])) {
-        $usage['monthly'][$month] = 0;
-    }
-    $usage['monthly'][$month]++;
-
-    // Increment total
-    $usage['total'] = ($usage['total'] ?? 0) + 1;
-
-    // Cleanup: hapus data harian lebih dari 30 hari lalu
-    $cutoff = date('Y-m-d', strtotime('-30 days'));
-    foreach ($usage['daily'] as $day => $count) {
-        if ($day < $cutoff) unset($usage['daily'][$day]);
+    gmaps_ensure_table();
+    if ($conn) {
+        @$conn->query("INSERT INTO gmaps_usage_log (req_date, req_month) VALUES ('$today', '$month')");
     }
 
-    // Cleanup: hapus data bulanan lebih dari 6 bulan lalu
-    $monthCutoff = date('Y-m', strtotime('-6 months'));
-    foreach ($usage['monthly'] as $m => $count) {
-        if ($m < $monthCutoff) unset($usage['monthly'][$m]);
-    }
-
+    $usage = gmaps_read_usage();
     gmaps_write_usage($usage);
 }
 
@@ -135,17 +153,21 @@ function gmaps_increment_usage() {
  */
 function gmaps_get_stats() {
     $usage = gmaps_read_usage();
+    date_default_timezone_set('Asia/Jakarta');
     $today = date('Y-m-d');
     $month = date('Y-m');
 
+    $dUsed = $usage['daily'][$today] ?? 0;
+    $mUsed = $usage['monthly'][$month] ?? 0;
+
     return [
-        'daily_used'    => $usage['daily'][$today] ?? 0,
-        'daily_limit'   => GMAPS_DAILY_LIMIT,
-        'daily_remaining'=> GMAPS_DAILY_LIMIT - ($usage['daily'][$today] ?? 0),
-        'monthly_used'  => $usage['monthly'][$month] ?? 0,
-        'monthly_limit' => GMAPS_MONTHLY_LIMIT,
-        'monthly_remaining' => GMAPS_MONTHLY_LIMIT - ($usage['monthly'][$month] ?? 0),
-        'total_all_time'=> $usage['total'] ?? 0,
+        'daily_used'        => $dUsed,
+        'daily_limit'       => GMAPS_DAILY_LIMIT,
+        'daily_remaining'   => max(0, GMAPS_DAILY_LIMIT - $dUsed),
+        'monthly_used'      => $mUsed,
+        'monthly_limit'     => GMAPS_MONTHLY_LIMIT,
+        'monthly_remaining' => max(0, GMAPS_MONTHLY_LIMIT - $mUsed),
+        'total_all_time'    => $usage['total'] ?? 0,
     ];
 }
 ?>
