@@ -50,12 +50,13 @@ if ($action === 'search') {
     // Cache (7 hari)
     $cacheDir = __DIR__ . '/gmaps_cache';
     if (!is_dir($cacheDir)) @mkdir($cacheDir, 0777, true);
-    $cacheKey = md5($keyword . '|' . $city . '|' . $radius);
+    $cacheKey = md5($keyword . '|' . $city . '|' . $radius . '|v2');
     $cacheFile = $cacheDir . '/' . $cacheKey . '.json';
     
     if (file_exists($cacheFile) && (time() - filemtime($cacheFile)) < 604800) {
         $cached = json_decode(file_get_contents($cacheFile), true);
         if ($cached && !empty($cached['results'])) {
+            gmaps_increment_usage();
             $cached['from_cache'] = true;
             $cached['stats'] = gmaps_get_stats();
             echo json_encode($cached);
