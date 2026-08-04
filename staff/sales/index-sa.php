@@ -76,7 +76,7 @@ $qTotal = "SELECT COUNT(DISTINCT ks.id) AS c FROM kegiatan_sales ks
 if ($selectedSales !== 'all') {
     $qTotal .= "INNER JOIN team_kegiatan_sales tks ON ks.id = tks.id_kegiatan_sales ";
 }
-$qTotal .= "WHERE ks.deleted_at IS NULL AND DATE(ks.jadwal) = '$current_date_today' AND ks.status != 'waiting' ";
+$qTotal .= "WHERE ks.deleted_at IS NULL AND DATE(ks.jadwal) = '$current_date_today' AND ks.status NOT IN ('waiting', 'dibatalkan', 'reschedule', 'cancelled') ";
 if ($selectedWilayah !== 'all') {
     $qTotal .= "AND c.id_wilayah = '$selectedWilayah' ";
 }
