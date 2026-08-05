@@ -5,7 +5,7 @@ $selectedSales = $_SESSION['selected_sales'] ?? 'all';
 $searchCustomer = $_SESSION['search_customer'] ?? '';
 
 // ── Hitung summary per tab ─────────────────────────────────────────────────
-$rescheduledExclusion = " AND ks.status NOT IN ('waiting', 'dibatalkan', 'reschedule', 'cancelled') AND (ks.reschedule_reason IS NULL OR ks.reschedule_reason = '') AND ks.id NOT IN (SELECT DISTINCT rescheduled_from FROM kegiatan_sales WHERE rescheduled_from IS NOT NULL AND deleted_at IS NULL)";
+$rescheduledExclusion = " AND ks.status NOT IN ('waiting', 'dibatalkan', 'reschedule', 'cancelled') AND (ks.reschedule_reason IS NULL OR ks.reschedule_reason = '') AND ks.id NOT IN (SELECT DISTINCT rescheduled_from FROM kegiatan_sales WHERE rescheduled_from IS NOT NULL AND deleted_at IS NULL) AND ks.id NOT IN (SELECT ks1.id FROM kegiatan_sales ks1 JOIN kegiatan_sales ks2 ON ks1.id_customer = ks2.id_customer AND ks1.id != ks2.id AND DATE(ks1.jadwal) <= '$current_date' AND DATE(ks2.jadwal) > DATE(ks1.jadwal) AND ks1.status = 'dijadwalkan' AND ks2.status = 'dijadwalkan' AND ks1.deleted_at IS NULL AND ks2.deleted_at IS NULL)";
 
 $tab_meta = [
   'hari-ini'    => ['label'=>'Hari Ini',     'condition'=>"DATE(ks.jadwal) = '$current_date'" . $rescheduledExclusion,                                       'icon'=>'today',        'color'=>'#1e293b'],

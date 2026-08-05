@@ -34,8 +34,23 @@ if ($checkReschedReason && mysqli_num_rows($checkReschedReason) == 0) {
     mysqli_query($conn, "ALTER TABLE `kegiatan_sales` ADD COLUMN `reschedule_reason` TEXT NULL DEFAULT NULL COMMENT 'Alasan reschedule'");
 }
 
-// Auto-fix: Ensure old rescheduled tasks referenced in rescheduled_from are marked status = 'dibatalkan'
+// Auto-fix 1: Ensure old rescheduled tasks referenced in rescheduled_from are marked status = 'dibatalkan'
 mysqli_query($conn, "UPDATE kegiatan_sales SET status = 'dibatalkan' WHERE id IN (SELECT rescheduled_from FROM (SELECT DISTINCT rescheduled_from FROM kegiatan_sales WHERE rescheduled_from IS NOT NULL AND deleted_at IS NULL) AS t) AND status != 'dibatalkan'");
+
+// Auto-fix 2: If a customer has a newer/future scheduled visit, mark any older unstarted visit (<= Today) for that customer as 'dibatalkan'
+$sqlAutoResched = "UPDATE kegiatan_sales ks_old
+JOIN kegiatan_sales ks_new 
+  ON ks_old.id_customer = ks_new.id_customer 
+ AND ks_old.id != ks_new.id
+ AND DATE(ks_old.jadwal) <= CURDATE()
+ AND DATE(ks_new.jadwal) > DATE(ks_old.jadwal)
+ AND ks_old.status = 'dijadwalkan'
+ AND ks_new.status = 'dijadwalkan'
+ AND ks_old.deleted_at IS NULL
+ AND ks_new.deleted_at IS NULL
+SET ks_old.status = 'dibatalkan', 
+    ks_old.reschedule_reason = CONCAT('[Reschedule] Dijadwalkan ulang ke tanggal ', DATE_FORMAT(ks_new.jadwal, '%d %b %Y %H:%i'))";
+mysqli_query($conn, $sqlAutoResched);
 
 
 include_once "../menu-access-helper.php";
