@@ -34,6 +34,10 @@ if ($checkReschedReason && mysqli_num_rows($checkReschedReason) == 0) {
     mysqli_query($conn, "ALTER TABLE `kegiatan_sales` ADD COLUMN `reschedule_reason` TEXT NULL DEFAULT NULL COMMENT 'Alasan reschedule'");
 }
 
+// Auto-fix: Ensure old rescheduled tasks referenced in rescheduled_from are marked status = 'dibatalkan'
+mysqli_query($conn, "UPDATE kegiatan_sales SET status = 'dibatalkan' WHERE id IN (SELECT rescheduled_from FROM (SELECT DISTINCT rescheduled_from FROM kegiatan_sales WHERE rescheduled_from IS NOT NULL AND deleted_at IS NULL) AS t) AND status != 'dibatalkan'");
+
+
 include_once "../menu-access-helper.php";
 if (!hasMenuAccess($conn, $idSesi, 'dashboard_sales', ($role == 'Super Admin' || $role == 'Admin' || $role == 'Sales Manager' || $role == 'Sales'))) {
     if (hasMenuAccess($conn, $idSesi, 'dashboard', ($role == 'Super Admin' || $role == 'Admin'))) {
@@ -76,7 +80,7 @@ $qTotal = "SELECT COUNT(DISTINCT ks.id) AS c FROM kegiatan_sales ks
 if ($selectedSales !== 'all') {
     $qTotal .= "INNER JOIN team_kegiatan_sales tks ON ks.id = tks.id_kegiatan_sales ";
 }
-$qTotal .= "WHERE ks.deleted_at IS NULL AND DATE(ks.jadwal) = '$current_date_today' AND ks.status NOT IN ('waiting', 'dibatalkan', 'reschedule', 'cancelled') ";
+$qTotal .= "WHERE ks.deleted_at IS NULL AND DATE(ks.jadwal) = '$current_date_today' AND ks.status NOT IN ('waiting', 'dibatalkan', 'reschedule', 'cancelled') AND (ks.reschedule_reason IS NULL OR ks.reschedule_reason = '') AND ks.id NOT IN (SELECT DISTINCT rescheduled_from FROM kegiatan_sales WHERE rescheduled_from IS NOT NULL AND deleted_at IS NULL) ";
 if ($selectedWilayah !== 'all') {
     $qTotal .= "AND c.id_wilayah = '$selectedWilayah' ";
 }

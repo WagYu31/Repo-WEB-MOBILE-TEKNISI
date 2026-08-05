@@ -5,12 +5,14 @@ $selectedSales = $_SESSION['selected_sales'] ?? 'all';
 $searchCustomer = $_SESSION['search_customer'] ?? '';
 
 // ── Hitung summary per tab ─────────────────────────────────────────────────
+$rescheduledExclusion = " AND ks.status NOT IN ('waiting', 'dibatalkan', 'reschedule', 'cancelled') AND (ks.reschedule_reason IS NULL OR ks.reschedule_reason = '') AND ks.id NOT IN (SELECT DISTINCT rescheduled_from FROM kegiatan_sales WHERE rescheduled_from IS NOT NULL AND deleted_at IS NULL)";
+
 $tab_meta = [
-  'hari-ini'    => ['label'=>'Hari Ini',     'condition'=>"DATE(ks.jadwal) = '$current_date' AND ks.status NOT IN ('waiting', 'dibatalkan', 'reschedule', 'cancelled')",      'icon'=>'today',        'color'=>'#1e293b'],
-  'akan-datang' => ['label'=>'Akan Datang',  'condition'=>"DATE(ks.jadwal) > '$current_date' AND ks.status NOT IN ('waiting', 'dibatalkan', 'reschedule', 'cancelled')",      'icon'=>'event',        'color'=>'#3b82f6'],
-  'terlewat'    => ['label'=>'Terlewat',     'condition'=>"DATE(ks.jadwal) < '$current_date' AND ks.status NOT IN ('selesai', 'waiting', 'dibatalkan', 'reschedule', 'cancelled') AND (ks.reschedule_reason IS NULL OR ks.reschedule_reason = '')", 'icon'=>'event_busy',   'color'=>'#ef4444'],
-  'selesai'     => ['label'=>'Selesai',      'condition'=>"ks.status = 'selesai'",                                                                        'icon'=>'task_alt',     'color'=>'#10b981'],
-  'waiting'     => ['label'=>'Waiting List', 'condition'=>"ks.status = 'waiting'",                                                                        'icon'=>'hourglass_empty','color'=>'#f59e0b'],
+  'hari-ini'    => ['label'=>'Hari Ini',     'condition'=>"DATE(ks.jadwal) = '$current_date'" . $rescheduledExclusion,                                       'icon'=>'today',        'color'=>'#1e293b'],
+  'akan-datang' => ['label'=>'Akan Datang',  'condition'=>"DATE(ks.jadwal) > '$current_date'" . $rescheduledExclusion,                                       'icon'=>'event',        'color'=>'#3b82f6'],
+  'terlewat'    => ['label'=>'Terlewat',     'condition'=>"DATE(ks.jadwal) < '$current_date' AND ks.status != 'selesai'" . $rescheduledExclusion,            'icon'=>'event_busy',   'color'=>'#ef4444'],
+  'selesai'     => ['label'=>'Selesai',      'condition'=>"ks.status = 'selesai'",                                                                           'icon'=>'task_alt',     'color'=>'#10b981'],
+  'waiting'     => ['label'=>'Waiting List', 'condition'=>"ks.status = 'waiting'",                                                                           'icon'=>'hourglass_empty','color'=>'#f59e0b'],
 ];
 
 $counts = [];
