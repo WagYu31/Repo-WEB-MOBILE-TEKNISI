@@ -34,6 +34,23 @@ $conn->set_charset('utf8');
 date_default_timezone_set('Asia/Jakarta');
 $conn->query("SET time_zone = '+07:00'");
 
+// Auto-fix 1: Mark old tasks referenced in rescheduled_from as 'dibatalkan'
+$conn->query("UPDATE kegiatan_sales SET status = 'dibatalkan' WHERE id IN (SELECT rescheduled_from FROM (SELECT DISTINCT rescheduled_from FROM kegiatan_sales WHERE rescheduled_from IS NOT NULL AND deleted_at IS NULL) AS t) AND status != 'dibatalkan'");
+
+// Auto-fix 2: Mark older unstarted tasks (<= Today or earlier than a newer active schedule) as 'dibatalkan'
+$sqlAutoResched = "UPDATE kegiatan_sales ks_old
+JOIN kegiatan_sales ks_new 
+  ON ks_old.id_customer = ks_new.id_customer 
+ AND ks_old.id != ks_new.id
+ AND DATE(ks_new.jadwal) > DATE(ks_old.jadwal)
+ AND ks_old.status = 'dijadwalkan'
+ AND ks_new.status = 'dijadwalkan'
+ AND ks_old.deleted_at IS NULL
+ AND ks_new.deleted_at IS NULL
+SET ks_old.status = 'dibatalkan', 
+    ks_old.reschedule_reason = CONCAT('[Reschedule] Dijadwalkan ulang ke tanggal ', DATE_FORMAT(ks_new.jadwal, '%d %b %Y %H:%i'))";
+$conn->query($sqlAutoResched);
+
 $salesId = intval($_GET['sales_id'] ?? 0);
 $filter  = trim($_GET['filter'] ?? 'today');
 
@@ -46,6 +63,8 @@ if (!$salesId) {
 $dateFilter = '';
 if ($filter === 'today') {
     $dateFilter = "AND DATE(ks.jadwal) = CURDATE()";
+} elseif ($filter === 'upcoming') {
+    $dateFilter = "AND DATE(ks.jadwal) > CURDATE()";
 }
 
 $sql = "
@@ -80,6 +99,8 @@ $sql = "
         AND ps.sales_id   = tks.id_sales
     WHERE tks.id_sales = ?
       AND tks.deleted_at IS NULL
+      AND ks.status NOT IN ('waiting', 'dibatalkan', 'reschedule', 'cancelled')
+      AND (ks.reschedule_reason IS NULL OR ks.reschedule_reason = '')
       $dateFilter
     ORDER BY ks.jadwal ASC
 ";
