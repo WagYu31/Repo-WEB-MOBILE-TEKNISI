@@ -1,3 +1,16 @@
+
+<style>
+@media (max-width: 767.98px) {
+  .detailBtn, .editVisitBtn, .deleteVisitBtn {
+    min-width: 38px !important;
+    min-height: 38px !important;
+    padding: 8px 12px !important;
+    font-size: 14px !important;
+    touch-action: manipulation !important;
+  }
+}
+</style>
+
 <?php
 // Filter variables
 $filterSales = isset($_GET['id_sales']) ? intval($_GET['id_sales']) : 0;
@@ -269,15 +282,15 @@ if ($resSalesList) {
                                         </div>
 
                                         <!-- Aksi (Lihat, Edit, Hapus) -->
-                                        <div class="col-6 col-md-2 text-md-center mb-2 mb-md-0 d-flex gap-1.5 justify-content-center align-items-center">
-                                            <span class="d-md-none text-xxs text-secondary d-block font-weight-bold w-100">Aksi</span>
-                                            <button class="btn btn-outline-primary btn-xs mb-0 px-2.5 py-1.5 detailBtn" style="border-radius: 6px;" data-bs-toggle="modal" data-bs-target="#detailModal" data-id="<?php echo $idT; ?>" data-kode="<?php echo $kodeTransaksi; ?>" title="Rincian Kunjungan">
+                                        <div class="col-12 col-md-2 text-md-center mb-2 mb-md-0 d-flex flex-wrap gap-2 justify-content-start justify-content-md-center align-items-center">
+                                            <span class="d-md-none text-xxs text-secondary font-weight-bold w-100 mb-1">Aksi:</span>
+                                            <button class="btn btn-outline-primary btn-sm mb-0 detailBtn" style="border-radius: 8px; min-width: 38px; min-height: 38px; padding: 6px 10px; display: inline-flex; align-items: center; justify-content: center; touch-action: manipulation;" data-bs-toggle="modal" data-bs-target="#detailModal" data-id="<?php echo $idT; ?>" data-kode="<?php echo $kodeTransaksi; ?>" title="Rincian Kunjungan">
                                                 <i class="fa-solid fa-eye"></i>
                                             </button>
-                                            <button class="btn btn-outline-success btn-xs mb-0 px-2.5 py-1.5 editVisitBtn" style="border-radius: 6px;" data-id="<?php echo $kodeTransaksi; ?>" data-sales="<?php echo $idT; ?>" title="Edit Laporan">
+                                            <button class="btn btn-outline-success btn-sm mb-0 editVisitBtn" style="border-radius: 8px; min-width: 38px; min-height: 38px; padding: 6px 10px; display: inline-flex; align-items: center; justify-content: center; touch-action: manipulation;" data-id="<?php echo $kodeTransaksi; ?>" data-sales="<?php echo $idT; ?>" title="Edit Laporan">
                                                 <i class="fa-solid fa-pen-to-square"></i>
                                             </button>
-                                            <button class="btn btn-outline-danger btn-xs mb-0 px-2.5 py-1.5 deleteVisitBtn" style="border-radius: 6px;" data-id="<?php echo $kodeTransaksi; ?>" data-sales="<?php echo $idT; ?>" data-status="<?php echo $status; ?>" data-cust="<?php echo htmlspecialchars($namaC); ?>" title="Hapus Laporan">
+                                            <button class="btn btn-outline-danger btn-sm mb-0 deleteVisitBtn" style="border-radius: 8px; min-width: 38px; min-height: 38px; padding: 6px 10px; display: inline-flex; align-items: center; justify-content: center; touch-action: manipulation;" data-id="<?php echo $kodeTransaksi; ?>" data-sales="<?php echo $idT; ?>" data-status="<?php echo $status; ?>" data-cust="<?php echo htmlspecialchars($namaC); ?>" title="Hapus Laporan">
                                                 <i class="fa-solid fa-trash"></i>
                                             </button>
                                         </div>

@@ -489,19 +489,26 @@ foreach ($tab_meta as $k => $m) {
   padding: 12px 14px 0;
   border: 1px solid #e2e8f0;
   border-bottom: none;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
 }
-.tab-pills { gap: 6px; flex-wrap: wrap; border-bottom: none; }
+.tab-pills-wrapper::-webkit-scrollbar { display: none; }
+.tab-pills { gap: 6px; flex-wrap: nowrap; border-bottom: none; }
 .tab-pill {
   display: flex; align-items: center; gap: 6px;
-  padding: 10px 20px;
+  padding: 10px 18px;
   border-radius: 12px 12px 0 0;
   border: none;
   background: transparent;
   color: #64748b;
-  font-size: 14px; font-weight: 600;
+  font-size: 13.5px; font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
   position: relative;
+  white-space: nowrap;
+  flex-shrink: 0;
+  touch-action: manipulation !important;
 }
 .tab-pill:hover { background: rgba(0,0,0,0.03); color: #1e293b; }
 .tab-pill.active {
@@ -716,14 +723,38 @@ foreach ($tab_meta as $k => $m) {
   .keg-row {
     display: flex; flex-direction: column; gap: 12px;
     border-left-width: 5px;
-    padding: 16px 20px;
+    padding: 16px 16px;
     border-radius: 14px;
     align-items: stretch;
   }
   .keg-cell { padding: 0; }
-  .keg-actions { justify-content: flex-start; margin-top: 4px; }
-  .stat-count { font-size: 24px; }
-  .empty-state-premium { padding: 40px 20px; margin: 15px auto; }
+  .keg-actions { 
+    justify-content: flex-start; 
+    margin-top: 8px; 
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 10px !important;
+  }
+  .btn-action {
+    min-width: 40px !important;
+    min-height: 40px !important;
+    border-radius: 10px !important;
+    touch-action: manipulation !important;
+  }
+  .btn-action .material-symbols-outlined {
+    font-size: 20px !important;
+  }
+  .stat-count-premium { font-size: 24px; }
+  .empty-state-premium { padding: 30px 16px; margin: 15px auto; }
+  .inline-filter-row {
+    flex-direction: column !important;
+    gap: 8px !important;
+    align-items: stretch !important;
+  }
+  .inline-search-wrapper, .inline-date-wrapper {
+    width: 100% !important;
+    min-width: 100% !important;
+  }
 }
 
 /* ── Approve Confirmation Modal ── */

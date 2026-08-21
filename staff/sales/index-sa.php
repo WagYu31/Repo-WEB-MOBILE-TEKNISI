@@ -300,6 +300,31 @@ $progress_percent = $today_total > 0 ? round(($today_completed / $today_total) *
       letter-spacing: -0.01em;
       line-height: 1.2;
     }
+  
+    /* ── Dashboard Mobile Responsive Enhancements ── */
+    @media (max-width: 991.98px) {
+      .dashboard-header {
+        padding: 20px 16px !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 16px !important;
+      }
+      .dashboard-header .user-name {
+        font-size: 20px !important;
+      }
+      .progress-capsule-premium {
+        width: 100% !important;
+        min-width: 100% !important;
+      }
+      .premium-action-btn {
+        width: 100% !important;
+        height: 48px !important;
+      }
+      .form-select, .form-control {
+        height: 44px !important;
+      }
+    }
+
   </style>
 </head>
  

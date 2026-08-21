@@ -301,6 +301,59 @@ $currentPage = "Today";
     }
     
     <?php include "css/floating-menu2.css";?>
+  
+    /* ── Mobile Responsive Enhancements ── */
+    @media (max-width: 991.98px) {
+      .card-body-premium {
+        padding: 24px 16px !important;
+      }
+      .col-lg-5[style*="padding-left: 32px;"] {
+        padding-left: calc(var(--bs-gutter-x) * .5) !important;
+        margin-top: 24px;
+      }
+      .datetime-row {
+        flex-wrap: wrap !important;
+        gap: 8px !important;
+      }
+      .datetime-col-date {
+        flex: 1 1 100% !important;
+      }
+      .datetime-col-time {
+        flex: 1 1 calc(50% - 4px) !important;
+      }
+      .btn-submit-premium {
+        width: 100% !important;
+        justify-content: center !important;
+        padding: 14px 20px !important;
+        font-size: 15px !important;
+        min-height: 48px !important;
+        touch-action: manipulation !important;
+      }
+      .sales-select-card {
+        margin-bottom: 8px;
+        touch-action: manipulation !important;
+      }
+      .sales-card-content {
+        padding: 12px 14px;
+        min-height: 52px;
+      }
+      #map {
+        height: 260px !important;
+      }
+      .dropdown-button-cust {
+        height: 48px !important;
+        touch-action: manipulation !important;
+      }
+      .dropdown-menu-cust {
+        max-height: 280px !important;
+        -webkit-overflow-scrolling: touch !important;
+      }
+      .dropdown-item-cust {
+        padding: 14px 16px !important;
+        touch-action: manipulation !important;
+      }
+    }
+
   </style>
 </head>
 

@@ -434,11 +434,27 @@ date_default_timezone_set('Asia/Jakarta');
 
     /* Responsive */
     @media (max-width: 768px) {
-      .search-row { flex-direction: column; }
-      .usage-meter { flex-direction: column; }
+      .search-row { flex-direction: column; gap: 12px; }
+      .search-group { width: 100%; min-width: 100%; }
+      .btn-search { width: 100%; justify-content: center; min-height: 48px; font-size: 14px; touch-action: manipulation !important; }
+      .usage-meter { flex-direction: column; gap: 10px; }
       .scraping-header, .search-form, .filter-bar, .results-header {
-        padding-left: 20px;
-        padding-right: 20px;
+        padding-left: 16px !important;
+        padding-right: 16px !important;
+      }
+      .filter-bar {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 12px;
+        gap: 8px;
+      }
+      .filter-chip {
+        white-space: nowrap;
+        flex-shrink: 0;
+        min-height: 38px;
+        padding: 6px 14px;
+        touch-action: manipulation !important;
       }
       .results-table { font-size: 12px; }
     }

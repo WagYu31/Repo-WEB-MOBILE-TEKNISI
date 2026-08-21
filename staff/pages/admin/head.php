@@ -18,22 +18,7 @@
   <!-- Nepcha is a easy-to-use web analytics. No cookies and fully compliant with GDPR, CCPA and PECR. -->
   <script defer data-site="YOUR_DOMAIN_HERE" src="https://api.nepcha.com/js/nepcha-analytics.js"></script>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script>
-    // Get the initial width
-    let initialWidth = window.innerWidth;
-
-    // Function to check for width changes and perform actions
-    function checkWidthAndRefresh() {
-      // Check if the width has changed
-      if (initialWidth !== window.innerWidth) {
-        // Execute your actions here, for example, reload or other logic
-        location.reload(); // Example: reload the page
-      }
-    }
-
-    // Attach the function to the window resize event
-    window.addEventListener('resize', checkWidthAndRefresh);
-  </script>
+  
   <style>
     .nav-link i.material-icons {
       font-size: 2em;

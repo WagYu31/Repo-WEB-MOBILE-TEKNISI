@@ -333,6 +333,30 @@ $salesData = mysqli_query($conn, "
     }
     
     <?php include "css/floating-menu2.css"; ?>
+  
+    /* ── Mobile Responsive Enhancements ── */
+    @media (max-width: 991.98px) {
+      .card-body-premium {
+        padding: 20px 16px !important;
+      }
+      .btn-act {
+        min-width: 38px !important;
+        min-height: 38px !important;
+        border-radius: 10px !important;
+        margin: 2px !important;
+        touch-action: manipulation !important;
+      }
+      .btn-submit-premium {
+        width: 100% !important;
+        justify-content: center !important;
+        min-height: 48px !important;
+        touch-action: manipulation !important;
+      }
+      .premium-table th, .premium-table td {
+        padding: 12px 10px !important;
+      }
+    }
+
   </style>
 </head>
 <body class="g-sidenav-show bg-gray-200">

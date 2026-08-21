@@ -15,6 +15,20 @@
     dropdownElementList.forEach(function (dropdownToggleEl) {
         new bootstrap.Dropdown(dropdownToggleEl);
     });
+
+    // Mobile Sidenav Backdrop click handler
+    var sidenav = document.getElementById("sidenav-main");
+    var body = document.querySelector("body");
+    if (sidenav && body) {
+      document.addEventListener("click", function(e) {
+        if (window.innerWidth < 1200 && (body.classList.contains("g-sidenav-pinned") || body.classList.contains("g-sidenav-show"))) {
+          var icon = document.getElementById("iconNavbarSidenav");
+          if (!sidenav.contains(e.target) && (!icon || !icon.contains(e.target))) {
+            body.classList.remove("g-sidenav-pinned");
+          }
+        }
+      });
+    }
   });
 </script>
 

@@ -733,6 +733,42 @@ $salesData = mysqli_query($conn, $queryStr);
     }
 
     <?php include "css/floating-menu2.css"; ?>
+  
+    /* ── Mobile Responsive Enhancements ── */
+    @media (max-width: 991.98px) {
+      .card-body-premium {
+        padding: 20px 16px !important;
+      }
+      .section-header-premium {
+        padding: 14px 16px !important;
+      }
+      .category-pill-group {
+        flex-wrap: wrap !important;
+      }
+      .category-pill-label {
+        flex: 1 1 calc(33.333% - 8px) !important;
+        min-width: 85px !important;
+      }
+      .btn-submit-premium {
+        width: 100% !important;
+        justify-content: center !important;
+        min-height: 48px !important;
+        touch-action: manipulation !important;
+      }
+      .premium-table th, .premium-table td {
+        padding: 12px 10px !important;
+      }
+      .btn-act {
+        min-width: 38px !important;
+        min-height: 38px !important;
+        margin: 2px !important;
+        touch-action: manipulation !important;
+      }
+      .modal-dialog {
+        margin: 10px !important;
+      }
+    }
+
   </style>
 </head>
 <body class="g-sidenav-show bg-gray-200">

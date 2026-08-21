@@ -6,6 +6,7 @@
   <!-- Fonts and icons -->
   <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,900|Roboto+Slab:400,700" />
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   
   <!-- Bootstrap 5.3.0 CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -26,36 +27,78 @@
   <!-- Theme CSS -->
   <link id="pagestyle" href="assets/css/material-dashboard.css?v=3.1.0" rel="stylesheet" />
 
-  <script>
-    // Get the initial width
-    let initialWidth = window.innerWidth;
+  <style>
+    /* ── GLOBAL MOBILE TOUCH & RESPONSIVE OPTIMIZATIONS ── */
+    html, body {
+      touch-action: pan-y pinch-zoom;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-y: auto;
+    }
 
-    // Function to check for width changes and perform actions
-    function checkWidthAndRefresh() {
-      // Check if the width has changed
-      if (initialWidth !== window.innerWidth) {
-        // Execute your actions here, for example, reload or other logic
-        location.reload(); // Example: reload the page
+    /* Remove 300ms tap delay, eliminate dead clicks on mobile */
+    button, a, input, select, textarea, .btn, .nav-link, .tab-item, .action-btn, [role="button"], [onclick], .page-link, .dropdown-item, .filter-tab-pill {
+      touch-action: manipulation !important;
+      -webkit-tap-highlight-color: rgba(59, 130, 246, 0.15) !important;
+      cursor: pointer;
+    }
+
+    /* Prevent text selection during fast taps on interactive elements */
+    button, .btn, .nav-link, .badge, .action-btn, [role="button"], .tab-pill, .filter-tab-pill {
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    /* Touch Target & Mobile Sizing Rules */
+    @media (max-width: 991.98px) {
+      /* Form elements: font-size 15px-16px to prevent iOS auto-zoom glitch */
+      input, select, textarea, .form-control, .form-select, .input-premium {
+        font-size: 15px !important;
+      }
+      
+      /* Ensure action buttons in tables/cards have adequate tap hitbox (min 38px) */
+      .action-btn, .btn-action, .table .btn-sm, .table a.btn, .table button.btn, .table a[href], .table button {
+        min-width: 36px !important;
+        min-height: 36px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 6px 10px !important;
+        margin: 2px !important;
+      }
+
+      /* Horizontal scrollable containers on mobile */
+      .table-responsive, .scrollable-tabs-mobile {
+        -webkit-overflow-scrolling: touch !important;
+        overscroll-behavior-x: contain !important;
+      }
+
+      /* Main content padding on mobile */
+      .container-fluid {
+        padding-left: 14px !important;
+        padding-right: 14px !important;
+      }
+
+      .dashboard-header {
+        padding: 18px 16px !important;
+        border-radius: 16px !important;
+      }
+
+      .card-body-premium {
+        padding: 20px 16px !important;
       }
     }
 
-    // Attach the function to the window resize event
-    window.addEventListener('resize', checkWidthAndRefresh);
-  </script>
-  <style>
     .nav-link i.material-icons {
       font-size: 2em;
-      /* Adjust the size as needed */
     }
     .btm-nav {
         position: fixed;
-        bottom: 15px; /* Adjust the distance from the bottom as needed */
+        bottom: 15px;
         left: 0;
         right: 0;
-        margin: 0 auto; /* Center the navbar horizontally */
-        border-radius: 15px; /* Add border-radius */
-        /* overflow: hidden; */
-        background-color: rgba(0, 0, 0, 0.7); /* Add a background color with transparency */
+        margin: 0 auto;
+        border-radius: 15px;
+        background-color: rgba(0, 0, 0, 0.7);
         width:94%;
         margin-left:3%;
     }

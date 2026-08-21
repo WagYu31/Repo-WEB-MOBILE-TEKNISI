@@ -43,10 +43,13 @@ $currentPage = "Today";
   // Mulai timer saat halaman dimuat
   startTimer();
 
-  // Tambahkan event listener untuk interaksi pengguna
-  document.addEventListener('mousemove', resetTimer); // Interaksi mouse
-  document.addEventListener('keydown', resetTimer); // Interaksi keyboard
-  document.addEventListener('scroll', resetTimer); // Interaksi scrolling
+  // Tambahkan event listener untuk interaksi pengguna (Desktop & Mobile Touch)
+  document.addEventListener('mousemove', resetTimer);
+  document.addEventListener('keydown', resetTimer);
+  document.addEventListener('scroll', resetTimer);
+  document.addEventListener('touchstart', resetTimer, { passive: true });
+  document.addEventListener('touchmove', resetTimer, { passive: true });
+  document.addEventListener('click', resetTimer, { passive: true });
 </script>
 
 
