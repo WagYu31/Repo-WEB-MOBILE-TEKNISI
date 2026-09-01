@@ -96,10 +96,48 @@ $sql_kegiatan = "SELECT k.*, c.nama AS nama_customer, c.telp AS cust_nomor, c.al
 
 // Universal search filter
 if (!empty($quick_search)) {
-    $sql_kegiatan .= " AND (c.nama LIKE ? OR k.kode LIKE ? OR k.no_so LIKE ? OR pk_so.no_so LIKE ? OR inv.no_invoice LIKE ?)";
-    $types .= 'sssss';
-    $qs = "%" . $quick_search . "%";
-    array_push($params, $qs, $qs, $qs, $qs, $qs);
+    $trimmed_qs = trim($quick_search);
+    $qs_no_hash = ltrim($trimmed_qs, '#');
+    $qs = "%" . $trimmed_qs . "%";
+    $qs_hash = "%" . $qs_no_hash . "%";
+    
+    $clean_digits = preg_replace('/[^0-9]/', '', $trimmed_qs);
+    
+    $conditions = [
+        "c.nama LIKE ?",
+        "c.telp LIKE ?",
+        "c.alamat LIKE ?",
+        "k.kode LIKE ?",
+        "k.no_so LIKE ?",
+        "pk_so.no_so LIKE ?",
+        "inv.no_invoice LIKE ?"
+    ];
+    $search_params = [$qs, $qs, $qs, $qs_hash, $qs, $qs, $qs];
+    $search_types = "sssssss";
+
+    // If search term contains digits (like phone number or SO/Invoice number)
+    if (!empty($clean_digits) && strlen($clean_digits) >= 4) {
+        $conditions[] = "REPLACE(REPLACE(REPLACE(REPLACE(c.telp, '-', ''), ' ', ''), '+', ''), '.', '') LIKE ?";
+        $search_params[] = "%" . $clean_digits . "%";
+        $search_types .= "s";
+        
+        // Also check variations between 08xxx and 62xxx
+        if (substr($clean_digits, 0, 2) === '62') {
+            $conditions[] = "c.telp LIKE ?";
+            $search_params[] = "%0" . substr($clean_digits, 2) . "%";
+            $search_types .= "s";
+        } elseif (substr($clean_digits, 0, 1) === '0') {
+            $conditions[] = "c.telp LIKE ?";
+            $search_params[] = "%62" . substr($clean_digits, 1) . "%";
+            $search_types .= "s";
+        }
+    }
+
+    $sql_kegiatan .= " AND (" . implode(" OR ", $conditions) . ")";
+    $types .= $search_types;
+    foreach ($search_params as $sp) {
+        $params[] = $sp;
+    }
 }
 
 // Filtering by teknisi
