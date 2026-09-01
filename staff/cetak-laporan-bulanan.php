@@ -480,35 +480,39 @@ $nama_bulan = $daftar_bulan[(int)$bulan];
         $stmt_income->close();
         ?>
 
-        <!-- ═══ STATS ═══ -->
-        <div class="stats-grid">
-            <div class="stat-box">
-                <div class="stat-dot stat-dot-blue"><i class="material-icons-round">assignment</i></div>
-                <div><div class="stat-title">Total Kegiatan</div><div class="stat-num"><?= $total_kegiatan ?></div></div>
+        <!-- Summary Bar -->
+        <div class="summary-bar">
+            <div class="summary-item">
+                <div class="summary-dot dot-blue"><i class="material-icons-round">assignment</i></div>
+                <div>
+                    <div class="summary-label">Total Kegiatan</div>
+                    <div class="summary-num"><?= $total_kegiatan ?></div>
+                </div>
             </div>
-            <div class="stat-box">
-                <div class="stat-dot stat-dot-emerald"><i class="material-icons-round">check_circle</i></div>
-                <div><div class="stat-title">Lunas</div><div class="stat-num" style="color:var(--emerald-600)"><?= $total_lunas ?></div></div>
+            <div class="summary-item">
+                <div class="summary-dot dot-emerald"><i class="material-icons-round">check_circle</i></div>
+                <div>
+                    <div class="summary-label">Lunas</div>
+                    <div class="summary-num" style="color:var(--emerald-600)"><?= $total_lunas ?></div>
+                </div>
             </div>
-            <div class="stat-box">
-                <div class="stat-dot stat-dot-rose"><i class="material-icons-round">pending</i></div>
-                <div><div class="stat-title">Belum Lunas</div><div class="stat-num" style="color:var(--rose-600)"><?= $total_belum_lunas ?></div></div>
+            <div class="summary-item">
+                <div class="summary-dot dot-rose"><i class="material-icons-round">pending</i></div>
+                <div>
+                    <div class="summary-label">Belum Lunas</div>
+                    <div class="summary-num" style="color:var(--rose-600)"><?= $total_belum_lunas ?></div>
+                </div>
             </div>
-            <div class="stat-box">
-                <div class="stat-dot stat-dot-amber"><i class="material-icons-round">account_balance_wallet</i></div>
-                <div><div class="stat-title">Total Pendapatan</div><div class="stat-num" style="font-size:17px;color:var(--text-dark)">Rp <?= number_format($total_income, 0, ',', '.') ?></div></div>
+            <div class="summary-item">
+                <div class="summary-dot dot-amber"><i class="material-icons-round">account_balance_wallet</i></div>
+                <div>
+                    <div class="summary-label">Total Pendapatan</div>
+                    <div class="summary-num" style="font-size:16px;">Rp <?= number_format($total_income, 0, ',', '.') ?></div>
+                </div>
             </div>
         </div>
 
-        <!-- ═══ COLUMN LABELS ═══ -->
-        <div class="col-labels no-print">
-            <span>No</span>
-            <span>Customer & Request</span>
-            <span>Invoice & Pembayaran</span>
-            <span>Teknisi & Pelaksanaan</span>
-        </div>
-
-        <!-- ═══ DATA ═══ -->
+        <!-- Card List -->
         <?php
         if (!empty($all_rows)) {
             $no = 0;
@@ -517,63 +521,65 @@ $nama_bulan = $daftar_bulan[(int)$bulan];
                 $kode = $row_main['kode_transaksi'];
                 $is_manual = is_numeric($row_main['paid']);
                 $is_lunas = (!empty($row_main['lunas']) && $row_main['lunas'] != '0000-00-00');
-                $card_type = $is_lunas ? 'is-lunas' : ($is_manual ? 'is-manual' : 'is-unpaid');
+                $card_type = $is_lunas ? 'card-lunas' : ($is_manual ? 'card-manual' : 'card-unpaid');
                 $overlay = $is_lunas ? 'lunas-overlay' : '';
         ?>
-        <div class="data-card <?= $card_type ?>">
-            <div class="data-card-grid">
+        <div class="card <?= $card_type ?> <?= $overlay ?>">
+            <div class="card-grid">
+                <!-- No -->
+                <div class="row-num"><?= $no ?></div>
 
-                <!-- NUM -->
-                <div><span class="rnum"><?= $no ?></span></div>
-
-                <!-- CUSTOMER -->
+                <!-- Customer & Request -->
                 <div>
-                    <div class="c-name"><?= htmlspecialchars($row_main['nama_cust']); ?></div>
+                    <div class="cust-name"><?= htmlspecialchars($row_main['nama_cust']); ?></div>
                     <?php if (!empty($row_main['keterangan'])) : ?>
-                        <div class="c-ket"><?= htmlspecialchars($row_main['keterangan']); ?></div>
+                        <div class="cust-ket"><?= htmlspecialchars($row_main['keterangan']); ?></div>
                     <?php endif; ?>
-                    <div class="c-tags">
-                        <span class="c-tag"><i class="material-icons-round">tag</i> <strong><?= $kode; ?></strong></span>
-                        <span class="c-tag"><i class="material-icons-round">event</i> <?= date("d M Y", strtotime($row_main['created_at'])); ?></span>
+                    <div class="cust-tags">
+                        <span class="cust-tag"><i class="material-icons-round">tag</i> #<?= htmlspecialchars($kode); ?></span>
+                        <span class="cust-tag"><i class="material-icons-round">event</i> <?= date("d M Y", strtotime($row_main['created_at'])); ?></span>
                     </div>
                 </div>
 
-                <!-- INVOICE -->
+                <!-- Invoice & Status -->
                 <div>
                     <?php
-                    $sql_inv = "SELECT no_invoice, tanggal, nominal_invoice FROM pendapatan_kegiatan WHERE kode = ? LIMIT 1";
+                    $sql_inv = "SELECT no_invoice, tanggal, nominal_invoice FROM pendapatan_kegiatan WHERE kode = ? AND deleted_at IS NULL LIMIT 1";
                     $stmt_inv = $conn->prepare($sql_inv);
                     $stmt_inv->bind_param("s", $kode);
                     $stmt_inv->execute();
                     $inv = $stmt_inv->get_result()->fetch_assoc();
                     $stmt_inv->close();
+
+                    if ($inv) :
                     ?>
-                    <div class="inv-card <?= $overlay ?>">
-                        <?php if ($inv) : ?>
-                            <div class="inv-lbl">No. Invoice</div>
-                            <div class="inv-no"><?= htmlspecialchars($inv['no_invoice']); ?></div>
-                            <div class="inv-lbl">Nominal</div>
-                            <div class="inv-amount">Rp <?= number_format($inv['nominal_invoice'], 0, ',', '.'); ?></div>
-                            <hr class="inv-sep">
-                            <?php if ($is_lunas) : ?>
-                                <span class="pay-badge pay-lunas"><i class="material-icons-round">verified</i> Lunas <?= date("d M Y", strtotime($row_main['lunas'])) ?></span>
-                            <?php else : ?>
-                                <span class="pay-badge pay-belum"><i class="material-icons-round">schedule</i> Belum Lunas</span>
-                            <?php endif; ?>
-                        <?php elseif ($is_manual) : ?>
-                            <div class="inv-lbl">Status</div>
-                            <div class="inv-no-text">Tidak Ada Invoice</div>
-                            <div class="inv-lbl">Nominal Manual</div>
-                            <div class="inv-amount-sm">Rp 30.000</div>
+                        <div class="inv-lbl">No. Invoice</div>
+                        <div class="inv-no"><?= htmlspecialchars($inv['no_invoice']); ?></div>
+                        <div class="inv-lbl">Nominal</div>
+                        <div class="inv-amount">Rp <?= number_format($inv['nominal_invoice'], 0, ',', '.'); ?></div>
+                        <hr class="inv-sep">
+                        <?php if ($is_lunas) : ?>
+                            <span class="pay-badge pay-lunas"><i class="material-icons-round">check_circle</i> Lunas <?= date("d M Y", strtotime($row_main['lunas'])) ?></span>
                         <?php else : ?>
-                            <div style="text-align:center;padding:10px 0;">
-                                <span class="pay-none"><i class="material-icons-round" style="font-size:12px;vertical-align:middle;margin-right:2px;">block</i> NO PAYMENT</span>
-                            </div>
+                            <span class="pay-badge pay-belum"><i class="material-icons-round">schedule</i> Belum Lunas</span>
                         <?php endif; ?>
-                    </div>
+                    <?php elseif ($is_manual) : ?>
+                        <div class="inv-lbl">Status</div>
+                        <div class="inv-notxt">Tidak Ada Invoice</div>
+                        <div class="inv-lbl">Nominal Manual</div>
+                        <div class="inv-amtsm">Rp 30.000</div>
+                    <?php else : ?>
+                        <div style="text-align:center;padding:10px 0;">
+                            <?php if ($row_main['paid'] === 'n/a' || $row_main['invoice'] === 'n/a') : ?>
+                                <span class="pay-none-gray"><i class="material-icons-round">block</i> NO PAY</span>
+                            <?php else : ?>
+                                <span class="pay-none"><i class="material-icons-round">schedule</i> BELUM INPUT INVOICE</span>
+                            <?php endif; ?>
+                        </div>
+                    <?php endif; ?>
                 </div>
 
-                <!-- TEKNISI -->
+                <!-- Teknisi & Pelaksanaan -->
                 <div>
                     <?php
                     $sql_cnt = "SELECT COUNT(DISTINCT teknisi_id) as tot FROM pelaksanaan_kegiatan WHERE kode = ? AND waktu_mulai IS NOT NULL";
@@ -600,9 +606,13 @@ $nama_bulan = $daftar_bulan[(int)$bulan];
                         $tid = $rt['id'];
                         $pdb = $rt['total_pendapatan'] ?? 0;
 
-                        $sql_abs = "SELECT DATE(waktu_mulai) as tgl, MIN(waktu_mulai) as masuk, MAX(waktu_selesai) as pulang
-                                    FROM pelaksanaan_kegiatan
-                                    WHERE kode = ? AND teknisi_id = ? AND waktu_mulai IS NOT NULL
+                        $sql_abs = "SELECT DATE(pk.waktu_mulai) as tgl, 
+                                    COALESCE(MIN(k.jadwal), (SELECT MIN(k2.jadwal) FROM kegiatan k2 WHERE k2.kode = pk.kode AND DATE(k2.jadwal) = DATE(pk.waktu_mulai) AND k2.deleted_at IS NULL)) as jadwal,
+                                    MIN(pk.waktu_mulai) as masuk, 
+                                    MAX(pk.waktu_selesai) as pulang
+                                    FROM pelaksanaan_kegiatan pk
+                                    LEFT JOIN kegiatan k ON pk.kegiatan_id = k.id AND k.deleted_at IS NULL
+                                    WHERE pk.kode = ? AND pk.teknisi_id = ? AND pk.waktu_mulai IS NOT NULL AND pk.deleted_at IS NULL
                                     GROUP BY tgl ORDER BY tgl ASC";
                         $stmt_abs = $conn->prepare($sql_abs);
                         $stmt_abs->bind_param("si", $kode, $tid);
@@ -622,11 +632,14 @@ $nama_bulan = $daftar_bulan[(int)$bulan];
                         </div>
                         <?php if ($ada_abs) : ?>
                         <div class="tek-rows">
-                            <?php while ($ra = $res_abs->fetch_assoc()) : ?>
+                            <?php while ($ra = $res_abs->fetch_assoc()) : 
+                                $jamJadwal = (!empty($ra['jadwal']) && $ra['jadwal'] != '0000-00-00 00:00:00') ? date("H:i", strtotime($ra['jadwal'])) : '-';
+                            ?>
                             <div class="tek-row">
                                 <span class="tek-date"><?= date("d/m", strtotime($ra['tgl'])); ?></span>
-                                <span class="tek-t tek-in"><i class="material-icons-round">login</i> <?= $ra['masuk'] ? date("H:i", strtotime($ra['masuk'])) : '-'; ?></span>
-                                <span class="tek-t tek-out"><i class="material-icons-round">logout</i> <?= $ra['pulang'] ? date("H:i", strtotime($ra['pulang'])) : '-'; ?></span>
+                                <span class="tek-t tek-plan" title="Jam Jadwal Janjian"><i class="material-icons-round">schedule</i> <?= $jamJadwal; ?></span>
+                                <span class="tek-t tek-in" title="Waktu Mulai Absen"><i class="material-icons-round">login</i> <?= $ra['masuk'] ? date("H:i", strtotime($ra['masuk'])) : '-'; ?></span>
+                                <span class="tek-t tek-out" title="Waktu Selesai Absen"><i class="material-icons-round">logout</i> <?= $ra['pulang'] ? date("H:i", strtotime($ra['pulang'])) : '-'; ?></span>
                             </div>
                             <?php endwhile; ?>
                         </div>

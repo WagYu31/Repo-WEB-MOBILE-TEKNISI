@@ -286,9 +286,13 @@ if (!empty($all_rows)) {
                 $tid = $rt['id'];
                 $pdb = $rt['total_pendapatan'] ?? 0;
 
-                $sql_abs = "SELECT DATE(waktu_mulai) as tgl, MIN(waktu_mulai) as masuk, MAX(waktu_selesai) as pulang
-                            FROM pelaksanaan_kegiatan
-                            WHERE kode = ? AND teknisi_id = ? AND waktu_mulai IS NOT NULL
+                $sql_abs = "SELECT DATE(pk.waktu_mulai) as tgl, 
+                            COALESCE(MIN(k.jadwal), (SELECT MIN(k2.jadwal) FROM kegiatan k2 WHERE k2.kode = pk.kode AND DATE(k2.jadwal) = DATE(pk.waktu_mulai) AND k2.deleted_at IS NULL)) as jadwal,
+                            MIN(pk.waktu_mulai) as masuk, 
+                            MAX(pk.waktu_selesai) as pulang
+                            FROM pelaksanaan_kegiatan pk
+                            LEFT JOIN kegiatan k ON pk.kegiatan_id = k.id AND k.deleted_at IS NULL
+                            WHERE pk.kode = ? AND pk.teknisi_id = ? AND pk.waktu_mulai IS NOT NULL AND pk.deleted_at IS NULL
                             GROUP BY tgl ORDER BY tgl ASC";
                 $stmt_abs = $conn->prepare($sql_abs);
                 $stmt_abs->bind_param("si", $kode, $tid);
@@ -308,11 +312,14 @@ if (!empty($all_rows)) {
                 </div>
                 <?php if ($ada_abs) : ?>
                 <div class="ll-tek-rows">
-                    <?php while ($ra = $res_abs->fetch_assoc()) : ?>
+                    <?php while ($ra = $res_abs->fetch_assoc()) : 
+                        $jamJadwal = (!empty($ra['jadwal']) && $ra['jadwal'] != '0000-00-00 00:00:00') ? date("H:i", strtotime($ra['jadwal'])) : '-';
+                    ?>
                     <div class="ll-tek-row">
                         <span class="ll-tek-date"><?= date("d/m", strtotime($ra['tgl'])); ?></span>
-                        <span class="ll-tek-t ll-tek-in"><i class="fa-solid fa-right-to-bracket"></i> <?= $ra['masuk'] ? date("H:i", strtotime($ra['masuk'])) : '-'; ?></span>
-                        <span class="ll-tek-t ll-tek-out"><i class="fa-solid fa-right-from-bracket"></i> <?= $ra['pulang'] ? date("H:i", strtotime($ra['pulang'])) : '-'; ?></span>
+                        <span class="ll-tek-t ll-tek-plan" title="Jam Jadwal Janjian"><i class="fa-regular fa-clock text-primary"></i> <?= $jamJadwal; ?></span>
+                        <span class="ll-tek-t ll-tek-in" title="Waktu Mulai Absen"><i class="fa-solid fa-right-to-bracket"></i> <?= $ra['masuk'] ? date("H:i", strtotime($ra['masuk'])) : '-'; ?></span>
+                        <span class="ll-tek-t ll-tek-out" title="Waktu Selesai Absen"><i class="fa-solid fa-right-from-bracket"></i> <?= $ra['pulang'] ? date("H:i", strtotime($ra['pulang'])) : '-'; ?></span>
                     </div>
                     <?php endwhile; ?>
                 </div>

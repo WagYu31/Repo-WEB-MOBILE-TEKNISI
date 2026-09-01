@@ -383,6 +383,7 @@ $role = $jabatan;
         font-size: 10.5px; font-weight: 600; padding: 2px 7px; border-radius: 4px;
     }
     .ll-tek-t i { font-size: 9px; }
+    .ll-tek-plan { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; font-weight: 600; }
     .ll-tek-in { background: #ecfdf5; color: #059669; }
     .ll-tek-out { background: #fff1f2; color: #e11d48; }
     .ll-tek-none { font-size: 11px; color: #94a3b8; font-style: italic; padding: 4px 0; margin: 0; }

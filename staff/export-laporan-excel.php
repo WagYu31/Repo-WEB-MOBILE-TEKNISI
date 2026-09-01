@@ -43,12 +43,13 @@ echo '<thead>
             <th rowspan="2">No. Invoice</th>
             <th rowspan="2">Nominal Invoice</th>
             <th rowspan="2">Status Bayar</th>
-            <th colspan="5">Rincian Teknisi</th>
+            <th colspan="6">Rincian Teknisi</th>
         </tr>
         <tr>
             <th>Teknisi</th>
             <th>Target Tercapai</th>
             <th>Tanggal Kerja</th>
+            <th>Jam Janjian</th>
             <th>Absen Mulai</th>
             <th>Absen Selesai</th>
         </tr>
@@ -116,9 +117,13 @@ if ($result_main->num_rows > 0) {
             $pendapatan_db = $stmt_p->get_result()->fetch_assoc()['total'] ?? 0;
             $stmt_p->close();
 
-            $sql_absensi = "SELECT DATE(waktu_mulai) as tgl, MIN(waktu_mulai) as mulai, MAX(waktu_selesai) as selesai 
-                            FROM pelaksanaan_kegiatan 
-                            WHERE kode = ? AND teknisi_id = ? AND waktu_mulai IS NOT NULL 
+            $sql_absensi = "SELECT DATE(pk.waktu_mulai) as tgl, 
+                            COALESCE(MIN(k.jadwal), (SELECT MIN(k2.jadwal) FROM kegiatan k2 WHERE k2.kode = pk.kode AND DATE(k2.jadwal) = DATE(pk.waktu_mulai) AND k2.deleted_at IS NULL)) as jadwal,
+                            MIN(pk.waktu_mulai) as mulai, 
+                            MAX(pk.waktu_selesai) as selesai 
+                            FROM pelaksanaan_kegiatan pk
+                            LEFT JOIN kegiatan k ON pk.kegiatan_id = k.id AND k.deleted_at IS NULL
+                            WHERE pk.kode = ? AND pk.teknisi_id = ? AND pk.waktu_mulai IS NOT NULL AND pk.deleted_at IS NULL
                             GROUP BY tgl ORDER BY tgl ASC";
             $stmt_a = $conn->prepare($sql_absensi);
             $stmt_a->bind_param("si", $kodeTransaksi, $tid);
@@ -168,7 +173,7 @@ if ($result_main->num_rows > 0) {
             echo '<td class="text">' . ($invoice_data['no_invoice'] ?? ($is_manual_fee ? 'Tidak ada Invoice' : '-')) . '</td>';
             echo $nom_invoice_td;
             echo '<td class="text">' . ((!empty($row_main['lunas']) && $row_main['lunas'] != '0000-00-00') ? 'Lunas ' . date("d/m/Y", strtotime($row_main['lunas'])) : 'Belum Lunas') . '</td>';
-            echo '<td colspan="5" class="text center">Tidak ada data teknisi</td>';
+            echo '<td colspan="6" class="text center">Tidak ada data teknisi</td>';
             echo '</tr>';
         } else {
             $first_row_job = true;
@@ -203,11 +208,13 @@ if ($result_main->num_rows > 0) {
 
                     if (!empty($g['absensi'])) {
                         $abs = $g['absensi'][$i];
+                        $jamJadwal = (!empty($abs['jadwal']) && $abs['jadwal'] != '0000-00-00 00:00:00') ? date("H:i", strtotime($abs['jadwal'])) : '-';
                         echo '<td class="date">' . date("d/m/Y", strtotime($abs['tgl'] ?? '')) . '</td>';
+                        echo '<td class="time">' . $jamJadwal . '</td>';
                         echo '<td class="time">' . ($abs['mulai'] ? date("H:i", strtotime($abs['mulai'])) : '-') . '</td>';
                         echo '<td class="time">' . ($abs['selesai'] ? date("H:i", strtotime($abs['selesai'])) : '-') . '</td>';
                     } else {
-                        echo '<td colspan="3" class="text center" style="color:red;">Tidak ada data pelaksanaan</td>';
+                        echo '<td colspan="4" class="text center" style="color:red;">Tidak ada data pelaksanaan</td>';
                     }
                     echo '</tr>';
                 }
