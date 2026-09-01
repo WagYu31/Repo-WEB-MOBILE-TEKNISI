@@ -35,9 +35,10 @@ $customer_id = $_GET['customer_id'] ?? '';
 $nama_customer_display = $_GET['nama_customer_display'] ?? '';
 $jenis_kegiatan = $_GET['jenis_kegiatan'] ?? '';
 $kode_transaksi_filter = $_GET['kode_transaksi_filter'] ?? '';
+$no_so_filter = $_GET['no_so_filter'] ?? '';
 $status_invoice = $_GET['status_invoice'] ?? '';
 
-$is_search_triggered = !empty($start_date) || !empty($end_date) || !empty($teknisi_id) || !empty($customer_id) || !empty($nama_customer_display) || !empty($jenis_kegiatan) || !empty($kode_transaksi_filter) || !empty($status_invoice);
+$is_search_triggered = !empty($start_date) || !empty($end_date) || !empty($teknisi_id) || !empty($customer_id) || !empty($nama_customer_display) || !empty($jenis_kegiatan) || !empty($kode_transaksi_filter) || !empty($no_so_filter) || !empty($status_invoice);
 $groupedData = [];
 
 $sql_all_teknisi = "SELECT id, nama FROM teknisi WHERE deleted_at IS NULL ORDER BY nama ASC";
@@ -48,7 +49,8 @@ if ($is_search_triggered) {
     $types = '';
 
     // Optimized: removed unnecessary JOINs that caused DISTINCT overhead
-    $sql_kegiatan = "SELECT k.*, c.nama AS nama_customer, c.telp AS cust_nomor, c.alamat, inv.no_invoice, inv.nominal_invoice, req_inv.max_req_invoice_at AS req_invoice_at
+    $sql_kegiatan = "SELECT k.*, c.nama AS nama_customer, c.telp AS cust_nomor, c.alamat, inv.no_invoice, inv.nominal_invoice, req_inv.max_req_invoice_at AS req_invoice_at,
+                     COALESCE(k.no_so, pk_so.no_so) AS no_so
                      FROM kegiatan k
                      LEFT JOIN customer c ON k.customer_id = c.id
                      LEFT JOIN (
@@ -63,6 +65,12 @@ if ($is_search_triggered) {
                          WHERE deleted_at IS NULL
                          GROUP BY kode
                      ) req_inv ON k.kode = req_inv.kode
+                     LEFT JOIN (
+                         SELECT kode, no_so 
+                         FROM progress_kegiatan 
+                         WHERE deleted_at IS NULL AND no_so IS NOT NULL 
+                         GROUP BY kode
+                     ) pk_so ON k.kode = pk_so.kode
                      WHERE k.status != 'waiting' AND k.deleted_at IS NULL";
 
     // If filtering by teknisi, use EXISTS subquery instead of JOIN (avoids duplicates)
@@ -94,6 +102,12 @@ if ($is_search_triggered) {
         $sql_kegiatan .= " AND k.kode LIKE ?";
         $types .= 's';
         $params[] = "%" . $kode_transaksi_filter . "%";
+    }
+    if (!empty($no_so_filter)) {
+        $sql_kegiatan .= " AND (k.no_so LIKE ? OR pk_so.no_so LIKE ?)";
+        $types .= 'ss';
+        $params[] = "%" . $no_so_filter . "%";
+        $params[] = "%" . $no_so_filter . "%";
     }
     if ($status_invoice === 'ada_invoice') {
         $sql_kegiatan .= " AND inv.no_invoice IS NOT NULL";
@@ -160,6 +174,7 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
         
         $output .= "Nama Customer    : " . $latest_kegiatan['nama_customer'] . "\r\n";
         $output .= "Nomor Telepon    : " . $latest_kegiatan['cust_nomor'] . "\r\n";
+        $output .= "Nomor SO         : " . (!empty($latest_kegiatan['no_so']) ? $latest_kegiatan['no_so'] : '-') . "\r\n";
         $output .= "Tanggal Request  : " . date("d/m/Y, H:i", strtotime($latest_kegiatan['created_at'])) . "\r\n";
         $output .= "Teknisi Terlibat : " . $teknisi_str . "\r\n";
         $output .= "Jenis Kegiatan   : " . ucfirst($latest_kegiatan['kegiatan']) . "\r\n";
@@ -319,9 +334,10 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
 
         /* Column widths */
         .col-jadwal { width: 120px; }
-        .col-customer { width: 30%; }
+        .col-customer { width: 25%; }
+        .col-so { width: 135px; }
         .col-invoice { width: 130px; }
-        .col-teknisi { width: 22%; }
+        .col-teknisi { width: 20%; }
         .col-request { width: 70px; }
         .col-aksi { width: 60px; }
 
@@ -460,6 +476,10 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
                                 <input type="text" name="kode_transaksi_filter" class="form-control" placeholder="Cari Kode ID..." value="<?= htmlspecialchars($kode_transaksi_filter) ?>">
                             </div>
                             <div class="col-lg-3 col-md-6">
+                                <label>Nomor SO</label>
+                                <input type="text" name="no_so_filter" class="form-control" placeholder="Cari Nomor SO..." value="<?= htmlspecialchars($no_so_filter) ?>">
+                            </div>
+                            <div class="col-lg-3 col-md-6">
                                 <label>Dari Tanggal</label>
                                 <input type="date" class="form-control" name="start_date" id="startDate" value="<?= htmlspecialchars($start_date) ?>">
                             </div>
@@ -476,15 +496,13 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
                                     <option value="no_pay" <?= ($status_invoice == 'no_pay' ? ' selected' : '') ?>>No Pay</option>
                                 </select>
                             </div>
-                            <div class="col-lg-3 col-md-12 d-flex align-items-end">
-                                <div class="d-flex gap-2 w-100">
-                                    <button type="submit" class="btn-filter btn-filter-primary flex-fill">
-                                        <i class="fa-solid fa-magnifying-glass"></i> Tampilkan
-                                    </button>
-                                    <button type="submit" name="export_txt" value="1" class="btn-filter btn-filter-export flex-fill">
-                                        <i class="fa-solid fa-download"></i> Export
-                                    </button>
-                                </div>
+                            <div class="col-12 d-flex justify-content-end gap-2 mt-3">
+                                <button type="submit" class="btn-filter btn-filter-primary" style="min-width:140px;justify-content:center;">
+                                    <i class="fa-solid fa-magnifying-glass"></i> Tampilkan
+                                </button>
+                                <button type="submit" name="export_txt" value="1" class="btn-filter btn-filter-export" style="min-width:130px;justify-content:center;">
+                                    <i class="fa-solid fa-download"></i> Export
+                                </button>
                             </div>
                         </div>
                     </form>
@@ -497,8 +515,9 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
                     <table class="table align-middle mb-0">
                         <thead>
                             <tr>
-                                <th class="col-jadwal" style="padding-left:18px;">Jadwal & Jenis</th>
-                                <th class="col-customer">Customer & Alamat</th>
+                                <th class="col-jadwal" style="padding-left:18px;">Jadwal &amp; Jenis</th>
+                                <th class="col-customer">Customer &amp; Alamat</th>
+                                <th class="col-so">No. SO</th>
                                 <th class="col-invoice">Invoice</th>
                                 <th class="col-teknisi">Teknisi</th>
                                 <th class="col-request text-center">Request</th>
@@ -507,14 +526,14 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
                         </thead>
                         <tbody>
                         <?php if (!$is_search_triggered): ?>
-                            <tr><td colspan="6">
+                            <tr><td colspan="7">
                                 <div class="empty-state">
                                     <i class="fa-solid fa-filter" style="display:block;"></i>
                                     <p>Gunakan filter di atas untuk menampilkan data kegiatan.</p>
                                 </div>
                             </td></tr>
                         <?php elseif (empty($groupedData)): ?>
-                            <tr><td colspan="6">
+                            <tr><td colspan="7">
                                 <div class="empty-state">
                                     <i class="fa-solid fa-inbox" style="display:block;"></i>
                                     <p>Tidak ada kegiatan yang cocok dengan kriteria filter.</p>
@@ -554,6 +573,17 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
                                         </a>
                                     </div>
                                     <div class="addr-text"><?= htmlspecialchars($latest_kegiatan['alamat']) ?></div>
+                                </td>
+
+                                <!-- No. SO -->
+                                <td>
+                                    <?php if (!empty($latest_kegiatan['no_so'])) : ?>
+                                        <div style="display:inline-flex;align-items:center;gap:5px;background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;padding:4px 8px;border-radius:6px;font-size:11px;font-weight:700;letter-spacing:0.02em;word-break:break-all;">
+                                            <i class="fa-solid fa-file-invoice" style="color:#22c55e;font-size:11px;"></i> <?= htmlspecialchars($latest_kegiatan['no_so']) ?>
+                                        </div>
+                                    <?php else: ?>
+                                        <span style="color:#cbd5e1;font-size:11px;font-weight:500;">-</span>
+                                    <?php endif; ?>
                                 </td>
 
                                 <!-- Invoice -->

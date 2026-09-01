@@ -65,7 +65,7 @@ if (!function_exists('getInitials')) {
             left: 0;
             width: 80%;
             height: 80%;
-            background-image: url('assets/img/lunas.png'); /* Pastikan path gambar ini benar */
+            background-image: url('assets/img/lunas.png');
             background-size: contain;
             background-position: center;
             background-repeat: no-repeat;
@@ -78,9 +78,7 @@ if (!function_exists('getInitials')) {
 <body class="g-sidenav-show bg-gray-200">
     <?php include "cek-menu.php"; ?>
     <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg">
-        <?php
-        include "nav-top.php";
-        ?>
+        <?php include "nav-top.php"; ?>
         <div class="container-fluid py-4">
             <div class="row mb-4">
                 <div class="col-lg-12 d-flex flex-row justify-content-start align-items-start gap-3">
@@ -98,9 +96,10 @@ if (!function_exists('getInitials')) {
                         <table class="table table-hover align-items-center mb-0">
                             <thead>
                                 <tr>
-                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-4">Jadwal & Jenis</th>
-                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Customer & Alamat</th>
-                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Invoice & Status Bayar</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-4">Jadwal &amp; Jenis</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Customer &amp; Alamat</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">No. SO</th>
+                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Invoice &amp; Status Bayar</th>
                                     <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Teknisi Terlibat</th>
                                     <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Info Request</th>
                                     <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 pe-4">Aksi</th>
@@ -114,7 +113,8 @@ if (!function_exists('getInitials')) {
                                                     c.telp AS cust_nomor, 
                                                     c.alamat,
                                                     inv.no_invoice,
-                                                    inv.nominal_invoice
+                                                    inv.nominal_invoice,
+                                                    COALESCE(k.no_so, pk_so.no_so) AS no_so
                                                 FROM kegiatan k
                                                 LEFT JOIN customer c ON k.customer_id = c.id
                                                 LEFT JOIN (
@@ -123,6 +123,12 @@ if (!function_exists('getInitials')) {
                                                     WHERE deleted_at IS NULL 
                                                     GROUP BY kode
                                                 ) inv ON k.kode = inv.kode
+                                                LEFT JOIN (
+                                                    SELECT kode, no_so 
+                                                    FROM progress_kegiatan 
+                                                    WHERE deleted_at IS NULL AND no_so IS NOT NULL 
+                                                    GROUP BY kode
+                                                ) pk_so ON k.kode = pk_so.kode
                                                 WHERE k.status != 'waiting' AND k.deleted_at IS NULL";
                                 if ($jenis !== null) {
                                     $sql_kegiatan .= " AND k.kegiatan = '" . mysqli_real_escape_string($conn, $jenis) . "'";
@@ -137,7 +143,7 @@ if (!function_exists('getInitials')) {
                                         $groupedData[$row['kode']][] = $row;
                                     }
                                 } else {
-                                    echo "<tr><td colspan='6' class='text-center py-5'>Tidak ada kegiatan yang ditemukan.</td></tr>";
+                                    echo "<tr><td colspan='7' class='text-center py-5'>Tidak ada kegiatan yang ditemukan.</td></tr>";
                                 }
 
                                 foreach ($groupedData as $kodeTransaksi => $kegiatan_group) {
@@ -147,12 +153,11 @@ if (!function_exists('getInitials')) {
                                 <tr>
                                     <td class="ps-4 text-wrap">
                                         <div class="d-flex flex-column">
-                                            <!--<span class="badge badge-secondary text-capitalize p-1 px-2"><?= $latest_kegiatan['kegiatan'];?></span>-->
                                             <h6 class="mb-0 text-sm font-weight-bold"><?= date("d M Y", strtotime($latest_kegiatan['jadwal'])); ?></h6>
                                             <p class="text-xs text-secondary mb-0"><?= date("H:i", strtotime($latest_kegiatan['jadwal'])); ?> WIB</p>
                                         </div>
                                     </td>
-                                    <td class=" text-wrap w-50">
+                                    <td class="text-wrap w-40">
                                         <div class="d-flex flex-column">
                                             <h6 class="mb-0 text-sm">
                                                 <a href="customer-detail.php?id_cust=<?= $latest_kegiatan['customer_id']; ?>"><?= htmlspecialchars($latest_kegiatan['nama_customer']); ?></a>
@@ -164,6 +169,13 @@ if (!function_exists('getInitials')) {
                                             <p class="text-xs font-weight-bold mb-0"><?= htmlspecialchars($latest_kegiatan['alamat']); ?></p>
                                         </div>
                                     </td>
+                                    <td class="text-sm">
+                                        <?php if (!empty($latest_kegiatan['no_so'])) : ?>
+                                            <span class="badge badge-sm bg-gradient-success text-xxs font-weight-bold"><?= htmlspecialchars($latest_kegiatan['no_so']); ?></span>
+                                        <?php else: ?>
+                                            <span class="text-xs text-secondary">-</span>
+                                        <?php endif; ?>
+                                    </td>
                                     <td class="text-sm text-wrap <?= $lunas_class ?>">
                                         <?php if (!empty($latest_kegiatan['no_invoice'])) : ?>
                                             <p class="font-weight-bold text-dark mb-0 text-xs"><?= htmlspecialchars($latest_kegiatan['no_invoice']); ?></p>
@@ -174,7 +186,6 @@ if (!function_exists('getInitials')) {
                                     </td>
                                     <td>
                                         <?php
-                                        // --- Kode untuk menampilkan teknisi (tidak diubah) ---
                                         $sqlTeknisi = "SELECT tk.teknisi_id, tk.nama_teknisi, pk.status as status_pelaksanaan FROM team_kegiatan tk JOIN kegiatan k ON tk.kegiatan_id = k.id LEFT JOIN pelaksanaan_kegiatan pk ON tk.kegiatan_id = pk.kegiatan_id AND tk.teknisi_id = pk.teknisi_id WHERE k.kode = ? AND tk.deleted_at IS NULL GROUP BY tk.teknisi_id ORDER BY k.id DESC";
                                         $stmt = $conn->prepare($sqlTeknisi);
                                         $stmt->bind_param("s", $kodeTransaksi);
@@ -182,15 +193,9 @@ if (!function_exists('getInitials')) {
                                         $resultTeknisi = $stmt->get_result();
                                         if($resultTeknisi->num_rows > 0) {
                                             while ($rowTeknisi = $resultTeknisi->fetch_assoc()) {
-                                                $statusPelaksanaan = $rowTeknisi['status_pelaksanaan'];
-                                                $statusClass = 'bg-secondary'; $statusText = 'Dijadwalkan';
-                                                if ($statusPelaksanaan == 'selesai') { $statusClass = 'bg-success'; $statusText = 'Selesai'; } 
-                                                elseif ($statusPelaksanaan == 'berjalan') { $statusClass = 'bg-info'; $statusText = 'Dikerjakan'; } 
-                                                elseif ($statusPelaksanaan == 'Lanjut Nanti') { $statusClass = 'bg-warning'; $statusText = 'Lanjut Nanti'; }
                                         ?>
                                         <div class="d-flex justify-content-between align-items-center mb-1">
                                             <p class="text-xs font-weight-bold mb-0"><?= shortenTechnicianName(htmlspecialchars($rowTeknisi['nama_teknisi'])) ?></p>
-                                            <!--<span class="badge badge-sm text-xs <?= $statusClass ?>" style="font-size:9px !important;"><?= $statusText ?></span>-->
                                         </div>
                                         <?php }
                                         } else { echo "<p class='text-xs text-secondary mb-0'>Teknisi belum ditugaskan.</p>"; }
