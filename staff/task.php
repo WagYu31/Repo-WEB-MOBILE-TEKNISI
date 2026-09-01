@@ -67,7 +67,7 @@ $sql_kegiatan = "SELECT k.*, c.nama AS nama_customer, c.telp AS cust_nomor, c.al
                      LEFT JOIN (
                          SELECT kode, no_so 
                          FROM progress_kegiatan 
-                         WHERE deleted_at IS NULL AND no_so IS NOT NULL 
+                         WHERE no_so IS NOT NULL AND no_so != ''
                          GROUP BY kode
                      ) pk_so ON k.kode = pk_so.kode
                      WHERE k.status != 'waiting' AND k.deleted_at IS NULL";
