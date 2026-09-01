@@ -149,7 +149,7 @@ $result = mysqli_stmt_get_result($stmt);
 
                                         if ($waktu_mulai_dt > $jadwal_dt) {
                                             $diff_minutes = ($waktu_mulai_dt->getTimestamp() - $jadwal_dt->getTimestamp()) / 60;
-                                            if ($diff_minutes > 60) {
+                                            if ($diff_minutes > 30) {
                                                 $checkboxDisabled = true;
                                                 $merah = "color:red;";
                                             }
