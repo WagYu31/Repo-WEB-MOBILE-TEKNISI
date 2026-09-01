@@ -232,6 +232,12 @@ if (substr($nomorHP, 0, 1) === '0') $nomorHP = '62' . substr($nomorHP, 1);
                                 </select>
                             </div>
 
+                            <!-- Nomor SO -->
+                            <div class="edit-section">
+                                <label class="edit-label">Nomor SO (Sales Order)</label>
+                                <input type="text" class="edit-input" name="no_so" value="<?= htmlspecialchars($data['no_so'] ?? '') ?>" placeholder="Contoh: 2608.SOL.06406" autocomplete="off">
+                            </div>
+
                             <!-- Keterangan -->
                             <div class="edit-section">
                                 <label class="edit-label">Keterangan</label>

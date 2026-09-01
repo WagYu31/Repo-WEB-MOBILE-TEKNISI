@@ -4,9 +4,16 @@ include "session.php";
 $pageNow = "Kegiatan Baru";
 include "get-user-data.php";
 
+// Auto migration: Add no_so to kegiatan table if not exists
+$checkNoSo = mysqli_query($conn, "SHOW COLUMNS FROM `kegiatan` LIKE 'no_so'");
+if ($checkNoSo && mysqli_num_rows($checkNoSo) == 0) {
+    mysqli_query($conn, "ALTER TABLE `kegiatan` ADD COLUMN `no_so` VARCHAR(50) NULL DEFAULT NULL COMMENT 'Nomor Sales Order (SO)'");
+}
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_kegiatan'])) {
     $customer_id = $_POST['nama_cust'];
     $kegiatan = $_POST['kegiatan'];
+    $no_so = !empty($_POST['no_so']) ? trim($_POST['no_so']) : NULL;
     $jadwal = !empty($_POST['tanggal']) ? $_POST['tanggal'] : '0000-00-00 00:00:00';
     $keterangan = $_POST['keterangan'];
     $kegiatan_relasi = !empty($_POST['kegiatan_relasi']) ? $_POST['kegiatan_relasi'] : NULL;
@@ -31,10 +38,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_kegiatan'])) {
         mysqli_stmt_close($stmt_coord);
     }
 
-    $sql = "INSERT INTO kegiatan (customer_id, jadwal, kegiatan, keterangan, request, status, kode, relasi, lat, lon, rad, alamat_lokasi, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    $sql = "INSERT INTO kegiatan (customer_id, jadwal, kegiatan, keterangan, request, status, kode, relasi, lat, lon, rad, alamat_lokasi, no_so, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     $stmt = mysqli_prepare($conn, $sql);
-    mysqli_stmt_bind_param($stmt, "isssssssssssss", $customer_id, $jadwal, $kegiatan, $keterangan, $nmUser, $status, $kode, $kegiatan_relasi, $lat, $lon, $rad, $location_address, $now, $now);
+    mysqli_stmt_bind_param($stmt, "issssssssssssss", $customer_id, $jadwal, $kegiatan, $keterangan, $nmUser, $status, $kode, $kegiatan_relasi, $lat, $lon, $rad, $location_address, $no_so, $now, $now);
     if (mysqli_stmt_execute($stmt)) {
+        if (!empty($no_so)) {
+            $chkProg = mysqli_query($conn, "SELECT id FROM progress_kegiatan WHERE kode = '$kode'");
+            if ($chkProg && mysqli_num_rows($chkProg) > 0) {
+                mysqli_query($conn, "UPDATE progress_kegiatan SET is_so = 1, no_so = '$no_so', tgl_keluar_so = NOW() WHERE kode = '$kode'");
+            } else {
+                mysqli_query($conn, "INSERT INTO progress_kegiatan (kode, is_so, no_so, tgl_keluar_so) VALUES ('$kode', 1, '$no_so', NOW())");
+            }
+        }
         echo '<script>window.location.href = "kegiatan-baru.php?status=sukses";</script>';
         exit();
     } else {
@@ -135,6 +150,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['submit_kegiatan'])) {
                                                     <option value="">Pilih Customer Dahulu</option>
                                                 </select>
                                             </div>
+                                        </div>
+                                        <div style="margin-bottom:18px;">
+                                            <label style="font-size:11px;font-weight:600;color:#64748b;margin-bottom:6px;display:block;text-transform:uppercase;letter-spacing:0.8px;">
+                                                <i class="material-icons" style="font-size:13px;vertical-align:middle;margin-right:4px;color:#2563eb;">receipt_long</i>Nomor SO (Sales Order)
+                                            </label>
+                                            <input type="text" class="form-control" id="no_so" name="no_so" placeholder="Contoh: 2608.SOL.06406" autocomplete="off" style="padding:11px 16px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:13px;transition:all 0.2s;" onfocus="this.style.borderColor='#2563eb';this.style.boxShadow='0 0 0 3px rgba(37,99,235,0.1)'" onblur="this.style.borderColor='#e2e8f0';this.style.boxShadow='none'">
                                         </div>
                                         <div style="margin-bottom:18px;">
                                             <label style="font-size:11px;font-weight:600;color:#64748b;margin-bottom:6px;display:block;text-transform:uppercase;letter-spacing:0.8px;">

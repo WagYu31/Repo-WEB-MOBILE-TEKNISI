@@ -14,6 +14,7 @@ $kodeTransaksi = mysqli_real_escape_string($conn, $_POST['kode_transaksi']);
 $tanggalPilihan = mysqli_real_escape_string($conn, $_POST['tanggal_pilihan']);
 $waktuPilihan = mysqli_real_escape_string($conn, $_POST['waktu_pilihan']);
 $kegiatanDipilih = mysqli_real_escape_string($conn, $_POST['kegiatan_pilihan']);
+$noSo = !empty($_POST['no_so']) ? mysqli_real_escape_string($conn, trim($_POST['no_so'])) : NULL;
 $keterangan = mysqli_real_escape_string($conn, $_POST['keterangan'] ?? '');
 $radius = intval($_POST['radius'] ?? 100);
 if ($radius < 50) $radius = 50;
@@ -39,6 +40,7 @@ if (!$kegiatan) {
 }
 
 $kegiatanId = $kegiatan['id'];
+$noSoSql = $noSo !== NULL ? "'$noSo'" : "NULL";
 
 // UPDATE existing kegiatan record (not create new)
 $sqlUpdate = "UPDATE kegiatan SET 
@@ -46,12 +48,23 @@ $sqlUpdate = "UPDATE kegiatan SET
     jadwal = '$jadwal', 
     keterangan = '$keterangan', 
     rad = '$radius', 
+    no_so = $noSoSql, 
     updated_at = '$now' 
     WHERE id = '$kegiatanId'";
 
 if (!mysqli_query($conn, $sqlUpdate)) {
     echo "<script>alert('Gagal menyimpan perubahan.'); window.history.back();</script>";
     exit;
+}
+
+// Sync with progress_kegiatan
+if ($noSo !== NULL) {
+    $chkProg = mysqli_query($conn, "SELECT id FROM progress_kegiatan WHERE kode = '$kodeTransaksi'");
+    if ($chkProg && mysqli_num_rows($chkProg) > 0) {
+        mysqli_query($conn, "UPDATE progress_kegiatan SET is_so = 1, no_so = '$noSo', tgl_keluar_so = NOW() WHERE kode = '$kodeTransaksi'");
+    } else {
+        mysqli_query($conn, "INSERT INTO progress_kegiatan (kode, is_so, no_so, tgl_keluar_so) VALUES ('$kodeTransaksi', 1, '$noSo', NOW())");
+    }
 }
 
 // Delete old team_kegiatan for this kegiatan

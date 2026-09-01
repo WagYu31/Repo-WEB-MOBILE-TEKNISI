@@ -369,6 +369,9 @@ $stmt_pelaksanaan->close();
                         </div>
                         <div class="vk-card-body">
                             <div class="detail-row"><span class="detail-label">Kode</span><span class="detail-value"><?= htmlspecialchars($kegiatan_data['kode']) ?></span></div>
+                            <?php if (!empty($kegiatan_data['no_so'])) : ?>
+                            <div class="detail-row"><span class="detail-label">No. SO</span><span class="detail-value"><span style="background:#f0fdf4;color:#166534;font-weight:700;padding:2px 8px;border-radius:6px;border:1px solid #bbf7d0;"><?= htmlspecialchars($kegiatan_data['no_so']) ?></span></span></div>
+                            <?php endif; ?>
                             <div class="detail-row"><span class="detail-label">Jenis</span><span class="detail-value" style="text-transform:capitalize;"><?= htmlspecialchars($kegiatan_data['kegiatan']) ?></span></div>
                             <div class="detail-row"><span class="detail-label">Customer</span><span class="detail-value"><?= htmlspecialchars($kegiatan_data['nama_customer']) ?></span></div>
                             <div class="detail-row"><span class="detail-label">Kontak</span><span class="detail-value"><a href="https://api.whatsapp.com/send?phone=<?= $nomorHP ?>" target="_blank"><?= htmlspecialchars($kegiatan_data['cust_nomor']) ?></a></span></div>
