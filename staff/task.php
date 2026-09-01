@@ -510,38 +510,64 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
         .table-bezel {
             background: #ffffff;
             border: 1px solid #e2e8f0;
-            border-radius: 22px;
-            box-shadow: 0 4px 25px -4px rgba(15, 23, 42, 0.04), 0 2px 8px -2px rgba(15, 23, 42, 0.02);
+            border-radius: 18px;
+            box-shadow: 0 4px 20px -4px rgba(15, 23, 42, 0.04), 0 2px 6px -2px rgba(15, 23, 42, 0.02);
             overflow: hidden;
+            width: 100%;
         }
         .table-luxury {
             margin: 0;
             width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
+            table-layout: fixed;
+            border-collapse: collapse;
         }
         .table-luxury thead th {
             background: #f8fafc;
-            border-bottom: 2px solid #e2e8f0;
-            padding: 14px 16px;
-            font-size: 11px;
+            border-bottom: 1.5px solid #e2e8f0;
+            padding: 12px 14px;
+            font-size: 10.5px;
             font-weight: 800;
             color: #64748b;
             text-transform: uppercase;
-            letter-spacing: 0.07em;
+            letter-spacing: 0.06em;
             white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         .table-luxury tbody tr {
             transition: all 0.15s ease;
             border-bottom: 1px solid #f1f5f9;
         }
+        .table-luxury tbody tr:last-child {
+            border-bottom: none;
+        }
         .table-luxury tbody tr:hover {
             background: #f8fafc !important;
         }
         .table-luxury tbody td {
-            padding: 16px;
+            padding: 12px 14px;
             vertical-align: middle;
-            font-size: 13px;
+            font-size: 12.5px;
+            overflow: hidden;
+        }
+
+        /* Column widths */
+        .col-jadwal { width: 140px; }
+        .col-customer { width: auto; min-width: 230px; }
+        .col-so { width: 140px; }
+        .col-invoice { width: 155px; }
+        .col-teknisi { width: 175px; }
+        .col-request { width: 75px; }
+        .col-aksi { width: 55px; }
+
+        .addr-clamp {
+            line-height: 1.35;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            word-break: break-word;
+            overflow-wrap: anywhere;
         }
 
         /* Type Badges */
@@ -549,10 +575,10 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
             display: inline-flex;
             align-items: center;
             gap: 5px;
-            font-size: 10.5px;
+            font-size: 10px;
             font-weight: 800;
-            padding: 4px 10px;
-            border-radius: 8px;
+            padding: 3px 8px;
+            border-radius: 6px;
             text-transform: uppercase;
             letter-spacing: 0.04em;
         }
@@ -580,12 +606,12 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
         /* Monospace ID Tag */
         .id-mono-tag {
             font-family: var(--font-mono);
-            font-size: 11px;
+            font-size: 10.5px;
             font-weight: 700;
             color: #475569;
             background: #f1f5f9;
             border: 1px solid #e2e8f0;
-            padding: 2px 7px;
+            padding: 2px 6px;
             border-radius: 6px;
             display: inline-block;
             letter-spacing: 0.02em;
@@ -595,13 +621,13 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
         .wa-pill {
             display: inline-flex;
             align-items: center;
-            gap: 5px;
-            font-size: 11.5px;
+            gap: 4px;
+            font-size: 11px;
             font-weight: 700;
             color: #047857;
             background: #f0fdf4;
             border: 1px solid #bbf7d0;
-            padding: 3px 9px;
+            padding: 2px 8px;
             border-radius: 20px;
             text-decoration: none !important;
             transition: all 0.2s ease;
@@ -617,39 +643,41 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
         .so-badge {
             display: inline-flex;
             align-items: center;
-            gap: 5px;
-            font-size: 11px;
+            gap: 4px;
+            font-size: 10.5px;
             font-weight: 700;
             color: #166534;
             background: #f0fdf4;
             border: 1px solid #bbf7d0;
-            padding: 4px 10px;
-            border-radius: 8px;
+            padding: 3px 8px;
+            border-radius: 6px;
             letter-spacing: 0.02em;
             font-family: var(--font-mono);
+            word-break: break-all;
         }
 
         /* Invoice styling */
         .inv-box .inv-num {
-            font-size: 12px;
+            font-size: 11.5px;
             font-weight: 700;
             color: #0f172a;
             margin-bottom: 2px;
+            word-break: break-all;
         }
         .inv-box .inv-val {
-            font-size: 12.5px;
+            font-size: 12px;
             font-weight: 800;
             color: #059669;
             font-family: var(--font-main);
         }
         .inv-badge-none {
             display: inline-block;
-            font-size: 11px;
+            font-size: 10.5px;
             font-weight: 700;
             color: #e11d48;
             background: #fff1f2;
             border: 1px solid #fecdd3;
-            padding: 3px 9px;
+            padding: 2px 7px;
             border-radius: 6px;
         }
         .pulse-badge {
@@ -952,13 +980,13 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
                     <table class="table table-luxury align-middle">
                         <thead>
                             <tr>
-                                <th style="width: 140px; padding-left: 20px;">Jadwal &amp; Jenis</th>
-                                <th style="width: 25%;">Customer &amp; Alamat</th>
-                                <th style="width: 140px;">No. SO</th>
-                                <th style="width: 160px;">Invoice</th>
-                                <th style="width: 20%;">Teknisi</th>
-                                <th style="width: 80px;" class="text-center">Request</th>
-                                <th style="width: 60px;" class="text-center pe-3">Aksi</th>
+                                <th class="col-jadwal" style="padding-left: 18px;">Jadwal &amp; Jenis</th>
+                                <th class="col-customer">Customer &amp; Alamat</th>
+                                <th class="col-so">No. SO</th>
+                                <th class="col-invoice">Invoice</th>
+                                <th class="col-teknisi">Teknisi</th>
+                                <th class="col-request text-center">Request</th>
+                                <th class="col-aksi text-center pe-3">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -992,12 +1020,12 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
                             ?>
                             <tr>
                                 <!-- Jadwal & Jenis -->
-                                <td style="padding-left: 20px;">
-                                    <div class="badge-type <?= $typeClass ?> mb-2">
-                                        <i class="fa-solid <?= $typeIcon ?>" style="font-size: 10px;"></i>
+                                <td class="col-jadwal" style="padding-left: 18px;">
+                                    <div class="badge-type <?= $typeClass ?> mb-1">
+                                        <i class="fa-solid <?= $typeIcon ?>" style="font-size: 9px;"></i>
                                         <?= htmlspecialchars($latest_kegiatan['kegiatan']) ?>
                                     </div>
-                                    <div class="fw-bold text-dark text-xs mb-1" style="white-space: nowrap;">
+                                    <div class="fw-bold text-dark text-xs mb-0" style="white-space: nowrap;">
                                         <i class="fa-regular fa-calendar text-muted me-1"></i><?= date("d M Y", strtotime($latest_kegiatan['jadwal'])) ?>
                                     </div>
                                     <div class="text-secondary text-xxs mb-1 fw-semibold">
@@ -1009,34 +1037,32 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
                                 </td>
 
                                 <!-- Customer & Alamat -->
-                                <td>
-                                    <div class="d-flex align-items-start gap-2">
-                                        <div style="flex-grow: 1;">
-                                            <a href="customer-detail.php?id_cust=<?= $latest_kegiatan['customer_id'] ?>" target="_blank" class="fw-bold text-dark text-sm text-decoration-none d-block mb-1" style="transition: color 0.15s;" onmouseover="this.style.color='#4f46e5'" onmouseout="this.style.color='#0f172a'">
-                                                <?= htmlspecialchars($latest_kegiatan['nama_customer']) ?>
+                                <td class="col-customer">
+                                    <div style="min-width: 0;">
+                                        <a href="customer-detail.php?id_cust=<?= $latest_kegiatan['customer_id'] ?>" target="_blank" class="fw-bold text-dark text-xs text-decoration-none d-block mb-1 text-truncate" title="<?= htmlspecialchars($latest_kegiatan['nama_customer']) ?>" style="transition: color 0.15s;" onmouseover="this.style.color='#4f46e5'" onmouseout="this.style.color='#0f172a'">
+                                            <?= htmlspecialchars($latest_kegiatan['nama_customer']) ?>
+                                        </a>
+                                        <?php
+                                            $nomorHandphone = $latest_kegiatan['cust_nomor'];
+                                            if (substr($nomorHandphone, 0, 1) === '0') $nomorHandphone = '62' . substr($nomorHandphone, 1);
+                                        ?>
+                                        <div class="mb-1">
+                                            <a href="https://api.whatsapp.com/send?phone=<?= $nomorHandphone ?>" target="_blank" class="wa-pill">
+                                                <i class="fa-brands fa-whatsapp" style="font-size: 11px;"></i>
+                                                <?= htmlspecialchars($latest_kegiatan['cust_nomor']) ?>
                                             </a>
-                                            <?php
-                                                $nomorHandphone = $latest_kegiatan['cust_nomor'];
-                                                if (substr($nomorHandphone, 0, 1) === '0') $nomorHandphone = '62' . substr($nomorHandphone, 1);
-                                            ?>
-                                            <div class="mb-1">
-                                                <a href="https://api.whatsapp.com/send?phone=<?= $nomorHandphone ?>" target="_blank" class="wa-pill">
-                                                    <i class="fa-brands fa-whatsapp" style="font-size: 12px;"></i>
-                                                    <?= htmlspecialchars($latest_kegiatan['cust_nomor']) ?>
-                                                </a>
-                                            </div>
-                                            <div class="text-secondary text-xs" style="line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;" title="<?= htmlspecialchars($latest_kegiatan['alamat']) ?>">
-                                                <i class="fa-solid fa-location-dot text-muted me-1" style="font-size: 10px;"></i><?= htmlspecialchars($latest_kegiatan['alamat']) ?>
-                                            </div>
+                                        </div>
+                                        <div class="text-secondary text-xxs addr-clamp" title="<?= htmlspecialchars($latest_kegiatan['alamat']) ?>">
+                                            <i class="fa-solid fa-location-dot text-muted me-1" style="font-size: 9px;"></i><?= htmlspecialchars($latest_kegiatan['alamat']) ?>
                                         </div>
                                     </div>
                                 </td>
 
                                 <!-- No. SO -->
-                                <td>
+                                <td class="col-so">
                                     <?php if (!empty($latest_kegiatan['no_so'])) : ?>
-                                        <div class="so-badge">
-                                            <i class="fa-solid fa-receipt text-success" style="font-size: 11px;"></i>
+                                        <div class="so-badge" title="<?= htmlspecialchars($latest_kegiatan['no_so']) ?>">
+                                            <i class="fa-solid fa-receipt text-success" style="font-size: 10px;"></i>
                                             <?= htmlspecialchars($latest_kegiatan['no_so']) ?>
                                         </div>
                                     <?php else: ?>
@@ -1045,10 +1071,10 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
                                 </td>
 
                                 <!-- Invoice -->
-                                <td class="<?= $lunas_class ?>">
-                                    <div class="inv-box">
+                                <td class="col-invoice <?= $lunas_class ?>">
+                                    <div class="inv-box" style="min-width: 0;">
                                         <?php if (!empty($latest_kegiatan['no_invoice'])) : ?>
-                                            <div class="inv-num fw-bold"><?= htmlspecialchars($latest_kegiatan['no_invoice']) ?></div>
+                                            <div class="inv-num fw-bold text-truncate" title="<?= htmlspecialchars($latest_kegiatan['no_invoice']) ?>"><?= htmlspecialchars($latest_kegiatan['no_invoice']) ?></div>
                                             <div class="inv-val">Rp <?= number_format($latest_kegiatan['nominal_invoice'], 0, ',', '.') ?></div>
                                         <?php elseif ($latest_kegiatan['paid'] === 'n/a' || $latest_kegiatan['invoice'] === 'n/a') : ?>
                                             <span class="badge bg-light text-secondary border fw-bold text-xxs">No Pay</span>
@@ -1064,23 +1090,23 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
                                 </td>
 
                                 <!-- Teknisi -->
-                                <td>
+                                <td class="col-teknisi">
                                     <div class="tek-chips-wrap">
                                     <?php
                                     $tekNames = $teknisiMap[$kodeTransaksi] ?? [];
                                     if (!empty($tekNames)) {
                                         foreach ($tekNames as $tName) {
-                                            echo "<span class='tek-chip-modern'><span class='dot'></span>" . shortenTechnicianName(htmlspecialchars($tName)) . "</span>";
+                                            echo "<span class='tek-chip-modern' title='" . htmlspecialchars($tName) . "'><span class='dot'></span><span class='text-truncate' style='max-width:130px;'>" . shortenTechnicianName(htmlspecialchars($tName)) . "</span></span>";
                                         }
                                     } else {
-                                        echo "<span class='text-muted text-xs'>Belum Ditugaskan</span>";
+                                        echo "<span class='text-muted text-xxs'>-</span>";
                                     }
                                     ?>
                                     </div>
                                 </td>
 
                                 <!-- Request -->
-                                <td class="text-center">
+                                <td class="col-request text-center">
                                     <div class="d-flex flex-column align-items-center gap-1">
                                         <div class="req-avatar" title="Requester: <?= htmlspecialchars($latest_kegiatan['request'] ?? '-') ?>">
                                             <?= getInitials($latest_kegiatan['request'] ?? '') ?>
@@ -1090,9 +1116,9 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
                                 </td>
 
                                 <!-- Aksi -->
-                                <td class="text-center pe-3">
+                                <td class="col-aksi text-center pe-3">
                                     <a class="btn-action-view" href="view-kegiatan.php?kode_transaksi=<?= $kodeTransaksi ?>" title="Lihat Detail Kegiatan">
-                                        <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 13px;"></i>
+                                        <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 12px;"></i>
                                     </a>
                                 </td>
                             </tr>
