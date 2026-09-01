@@ -57,10 +57,11 @@ $nama_customer_display = $_GET['nama_customer_display'] ?? '';
 $jenis_kegiatan = $_GET['jenis_kegiatan'] ?? '';
 $kode_transaksi_filter = $_GET['kode_transaksi_filter'] ?? '';
 $no_so_filter = $_GET['no_so_filter'] ?? '';
+$alamat_filter = $_GET['alamat_filter'] ?? '';
 $status_invoice = $_GET['status_invoice'] ?? '';
 $quick_search = $_GET['quick_search'] ?? '';
 
-$is_search_triggered = !empty($start_date) || !empty($end_date) || !empty($teknisi_id) || !empty($customer_id) || !empty($nama_customer_display) || !empty($jenis_kegiatan) || !empty($kode_transaksi_filter) || !empty($no_so_filter) || !empty($status_invoice) || !empty($quick_search);
+$is_search_triggered = !empty($start_date) || !empty($end_date) || !empty($teknisi_id) || !empty($customer_id) || !empty($nama_customer_display) || !empty($jenis_kegiatan) || !empty($kode_transaksi_filter) || !empty($no_so_filter) || !empty($alamat_filter) || !empty($status_invoice) || !empty($quick_search);
 $groupedData = [];
 
 $sql_all_teknisi = "SELECT id, nama FROM teknisi WHERE deleted_at IS NULL ORDER BY nama ASC";
@@ -70,7 +71,7 @@ $params = [];
 $types = '';
 
 // Optimized: query with COALESCE to capture SO numbers from both sources
-$sql_kegiatan = "SELECT k.*, c.nama AS nama_customer, c.telp AS cust_nomor, c.alamat, inv.no_invoice, inv.nominal_invoice, req_inv.max_req_invoice_at AS req_invoice_at,
+$sql_kegiatan = "SELECT k.*, c.nama AS nama_customer, c.telp AS cust_nomor, c.alamat, c.kota, c.provinsi, c.kodepos, inv.no_invoice, inv.nominal_invoice, req_inv.max_req_invoice_at AS req_invoice_at,
                  COALESCE(k.no_so, pk_so.no_so) AS no_so
                  FROM kegiatan k
                  LEFT JOIN customer c ON k.customer_id = c.id
@@ -107,13 +108,45 @@ if (!empty($quick_search)) {
         "c.nama LIKE ?",
         "c.telp LIKE ?",
         "c.alamat LIKE ?",
+        "c.kota LIKE ?",
+        "c.provinsi LIKE ?",
+        "c.kodepos LIKE ?",
         "k.kode LIKE ?",
         "k.no_so LIKE ?",
         "pk_so.no_so LIKE ?",
         "inv.no_invoice LIKE ?"
     ];
-    $search_params = [$qs, $qs, $qs, $qs_hash, $qs, $qs, $qs];
-    $search_types = "sssssss";
+    $search_params = [$qs, $qs, $qs, $qs, $qs, $qs, $qs_hash, $qs, $qs, $qs];
+    $search_types = "ssssssssss";
+
+    // Multi-word matching for address and customer (e.g. "Serang Pandeglang", "PIK Sonata", "Gudang Rajeg", "Tangerang Banten")
+    $words = preg_split('/\s+/', $trimmed_qs);
+    if (count($words) > 1 && count($words) <= 5) {
+        $word_conditions_alamat = [];
+        $word_conditions_nama = [];
+        $word_params = [];
+        $word_types = "";
+        
+        foreach ($words as $w) {
+            $w = trim($w);
+            if (strlen($w) >= 2) {
+                $word_conditions_alamat[] = "c.alamat LIKE ?";
+                $word_conditions_nama[] = "c.nama LIKE ?";
+                $w_param = "%" . $w . "%";
+                $word_params[] = $w_param;
+                $word_params[] = $w_param;
+                $word_types .= "ss";
+            }
+        }
+        if (!empty($word_conditions_alamat)) {
+            $conditions[] = "(" . implode(" AND ", $word_conditions_alamat) . ")";
+            $conditions[] = "(" . implode(" AND ", $word_conditions_nama) . ")";
+            foreach ($word_params as $wp) {
+                $search_params[] = $wp;
+            }
+            $search_types .= $word_types;
+        }
+    }
 
     // If search term contains digits (like phone number or SO/Invoice number)
     if (!empty($clean_digits) && strlen($clean_digits) >= 4) {
@@ -159,6 +192,12 @@ if (!empty($customer_id)) {
     $sql_kegiatan .= " AND c.nama LIKE ?";
     $types .= 's';
     $params[] = "%" . $nama_customer_display . "%";
+}
+if (!empty($alamat_filter)) {
+    $sql_kegiatan .= " AND (c.alamat LIKE ? OR c.kota LIKE ? OR c.provinsi LIKE ? OR c.kodepos LIKE ?)";
+    $types .= 'ssss';
+    $af = "%" . trim($alamat_filter) . "%";
+    array_push($params, $af, $af, $af, $af);
 }
 if (!empty($jenis_kegiatan)) {
     $sql_kegiatan .= " AND k.kegiatan = ?";
@@ -979,7 +1018,7 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
                         <!-- Universal Quick Search Input -->
                         <div class="search-input-group">
                             <i class="fa-solid fa-magnifying-glass"></i>
-                            <input type="text" name="quick_search" placeholder="Cari nama customer, nomor SO, invoice, atau ID..." value="<?= htmlspecialchars($quick_search) ?>">
+                            <input type="text" name="quick_search" placeholder="Cari nama, alamat, nomor HP, SO, invoice, atau ID..." value="<?= htmlspecialchars($quick_search) ?>">
                         </div>
 
                         <!-- Quick Teknisi Dropdown -->
@@ -1026,7 +1065,7 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
                     </div>
 
                     <!-- Collapsible Advanced Filter Panel -->
-                    <div class="advanced-filter-panel <?= (!empty($start_date) || !empty($end_date) || !empty($kode_transaksi_filter) || !empty($no_so_filter) || !empty($nama_customer_display) || !empty($status_invoice)) ? '' : 'd-none' ?>" id="advancedPanel">
+                    <div class="advanced-filter-panel <?= (!empty($start_date) || !empty($end_date) || !empty($kode_transaksi_filter) || !empty($no_so_filter) || !empty($alamat_filter) || !empty($nama_customer_display) || !empty($status_invoice)) ? '' : 'd-none' ?>" id="advancedPanel">
                         <div class="row g-3">
                             <div class="col-lg-3 col-md-6 position-relative">
                                 <label>Nama Customer</label>
@@ -1035,18 +1074,22 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
                                 <div id="searchResults" class="list-group position-absolute w-100 shadow-lg" style="z-index: 1050;"></div>
                             </div>
                             <div class="col-lg-3 col-md-6">
+                                <label>Alamat / Wilayah</label>
+                                <input type="text" name="alamat_filter" class="form-control form-control-sm rounded-3" placeholder="Contoh: PIK, Serang, Cikupa..." value="<?= htmlspecialchars($alamat_filter) ?>">
+                            </div>
+                            <div class="col-lg-3 col-md-6">
                                 <label>Nomor SO</label>
                                 <input type="text" name="no_so_filter" class="form-control form-control-sm rounded-3" placeholder="Contoh: 2608.SOL.06406" value="<?= htmlspecialchars($no_so_filter) ?>">
                             </div>
-                            <div class="col-lg-2 col-md-4">
+                            <div class="col-lg-3 col-md-6">
                                 <label>ID Transaksi</label>
                                 <input type="text" name="kode_transaksi_filter" class="form-control form-control-sm rounded-3" placeholder="Contoh: YAK7NU" value="<?= htmlspecialchars($kode_transaksi_filter) ?>">
                             </div>
-                            <div class="col-lg-2 col-md-4">
+                            <div class="col-lg-3 col-md-6">
                                 <label>Dari Tanggal</label>
                                 <input type="date" class="form-control form-control-sm rounded-3" name="start_date" id="startDate" value="<?= htmlspecialchars($start_date) ?>">
                             </div>
-                            <div class="col-lg-2 col-md-4">
+                            <div class="col-lg-3 col-md-6">
                                 <label>Sampai Tanggal</label>
                                 <input type="date" class="form-control form-control-sm rounded-3" name="end_date" id="endDate" value="<?= htmlspecialchars($end_date) ?>">
                             </div>
