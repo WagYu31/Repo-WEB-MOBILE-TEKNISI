@@ -149,7 +149,9 @@ $result = mysqli_stmt_get_result($stmt);
 
                                         if ($waktu_mulai_dt > $jadwal_dt) {
                                             $diff_minutes = ($waktu_mulai_dt->getTimestamp() - $jadwal_dt->getTimestamp()) / 60;
-                                            if ($diff_minutes > 30) {
+                                            // Peraturan 30 menit diterapkan mulai September 2026 (2026-09-01), sebelum itu tetap 60 menit
+                                            $late_threshold = ($jadwal_dt->format('Y-m-d') >= '2026-09-01') ? 30 : 60;
+                                            if ($diff_minutes > $late_threshold) {
                                                 $checkboxDisabled = true;
                                                 $merah = "color:red;";
                                             }
