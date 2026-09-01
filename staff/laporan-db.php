@@ -5,21 +5,52 @@
         'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
     ];
     $timestamp = strtotime($current_date);
-    $bulan = $daftar_bulan[(int)date('m', $timestamp)];
+    $bulan = $daftar_bulan[(int)date('m', $timestamp)] ?? date('F');
     $tahun = date('Y', $timestamp);
     $bulan_filter = date('m', $timestamp);
     $tahun_filter = date('Y', $timestamp);
     $ym = $current_date; // e.g. "2026-06"
 
-    // Period calculation (1 or 3 months)
+    // Period calculation: Custom Range (_to_), Rolling 3 Months (_3), or 1 Month
     $filterPeriode = $filterPeriode ?? '1';
     $filterTeknisiId = $filterTeknisiId ?? 0;
-    if ($filterPeriode == '3') {
-        $dtStart = new DateTime($current_date . '-01');
-        $dtStart->modify('-2 months');
-        $monthStart = $dtStart->format('Y-m-d');
-        $monthEnd = date('Y-m-t', $timestamp);
-        // Build list of Y-m for SQL IN
+
+    if (!empty($filterBulan) && str_contains($filterBulan, '_to_')) {
+        $parts = explode('_to_', $filterBulan);
+        $startMonth = $parts[0];
+        $endMonth = $parts[1] ?? $parts[0];
+        $dtStart = new DateTime($startMonth . '-01');
+        $dtEnd = new DateTime($endMonth . '-01');
+        if ($dtStart > $dtEnd) {
+            $tmp = $dtStart; $dtStart = $dtEnd; $dtEnd = $tmp;
+            $startMonth = $dtStart->format('Y-m');
+            $endMonth = $dtEnd->format('Y-m');
+        }
+        $monthStart = $dtStart->format('Y-m-01');
+        $monthEnd = $dtEnd->format('Y-m-t');
+        
+        $ymList = [];
+        $dtTmp = clone $dtStart;
+        while ($dtTmp <= $dtEnd) {
+            $ymList[] = $dtTmp->format('Y-m');
+            $dtTmp->modify('+1 month');
+        }
+        $ymCondition = implode(',', array_map(function($v) { return "'$v'"; }, $ymList));
+        $blnStartName = $daftar_bulan[intval($dtStart->format('m'))];
+        $blnEndName = $daftar_bulan[intval($dtEnd->format('m'))];
+        if ($dtStart->format('Y') == $dtEnd->format('Y')) {
+            $periodeLabel = $blnStartName . ' - ' . $blnEndName . ' ' . $dtStart->format('Y');
+        } else {
+            $periodeLabel = $blnStartName . ' ' . $dtStart->format('Y') . ' - ' . $blnEndName . ' ' . $dtEnd->format('Y');
+        }
+    } elseif ($filterPeriode == '3' || (!empty($filterBulan) && str_contains($filterBulan, '_3'))) {
+        $baseStart = str_replace('_3', '', $filterBulan);
+        $dtStart = new DateTime($baseStart . '-01');
+        $dtEnd = clone $dtStart;
+        $dtEnd->modify('+2 months');
+        $monthStart = $dtStart->format('Y-m-01');
+        $monthEnd = $dtEnd->format('Y-m-t');
+        
         $ymList = [];
         $dtTmp = clone $dtStart;
         for ($mi = 0; $mi < 3; $mi++) {
@@ -27,7 +58,7 @@
             $dtTmp->modify('+1 month');
         }
         $ymCondition = implode(',', array_map(function($v) { return "'$v'"; }, $ymList));
-        $periodeLabel = $daftar_bulan[intval($dtStart->format('m'))] . ' - ' . $bulan . ' ' . $tahun;
+        $periodeLabel = $daftar_bulan[intval($dtStart->format('m'))] . ' - ' . $daftar_bulan[intval($dtEnd->format('m'))] . ' ' . $dtEnd->format('Y');
     } else {
         $monthStart = "$tahun_filter-$bulan_filter-01";
         $monthEnd = date('Y-m-t', strtotime($monthStart));
@@ -277,38 +308,63 @@
                         <p><?= $periodeLabel ?></p>
                     </div>
                 </div>
-                <form method="GET" action="" class="rekap-filter no-print">
-                    <select name="bulan" class="rekap-month-input" style="min-width:200px;">
-                        <option value="">Semua Bulan</option>
-                        <optgroup label="Per Bulan">
+                <form method="GET" action="" class="rekap-filter no-print" id="formFilterRekap" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                    <select name="bulan" id="selectFilterBulan" class="rekap-month-input" onchange="handleBulanSelectChange(this)" style="min-width:210px;">
+                        <option value="">Semua Bulan (Bulan Ini)</option>
+                        
+                        <?php if (!empty($filterBulan) && str_contains($filterBulan, '_to_')): ?>
+                            <option value="<?= htmlspecialchars($filterBulan) ?>" selected>✨ Custom: <?= htmlspecialchars($periodeLabel) ?></option>
+                        <?php endif; ?>
+                        
+                        <option value="__custom__">📅 Custom Rentang Bulan...</option>
+
+                        <optgroup label="Per Bulan (1 Bulan)">
                             <?php foreach ($monthOptions as $mo): ?>
-                                <option value="<?= $mo['value'] ?>" <?= $filterBulan == $mo['value'] ? 'selected' : '' ?>><?= $mo['label'] ?></option>
+                                <option value="<?= $mo['value'] ?>" <?= ($filterBulan == $mo['value']) ? 'selected' : '' ?>><?= $mo['label'] ?></option>
                             <?php endforeach; ?>
                         </optgroup>
-                        <optgroup label="Per 3 Bulan">
+                        
+                        <optgroup label="Per 3 Bulan (Rolling Lengkap)">
                             <?php 
-                            for ($qi = 0; $qi < 12; $qi += 3) {
-                                $dt3 = new DateTime();
-                                $dt3->modify("-$qi months");
-                                $bln3s = intval($dt3->format('m'));
-                                $dt3e = clone $dt3;
-                                $dt3e->modify('-2 months');
-                                $bln3e = intval($dt3e->format('m'));
-                                $val3 = $dt3e->format('Y-m') . '_3';
-                                $label3 = $namaBulanList[$bln3e] . ' - ' . $namaBulanList[$bln3s] . ' ' . $dt3->format('Y');
-                                echo '<option value="' . $val3 . '"' . ($filterBulan == $val3 ? ' selected' : '') . '>' . $label3 . '</option>';
+                            $addedOptions = [];
+                            for ($qi = 0; $qi < 18; $qi++) {
+                                $dtEndRolling = new DateTime();
+                                $dtEndRolling->modify("-$qi months");
+                                $dtStartRolling = clone $dtEndRolling;
+                                $dtStartRolling->modify('-2 months');
+                                
+                                $blnS = intval($dtStartRolling->format('m'));
+                                $blnE = intval($dtEndRolling->format('m'));
+                                $val3 = $dtStartRolling->format('Y-m') . '_3';
+                                
+                                if ($dtStartRolling->format('Y') == $dtEndRolling->format('Y')) {
+                                    $label3 = $namaBulanList[$blnS] . ' - ' . $namaBulanList[$blnE] . ' ' . $dtEndRolling->format('Y');
+                                } else {
+                                    $label3 = $namaBulanList[$blnS] . ' ' . $dtStartRolling->format('Y') . ' - ' . $namaBulanList[$blnE] . ' ' . $dtEndRolling->format('Y');
+                                }
+                                
+                                if (!isset($addedOptions[$val3])) {
+                                    $addedOptions[$val3] = true;
+                                    echo '<option value="' . $val3 . '"' . ($filterBulan == $val3 ? ' selected' : '') . '>' . $label3 . '</option>';
+                                }
                             }
                             ?>
                         </optgroup>
                     </select>
+
                     <select name="ftek" class="rekap-month-input" style="min-width:140px;">
                         <option value="0">Semua Teknisi</option>
                         <?php foreach ($tekOptions as $to): ?>
                             <option value="<?= $to['id'] ?>" <?= $filterTeknisiId == $to['id'] ? 'selected' : '' ?>><?= htmlspecialchars($to['nama']) ?></option>
                         <?php endforeach; ?>
                     </select>
-                    <button type="submit" class="rekap-btn-cari">
+
+                    <button type="submit" class="rekap-btn-cari" style="padding:8px 16px;border-radius:10px;">
                         <i class="fa-solid fa-magnifying-glass"></i> Cari
+                    </button>
+
+                    <button type="button" class="rekap-btn-cari" onclick="openCustomPeriodeModal()" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border:none;padding:8px 14px;border-radius:10px;" title="Pilih Rentang Periode Kustom">
+                        <i class="fa-solid fa-calendar-week"></i> Custom
                     </button>
                 </form>
             </div>
@@ -1258,4 +1314,159 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 });
+
+function handleBulanSelectChange(select) {
+    if (select.value === '__custom__') {
+        openCustomPeriodeModal();
+    } else {
+        document.getElementById('formFilterRekap').submit();
+    }
+}
+
+function openCustomPeriodeModal() {
+    var modalEl = document.getElementById('modalCustomPeriode');
+    if (modalEl) {
+        var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modal.show();
+    }
+}
+
+function setQuickRange(startMonthStr, endMonthStr) {
+    document.getElementById('customStartMonth').value = startMonthStr;
+    document.getElementById('customEndMonth').value = endMonthStr;
+}
+
+function setQuickPreset(type) {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1; // 1-12
+
+    const pad = (n) => String(n).padStart(2, '0');
+
+    if (type === 'last3') {
+        // Last 3 full months
+        const dEnd = new Date(now.getFullYear(), now.getMonth(), 1);
+        const dStart = new Date(now.getFullYear(), now.getMonth() - 2, 1);
+        setQuickRange(`${dStart.getFullYear()}-${pad(dStart.getMonth()+1)}`, `${dEnd.getFullYear()}-${pad(dEnd.getMonth()+1)}`);
+    } else if (type === 'last6') {
+        const dEnd = new Date(now.getFullYear(), now.getMonth(), 1);
+        const dStart = new Date(now.getFullYear(), now.getMonth() - 5, 1);
+        setQuickRange(`${dStart.getFullYear()}-${pad(dStart.getMonth()+1)}`, `${dEnd.getFullYear()}-${pad(dEnd.getMonth()+1)}`);
+    } else if (type === 'q1') {
+        setQuickRange(`${currentYear}-01`, `${currentYear}-03`);
+    } else if (type === 'q2') {
+        setQuickRange(`${currentYear}-04`, `${currentYear}-06`);
+    } else if (type === 'q3') {
+        setQuickRange(`${currentYear}-07`, `${currentYear}-09`);
+    } else if (type === 'q4') {
+        setQuickRange(`${currentYear}-10`, `${currentYear}-12`);
+    } else if (type === 'ytd') {
+        setQuickRange(`${currentYear}-01`, `${currentYear}-${pad(currentMonth)}`);
+    }
+}
+
+function applyCustomPeriode() {
+    var start = document.getElementById('customStartMonth').value;
+    var end = document.getElementById('customEndMonth').value;
+
+    if (!start || !end) {
+        alert('Silakan pilih Bulan Mulai dan Bulan Akhir.');
+        return;
+    }
+
+    if (start > end) {
+        var temp = start;
+        start = end;
+        end = temp;
+    }
+
+    var customValue = start === end ? start : (start + '_to_' + end);
+    
+    var select = document.getElementById('selectFilterBulan');
+    // Check if an option for this already exists, or create one
+    var existingOpt = Array.from(select.options).find(o => o.value === customValue);
+    if (!existingOpt) {
+        var newOpt = new Option('✨ Custom: ' + start + ' s/d ' + end, customValue, true, true);
+        select.add(newOpt, 1);
+    } else {
+        existingOpt.selected = true;
+    }
+
+    select.value = customValue;
+    document.getElementById('formFilterRekap').submit();
+}
 </script>
+
+<!-- ═══ MODAL CUSTOM RENTANG BULAN ═══ -->
+<div class="modal fade" id="modalCustomPeriode" tabindex="-1" aria-labelledby="modalCustomPeriodeLabel" aria-hidden="true" style="z-index:99999;">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:520px;">
+        <div class="modal-content" style="border-radius:18px;border:none;box-shadow:0 20px 50px rgba(15,23,42,0.25);overflow:hidden;background:#ffffff;">
+            <div class="modal-header" style="background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border:none;padding:18px 24px;">
+                <h5 class="modal-title" id="modalCustomPeriodeLabel" style="color:#fff;font-size:16px;font-weight:800;display:flex;align-items:center;gap:10px;">
+                    <i class="fa-solid fa-calendar-week" style="font-size:18px;opacity:0.95;"></i> Custom Rentang Periode Bulan
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" style="font-size:11px;opacity:0.85;"></button>
+            </div>
+            <div class="modal-body" style="padding:24px;background:#f8fafc;">
+                <p style="font-size:13px;color:#64748b;margin-bottom:16px;font-weight:500;">
+                    Pilih rentang bulan secara bebas untuk menampilkan rekapitulasi target & fee teknisi:
+                </p>
+
+                <!-- Input Rentang Bulan -->
+                <div class="row g-3 mb-3">
+                    <div class="col-6">
+                        <label style="font-size:12px;font-weight:700;color:#334155;margin-bottom:6px;display:block;">
+                            <i class="fa-regular fa-calendar-plus text-primary me-1"></i> Bulan Mulai
+                        </label>
+                        <input type="month" id="customStartMonth" class="form-control" style="border-radius:10px;border:1.5px solid #cbd5e1;padding:10px 12px;font-weight:600;font-size:14px;background:#fff;" value="<?= date('Y-m', strtotime('-2 months')) ?>">
+                    </div>
+                    <div class="col-6">
+                        <label style="font-size:12px;font-weight:700;color:#334155;margin-bottom:6px;display:block;">
+                            <i class="fa-regular fa-calendar-check text-success me-1"></i> Bulan Akhir
+                        </label>
+                        <input type="month" id="customEndMonth" class="form-control" style="border-radius:10px;border:1.5px solid #cbd5e1;padding:10px 12px;font-weight:600;font-size:14px;background:#fff;" value="<?= date('Y-m') ?>">
+                    </div>
+                </div>
+
+                <!-- Pilihan Cepat / Quick Presets -->
+                <div class="mb-4">
+                    <label style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;display:block;">
+                        ⚡ Pilihan Cepat (Preset)
+                    </label>
+                    <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                        <button type="button" class="btn btn-sm btn-outline-primary" style="border-radius:8px;font-size:11px;font-weight:700;padding:5px 10px;" onclick="setQuickPreset('last3')">
+                            3 Bulan Terakhir
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-primary" style="border-radius:8px;font-size:11px;font-weight:700;padding:5px 10px;" onclick="setQuickPreset('last6')">
+                            6 Bulan Terakhir
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" style="border-radius:8px;font-size:11px;font-weight:700;padding:5px 10px;" onclick="setQuickPreset('q1')">
+                            Q1 (Jan-Mar)
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" style="border-radius:8px;font-size:11px;font-weight:700;padding:5px 10px;" onclick="setQuickPreset('q2')">
+                            Q2 (Apr-Jun)
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" style="border-radius:8px;font-size:11px;font-weight:700;padding:5px 10px;" onclick="setQuickPreset('q3')">
+                            Q3 (Jul-Sep)
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" style="border-radius:8px;font-size:11px;font-weight:700;padding:5px 10px;" onclick="setQuickPreset('q4')">
+                            Q4 (Okt-Des)
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-dark" style="border-radius:8px;font-size:11px;font-weight:700;padding:5px 10px;" onclick="setQuickPreset('ytd')">
+                            Tahun Ini (YTD)
+                        </button>
+                    </div>
+                </div>
+
+                <div style="display:flex;gap:10px;justify-content:flex-end;">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border-radius:10px;font-weight:600;font-size:13px;padding:10px 18px;">
+                        Batal
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="applyCustomPeriode()" style="border-radius:10px;font-weight:700;font-size:13px;padding:10px 22px;background:linear-gradient(135deg,#4f46e5,#7c3aed);border:none;box-shadow:0 4px 14px rgba(79,70,229,0.3);">
+                        <i class="fa-solid fa-check me-1"></i> Terapkan Filter
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

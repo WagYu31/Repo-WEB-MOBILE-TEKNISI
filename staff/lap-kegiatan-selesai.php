@@ -39,11 +39,18 @@ while ($rTek = mysqli_fetch_assoc($resTek)) {
 $selectedTeknisi = intval($_GET['teknisi'] ?? 0);
 
 // --- Month filter ---
-$filterBulan = $_GET['bulan'] ?? ''; // format: "2026-06" or "2026-04_3" (3 bulan)
+$filterBulan = $_GET['bulan'] ?? ''; // format: "2026-06", "2026-04_3", or "2026-02_to_2026-04"
 $filterDateStart = '';
 $filterDateEnd = '';
 if (!empty($filterBulan)) {
-    if (str_contains($filterBulan, '_3')) {
+    if (str_contains($filterBulan, '_to_')) {
+        $parts = explode('_to_', $filterBulan);
+        $sM = $parts[0];
+        $eM = $parts[1] ?? $parts[0];
+        if ($sM > $eM) { $tmp = $sM; $sM = $eM; $eM = $tmp; }
+        $filterDateStart = $sM . '-01';
+        $filterDateEnd = date('Y-m-t', strtotime($eM . '-01'));
+    } elseif (str_contains($filterBulan, '_3')) {
         // 3 bulan: ambil bulan awal, hitung 3 bulan
         $baseBulan = str_replace('_3', '', $filterBulan);
         $filterDateStart = $baseBulan . '-01';
@@ -55,9 +62,17 @@ if (!empty($filterBulan)) {
     }
 }
 
-// Build month options for last 12 months
+// Build month options for last 18 months
 $monthOptions = [];
 $namaBulan = ['','Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+for ($i = 0; $i < 18; $i++) {
+    $dt = new DateTime();
+    $dt->modify("-$i months");
+    $val = $dt->format('Y-m');
+    $bln = intval($dt->format('m'));
+    $thn = $dt->format('Y');
+    $monthOptions[] = ['value' => $val, 'label' => $namaBulan[$bln] . ' ' . $thn];
+}
 for ($i = 0; $i < 12; $i++) {
     $dt = new DateTime();
     $dt->modify("-$i months");
@@ -327,18 +342,29 @@ for ($i = 0; $i < 12; $i++) {
                                                     <option value="<?= $mo['value'] ?>" <?= $filterBulan == $mo['value'] ? 'selected' : '' ?>><?= $mo['label'] ?></option>
                                                 <?php endforeach; ?>
                                             </optgroup>
-                                            <optgroup label="Per 3 Bulan">
+                                            <optgroup label="Per 3 Bulan (Rolling Lengkap)">
                                                 <?php 
-                                                for ($i = 0; $i < 12; $i += 3) {
-                                                    $dt3 = new DateTime();
-                                                    $dt3->modify("-$i months");
-                                                    $val3 = $dt3->format('Y-m') . '_3';
-                                                    $bln3s = intval($dt3->format('m'));
-                                                    $dt3e = clone $dt3;
-                                                    $dt3e->modify('-2 months');
-                                                    $bln3e = intval($dt3e->format('m'));
-                                                    $label3 = $namaBulan[$bln3e] . ' - ' . $namaBulan[$bln3s] . ' ' . $dt3->format('Y');
-                                                    echo '<option value="' . $dt3e->format('Y-m') . '_3"' . ($filterBulan == $dt3e->format('Y-m') . '_3' ? ' selected' : '') . '>' . $label3 . '</option>';
+                                                $addedOpts = [];
+                                                for ($qi = 0; $qi < 18; $qi++) {
+                                                    $dtEndRolling = new DateTime();
+                                                    $dtEndRolling->modify("-$qi months");
+                                                    $dtStartRolling = clone $dtEndRolling;
+                                                    $dtStartRolling->modify('-2 months');
+                                                    
+                                                    $blnS = intval($dtStartRolling->format('m'));
+                                                    $blnE = intval($dtEndRolling->format('m'));
+                                                    $val3 = $dtStartRolling->format('Y-m') . '_3';
+                                                    
+                                                    if ($dtStartRolling->format('Y') == $dtEndRolling->format('Y')) {
+                                                        $label3 = $namaBulan[$blnS] . ' - ' . $namaBulan[$blnE] . ' ' . $dtEndRolling->format('Y');
+                                                    } else {
+                                                        $label3 = $namaBulan[$blnS] . ' ' . $dtStartRolling->format('Y') . ' - ' . $namaBulan[$blnE] . ' ' . $dtEndRolling->format('Y');
+                                                    }
+                                                    
+                                                    if (!isset($addedOpts[$val3])) {
+                                                        $addedOpts[$val3] = true;
+                                                        echo '<option value="' . $val3 . '"' . ($filterBulan == $val3 ? ' selected' : '') . '>' . $label3 . '</option>';
+                                                    }
                                                 }
                                                 ?>
                                             </optgroup>

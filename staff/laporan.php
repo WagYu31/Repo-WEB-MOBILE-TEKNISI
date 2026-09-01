@@ -83,15 +83,18 @@ $role = $jabatan;
 <body class="g-sidenav-show bg-gray-200">
     <?php
     include "cek-menu.php";
-    $filterBulan = $_GET['bulan'] ?? ''; // format: "2026-06" or "2026-04_3"
+    $filterBulan = $_GET['bulan'] ?? ''; // format: "2026-06", "2026-04_3", or "2026-02_to_2026-04"
     $filterTeknisiId = intval($_GET['ftek'] ?? 0);
 
     // Parse filter: determine current_date and period
     if (!empty($filterBulan)) {
-        if (str_contains($filterBulan, '_3')) {
+        if (str_contains($filterBulan, '_to_')) {
+            $filterPeriode = 'custom';
+            $parts = explode('_to_', $filterBulan);
+            $current_date = $parts[1] ?? date("Y-m"); // end month for general fallback
+        } elseif (str_contains($filterBulan, '_3')) {
             $filterPeriode = '3';
             $current_date = str_replace('_3', '', $filterBulan); // keep as start month for date calc
-            // For display, shift to end month (+2)
             $endDt = new DateTime($current_date . '-01');
             $endDt->modify('+2 months');
             $current_date = $endDt->format('Y-m'); // set to end month
@@ -104,10 +107,10 @@ $role = $jabatan;
         $filterPeriode = '1';
     }
 
-    // Build month options for last 12 months
+    // Build month options for last 18 months
     $namaBulanList = ['','Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
     $monthOptions = [];
-    for ($i = 0; $i < 12; $i++) {
+    for ($i = 0; $i < 18; $i++) {
         $dt = new DateTime();
         $dt->modify("-$i months");
         $val = $dt->format('Y-m');

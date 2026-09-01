@@ -5,24 +5,73 @@ include "session.php";
 $filterBulan = $_GET['bulan'] ?? '';
 $filterTeknisiId = intval($_GET['ftek'] ?? 0);
 
-if (!empty($filterBulan)) {
-    if (str_contains($filterBulan, '_3')) {
-        $filterPeriode = '3';
-        $current_date = str_replace('_3', '', $filterBulan);
-        $endDt = new DateTime($current_date . '-01');
-        $endDt->modify('+2 months');
-        $current_date = $endDt->format('Y-m');
-    } else {
-        $filterPeriode = '1';
-        $current_date = $filterBulan;
+$daftar_bulan = [
+    1 => 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+];
+
+if (!empty($filterBulan) && str_contains($filterBulan, '_to_')) {
+    $filterPeriode = 'custom';
+    $parts = explode('_to_', $filterBulan);
+    $startMonth = $parts[0];
+    $endMonth = $parts[1] ?? $parts[0];
+    $dtStart = new DateTime($startMonth . '-01');
+    $dtEnd = new DateTime($endMonth . '-01');
+    if ($dtStart > $dtEnd) {
+        $tmp = $dtStart; $dtStart = $dtEnd; $dtEnd = $tmp;
+        $startMonth = $dtStart->format('Y-m');
+        $endMonth = $dtEnd->format('Y-m');
     }
+    $monthStart = $dtStart->format('Y-m-01');
+    $monthEnd = $dtEnd->format('Y-m-t');
+    
+    $ymList = [];
+    $dtTmp = clone $dtStart;
+    while ($dtTmp <= $dtEnd) {
+        $ymList[] = $dtTmp->format('Y-m');
+        $dtTmp->modify('+1 month');
+    }
+    $ymCondition = implode(',', array_map(function($v) { return "'$v'"; }, $ymList));
+    $fileSuffix = $startMonth . '_sd_' . $endMonth;
+} elseif (!empty($filterBulan) && str_contains($filterBulan, '_3')) {
+    $filterPeriode = '3';
+    $baseStart = str_replace('_3', '', $filterBulan);
+    $dtStart = new DateTime($baseStart . '-01');
+    $dtEnd = clone $dtStart;
+    $dtEnd->modify('+2 months');
+    $monthStart = $dtStart->format('Y-m-01');
+    $monthEnd = $dtEnd->format('Y-m-t');
+    
+    $ymList = [];
+    $dtTmp = clone $dtStart;
+    for ($mi = 0; $mi < 3; $mi++) {
+        $ymList[] = $dtTmp->format('Y-m');
+        $dtTmp->modify('+1 month');
+    }
+    $ymCondition = implode(',', array_map(function($v) { return "'$v'"; }, $ymList));
+    $fileSuffix = $baseStart . '_3bln';
+} elseif (!empty($filterBulan)) {
+    $filterPeriode = '1';
+    $current_date = $filterBulan;
+    $timestamp = strtotime($current_date . '-01');
+    $monthStart = date('Y-m-01', $timestamp);
+    $monthEnd = date('Y-m-t', $timestamp);
+    $ymList = [$current_date];
+    $ymCondition = "'$current_date'";
+    $fileSuffix = $current_date;
 } else {
     $current_date = (isset($_GET['cariBulanTahun']) && !empty($_GET['cariBulanTahun'])) ? $_GET['cariBulanTahun'] : date("Y-m");
     $filterPeriode = '1';
+    $timestamp = strtotime($current_date . '-01');
+    $monthStart = date('Y-m-01', $timestamp);
+    $monthEnd = date('Y-m-t', $timestamp);
+    $ymList = [$current_date];
+    $ymCondition = "'$current_date'";
+    $fileSuffix = $current_date;
 }
 
 header("Content-Type: application/vnd.ms-excel");
-header("Content-Disposition: attachment; filename=Rekap_Target_Tercapai_Teknisi_" . $current_date . ".xls");
+header("Content-Disposition: attachment; filename=Rekap_Target_Tercapai_Teknisi_" . $fileSuffix . ".xls");
 header("Pragma: no-cache");
 header("Expires: 0");
 
@@ -39,36 +88,6 @@ echo "<thead>
         </tr>
       </thead>";
 echo "<tbody>";
-
-$daftar_bulan = [
-    1 => 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
-];
-$timestamp = strtotime($current_date);
-$bulan = $daftar_bulan[(int)date('m', $timestamp)];
-$tahun = date('Y', $timestamp);
-$bulan_filter = date('m', $timestamp);
-$tahun_filter = date('Y', $timestamp);
-$ym = $current_date;
-
-if ($filterPeriode == '3') {
-    $dtStart = new DateTime($current_date . '-01');
-    $dtStart->modify('-2 months');
-    $monthStart = $dtStart->format('Y-m-d');
-    $monthEnd = date('Y-m-t', $timestamp);
-    $ymList = [];
-    $dtTmp = clone $dtStart;
-    for ($mi = 0; $mi < 3; $mi++) {
-        $ymList[] = $dtTmp->format('Y-m');
-        $dtTmp->modify('+1 month');
-    }
-    $ymCondition = implode(',', array_map(function($v) { return "'$v'"; }, $ymList));
-} else {
-    $monthStart = "$tahun_filter-$bulan_filter-01";
-    $monthEnd = date('Y-m-t', strtotime($monthStart));
-    $ymList = [$ym];
-    $ymCondition = "'$ym'";
-}
 
 // === Batch: all teknisi ===
 $teknisiList = [];
