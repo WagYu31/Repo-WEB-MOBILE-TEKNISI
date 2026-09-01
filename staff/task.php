@@ -763,8 +763,8 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
             white-space: nowrap;
         }
 
-        /* SO Badge */
-        .so-badge {
+        /* SO Badge & Input Button */
+        .so-badge-btn {
             display: inline-flex;
             align-items: center;
             gap: 3px;
@@ -774,14 +774,46 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
             background: #f0fdf4;
             border: 1px solid #bbf7d0;
             padding: 2px 6px;
-            border-radius: 5px;
+            border-radius: 6px;
             letter-spacing: 0.02em;
             font-family: var(--font-mono);
-            word-break: break-all;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            max-width: 100%;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 100%;
+            line-height: 1.2;
+        }
+        .so-badge-btn:hover {
+            background: #dcfce7;
+            border-color: #86efac;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(22, 101, 52, 0.15);
+        }
+        .btn-so-add {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 9.5px;
+            font-weight: 700;
+            color: #64748b;
+            background: #f8fafc;
+            border: 1px dashed #cbd5e1;
+            padding: 2px 7px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            line-height: 1.2;
+        }
+        .btn-so-add:hover {
+            background: #eff6ff;
+            color: #2563eb;
+            border-color: #3b82f6;
+            border-style: solid;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(37, 99, 235, 0.15);
         }
 
         /* Invoice styling */
@@ -1190,14 +1222,17 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
                                 </td>
 
                                 <!-- No. SO -->
-                                <td class="col-so">
+                                <td class="col-so" id="cell_so_<?= $kodeTransaksi ?>">
                                     <?php if (!empty($latest_kegiatan['no_so'])) : ?>
-                                        <div class="so-badge" title="<?= htmlspecialchars($latest_kegiatan['no_so']) ?>">
-                                            <i class="fa-solid fa-receipt text-success" style="font-size: 10px;"></i>
-                                            <?= htmlspecialchars($latest_kegiatan['no_so']) ?>
-                                        </div>
+                                        <button type="button" class="so-badge-btn" onclick="openInputSO('<?= $kodeTransaksi ?>', '<?= htmlspecialchars($latest_kegiatan['no_so'], ENT_QUOTES) ?>', '<?= htmlspecialchars($latest_kegiatan['nama_customer'], ENT_QUOTES) ?>')" title="Klik untuk edit No. SO">
+                                            <i class="fa-solid fa-receipt text-success"></i>
+                                            <span class="so-txt"><?= htmlspecialchars($latest_kegiatan['no_so']) ?></span>
+                                            <i class="fa-solid fa-pen ms-1 opacity-50" style="font-size: 7.5px;"></i>
+                                        </button>
                                     <?php else: ?>
-                                        <span class="text-muted fw-semibold text-xs">-</span>
+                                        <button type="button" class="btn-so-add" onclick="openInputSO('<?= $kodeTransaksi ?>', '', '<?= htmlspecialchars($latest_kegiatan['nama_customer'], ENT_QUOTES) ?>')" title="Input Nomor SO">
+                                            <i class="fa-solid fa-plus"></i> Input SO
+                                        </button>
                                     <?php endif; ?>
                                 </td>
 
@@ -1260,6 +1295,44 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
                 </div>
             </div>
         </div>
+
+        <!-- Modal Input / Edit No SO -->
+        <div class="modal fade" id="modalInputSO" tabindex="-1" aria-labelledby="modalInputSOLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
+                <div class="modal-content" style="border-radius: 20px; border: 1px solid #e2e8f0; box-shadow: 0 10px 30px rgba(0,0,0,0.1); overflow: hidden;">
+                    <div class="modal-header pb-0 border-0 pt-4 px-4 d-flex align-items-center justify-content-between">
+                        <div>
+                            <h6 class="modal-title fw-bold text-dark mb-0" id="modalInputSOLabel">
+                                <i class="fa-solid fa-receipt text-success me-2"></i>Nomor SO (Sales Order)
+                            </h6>
+                            <small class="text-secondary text-xxs" id="modalSOCustName"></small>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form id="formInputSO" onsubmit="submitSOForm(event)">
+                        <div class="modal-body px-4 py-3">
+                            <input type="hidden" id="soKodeInput" name="kode">
+                            
+                            <div class="mb-2">
+                                <label class="form-label fw-bold text-xs text-secondary text-uppercase mb-1">Nomor Sales Order (SO)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0 rounded-start-3"><i class="fa-solid fa-hashtag text-muted"></i></span>
+                                    <input type="text" class="form-control rounded-end-3" id="soNumberInput" name="no_so" placeholder="Contoh: 2608.SOL.06406" autocomplete="off" style="font-family: var(--font-mono); font-size: 13px; font-weight: 700;">
+                                </div>
+                                <div class="form-text text-xxs text-muted mt-1">Kosongkan jika ingin menghapus nomor SO.</div>
+                            </div>
+                        </div>
+                        <div class="modal-footer border-0 pt-0 px-4 pb-4 gap-2">
+                            <button type="button" class="btn btn-sm btn-light rounded-3 fw-bold px-3 py-2 text-xs" data-bs-dismiss="modal">Batal</button>
+                            <button type="submit" class="btn btn-sm btn-primary rounded-3 fw-bold px-4 py-2 text-xs shadow-sm" id="btnSaveSO">
+                                <i class="fa-solid fa-check me-1"></i> Simpan
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
         <?php include "footer.php"; ?>
     </main>
 
@@ -1270,6 +1343,88 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
             const panel = document.getElementById('advancedPanel');
             panel.classList.toggle('d-none');
         });
+
+        // Open Modal Input / Edit No SO
+        function openInputSO(kode, currentSO, custName) {
+            document.getElementById('soKodeInput').value = kode;
+            document.getElementById('soNumberInput').value = currentSO || '';
+            document.getElementById('modalSOCustName').textContent = custName ? 'Customer: ' + custName + ' (#' + kode + ')' : '#' + kode;
+            
+            const modalEl = document.getElementById('modalInputSO');
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modal.show();
+            
+            setTimeout(() => {
+                const input = document.getElementById('soNumberInput');
+                input.focus();
+                input.select();
+            }, 400);
+        }
+
+        // Submit AJAX SO Form
+        function submitSOForm(e) {
+            e.preventDefault();
+            const kode = document.getElementById('soKodeInput').value;
+            const noSO = document.getElementById('soNumberInput').value.trim();
+            const btn = document.getElementById('btnSaveSO');
+            const originalHtml = btn.innerHTML;
+            
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Menyimpan...';
+            
+            const formData = new FormData();
+            formData.append('kode', kode);
+            formData.append('no_so', noSO);
+            
+            fetch('ajax-update-so.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(r => r.json())
+            .then(res => {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                
+                if (res.status === 'success') {
+                    const cell = document.getElementById('cell_so_' + kode);
+                    if (cell) {
+                        if (noSO) {
+                            cell.innerHTML = `
+                                <button type="button" class="so-badge-btn" onclick="openInputSO('${kode}', '${escapeHtml(noSO)}', '')" title="Klik untuk edit No. SO">
+                                    <i class="fa-solid fa-receipt text-success"></i>
+                                    <span class="so-txt">${escapeHtml(noSO)}</span>
+                                    <i class="fa-solid fa-pen ms-1 opacity-50" style="font-size: 7.5px;"></i>
+                                </button>
+                            `;
+                        } else {
+                            cell.innerHTML = `
+                                <button type="button" class="btn-so-add" onclick="openInputSO('${kode}', '', '')" title="Input Nomor SO">
+                                    <i class="fa-solid fa-plus"></i> Input SO
+                                </button>
+                            `;
+                        }
+                    }
+                    
+                    const modalEl = document.getElementById('modalInputSO');
+                    const modal = bootstrap.Modal.getInstance(modalEl);
+                    if (modal) modal.hide();
+                } else {
+                    alert(res.message || 'Terjadi kesalahan');
+                }
+            })
+            .catch(err => {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                alert('Gagal menghubungi server: ' + err.message);
+            });
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text.replace(/[&<>"']/g, function(m) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
+            });
+        }
 
         // Autocomplete customer search
         document.addEventListener('DOMContentLoaded', function() {
