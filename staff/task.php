@@ -44,12 +44,11 @@ $groupedData = [];
 $sql_all_teknisi = "SELECT id, nama FROM teknisi WHERE deleted_at IS NULL ORDER BY nama ASC";
 $result_all_teknisi = mysqli_query($conn, $sql_all_teknisi);
 
-if ($is_search_triggered) {
-    $params = [];
-    $types = '';
+$params = [];
+$types = '';
 
-    // Optimized: removed unnecessary JOINs that caused DISTINCT overhead
-    $sql_kegiatan = "SELECT k.*, c.nama AS nama_customer, c.telp AS cust_nomor, c.alamat, inv.no_invoice, inv.nominal_invoice, req_inv.max_req_invoice_at AS req_invoice_at,
+// Optimized: removed unnecessary JOINs that caused DISTINCT overhead
+$sql_kegiatan = "SELECT k.*, c.nama AS nama_customer, c.telp AS cust_nomor, c.alamat, inv.no_invoice, inv.nominal_invoice, req_inv.max_req_invoice_at AS req_invoice_at,
                      COALESCE(k.no_so, pk_so.no_so) AS no_so
                      FROM kegiatan k
                      LEFT JOIN customer c ON k.customer_id = c.id
@@ -133,7 +132,6 @@ if ($is_search_triggered) {
         }
         $stmt->close();
     }
-}
 
 // ═══ BATCH LOAD ALL TEKNISI IN 1 QUERY (eliminates N+1) ═══
 $teknisiMap = [];
@@ -497,6 +495,11 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
                                 </select>
                             </div>
                             <div class="col-12 d-flex justify-content-end gap-2 mt-3">
+                                <?php if ($is_search_triggered): ?>
+                                <a href="task.php" class="btn-filter" style="background:#f1f5f9;color:#64748b;border:1.5px solid #e2e8f0;text-decoration:none;min-width:110px;justify-content:center;">
+                                    <i class="fa-solid fa-rotate-left"></i> Reset
+                                </a>
+                                <?php endif; ?>
                                 <button type="submit" class="btn-filter btn-filter-primary" style="min-width:140px;justify-content:center;">
                                     <i class="fa-solid fa-magnifying-glass"></i> Tampilkan
                                 </button>
@@ -525,18 +528,11 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
                             </tr>
                         </thead>
                         <tbody>
-                        <?php if (!$is_search_triggered): ?>
-                            <tr><td colspan="7">
-                                <div class="empty-state">
-                                    <i class="fa-solid fa-filter" style="display:block;"></i>
-                                    <p>Gunakan filter di atas untuk menampilkan data kegiatan.</p>
-                                </div>
-                            </td></tr>
-                        <?php elseif (empty($groupedData)): ?>
+                        <?php if (empty($groupedData)): ?>
                             <tr><td colspan="7">
                                 <div class="empty-state">
                                     <i class="fa-solid fa-inbox" style="display:block;"></i>
-                                    <p>Tidak ada kegiatan yang cocok dengan kriteria filter.</p>
+                                    <p>Tidak ada kegiatan yang ditemukan.</p>
                                 </div>
                             </td></tr>
                         <?php else: ?>
