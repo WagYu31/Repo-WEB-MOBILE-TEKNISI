@@ -32,6 +32,23 @@ function getInitials($fullName) {
     return $initials;
 }
 
+function formatAlamatWithMaps($rawAlamat) {
+    if (empty($rawAlamat)) return '-';
+    $pattern = '/(https?:\/\/[^\s]+)/i';
+    if (preg_match($pattern, $rawAlamat, $matches)) {
+        $url = $matches[0];
+        $textOnly = trim(str_replace($url, '', $rawAlamat));
+        $cleanText = htmlspecialchars($textOnly);
+        $mapsBtn = '<a href="' . htmlspecialchars($url) . '" target="_blank" class="maps-pill-link" title="Buka di Google Maps"><i class="fa-solid fa-map-location-dot"></i> Maps</a>';
+        if (!empty($cleanText)) {
+            return $cleanText . ' ' . $mapsBtn;
+        } else {
+            return $mapsBtn;
+        }
+    }
+    return htmlspecialchars($rawAlamat);
+}
+
 $start_date = $_GET['start_date'] ?? '';
 $end_date = $_GET['end_date'] ?? '';
 $teknisi_id = $_GET['teknisi_id'] ?? '';
@@ -550,13 +567,13 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
         }
 
         /* Column widths - 100% Balanced Grid */
-        .col-jadwal { width: 14%; min-width: 130px; }
-        .col-customer { width: 28%; min-width: 210px; }
-        .col-so { width: 11%; min-width: 95px; }
-        .col-invoice { width: 15%; min-width: 125px; }
-        .col-teknisi { width: 17%; min-width: 135px; }
-        .col-request { width: 8%; min-width: 60px; }
-        .col-aksi { width: 7%; min-width: 45px; }
+        .col-jadwal { width: 13%; min-width: 125px; }
+        .col-customer { width: 33%; min-width: 240px; }
+        .col-so { width: 9%; min-width: 85px; }
+        .col-invoice { width: 14%; min-width: 120px; }
+        .col-teknisi { width: 17%; min-width: 130px; }
+        .col-request { width: 8%; min-width: 55px; }
+        .col-aksi { width: 6%; min-width: 40px; }
 
         /* Compact Customer elements */
         .cust-name-link {
@@ -565,7 +582,6 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
             color: #0f172a;
             text-decoration: none !important;
             transition: color 0.15s;
-            max-width: 62%;
             display: inline-block;
         }
         .cust-name-link:hover {
@@ -575,7 +591,7 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
             display: inline-flex;
             align-items: center;
             gap: 3px;
-            font-size: 10.5px;
+            font-size: 10px;
             font-weight: 700;
             color: #047857;
             background: #f0fdf4;
@@ -592,13 +608,33 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
             color: #ffffff;
             border-color: #22c55e;
         }
-        .addr-single-line {
-            color: #64748b;
+        .addr-full {
+            color: #475569;
             font-size: 11px;
+            line-height: 1.35;
+            word-break: break-word;
+            white-space: normal;
+        }
+        .maps-pill-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            font-size: 9.5px;
+            font-weight: 700;
+            color: #2563eb;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            padding: 1px 5px;
+            border-radius: 5px;
+            text-decoration: none !important;
+            vertical-align: middle;
+            transition: all 0.2s ease;
             white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            line-height: 1.3;
+        }
+        .maps-pill-link:hover {
+            background: #2563eb;
+            color: #ffffff;
+            border-color: #2563eb;
         }
 
         /* Type Badges */
@@ -1052,8 +1088,8 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
                                 <!-- Customer & Alamat -->
                                 <td class="col-customer">
                                     <div style="min-width: 0;">
-                                        <div class="d-flex align-items-center gap-1 mb-1" style="min-width: 0;">
-                                            <a href="customer-detail.php?id_cust=<?= $latest_kegiatan['customer_id'] ?>" target="_blank" class="cust-name-link text-truncate" title="<?= htmlspecialchars($latest_kegiatan['nama_customer']) ?>">
+                                        <div class="d-flex flex-wrap align-items-center gap-1 mb-1">
+                                            <a href="customer-detail.php?id_cust=<?= $latest_kegiatan['customer_id'] ?>" target="_blank" class="cust-name-link" title="<?= htmlspecialchars($latest_kegiatan['nama_customer']) ?>">
                                                 <?= htmlspecialchars($latest_kegiatan['nama_customer']) ?>
                                             </a>
                                             <?php
@@ -1066,8 +1102,8 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
                                             </a>
                                             <?php } ?>
                                         </div>
-                                        <div class="addr-single-line" title="<?= htmlspecialchars($latest_kegiatan['alamat']) ?>">
-                                            <i class="fa-solid fa-location-dot text-muted me-1" style="font-size: 9px;"></i><?= htmlspecialchars($latest_kegiatan['alamat']) ?>
+                                        <div class="addr-full">
+                                            <i class="fa-solid fa-location-dot text-muted me-1" style="font-size: 9px;"></i><?= formatAlamatWithMaps($latest_kegiatan['alamat']) ?>
                                         </div>
                                     </div>
                                 </td>
