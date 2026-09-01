@@ -500,8 +500,6 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
             font-size: 11px;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: #64748b;
             margin-bottom: 5px;
             display: block;
         }
@@ -510,7 +508,7 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
         .table-bezel {
             background: #ffffff;
             border: 1px solid #e2e8f0;
-            border-radius: 18px;
+            border-radius: 16px;
             box-shadow: 0 4px 20px -4px rgba(15, 23, 42, 0.04), 0 2px 6px -2px rgba(15, 23, 42, 0.02);
             overflow: hidden;
             width: 100%;
@@ -524,7 +522,7 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
         .table-luxury thead th {
             background: #f8fafc;
             border-bottom: 1.5px solid #e2e8f0;
-            padding: 12px 14px;
+            padding: 10px 12px;
             font-size: 10.5px;
             font-weight: 800;
             color: #64748b;
@@ -545,42 +543,76 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
             background: #f8fafc !important;
         }
         .table-luxury tbody td {
-            padding: 12px 14px;
+            padding: 9px 12px;
             vertical-align: middle;
-            font-size: 12.5px;
+            font-size: 12px;
             overflow: hidden;
         }
 
-        /* Column widths */
-        .col-jadwal { width: 140px; }
-        .col-customer { width: auto; min-width: 230px; }
-        .col-so { width: 140px; }
-        .col-invoice { width: 155px; }
-        .col-teknisi { width: 175px; }
-        .col-request { width: 75px; }
-        .col-aksi { width: 55px; }
+        /* Column widths - 100% Balanced Grid */
+        .col-jadwal { width: 14%; min-width: 130px; }
+        .col-customer { width: 28%; min-width: 210px; }
+        .col-so { width: 11%; min-width: 95px; }
+        .col-invoice { width: 15%; min-width: 125px; }
+        .col-teknisi { width: 17%; min-width: 135px; }
+        .col-request { width: 8%; min-width: 60px; }
+        .col-aksi { width: 7%; min-width: 45px; }
 
-        .addr-clamp {
-            line-height: 1.35;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
+        /* Compact Customer elements */
+        .cust-name-link {
+            font-weight: 700;
+            font-size: 12.5px;
+            color: #0f172a;
+            text-decoration: none !important;
+            transition: color 0.15s;
+            max-width: 62%;
+            display: inline-block;
+        }
+        .cust-name-link:hover {
+            color: #4f46e5 !important;
+        }
+        .wa-pill-inline {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            font-size: 10.5px;
+            font-weight: 700;
+            color: #047857;
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            padding: 1px 6px;
+            border-radius: 12px;
+            text-decoration: none !important;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .wa-pill-inline:hover {
+            background: #22c55e;
+            color: #ffffff;
+            border-color: #22c55e;
+        }
+        .addr-single-line {
+            color: #64748b;
+            font-size: 11px;
+            white-space: nowrap;
             overflow: hidden;
-            word-break: break-word;
-            overflow-wrap: anywhere;
+            text-overflow: ellipsis;
+            line-height: 1.3;
         }
 
         /* Type Badges */
         .badge-type {
             display: inline-flex;
             align-items: center;
-            gap: 5px;
-            font-size: 10px;
+            gap: 4px;
+            font-size: 9.5px;
             font-weight: 800;
-            padding: 3px 8px;
+            padding: 2px 7px;
             border-radius: 6px;
             text-transform: uppercase;
             letter-spacing: 0.04em;
+            white-space: nowrap;
         }
         .badge-type.pasang-baru {
             background: #ecfdf5;
@@ -606,79 +638,63 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
         /* Monospace ID Tag */
         .id-mono-tag {
             font-family: var(--font-mono);
-            font-size: 10.5px;
+            font-size: 10px;
             font-weight: 700;
             color: #475569;
             background: #f1f5f9;
             border: 1px solid #e2e8f0;
-            padding: 2px 6px;
-            border-radius: 6px;
+            padding: 1px 5px;
+            border-radius: 5px;
             display: inline-block;
             letter-spacing: 0.02em;
-        }
-
-        /* WhatsApp Button */
-        .wa-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 11px;
-            font-weight: 700;
-            color: #047857;
-            background: #f0fdf4;
-            border: 1px solid #bbf7d0;
-            padding: 2px 8px;
-            border-radius: 20px;
-            text-decoration: none !important;
-            transition: all 0.2s ease;
-        }
-        .wa-pill:hover {
-            background: #22c55e;
-            color: #ffffff;
-            border-color: #22c55e;
-            transform: scale(1.03);
+            white-space: nowrap;
         }
 
         /* SO Badge */
         .so-badge {
             display: inline-flex;
             align-items: center;
-            gap: 4px;
-            font-size: 10.5px;
+            gap: 3px;
+            font-size: 10px;
             font-weight: 700;
             color: #166534;
             background: #f0fdf4;
             border: 1px solid #bbf7d0;
-            padding: 3px 8px;
-            border-radius: 6px;
+            padding: 2px 6px;
+            border-radius: 5px;
             letter-spacing: 0.02em;
             font-family: var(--font-mono);
             word-break: break-all;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
         }
 
         /* Invoice styling */
         .inv-box .inv-num {
-            font-size: 11.5px;
+            font-size: 11px;
             font-weight: 700;
             color: #0f172a;
-            margin-bottom: 2px;
+            margin-bottom: 1px;
             word-break: break-all;
         }
         .inv-box .inv-val {
-            font-size: 12px;
+            font-size: 11.5px;
             font-weight: 800;
             color: #059669;
             font-family: var(--font-main);
         }
         .inv-badge-none {
             display: inline-block;
-            font-size: 10.5px;
+            font-size: 10px;
             font-weight: 700;
             color: #e11d48;
             background: #fff1f2;
             border: 1px solid #fecdd3;
-            padding: 2px 7px;
-            border-radius: 6px;
+            padding: 2px 6px;
+            border-radius: 5px;
+            white-space: nowrap;
         }
         .pulse-badge {
             font-size: 10.5px;
@@ -1020,39 +1036,37 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
                             ?>
                             <tr>
                                 <!-- Jadwal & Jenis -->
-                                <td class="col-jadwal" style="padding-left: 18px;">
-                                    <div class="badge-type <?= $typeClass ?> mb-1">
-                                        <i class="fa-solid <?= $typeIcon ?>" style="font-size: 9px;"></i>
-                                        <?= htmlspecialchars($latest_kegiatan['kegiatan']) ?>
-                                    </div>
-                                    <div class="fw-bold text-dark text-xs mb-0" style="white-space: nowrap;">
-                                        <i class="fa-regular fa-calendar text-muted me-1"></i><?= date("d M Y", strtotime($latest_kegiatan['jadwal'])) ?>
-                                    </div>
-                                    <div class="text-secondary text-xxs mb-1 fw-semibold">
-                                        <i class="fa-regular fa-clock text-muted me-1"></i><?= date("H:i", strtotime($latest_kegiatan['jadwal'])) ?> WIB
-                                    </div>
-                                    <div>
+                                <td class="col-jadwal" style="padding-left: 14px;">
+                                    <div class="d-flex align-items-center gap-1 mb-1">
+                                        <span class="badge-type <?= $typeClass ?>">
+                                            <i class="fa-solid <?= $typeIcon ?>" style="font-size: 8.5px;"></i>
+                                            <?= htmlspecialchars($latest_kegiatan['kegiatan']) ?>
+                                        </span>
                                         <span class="id-mono-tag">#<?= htmlspecialchars($kodeTransaksi) ?></span>
+                                    </div>
+                                    <div class="fw-bold text-dark text-xxs" style="white-space: nowrap;">
+                                        <i class="fa-regular fa-calendar text-muted me-1"></i><?= date("d M Y", strtotime($latest_kegiatan['jadwal'])) ?> · <?= date("H:i", strtotime($latest_kegiatan['jadwal'])) ?>
                                     </div>
                                 </td>
 
                                 <!-- Customer & Alamat -->
                                 <td class="col-customer">
                                     <div style="min-width: 0;">
-                                        <a href="customer-detail.php?id_cust=<?= $latest_kegiatan['customer_id'] ?>" target="_blank" class="fw-bold text-dark text-xs text-decoration-none d-block mb-1 text-truncate" title="<?= htmlspecialchars($latest_kegiatan['nama_customer']) ?>" style="transition: color 0.15s;" onmouseover="this.style.color='#4f46e5'" onmouseout="this.style.color='#0f172a'">
-                                            <?= htmlspecialchars($latest_kegiatan['nama_customer']) ?>
-                                        </a>
-                                        <?php
-                                            $nomorHandphone = $latest_kegiatan['cust_nomor'];
-                                            if (substr($nomorHandphone, 0, 1) === '0') $nomorHandphone = '62' . substr($nomorHandphone, 1);
-                                        ?>
-                                        <div class="mb-1">
-                                            <a href="https://api.whatsapp.com/send?phone=<?= $nomorHandphone ?>" target="_blank" class="wa-pill">
-                                                <i class="fa-brands fa-whatsapp" style="font-size: 11px;"></i>
-                                                <?= htmlspecialchars($latest_kegiatan['cust_nomor']) ?>
+                                        <div class="d-flex align-items-center gap-1 mb-1" style="min-width: 0;">
+                                            <a href="customer-detail.php?id_cust=<?= $latest_kegiatan['customer_id'] ?>" target="_blank" class="cust-name-link text-truncate" title="<?= htmlspecialchars($latest_kegiatan['nama_customer']) ?>">
+                                                <?= htmlspecialchars($latest_kegiatan['nama_customer']) ?>
                                             </a>
+                                            <?php
+                                                $nomorHandphone = $latest_kegiatan['cust_nomor'];
+                                                if (!empty($nomorHandphone)) {
+                                                    if (substr($nomorHandphone, 0, 1) === '0') $nomorHandphone = '62' . substr($nomorHandphone, 1);
+                                            ?>
+                                            <a href="https://api.whatsapp.com/send?phone=<?= $nomorHandphone ?>" target="_blank" class="wa-pill-inline" title="WhatsApp: <?= htmlspecialchars($latest_kegiatan['cust_nomor']) ?>">
+                                                <i class="fa-brands fa-whatsapp"></i> <?= htmlspecialchars($latest_kegiatan['cust_nomor']) ?>
+                                            </a>
+                                            <?php } ?>
                                         </div>
-                                        <div class="text-secondary text-xxs addr-clamp" title="<?= htmlspecialchars($latest_kegiatan['alamat']) ?>">
+                                        <div class="addr-single-line" title="<?= htmlspecialchars($latest_kegiatan['alamat']) ?>">
                                             <i class="fa-solid fa-location-dot text-muted me-1" style="font-size: 9px;"></i><?= htmlspecialchars($latest_kegiatan['alamat']) ?>
                                         </div>
                                     </div>
