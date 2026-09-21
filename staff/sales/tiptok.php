@@ -174,341 +174,382 @@ $resPenitipan = $conn->query($sqlPenitipan);
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>TIP TOK (Titip Barang di Toko) | LOEWIX</title>
+    <title>TIP TOK | Konsinyasi Toko & Insentif</title>
     <?php include "head.php"; ?>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- SweetAlert2 for notifications -->
+    <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
+        /* ═════════════════════════════════════════════════════════
+           TASTE SKILL DESIGN SYSTEM (Refined, Human-Crafted, Clean)
+           ═════════════════════════════════════════════════════════ */
         :root {
-            --primary-blue: #2563eb;
-            --primary-dark: #1e293b;
+            --bg-canvas: #f8fafc;
             --surface-card: #ffffff;
-            --surface-bg: #f8fafc;
-            --border-light: #e2e8f0;
-            --text-main: #0f172a;
-            --text-muted: #64748b;
+            --border-subtle: #e2e8f0;
+            --border-hover: #cbd5e1;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --accent-dark: #0f172a;
+            --accent-emerald: #059669;
+            --accent-emerald-light: #ecfdf5;
+            --accent-amber: #d97706;
+            --accent-amber-light: #fffbeb;
         }
 
         body {
-            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: #f1f5f9;
-            color: var(--text-main);
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-canvas);
+            color: var(--text-primary);
+            letter-spacing: -0.01em;
         }
 
-        /* Hero Header Banner */
-        .tiptok-hero {
-            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #2563eb 100%);
-            border-radius: 20px;
-            padding: 28px 32px;
-            color: #ffffff;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 12px 30px -10px rgba(37, 99, 235, 0.4);
+        /* ── Header Area ── */
+        .page-header-container {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 16px;
+            padding-bottom: 20px;
             margin-bottom: 24px;
+            border-bottom: 1px solid var(--border-subtle);
         }
-        .tiptok-hero::before {
-            content: '';
-            position: absolute;
-            top: -50px;
-            right: -50px;
-            width: 260px;
-            height: 260px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 70%);
-            pointer-events: none;
+        .page-eyebrow {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -0.03em;
+            margin: 0;
+            line-height: 1.2;
+        }
+        .page-subtitle {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin: 4px 0 0 0;
         }
 
-        /* Bento Grid */
-        .bento-grid {
+        /* ── Action Buttons (Taste Skill Standard) ── */
+        .btn-taste-primary {
+            background-color: var(--accent-dark);
+            color: #ffffff;
+            border: 1px solid var(--accent-dark);
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-size: 0.825rem;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.15s ease;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .btn-taste-primary:hover {
+            background-color: #1e293b;
+            color: #ffffff;
+            border-color: #1e293b;
+            transform: translateY(-1px);
+        }
+        .btn-taste-secondary {
+            background-color: #ffffff;
+            color: var(--text-primary);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-size: 0.825rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.15s ease;
+        }
+        .btn-taste-secondary:hover {
+            background-color: #f1f5f9;
+            border-color: var(--border-hover);
+            color: var(--text-primary);
+        }
+
+        /* ── Bento Metrics Grid ── */
+        .metrics-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 16px;
             margin-bottom: 24px;
         }
-        @media (max-width: 1200px) {
-            .bento-grid { grid-template-columns: repeat(2, 1fr); }
-        }
-        @media (max-width: 640px) {
-            .bento-grid { grid-template-columns: 1fr; }
-        }
+        @media (max-width: 1100px) { .metrics-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 600px) { .metrics-grid { grid-template-columns: 1fr; } }
 
-        .bento-card {
+        .metric-card {
             background: #ffffff;
-            border-radius: 16px;
-            padding: 20px 22px;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-            transition: all 0.25s ease;
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 18px 20px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
             position: relative;
-            overflow: hidden;
         }
-        .bento-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.06);
-            border-color: #cbd5e1;
+        .metric-card:hover {
+            border-color: var(--border-hover);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
         }
-        .bento-card .icon-box {
-            width: 44px;
-            height: 44px;
-            border-radius: 12px;
+        .metric-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+            margin-bottom: 8px;
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-size: 1.25rem;
-            margin-bottom: 12px;
+            justify-content: space-between;
         }
-        .bento-card .stat-value {
-            font-size: 1.65rem;
+        .metric-value {
+            font-size: 1.6rem;
             font-weight: 800;
-            line-height: 1.2;
-            color: #0f172a;
-            letter-spacing: -0.5px;
+            color: var(--text-primary);
+            letter-spacing: -0.03em;
+            line-height: 1;
+            margin-bottom: 6px;
         }
-        .bento-card .stat-label {
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: #64748b;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        /* Claim Progress Card */
-        .claim-card-featured {
-            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
-            color: #ffffff;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-        .claim-card-featured .stat-value { color: #ffffff; }
-        .claim-card-featured .stat-label { color: #c7d2fe; }
-
-        .progress-container {
-            background: rgba(255,255,255,0.15);
-            border-radius: 20px;
-            height: 10px;
-            overflow: hidden;
-            margin: 10px 0 6px;
-        }
-        .progress-bar-custom {
-            height: 100%;
-            border-radius: 20px;
-            background: linear-gradient(90deg, #10b981 0%, #34d399 100%);
-            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        /* Filter Tabs */
-        .filter-tabs {
-            display: flex;
-            gap: 8px;
-            overflow-x: auto;
-            padding-bottom: 4px;
-            margin-bottom: 20px;
-        }
-        .tab-btn {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            padding: 8px 18px;
-            border-radius: 10px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: #475569;
-            cursor: pointer;
-            white-space: nowrap;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.2s;
-        }
-        .tab-btn:hover {
-            background: #f1f5f9;
-            color: #0f172a;
-        }
-        .tab-btn.active {
-            background: #2563eb;
-            color: #ffffff;
-            border-color: #2563eb;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
-        }
-        .tab-badge {
-            background: rgba(0,0,0,0.06);
-            padding: 2px 7px;
-            border-radius: 12px;
-            font-size: 0.72rem;
-            font-weight: 700;
-        }
-        .tab-btn.active .tab-badge {
-            background: rgba(255,255,255,0.25);
-            color: #ffffff;
-        }
-
-        /* Main Table Container */
-        .content-card {
-            background: #ffffff;
-            border-radius: 18px;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.03);
-            overflow: hidden;
-            margin-bottom: 30px;
-        }
-        .table-custom {
-            width: 100%;
-            margin-bottom: 0;
-            border-collapse: separate;
-            border-spacing: 0;
-        }
-        .table-custom th {
-            background: #f8fafc;
-            color: #475569;
+        .metric-sub {
             font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            padding: 14px 16px;
-            border-bottom: 1px solid #e2e8f0;
-            white-space: nowrap;
-        }
-        .table-custom td {
-            padding: 16px;
-            vertical-align: middle;
-            border-bottom: 1px solid #f1f5f9;
-            font-size: 0.86rem;
-            color: #1e293b;
-        }
-        .table-custom tr:hover td {
-            background-color: #f8fafc;
-        }
-
-        /* Badges & Pills */
-        .badge-pill {
-            display: inline-flex;
+            color: var(--text-secondary);
+            display: flex;
             align-items: center;
             gap: 5px;
-            padding: 4px 10px;
-            border-radius: 8px;
-            font-size: 0.75rem;
-            font-weight: 700;
-        }
-        .badge-dealer {
-            background: #e0f2fe;
-            color: #0369a1;
-            border: 1px solid #bae6fd;
-        }
-        .badge-active {
-            background: #dcfce7;
-            color: #15803d;
-            border: 1px solid #bbf7d0;
-        }
-        .badge-selesai {
-            background: #f1f5f9;
-            color: #475569;
-            border: 1px solid #cbd5e1;
-        }
-        .badge-ditarik {
-            background: #fee2e2;
-            color: #b91c1c;
-            border: 1px solid #fecaca;
-        }
-        .badge-invoice {
-            background: #fef3c7;
-            color: #92400e;
-            border: 1px solid #fde68a;
-            font-family: monospace;
-            font-weight: 700;
         }
 
-        /* Item Row Pill */
-        .item-chip {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
+        /* Segmented Control Filter Tabs */
+        .segmented-control-container {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+        .segmented-nav {
+            background: #f1f5f9;
+            padding: 3px;
+            border-radius: 10px;
+            display: inline-flex;
+            gap: 2px;
+            border: 1px solid var(--border-subtle);
+        }
+        .segment-btn {
+            border: none;
+            background: transparent;
+            padding: 6px 14px;
             border-radius: 8px;
-            padding: 4px 10px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.15s ease;
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            font-size: 0.78rem;
-            margin: 2px;
+            gap: 6px;
         }
-        .item-chip .stock-counter {
+        .segment-btn.active {
+            background: #ffffff;
+            color: var(--text-primary);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            border: 1px solid rgba(0,0,0,0.04);
+        }
+        .segment-badge {
+            font-size: 0.7rem;
             font-weight: 700;
+            background: #e2e8f0;
+            color: var(--text-secondary);
             padding: 1px 6px;
             border-radius: 6px;
         }
-        .stock-sisa { background: #dcfce7; color: #166534; }
-        .stock-terjual { background: #fee2e2; color: #991b1b; }
-
-        /* Action Buttons */
-        .btn-action-primary {
-            background: #2563eb;
-            color: #ffffff;
-            border: none;
-            padding: 7px 14px;
-            border-radius: 8px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            transition: all 0.15s;
-        }
-        .btn-action-primary:hover {
-            background: #1d4ed8;
-            color: #ffffff;
-            transform: translateY(-1px);
-        }
-        .btn-action-secondary {
+        .segment-btn.active .segment-badge {
             background: #f1f5f9;
-            color: #334155;
-            border: 1px solid #cbd5e1;
-            padding: 7px 12px;
-            border-radius: 8px;
+            color: var(--text-primary);
+        }
+
+        /* Search Input */
+        .search-container {
+            position: relative;
+            min-width: 280px;
+        }
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
             font-size: 0.8rem;
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+        .search-input-refined {
+            width: 100%;
+            background: #ffffff;
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 7px 12px 7px 32px;
+            font-size: 0.825rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+        .search-input-refined:focus {
+            border-color: var(--text-primary);
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.08);
+        }
+
+        /* ── Data Surface Table ── */
+        .data-card {
+            background: #ffffff;
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+            margin-bottom: 24px;
+        }
+        .taste-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0;
+        }
+        .taste-table th {
+            background: #f8fafc;
+            color: var(--text-secondary);
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-subtle);
+            white-space: nowrap;
+        }
+        .taste-table td {
+            padding: 14px 16px;
+            vertical-align: middle;
+            border-bottom: 1px solid var(--border-subtle);
+            font-size: 0.84rem;
+            color: var(--text-primary);
+        }
+        .taste-table tr:last-child td {
+            border-bottom: none;
+        }
+        .taste-table tr:hover td {
+            background-color: #fafafa;
+        }
+
+        /* Badges & Micro Chips */
+        .taste-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 0.72rem;
             font-weight: 600;
+            border: 1px solid transparent;
+        }
+        .badge-neutral { background: #f1f5f9; color: var(--text-secondary); border-color: #e2e8f0; }
+        .badge-dealer-tag { background: #eff6ff; color: #1d4ed8; border-color: #dbeafe; font-weight: 700; }
+        .badge-active-tag { background: var(--accent-emerald-light); color: var(--accent-emerald); border-color: #a7f3d0; }
+        .badge-invoice-tag { background: var(--accent-amber-light); color: var(--accent-amber); border-color: #fde68a; font-family: monospace; }
+
+        /* Item Row Pill */
+        .taste-item-pill {
+            background: #f8fafc;
+            border: 1px solid var(--border-subtle);
+            border-radius: 6px;
+            padding: 4px 8px;
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            transition: all 0.15s;
-        }
-        .btn-action-secondary:hover {
-            background: #e2e8f0;
-            color: #0f172a;
+            font-size: 0.75rem;
+            margin: 2px 0;
         }
 
-        /* Modal Customizations */
-        .modal-custom .modal-content {
-            border-radius: 20px;
+        /* Taste Micro Buttons in Table */
+        .btn-table-primary {
+            background: #0f172a;
+            color: #ffffff;
             border: none;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+            border-radius: 6px;
+            padding: 5px 10px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.15s;
         }
-        .modal-custom .modal-header {
-            background: #f8fafc;
-            border-bottom: 1px solid #e2e8f0;
-            border-top-left-radius: 20px;
-            border-top-right-radius: 20px;
-            padding: 18px 24px;
+        .btn-table-primary:hover {
+            background: #334155;
+            color: #ffffff;
         }
-        .form-control-custom {
-            border: 1.5px solid #cbd5e1;
-            border-radius: 10px;
-            padding: 9px 14px;
-            font-size: 0.9rem;
+        .btn-table-secondary {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-subtle);
+            border-radius: 6px;
+            padding: 5px 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.15s;
+        }
+        .btn-table-secondary:hover {
+            background: #f1f5f9;
+            color: var(--text-primary);
+        }
+
+        /* Modal Styles */
+        .modal-taste .modal-content {
+            border-radius: 14px;
+            border: 1px solid var(--border-subtle);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        .modal-taste .modal-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-subtle);
+            background: #fafafa;
+        }
+        .form-label-taste {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+        }
+        .form-control-taste {
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 0.85rem;
             font-weight: 500;
-            color: #0f172a;
-            transition: border-color 0.2s, box-shadow 0.2s;
+            color: var(--text-primary);
+            transition: border-color 0.15s, box-shadow 0.15s;
         }
-        .form-control-custom:focus {
-            border-color: #2563eb;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        .form-control-taste:focus {
+            border-color: var(--text-primary);
+            box-shadow: 0 0 0 2px rgba(15,23,42,0.08);
             outline: none;
-        }
-        .item-input-row {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 14px;
-            margin-bottom: 12px;
-            position: relative;
         }
     </style>
 </head>
@@ -520,132 +561,133 @@ $resPenitipan = $conn->query($sqlPenitipan);
     <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg">
         <?php include "nav-top.php"; ?>
 
-        <div class="container-fluid py-4">
+        <div class="container-fluid py-4 px-4">
 
-            <!-- Hero Welcome Header -->
-            <div class="tiptok-hero">
-                <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 position-relative" style="z-index: 2;">
-                    <div>
-                        <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-white bg-opacity-20 text-white text-xs font-weight-bold mb-2">
-                            <i class="fa-solid fa-boxes-packing"></i> SISTEM KONSINYASI & MONITORING STOK
-                        </div>
-                        <h2 class="text-white font-weight-bolder mb-1" style="font-size: 1.85rem; letter-spacing: -0.5px;">
-                            TIP TOK (Titip Barang Di Toko)
-                        </h2>
-                        <p class="text-white text-opacity-80 mb-0 text-sm" style="max-width: 650px;">
-                            Kelola penitipan barang di toko dealer, input hasil audit cek sisa stok, catat nomor invoice penjualan, dan pantau klaim insentif min. 50 unit.
-                        </p>
+            <!-- 1. Refined Page Header -->
+            <div class="page-header-container">
+                <div>
+                    <div class="page-eyebrow">
+                        <i class="fa-solid fa-boxes-packing text-primary"></i> APLIKASI SALES / KONSINYASI
                     </div>
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-light font-weight-bold text-primary shadow-sm px-3 py-2 text-sm d-inline-flex align-items-center gap-2" style="border-radius: 10px;" onclick="openModalTambahPenitipan()">
-                            <i class="fa-solid fa-plus-circle"></i> Titip Barang Baru
-                        </button>
-                        <button class="btn btn-warning font-weight-bold text-dark shadow-sm px-3 py-2 text-sm d-inline-flex align-items-center gap-2" style="border-radius: 10px;" onclick="openTabKlaimInsentif()">
-                            <i class="fa-solid fa-hand-holding-dollar"></i> Klaim Insentif
-                        </button>
-                    </div>
+                    <h1 class="page-title">TIP TOK (Titip Barang Di Toko)</h1>
+                    <p class="page-subtitle">
+                        Manajemen penitipan stok toko dealer, laporan sisa fisik kunjungan, dan klaim insentif min. 50 unit.
+                    </p>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <button class="btn-taste-secondary" onclick="openTabKlaimInsentif()">
+                        <i class="fa-solid fa-hand-holding-dollar text-warning"></i> Klaim Insentif
+                    </button>
+                    <button class="btn-taste-primary" onclick="openModalTambahPenitipan()">
+                        <i class="fa-solid fa-plus"></i> Titip Barang Baru
+                    </button>
                 </div>
             </div>
 
-            <!-- Bento Summary KPI Grid -->
-            <div class="bento-grid">
-                <!-- Card 1: Toko Aktif -->
-                <div class="bento-card">
-                    <div class="icon-box bg-blue-100 text-primary">
-                        <i class="fa-solid fa-shop"></i>
+            <!-- 2. Bento Metrics Grid -->
+            <div class="metrics-grid">
+                <!-- Metric 1: Toko Aktif -->
+                <div class="metric-card">
+                    <div class="metric-label">
+                        <span>Toko Dealer Aktif</span>
+                        <i class="fa-solid fa-store text-muted"></i>
                     </div>
-                    <div class="stat-value"><?php echo number_format($totalTokoAktif, 0, ',', '.'); ?></div>
-                    <div class="stat-label">Toko Dealer Aktif</div>
-                    <div class="text-xs text-muted mt-2">
-                        <i class="fa-solid fa-circle-check text-success me-1"></i> Mitra dengan stok konsinyasi
-                    </div>
-                </div>
-
-                <!-- Card 2: Total Unit Dititip & Sisa -->
-                <div class="bento-card">
-                    <div class="icon-box bg-indigo-100 text-indigo">
-                        <i class="fa-solid fa-boxes-stacked"></i>
-                    </div>
-                    <div class="stat-value"><?php echo number_format($totalUnitSisa, 0, ',', '.'); ?> <span class="text-xs text-muted font-weight-normal">/ <?php echo number_format($totalUnitTitip, 0, ',', '.'); ?> Unit</span></div>
-                    <div class="stat-label">Sisa Stok di Toko</div>
-                    <div class="text-xs text-muted mt-2">
-                        <span class="text-success font-weight-bold"><?php echo number_format($totalUnitTerjual, 0, ',', '.'); ?> unit</span> telah terjual
+                    <div class="metric-value"><?php echo number_format($totalTokoAktif, 0, ',', '.'); ?></div>
+                    <div class="metric-sub">
+                        <span class="text-success font-weight-bold"><i class="fa-solid fa-circle text-xxs"></i> Aktif</span> dengan stok konsinyasi
                     </div>
                 </div>
 
-                <!-- Card 3: Akumulasi Insentif Terkumpul -->
-                <div class="bento-card">
-                    <div class="icon-box bg-emerald-100 text-success">
-                        <i class="fa-solid fa-coins"></i>
+                <!-- Metric 2: Sisa Stok di Toko -->
+                <div class="metric-card">
+                    <div class="metric-label">
+                        <span>Sisa Stok di Toko</span>
+                        <i class="fa-solid fa-boxes-stacked text-muted"></i>
                     </div>
-                    <div class="stat-value text-success" style="font-size: 1.45rem;">Rp <?php echo number_format($totalInsentifPool, 0, ',', '.'); ?></div>
-                    <div class="stat-label">Akumulasi Insentif</div>
-                    <div class="text-xs text-muted mt-2">
-                        <i class="fa-solid fa-arrow-trend-up text-success me-1"></i> Dari total seluruh penjualan toko
+                    <div class="metric-value">
+                        <?php echo number_format($totalUnitSisa, 0, ',', '.'); ?> 
+                        <span style="font-size: 0.8rem; font-weight: 500; color: var(--text-muted);">/ <?php echo number_format($totalUnitTitip, 0, ',', '.'); ?> unit</span>
+                    </div>
+                    <div class="metric-sub">
+                        Terjual: <strong class="text-dark"><?php echo number_format($totalUnitTerjual, 0, ',', '.'); ?> unit</strong>
                     </div>
                 </div>
 
-                <!-- Card 4: Claim Progress Threshold (Min 50 Unit) -->
-                <div class="bento-card claim-card-featured">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                        <span class="stat-label">Progres Klaim Insentif</span>
-                        <span class="badge <?php echo $isClaimEligible ? 'bg-success' : 'bg-warning text-dark'; ?> text-xxs font-weight-bold">
-                            <?php echo $isClaimEligible ? 'SIAP KLAIM' : 'MIN. 50 UNIT'; ?>
+                <!-- Metric 3: Akumulasi Insentif -->
+                <div class="metric-card">
+                    <div class="metric-label">
+                        <span>Akumulasi Insentif</span>
+                        <i class="fa-solid fa-coins text-muted"></i>
+                    </div>
+                    <div class="metric-value" style="font-size: 1.45rem;">
+                        Rp <?php echo number_format($totalInsentifPool, 0, ',', '.'); ?>
+                    </div>
+                    <div class="metric-sub">
+                        Dari total unit yang telah terjual
+                    </div>
+                </div>
+
+                <!-- Metric 4: Target Klaim 50 Unit -->
+                <div class="metric-card">
+                    <div class="metric-label">
+                        <span>Target Klaim (Min. 50 Unit)</span>
+                        <span class="taste-badge <?php echo $isClaimEligible ? 'badge-active-tag' : 'badge-neutral'; ?>">
+                            <?php echo $isClaimEligible ? 'SIAP KLAIM' : 'PROSES'; ?>
                         </span>
                     </div>
-                    <div class="stat-value"><?php echo $unclaimedUnits; ?> <span class="text-xs font-weight-normal text-white-50">/ 50 Unit</span></div>
-                    
-                    <div class="progress-container">
-                        <div class="progress-bar-custom" style="width: <?php echo $claimProgress; ?>%;"></div>
+                    <div class="metric-value">
+                        <?php echo $unclaimedUnits; ?> 
+                        <span style="font-size: 0.8rem; font-weight: 500; color: var(--text-muted);">/ 50 unit</span>
                     </div>
-                    
-                    <div class="d-flex justify-content-between text-xxs text-white-50 mt-1">
-                        <span><?php echo $claimProgress; ?>% Tercapai</span>
-                        <span><?php echo ($isClaimEligible ? 'Target Terpenuhi!' : "Kurang $sisaTarget Unit"); ?></span>
+                    <div class="progress mt-2 mb-1" style="height: 6px; background-color: #f1f5f9; border-radius: 10px;">
+                        <div class="progress-bar" style="width: <?php echo $claimProgress; ?>%; background-color: <?php echo $isClaimEligible ? 'var(--accent-emerald)' : '#0f172a'; ?>; border-radius: 10px;"></div>
+                    </div>
+                    <div class="d-flex justify-content-between" style="font-size: 0.7rem; color: var(--text-muted);">
+                        <span><?php echo $claimProgress; ?>% tercapai</span>
+                        <span><?php echo $isClaimEligible ? 'Target tercapai' : "Kurang $sisaTarget unit"; ?></span>
                     </div>
                 </div>
             </div>
 
-            <!-- Filter Tabs & Universal Search -->
-            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
-                <div class="filter-tabs mb-0">
-                    <button class="tab-btn active" onclick="filterTable('all', this)">
-                        <i class="fa-solid fa-list"></i> Semua Penitipan <span class="tab-badge" id="badgeCountAll">0</span>
+            <!-- 3. Segmented Controls & Search Bar -->
+            <div class="segmented-control-container">
+                <div class="segmented-nav">
+                    <button class="segment-btn active" onclick="filterTable('all', this)">
+                        Semua <span class="segment-badge" id="badgeCountAll">0</span>
                     </button>
-                    <button class="tab-btn" onclick="filterTable('aktif', this)">
-                        <i class="fa-solid fa-boxes-packing text-success"></i> Stok Aktif <span class="tab-badge" id="badgeCountAktif">0</span>
+                    <button class="segment-btn" onclick="filterTable('aktif', this)">
+                        Stok Aktif <span class="segment-badge" id="badgeCountAktif">0</span>
                     </button>
-                    <button class="tab-btn" onclick="filterTable('terjual', this)">
-                        <i class="fa-solid fa-receipt text-warning"></i> Ada Penjualan <span class="tab-badge" id="badgeCountTerjual">0</span>
+                    <button class="segment-btn" onclick="filterTable('terjual', this)">
+                        Ada Penjualan <span class="segment-badge" id="badgeCountTerjual">0</span>
                     </button>
-                    <button class="tab-btn" onclick="filterTable('selesai', this)">
-                        <i class="fa-solid fa-clock-rotate-left"></i> Selesai / Ditarik <span class="tab-badge" id="badgeCountSelesai">0</span>
+                    <button class="segment-btn" onclick="filterTable('selesai', this)">
+                        Selesai <span class="segment-badge" id="badgeCountSelesai">0</span>
                     </button>
-                    <button class="tab-btn" onclick="switchViewToClaims()">
-                        <i class="fa-solid fa-hand-holding-dollar text-primary"></i> Tab Klaim Insentif
+                    <button class="segment-btn" onclick="switchViewToClaims()">
+                        <i class="fa-solid fa-receipt text-muted"></i> Tab Klaim Insentif
                     </button>
                 </div>
 
-                <!-- Live Search Bar -->
-                <div class="position-relative" style="min-width: 280px;">
-                    <i class="fa-solid fa-magnifying-glass position-absolute text-muted" style="left: 14px; top: 12px; font-size: 0.85rem;"></i>
-                    <input type="text" id="tiptokSearchInput" class="form-control-custom w-100 ps-5" placeholder="Cari nama toko, alamat, invoice, barang..." onkeyup="searchTiptokTable()">
+                <div class="search-container">
+                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                    <input type="text" id="tiptokSearchInput" class="search-input-refined" placeholder="Cari toko, barang, invoice..." onkeyup="searchTiptokTable()">
                 </div>
             </div>
 
-            <!-- View 1: Main Table Penitipan -->
-            <div id="viewPenitipanTable" class="content-card">
+            <!-- 4. Main Data Table -->
+            <div id="viewPenitipanTable" class="data-card">
                 <div class="table-responsive">
-                    <table class="table table-custom" id="mainTiptokTable">
+                    <table class="table taste-table" id="mainTiptokTable">
                         <thead>
                             <tr>
-                                <th style="width: 5%;">NO</th>
-                                <th style="width: 25%;">TOKO / DEALER</th>
-                                <th style="width: 15%;">KODE & TGL TITIP</th>
+                                <th style="width: 4%;">#</th>
+                                <th style="width: 26%;">TOKO / DEALER</th>
+                                <th style="width: 15%;">KODE & TGL</th>
                                 <th style="width: 25%;">BARANG & MONITORING STOK</th>
-                                <th style="width: 12%;">INVOICE & INSENTIF</th>
+                                <th style="width: 14%;">INVOICE & INSENTIF</th>
                                 <th style="width: 8%;">STATUS</th>
-                                <th style="width: 10%; text-align: center;">AKSI</th>
+                                <th style="width: 8%; text-align: right;">AKSI</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -670,128 +712,101 @@ $resPenitipan = $conn->query($sqlPenitipan);
                                     if ($sumTerjual > 0) $countTerjual++;
                                     if ($statusPen === 'selesai' || $statusPen === 'ditarik' || $sumSisa === 0) $countSelesai++;
 
-                                    // Ambil barang-barang dalam penitipan ini
                                     $qItems = $conn->query("SELECT * FROM tiptok_items WHERE id_penitipan = $idPen ORDER BY id ASC");
                                     $itemList = [];
                                     while ($it = $qItems->fetch_assoc()) {
                                         $itemList[] = $it;
                                     }
 
-                                    // Filter category string for JS filter
                                     $filterCat = 'all';
                                     if ($statusPen === 'aktif' && $sumSisa > 0) $filterCat .= ' aktif';
                                     if ($sumTerjual > 0) $filterCat .= ' terjual';
                                     if ($statusPen === 'selesai' || $statusPen === 'ditarik' || $sumSisa === 0) $filterCat .= ' selesai';
 
-                                    // Format no telp untuk WA
                                     $telpRaw = preg_replace('/\D/', '', $row['telp_toko'] ?? '');
                                     if (substr($telpRaw, 0, 1) === '0') $telpRaw = '62' . substr($telpRaw, 1);
                                     ?>
                                     <tr class="tiptok-row" data-category="<?php echo $filterCat; ?>">
-                                        <td class="text-center font-weight-bold text-muted"><?php echo $no++; ?></td>
+                                        <td class="text-muted font-weight-bold text-center" style="font-size: 0.75rem;"><?php echo $no++; ?></td>
                                         
-                                        <!-- Toko / Dealer -->
+                                        <!-- Toko -->
                                         <td>
-                                            <div class="d-flex align-items-start gap-2">
-                                                <div class="rounded-circle bg-primary bg-opacity-10 text-primary p-2 mt-1" style="min-width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;">
-                                                    <i class="fa-solid fa-store" style="font-size: 0.85rem;"></i>
-                                                </div>
-                                                <div>
-                                                    <div class="d-flex align-items-center gap-2">
-                                                        <span class="font-weight-bold text-dark text-sm"><?php echo htmlspecialchars($row['nama_toko'] ?? 'Toko Tidak Ditemukan'); ?></span>
-                                                        <span class="badge-pill badge-dealer"><?php echo htmlspecialchars($row['kategori_customer'] ?? 'Dealer'); ?></span>
-                                                    </div>
-                                                    
-                                                    <div class="text-xs text-muted mt-1" style="line-height: 1.4;">
-                                                        <i class="fa-solid fa-location-dot text-danger me-1"></i>
-                                                        <?php echo htmlspecialchars($row['alamat_toko'] ?? '-'); ?>, <?php echo htmlspecialchars($row['kota_toko'] ?? ''); ?>
-                                                    </div>
-
-                                                    <?php if (!empty($telpRaw)) : ?>
-                                                        <div class="mt-1">
-                                                            <a href="https://wa.me/<?php echo $telpRaw; ?>" target="_blank" class="text-success text-xxs font-weight-bold text-decoration-none">
-                                                                <i class="fa-brands fa-whatsapp me-1"></i><?php echo htmlspecialchars($row['telp_toko']); ?>
-                                                            </a>
-                                                        </div>
-                                                    <?php endif; ?>
-                                                </div>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <span class="font-weight-bold text-dark"><?php echo htmlspecialchars($row['nama_toko'] ?? 'Toko Tidak Ditemukan'); ?></span>
+                                                <span class="taste-badge badge-dealer-tag"><?php echo htmlspecialchars($row['kategori_customer'] ?? 'Dealer'); ?></span>
                                             </div>
+                                            <div class="text-xs text-muted mt-0.5">
+                                                <?php echo htmlspecialchars($row['alamat_toko'] ?? '-'); ?><?php echo !empty($row['kota_toko']) ? ', ' . htmlspecialchars($row['kota_toko']) : ''; ?>
+                                            </div>
+                                            <?php if (!empty($telpRaw)) : ?>
+                                                <a href="https://wa.me/<?php echo $telpRaw; ?>" target="_blank" class="text-success text-xxs font-weight-bold text-decoration-none mt-1 d-inline-block">
+                                                    <i class="fa-brands fa-whatsapp me-1"></i><?php echo htmlspecialchars($row['telp_toko']); ?>
+                                                </a>
+                                            <?php endif; ?>
                                         </td>
 
-                                        <!-- Kode & Tanggal Titip -->
+                                        <!-- Kode & Tanggal -->
                                         <td>
-                                            <span class="badge-pill bg-light text-dark font-monospace mb-1">
-                                                <i class="fa-solid fa-hashtag text-primary me-1"></i><?php echo htmlspecialchars($row['kode_titip']); ?>
-                                            </span>
-                                            <div class="text-xs text-muted">
-                                                <i class="fa-solid fa-calendar text-secondary me-1"></i><?php echo date('d M Y', strtotime($row['tgl_titip'])); ?>
-                                            </div>
-                                            <div class="text-xxs text-muted mt-1">
-                                                <i class="fa-solid fa-user-tie me-1"></i>Sales: <strong><?php echo htmlspecialchars($row['nama_sales'] ?? 'Sales'); ?></strong>
-                                            </div>
+                                            <div class="font-monospace text-xs font-weight-bold text-dark"><?php echo htmlspecialchars($row['kode_titip']); ?></div>
+                                            <div class="text-xxs text-muted mt-0.5"><?php echo date('d M Y', strtotime($row['tgl_titip'])); ?></div>
+                                            <div class="text-xxs text-muted mt-0.5">Sales: <strong><?php echo htmlspecialchars($row['nama_sales'] ?? 'Sales'); ?></strong></div>
                                         </td>
 
-                                        <!-- Daftar Barang & Stok -->
+                                        <!-- Barang & Stok -->
                                         <td>
                                             <div class="d-flex flex-column gap-1">
                                                 <?php foreach ($itemList as $it) : 
                                                     $sisa = intval($it['qty_sisa']);
                                                     $terjual = intval($it['qty_terjual']);
-                                                    $titip = intval($it['qty_titip']);
                                                     $insPerUnit = floatval($it['insentif_per_unit']);
                                                 ?>
-                                                    <div class="item-chip">
+                                                    <div class="taste-item-pill">
                                                         <span class="font-weight-bold text-dark"><?php echo htmlspecialchars($it['nama_barang']); ?></span>
-                                                        <span class="text-xxs text-muted">(Insentif: Rp <?php echo number_format($insPerUnit, 0, ',', '.'); ?>/unit)</span>
-                                                        <span class="ms-auto stock-counter stock-sisa" title="Sisa Stok di Toko">Sisa: <?php echo $sisa; ?></span>
+                                                        <span class="text-muted ms-auto">Sisa: <strong class="<?php echo $sisa > 0 ? 'text-success' : 'text-muted'; ?>"><?php echo $sisa; ?></strong></span>
                                                         <?php if ($terjual > 0) : ?>
-                                                            <span class="stock-counter stock-terjual" title="Unit Terjual">Laku: <?php echo $terjual; ?></span>
+                                                            <span class="text-danger font-weight-bold ms-1">Laku: <?php echo $terjual; ?></span>
                                                         <?php endif; ?>
                                                     </div>
                                                 <?php endforeach; ?>
                                             </div>
                                         </td>
 
-                                        <!-- Invoice & Estimasi Insentif -->
+                                        <!-- Invoice & Insentif -->
                                         <td>
                                             <?php if (!empty($row['last_no_inv'])) : ?>
-                                                <span class="badge-pill badge-invoice mb-1">
-                                                    <i class="fa-solid fa-file-invoice me-1"></i><?php echo htmlspecialchars($row['last_no_inv']); ?>
-                                                </span>
+                                                <div class="taste-badge badge-invoice-tag mb-1">
+                                                    <?php echo htmlspecialchars($row['last_no_inv']); ?>
+                                                </div>
                                             <?php else: ?>
-                                                <span class="text-xxs text-muted fst-italic">Belum ada invoice</span>
+                                                <div class="text-xxs text-muted fst-italic">Belum ada invoice</div>
                                             <?php endif; ?>
-
-                                            <div class="text-xs font-weight-bold text-success mt-1">
+                                            <div class="text-xs font-weight-bold text-success">
                                                 Rp <?php echo number_format($sumInsentif, 0, ',', '.'); ?>
                                             </div>
-                                            <div class="text-xxs text-muted">
-                                                (Total Terjual: <?php echo $sumTerjual; ?> unit)
-                                            </div>
+                                            <div class="text-xxs text-muted">(Terjual: <?php echo $sumTerjual; ?> unit)</div>
                                         </td>
 
-                                        <!-- Status Penitipan -->
+                                        <!-- Status -->
                                         <td>
                                             <?php if ($statusPen === 'aktif' && $sumSisa > 0) : ?>
-                                                <span class="badge-pill badge-active"><i class="fa-solid fa-circle text-success" style="font-size: 6px;"></i> Aktif</span>
+                                                <span class="taste-badge badge-active-tag">Aktif</span>
                                             <?php elseif ($statusPen === 'selesai' || $sumSisa === 0) : ?>
-                                                <span class="badge-pill badge-selesai"><i class="fa-solid fa-check text-secondary"></i> Selesai</span>
+                                                <span class="taste-badge badge-neutral">Selesai</span>
                                             <?php else : ?>
-                                                <span class="badge-pill badge-ditarik"><i class="fa-solid fa-ban text-danger"></i> Ditarik</span>
+                                                <span class="taste-badge badge-neutral text-danger">Ditarik</span>
                                             <?php endif; ?>
                                         </td>
 
                                         <!-- Aksi -->
-                                        <td class="text-center">
-                                            <div class="d-flex flex-column gap-1">
+                                        <td style="text-align: right;">
+                                            <div class="d-inline-flex gap-1">
                                                 <?php if ($statusPen === 'aktif' && $sumSisa > 0) : ?>
-                                                    <button class="btn-action-primary w-100 justify-content-center" onclick="openModalLaporKunjungan(<?php echo $idPen; ?>)">
-                                                        <i class="fa-solid fa-clipboard-check"></i> Cek Sisa
+                                                    <button class="btn-table-primary" onclick="openModalLaporKunjungan(<?php echo $idPen; ?>)" title="Lapor Kunjungan / Cek Stok Sisa">
+                                                        <i class="fa-solid fa-check"></i> Cek Sisa
                                                     </button>
                                                 <?php endif; ?>
-
-                                                <button class="btn-action-secondary w-100 justify-content-center" onclick="openModalDetailTiptok(<?php echo $idPen; ?>)">
-                                                    <i class="fa-solid fa-eye"></i> Detail
+                                                <button class="btn-table-secondary" onclick="openModalDetailTiptok(<?php echo $idPen; ?>)" title="Lihat Riwayat Lengkap">
+                                                    <i class="fa-solid fa-eye"></i>
                                                 </button>
                                             </div>
                                         </td>
@@ -799,11 +814,14 @@ $resPenitipan = $conn->query($sqlPenitipan);
                                 <?php }
                             } else { ?>
                                 <tr>
-                                    <td colspan="7" class="text-center py-5 text-muted">
-                                        <i class="fa-solid fa-box-open fa-3x mb-3 text-secondary opacity-50"></i>
-                                        <p class="mb-2 font-weight-bold">Belum Ada Data Penitipan Barang di Toko (TIP TOK)</p>
-                                        <button class="btn btn-sm btn-primary" onclick="openModalTambahPenitipan()">
-                                            <i class="fa-solid fa-plus me-1"></i> Buat Penitipan Baru Sekarang
+                                    <td colspan="7" class="text-center py-5">
+                                        <div class="d-inline-flex p-3 rounded-circle bg-light text-muted mb-2">
+                                            <i class="fa-solid fa-box-open fa-2x"></i>
+                                        </div>
+                                        <div class="font-weight-bold text-dark text-sm mb-1">Belum Ada Data Penitipan Barang</div>
+                                        <p class="text-xs text-muted mb-3">Mulai catat barang konsinyasi pertama yang dititipkan di toko dealer mitra.</p>
+                                        <button class="btn-taste-primary btn-sm" onclick="openModalTambahPenitipan()">
+                                            <i class="fa-solid fa-plus"></i> Titip Barang Baru
                                         </button>
                                     </td>
                                 </tr>
@@ -813,57 +831,58 @@ $resPenitipan = $conn->query($sqlPenitipan);
                 </div>
             </div>
 
-            <!-- View 2: Tab Khusus Klaim Insentif (Min 50 Unit) -->
-            <div id="viewKlaimInsentif" class="content-card d-none p-4">
+            <!-- 5. View Tab Klaim Insentif -->
+            <div id="viewKlaimInsentif" class="data-card d-none p-4">
                 <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
                     <div>
-                        <h4 class="font-weight-bold text-dark mb-1"><i class="fa-solid fa-hand-holding-dollar text-primary me-2"></i>Klaim Insentif Penjualan Toko</h4>
-                        <p class="text-muted text-xs mb-0">Akumulasi unit terjual dari seluruh kunjungan toko mitra. Syarat klaim minimal <strong>50 Unit Terjual</strong>.</p>
+                        <h4 class="font-weight-bold text-dark mb-1">Klaim Insentif Penjualan</h4>
+                        <p class="text-muted text-xs mb-0">Akumulasi unit terjual dari seluruh kunjungan toko dealer. Syarat klaim minimal <strong>50 Unit</strong>.</p>
                     </div>
-                    <button class="btn btn-sm btn-outline-secondary" onclick="switchViewToTable()">
-                        <i class="fa-solid fa-arrow-left me-1"></i> Kembali ke Data Penitipan
+                    <button class="btn-taste-secondary btn-sm" onclick="switchViewToTable()">
+                        <i class="fa-solid fa-arrow-left me-1"></i> Kembali ke Tabel Penitipan
                     </button>
                 </div>
 
-                <!-- Bento Info Status Klaim -->
                 <div class="row mb-4">
                     <div class="col-md-6 mb-3">
-                        <div class="p-3 rounded-3 border bg-light h-100">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="text-xs font-weight-bold text-uppercase text-muted">Unit Terjual Siap Klaim</span>
-                                <span class="badge <?php echo $isClaimEligible ? 'bg-success' : 'bg-warning text-dark'; ?> text-xs">
-                                    <?php echo $isClaimEligible ? 'SYARAT TERPENUHI (>= 50)' : 'BELUM MEMENUHI SYARAT (< 50)'; ?>
+                        <div class="metric-card h-100">
+                            <div class="metric-label">
+                                <span>Unit Terjual Siap Klaim</span>
+                                <span class="taste-badge <?php echo $isClaimEligible ? 'badge-active-tag' : 'badge-neutral'; ?>">
+                                    <?php echo $isClaimEligible ? 'SYARAT TERPENUHI (>= 50)' : 'BELUM MEMENUHI (< 50)'; ?>
                                 </span>
                             </div>
-                            <h3 class="font-weight-bolder text-dark mb-1"><?php echo $unclaimedUnits; ?> <span class="text-sm font-weight-normal text-muted">/ 50 Unit Minimal</span></h3>
-                            <div class="progress mb-2" style="height: 10px; border-radius: 10px;">
-                                <div class="progress-bar bg-success" role="progressbar" style="width: <?php echo $claimProgress; ?>%"></div>
+                            <div class="metric-value"><?php echo $unclaimedUnits; ?> <span style="font-size: 0.8rem; font-weight: 500; color: var(--text-muted);">/ 50 unit minimal</span></div>
+                            <div class="progress my-2" style="height: 6px; background-color: #f1f5f9; border-radius: 10px;">
+                                <div class="progress-bar" style="width: <?php echo $claimProgress; ?>%; background-color: var(--accent-emerald); border-radius: 10px;"></div>
                             </div>
                             <div class="text-xs text-muted">
                                 <?php if ($isClaimEligible) : ?>
-                                    <span class="text-success font-weight-bold"><i class="fa-solid fa-check-circle me-1"></i>Selamat! Anda telah memenuhi syarat 50 unit terjual dan siap mengajukan klaim.</span>
+                                    <span class="text-success font-weight-bold"><i class="fa-solid fa-check-circle me-1"></i>Syarat 50 unit terpenuhi. Anda siap mengajukan klaim insentif.</span>
                                 <?php else : ?>
-                                    <span class="text-danger font-weight-bold"><i class="fa-solid fa-info-circle me-1"></i>Perlu <?php echo $sisaTarget; ?> unit terjual lagi untuk dapat mengajukan klaim insentif.</span>
+                                    <span class="text-secondary"><i class="fa-solid fa-circle-info me-1"></i>Perlu <?php echo $sisaTarget; ?> unit lagi untuk dapat mengajukan klaim insentif.</span>
                                 <?php endif; ?>
                             </div>
                         </div>
                     </div>
 
                     <div class="col-md-6 mb-3">
-                        <div class="p-3 rounded-3 border bg-light h-100 d-flex flex-column justify-content-between">
+                        <div class="metric-card h-100 d-flex flex-column justify-content-between">
                             <div>
-                                <span class="text-xs font-weight-bold text-uppercase text-muted">Total Nominal Insentif Siap Cair</span>
-                                <h2 class="font-weight-bolder text-success mb-1">Rp <?php echo number_format($unclaimedNominal, 0, ',', '.'); ?></h2>
-                                <p class="text-xs text-muted mb-0">Total akumulasi rupiah dari seluruh unit barang yang telah terverifikasi dengan No. Invoice.</p>
+                                <div class="metric-label">Total Nominal Insentif Siap Cair</div>
+                                <div class="metric-value text-success" style="font-size: 1.8rem;">
+                                    Rp <?php echo number_format($unclaimedNominal, 0, ',', '.'); ?>
+                                </div>
+                                <p class="text-xs text-muted mb-0">Total akumulasi dari unit barang yang terjual dengan No. Invoice valid.</p>
                             </div>
                             <div class="mt-3">
                                 <?php if ($isClaimEligible) : ?>
-                                    <button class="btn btn-success w-100 font-weight-bold py-2" onclick="openModalSubmitClaim()">
-                                        <i class="fa-solid fa-paper-plane me-2"></i>Ajukan Klaim Insentif Sekarang
+                                    <button class="btn-taste-primary w-100 justify-content-center" onclick="openModalSubmitClaim()">
+                                        <i class="fa-solid fa-paper-plane me-1"></i> Ajukan Klaim Insentif Sekarang
                                     </button>
                                 <?php else : ?>
-                                    <button class="btn btn-secondary w-100 font-weight-bold py-2" disabled>
-                                        <i class="fa-solid fa-lock me-2"></i>Klaim Terkunci (Min. 50 Unit)
+                                    <button class="btn-taste-secondary w-100 justify-content-center text-muted" disabled>
+                                        <i class="fa-solid fa-lock me-1"></i> Klaim Terkunci (Min. 50 Unit)
                                     </button>
                                 <?php endif; ?>
                             </div>
@@ -871,17 +890,16 @@ $resPenitipan = $conn->query($sqlPenitipan);
                     </div>
                 </div>
 
-                <!-- Table Rincian Unit Terjual yang Belum Diklaim -->
-                <h6 class="font-weight-bold text-dark mb-3"><i class="fa-solid fa-receipt text-primary me-2"></i>Rincian Unit Terjual yang Belum Masuk Klaim</h6>
-                <div class="table-responsive mb-4">
-                    <table class="table table-bordered table-sm text-sm" id="tableUnclaimedItems">
-                        <thead class="table-light">
+                <div class="font-weight-bold text-dark text-xs text-uppercase mb-2">Rincian Unit Terjual Belum Diklaim</div>
+                <div class="table-responsive border rounded-3 mb-4">
+                    <table class="table taste-table mb-0" id="tableUnclaimedItems">
+                        <thead>
                             <tr>
                                 <th>TGL KUNJUNGAN</th>
                                 <th>TOKO / DEALER</th>
                                 <th>NAMA BARANG</th>
                                 <th>NO. INVOICE</th>
-                                <th class="text-center">QTY TERJUAL</th>
+                                <th class="text-center">QTY</th>
                                 <th class="text-end">INSENTIF / UNIT</th>
                                 <th class="text-end">SUBTOTAL</th>
                             </tr>
@@ -892,19 +910,18 @@ $resPenitipan = $conn->query($sqlPenitipan);
                     </table>
                 </div>
 
-                <!-- Riwayat Pengajuan Klaim Insentif -->
-                <h6 class="font-weight-bold text-dark mb-3"><i class="fa-solid fa-clock-rotate-left text-primary me-2"></i>Riwayat Pengajuan Klaim Insentif</h6>
-                <div class="table-responsive">
-                    <table class="table table-bordered table-sm text-sm" id="tableClaimHistory">
-                        <thead class="table-light">
+                <div class="font-weight-bold text-dark text-xs text-uppercase mb-2">Riwayat Pengajuan Klaim</div>
+                <div class="table-responsive border rounded-3">
+                    <table class="table taste-table mb-0" id="tableClaimHistory">
+                        <thead>
                             <tr>
                                 <th>KODE KLAIM</th>
-                                <th>NAMA SALES</th>
+                                <th>SALES</th>
                                 <th>TGL KLAIM</th>
                                 <th class="text-center">TOTAL UNIT</th>
                                 <th class="text-end">NOMINAL (RP)</th>
                                 <th class="text-center">STATUS</th>
-                                <th class="text-center">AKSI</th>
+                                <th style="text-align: right;">AKSI</th>
                             </tr>
                         </thead>
                         <tbody id="bodyClaimHistory">
@@ -922,71 +939,59 @@ $resPenitipan = $conn->query($sqlPenitipan);
     <!-- ========================================================================= -->
     <!-- MODAL 1: TAMBAH PENITIPAN BARU                                           -->
     <!-- ========================================================================= -->
-    <div class="modal fade modal-custom" id="modalTambahPenitipan" tabindex="-1" aria-hidden="true">
+    <div class="modal fade modal-taste" id="modalTambahPenitipan" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
                     <div>
-                        <h5 class="modal-title font-weight-bold text-dark mb-0">
-                            <i class="fa-solid fa-boxes-packing text-primary me-2"></i>Titip Barang Baru di Toko (TIP TOK)
-                        </h5>
-                        <small class="text-muted">Daftarkan barang yang dititipkan (konsinyasi) ke toko mitra / dealer</small>
+                        <h6 class="modal-title font-weight-bold text-dark mb-0">Titip Barang Baru di Toko</h6>
+                        <small class="text-muted">Pilih toko dealer dan input daftar barang yang dititipkan</small>
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 
                 <form id="formTambahPenitipan" onsubmit="submitTambahPenitipan(event)">
                     <div class="modal-body p-4">
-                        
-                        <!-- Toko Dealer Selection -->
-                        <div class="row mb-3">
+                        <div class="row g-3 mb-3">
                             <div class="col-md-8">
-                                <label class="form-label font-weight-bold text-xs text-uppercase text-dark">Pilih Toko / Dealer Tujuan <span class="text-danger">*</span></label>
-                                <select name="id_customer" id="selectDealer" class="form-control-custom w-100" required onchange="onDealerSelected()">
-                                    <option value="">-- Cari / Pilih Toko Customer --</option>
+                                <label class="form-label-taste">Toko / Dealer Tujuan <span class="text-danger">*</span></label>
+                                <select name="id_customer" id="selectDealer" class="form-control-taste w-100" required onchange="onDealerSelected()">
+                                    <option value="">-- Pilih Toko Customer --</option>
                                 </select>
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label font-weight-bold text-xs text-uppercase text-dark">Tanggal Penitipan <span class="text-danger">*</span></label>
-                                <input type="date" name="tgl_titip" class="form-control-custom w-100" value="<?php echo date('Y-m-d'); ?>" required>
+                                <label class="form-label-taste">Tanggal Titip <span class="text-danger">*</span></label>
+                                <input type="date" name="tgl_titip" class="form-control-taste w-100" value="<?php echo date('Y-m-d'); ?>" required>
                             </div>
                         </div>
 
-                        <!-- Store details preview -->
-                        <div id="dealerPreview" class="p-3 mb-3 rounded-3 bg-light border d-none">
+                        <div id="dealerPreview" class="p-3 mb-3 rounded-2 bg-light border d-none">
                             <div class="d-flex justify-content-between align-items-center">
                                 <span class="font-weight-bold text-dark text-sm" id="prevNamaToko">-</span>
-                                <span class="badge bg-primary text-xxs" id="prevKategoriToko">Dealer</span>
+                                <span class="taste-badge badge-dealer-tag" id="prevKategoriToko">Dealer</span>
                             </div>
                             <div class="text-xs text-muted mt-1" id="prevAlamatToko">-</div>
                             <div class="text-xs text-success mt-1" id="prevTelpToko">-</div>
                         </div>
 
-                        <!-- Multi-item Rows -->
                         <div class="d-flex justify-content-between align-items-center mb-2 mt-4">
-                            <label class="form-label font-weight-bold text-xs text-uppercase text-dark mb-0">
-                                <i class="fa-solid fa-list-check me-1 text-primary"></i> Daftar Barang yang Dititipkan <span class="text-danger">*</span>
-                            </label>
-                            <button type="button" class="btn btn-xs btn-outline-primary mb-0 font-weight-bold" onclick="tambahBarisBarang()">
-                                <i class="fa-solid fa-plus me-1"></i> Tambah Barang
+                            <label class="form-label-taste mb-0">Daftar Barang Dititipkan <span class="text-danger">*</span></label>
+                            <button type="button" class="btn-taste-secondary btn-sm py-1" onclick="tambahBarisBarang()">
+                                <i class="fa-solid fa-plus me-1"></i> Tambah Baris
                             </button>
                         </div>
 
-                        <div id="containerItemRows">
-                            <!-- Rows will be dynamically injected here -->
-                        </div>
+                        <div id="containerItemRows"></div>
 
-                        <!-- Catatan -->
                         <div class="mt-3">
-                            <label class="form-label font-weight-bold text-xs text-uppercase text-dark">Catatan Penitipan / Perjanjian (Opsional)</label>
-                            <textarea name="catatan" class="form-control-custom w-100" rows="2" placeholder="Contoh: Barang dititip display toko 30 hari, tagihan dibayar jika laku..."></textarea>
+                            <label class="form-label-taste">Catatan Penitipan (Opsional)</label>
+                            <textarea name="catatan" class="form-control-taste w-100" rows="2" placeholder="Catatan perjanjian penitipan stok..."></textarea>
                         </div>
-
                     </div>
-                    <div class="modal-footer bg-light border-top p-3">
-                        <button type="button" class="btn btn-secondary mb-0 px-4" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" id="btnSimpanPenitipan" class="btn btn-primary mb-0 px-4 font-weight-bold">
-                            <i class="fa-solid fa-floppy-disk me-1"></i> Simpan Data Penitipan
+                    <div class="modal-footer p-3 bg-light border-top">
+                        <button type="button" class="btn-taste-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" id="btnSimpanPenitipan" class="btn-taste-primary">
+                            <i class="fa-solid fa-check me-1"></i> Simpan Penitipan
                         </button>
                     </div>
                 </form>
@@ -997,15 +1002,13 @@ $resPenitipan = $conn->query($sqlPenitipan);
     <!-- ========================================================================= -->
     <!-- MODAL 2: LAPORAN KUNJUNGAN & CEK STOK SISA                                -->
     <!-- ========================================================================= -->
-    <div class="modal fade modal-custom" id="modalLaporKunjungan" tabindex="-1" aria-hidden="true">
+    <div class="modal fade modal-taste" id="modalLaporKunjungan" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
                     <div>
-                        <h5 class="modal-title font-weight-bold text-dark mb-0">
-                            <i class="fa-solid fa-clipboard-check text-success me-2"></i>Laporan Kunjungan & Cek Stok Sisa
-                        </h5>
-                        <small class="text-muted">Input kondisi sisa fisik barang di toko. Wajib input No. Invoice jika ada barang terjual!</small>
+                        <h6 class="modal-title font-weight-bold text-dark mb-0">Laporan Kunjungan & Cek Sisa Stok</h6>
+                        <small class="text-muted">Input kondisi sisa fisik barang di toko. Wajib No. Invoice jika ada yang laku!</small>
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -1013,64 +1016,55 @@ $resPenitipan = $conn->query($sqlPenitipan);
                 <form id="formLaporKunjungan" onsubmit="submitLaporKunjungan(event)" enctype="multipart/form-data">
                     <input type="hidden" name="id_penitipan" id="kunjunganIdPenitipan">
                     <div class="modal-body p-4">
-                        
-                        <div class="p-3 mb-3 rounded-3 bg-light border">
+                        <div class="p-3 mb-3 rounded-2 bg-light border">
                             <div class="d-flex justify-content-between">
                                 <span class="font-weight-bold text-dark" id="kunjunganNamaToko">-</span>
-                                <span class="badge bg-dark font-monospace text-xxs" id="kunjunganKodeTitip">-</span>
+                                <span class="font-monospace text-xs text-muted" id="kunjunganKodeTitip">-</span>
                             </div>
                             <div class="text-xs text-muted mt-1" id="kunjunganAlamatToko">-</div>
                         </div>
 
-                        <div class="row mb-3">
+                        <div class="row g-3 mb-3">
                             <div class="col-md-6">
-                                <label class="form-label font-weight-bold text-xs text-uppercase text-dark">Tanggal Kunjungan / Audit <span class="text-danger">*</span></label>
-                                <input type="date" name="tgl_kunjungan" class="form-control-custom w-100" value="<?php echo date('Y-m-d'); ?>" required>
+                                <label class="form-label-taste">Tanggal Kunjungan <span class="text-danger">*</span></label>
+                                <input type="date" name="tgl_kunjungan" class="form-control-taste w-100" value="<?php echo date('Y-m-d'); ?>" required>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label font-weight-bold text-xs text-uppercase text-dark">Foto Bukti Display / Stok (Opsional)</label>
-                                <input type="file" name="foto_kunjungan" class="form-control-custom w-100" accept="image/*">
+                                <label class="form-label-taste">Foto Bukti Display / Stok (Opsional)</label>
+                                <input type="file" name="foto_kunjungan" class="form-control-taste w-100" accept="image/*">
                             </div>
                         </div>
 
-                        <!-- Cek Stok Sisa Table -->
-                        <h6 class="font-weight-bold text-dark text-xs text-uppercase mt-4 mb-2">
-                            <i class="fa-solid fa-boxes-stacked text-primary me-1"></i> Audit Fisik Stok Sisa & Penjualan
-                        </h6>
-                        <div class="table-responsive border rounded-3 bg-white mb-3">
-                            <table class="table table-sm mb-0">
-                                <thead class="table-light">
-                                    <tr class="text-xs text-uppercase">
-                                        <th style="width: 30%;">NAMA BARANG</th>
-                                        <th style="width: 15%; text-align: center;">STOK SEBELUMNYA</th>
-                                        <th style="width: 18%;">STOK SISA FISIK <span class="text-danger">*</span></th>
+                        <div class="form-label-taste mt-3 mb-2">Audit Fisik Stok Sisa & Penjualan</div>
+                        <div class="table-responsive border rounded-2 mb-3">
+                            <table class="table taste-table mb-0">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 32%;">NAMA BARANG</th>
+                                        <th style="width: 15%; text-align: center;">STOK LALU</th>
+                                        <th style="width: 18%;">SISA FISIK <span class="text-danger">*</span></th>
                                         <th style="width: 12%; text-align: center;">TERJUAL</th>
-                                        <th style="width: 25%;">NO. INVOICE <span class="text-danger">*</span></th>
+                                        <th style="width: 23%;">NO. INVOICE <span class="text-danger">*</span></th>
                                     </tr>
                                 </thead>
-                                <tbody id="kunjunganItemsBody">
-                                    <!-- Dynamic Rows per Item -->
-                                </tbody>
+                                <tbody id="kunjunganItemsBody"></tbody>
                             </table>
                         </div>
 
-                        <div class="alert alert-info py-2 px-3 text-xs text-dark border-0 bg-blue-50 d-flex align-items-center gap-2 mb-3">
-                            <i class="fa-solid fa-circle-info text-primary fa-lg"></i>
-                            <div>
-                                <strong>Catatan Validasi:</strong> Jika ada unit terjual (Stok Sisa < Stok Sebelumnya), Anda <strong>WAJIB</strong> mengisi No. Invoice untuk klaim insentif.
-                            </div>
+                        <div class="p-2 px-3 rounded-2 bg-light border text-xs text-muted mb-3 d-flex align-items-center gap-2">
+                            <i class="fa-solid fa-circle-info text-primary"></i>
+                            <span>Jika ada barang terjual (Sisa < Stok Lalu), input <strong>Nomor Invoice</strong> wajib diisi.</span>
                         </div>
 
                         <div>
-                            <label class="form-label font-weight-bold text-xs text-uppercase text-dark">Catatan Hasil Kunjungan / Toko</label>
-                            <textarea name="catatan_kunjungan" class="form-control-custom w-100" rows="2" placeholder="Tuliskan respon toko, rencana restock, atau kendala..."></textarea>
+                            <label class="form-label-taste">Catatan Kunjungan</label>
+                            <textarea name="catatan_kunjungan" class="form-control-taste w-100" rows="2" placeholder="Catatan hasil audit toko..."></textarea>
                         </div>
-
                     </div>
-                    <div class="modal-footer bg-light border-top p-3">
-                        <button type="button" class="btn btn-secondary mb-0 px-4" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" id="btnSimpanKunjungan" class="btn btn-success mb-0 px-4 font-weight-bold">
-                            <i class="fa-solid fa-check-circle me-1"></i> Simpan Laporan Kunjungan
+                    <div class="modal-footer p-3 bg-light border-top">
+                        <button type="button" class="btn-taste-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" id="btnSimpanKunjungan" class="btn-taste-primary">
+                            <i class="fa-solid fa-check me-1"></i> Simpan Laporan
                         </button>
                     </div>
                 </form>
@@ -1081,14 +1075,12 @@ $resPenitipan = $conn->query($sqlPenitipan);
     <!-- ========================================================================= -->
     <!-- MODAL 3: DETAIL LENGKAP & RIWAYAT KUNJUNGAN TOKO                          -->
     <!-- ========================================================================= -->
-    <div class="modal fade modal-custom" id="modalDetailTiptok" tabindex="-1" aria-hidden="true">
+    <div class="modal fade modal-taste" id="modalDetailTiptok" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
                     <div>
-                        <h5 class="modal-title font-weight-bold text-dark mb-0">
-                            <i class="fa-solid fa-circle-info text-primary me-2"></i>Detail Konsinyasi & Histori Audit Toko
-                        </h5>
+                        <h6 class="modal-title font-weight-bold text-dark mb-0">Detail Konsinyasi & Histori Audit</h6>
                         <small class="text-muted" id="detailKodeTitip">-</small>
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -1096,32 +1088,30 @@ $resPenitipan = $conn->query($sqlPenitipan);
                 
                 <div class="modal-body p-4">
                     <div id="detailLoading" class="text-center py-5">
-                        <div class="spinner-border text-primary" role="status"></div>
+                        <div class="spinner-border spinner-border-sm text-dark" role="status"></div>
                         <p class="text-muted text-xs mt-2">Memuat riwayat konsinyasi...</p>
                     </div>
 
                     <div id="detailContent" class="d-none">
-                        <!-- Toko Info Banner -->
-                        <div class="p-3 mb-4 rounded-3 bg-light border">
+                        <div class="p-3 mb-4 rounded-2 bg-light border">
                             <div class="row">
                                 <div class="col-md-6">
-                                    <h5 class="font-weight-bold text-dark mb-1" id="detNamaToko">-</h5>
+                                    <h6 class="font-weight-bold text-dark mb-1" id="detNamaToko">-</h6>
                                     <div class="text-xs text-muted" id="detAlamatToko">-</div>
                                     <div class="text-xs text-success mt-1" id="detTelpToko">-</div>
                                 </div>
                                 <div class="col-md-6 text-md-end mt-2 mt-md-0">
-                                    <span class="badge bg-primary text-xs font-monospace" id="detKodeTitip">-</span>
+                                    <span class="taste-badge badge-neutral font-monospace font-weight-bold" id="detKodeTitip">-</span>
                                     <div class="text-xs text-muted mt-1">Tgl Titip: <strong id="detTglTitip">-</strong></div>
                                     <div class="text-xs text-muted">Sales: <strong id="detNamaSales">-</strong></div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Ringkasan Stok Saat Ini -->
-                        <h6 class="font-weight-bold text-dark text-xs text-uppercase mb-2"><i class="fa-solid fa-boxes-stacked text-primary me-1"></i> Rincian Stok Barang</h6>
-                        <div class="table-responsive border rounded-3 mb-4">
-                            <table class="table table-sm mb-0">
-                                <thead class="table-light text-xs text-uppercase">
+                        <div class="form-label-taste mb-2">Rincian Stok Barang</div>
+                        <div class="table-responsive border rounded-2 mb-4">
+                            <table class="table taste-table mb-0">
+                                <thead>
                                     <tr>
                                         <th>NAMA BARANG</th>
                                         <th class="text-center">STOK AWAL</th>
@@ -1135,11 +1125,10 @@ $resPenitipan = $conn->query($sqlPenitipan);
                             </table>
                         </div>
 
-                        <!-- Timeline Riwayat Kunjungan -->
-                        <h6 class="font-weight-bold text-dark text-xs text-uppercase mb-2"><i class="fa-solid fa-clock-rotate-left text-primary me-1"></i> Riwayat Kunjungan & Laporan Sisa Stok</h6>
-                        <div class="table-responsive border rounded-3">
-                            <table class="table table-sm mb-0">
-                                <thead class="table-light text-xs text-uppercase">
+                        <div class="form-label-taste mb-2">Riwayat Kunjungan & Laporan Sisa Stok</div>
+                        <div class="table-responsive border rounded-2">
+                            <table class="table taste-table mb-0">
+                                <thead>
                                     <tr>
                                         <th>TGL KUNJUNGAN</th>
                                         <th>SALES</th>
@@ -1157,8 +1146,8 @@ $resPenitipan = $conn->query($sqlPenitipan);
                     </div>
                 </div>
 
-                <div class="modal-footer bg-light border-top p-3">
-                    <button type="button" class="btn btn-secondary mb-0" data-bs-dismiss="modal">Tutup</button>
+                <div class="modal-footer p-3 bg-light border-top">
+                    <button type="button" class="btn-taste-secondary" data-bs-dismiss="modal">Tutup</button>
                 </div>
             </div>
         </div>
@@ -1167,14 +1156,12 @@ $resPenitipan = $conn->query($sqlPenitipan);
     <!-- ========================================================================= -->
     <!-- MODAL 4: PENGAJUAN KLAIM INSENTIF (MIN 50 UNIT)                           -->
     <!-- ========================================================================= -->
-    <div class="modal fade modal-custom" id="modalSubmitClaim" tabindex="-1" aria-hidden="true">
+    <div class="modal fade modal-taste" id="modalSubmitClaim" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-md modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
                     <div>
-                        <h5 class="modal-title font-weight-bold text-dark mb-0">
-                            <i class="fa-solid fa-hand-holding-dollar text-success me-2"></i>Ajukan Klaim Insentif
-                        </h5>
+                        <h6 class="modal-title font-weight-bold text-dark mb-0">Ajukan Klaim Insentif</h6>
                         <small class="text-muted">Konfirmasi pengajuan klaim insentif minimal 50 unit</small>
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -1182,20 +1169,20 @@ $resPenitipan = $conn->query($sqlPenitipan);
                 
                 <form id="formSubmitClaim" onsubmit="submitKlaimInsentif(event)">
                     <div class="modal-body p-4">
-                        <div class="p-3 mb-3 rounded-3 bg-emerald-50 border border-success text-center">
-                            <div class="text-xs text-success font-weight-bold text-uppercase">Total Unit Siap Klaim</div>
-                            <h2 class="font-weight-bolder text-success my-1"><?php echo $unclaimedUnits; ?> Unit</h2>
-                            <div class="text-sm font-weight-bold text-dark">Estimasi Nominal: Rp <?php echo number_format($unclaimedNominal, 0, ',', '.'); ?></div>
+                        <div class="p-3 mb-3 rounded-2 border text-center" style="background-color: var(--accent-emerald-light); border-color: #a7f3d0 !important;">
+                            <div class="text-xxs font-weight-bold text-uppercase" style="color: var(--accent-emerald);">Total Unit Siap Klaim</div>
+                            <h2 class="font-weight-bolder my-1" style="color: var(--accent-emerald);"><?php echo $unclaimedUnits; ?> Unit</h2>
+                            <div class="text-xs font-weight-bold text-dark">Estimasi Nominal: Rp <?php echo number_format($unclaimedNominal, 0, ',', '.'); ?></div>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label font-weight-bold text-xs text-uppercase text-dark">Catatan Pengajuan Klaim (Opsional)</label>
-                            <textarea name="catatan_claim" class="form-control-custom w-100" rows="3" placeholder="Contoh: Pengajuan klaim periode penjualan bulan ini..."></textarea>
+                            <label class="form-label-taste">Catatan Pengajuan Klaim (Opsional)</label>
+                            <textarea name="catatan_claim" class="form-control-taste w-100" rows="3" placeholder="Catatan pengajuan klaim insentif..."></textarea>
                         </div>
                     </div>
-                    <div class="modal-footer bg-light border-top p-3">
-                        <button type="button" class="btn btn-secondary mb-0 px-4" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" id="btnProsesClaim" class="btn btn-success mb-0 px-4 font-weight-bold">
+                    <div class="modal-footer p-3 bg-light border-top">
+                        <button type="button" class="btn-taste-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" id="btnProsesClaim" class="btn-taste-primary">
                             <i class="fa-solid fa-paper-plane me-1"></i> Kirim Pengajuan Klaim
                         </button>
                     </div>
@@ -1207,37 +1194,35 @@ $resPenitipan = $conn->query($sqlPenitipan);
     <!-- ========================================================================= -->
     <!-- MODAL 5: DETAIL KLAIM & APPROVAL (ADMIN / MANAGER)                         -->
     <!-- ========================================================================= -->
-    <div class="modal fade modal-custom" id="modalClaimApproval" tabindex="-1" aria-hidden="true">
+    <div class="modal fade modal-taste" id="modalClaimApproval" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
                     <div>
-                        <h5 class="modal-title font-weight-bold text-dark mb-0">
-                            <i class="fa-solid fa-file-invoice-dollar text-primary me-2"></i>Rincian Pengajuan Klaim Insentif
-                        </h5>
+                        <h6 class="modal-title font-weight-bold text-dark mb-0">Rincian Pengajuan Klaim Insentif</h6>
                         <small class="text-muted" id="claimKodeTitle">-</small>
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 
                 <div class="modal-body p-4">
-                    <div class="p-3 mb-3 rounded-3 bg-light border">
+                    <div class="p-3 mb-3 rounded-2 bg-light border">
                         <div class="d-flex justify-content-between">
                             <div>
                                 <h6 class="font-weight-bold text-dark mb-0" id="claimSalesName">-</h6>
                                 <span class="text-xs text-muted" id="claimTgl">-</span>
                             </div>
                             <div class="text-end">
-                                <span class="badge" id="claimStatusBadge">-</span>
+                                <span class="taste-badge" id="claimStatusBadge">-</span>
                                 <h5 class="font-weight-bolder text-success mt-1 mb-0" id="claimNominal">-</h5>
                             </div>
                         </div>
                     </div>
 
-                    <h6 class="font-weight-bold text-dark text-xs text-uppercase mb-2"><i class="fa-solid fa-list text-primary me-1"></i> Detail Item Penjualan dalam Klaim</h6>
-                    <div class="table-responsive border rounded-3 mb-3">
-                        <table class="table table-sm mb-0">
-                            <thead class="table-light text-xs text-uppercase">
+                    <div class="form-label-taste mb-2">Detail Item Penjualan dalam Klaim</div>
+                    <div class="table-responsive border rounded-2 mb-3">
+                        <table class="table taste-table mb-0">
+                            <thead>
                                 <tr>
                                     <th>TOKO DEALER</th>
                                     <th>NAMA BARANG</th>
@@ -1252,12 +1237,12 @@ $resPenitipan = $conn->query($sqlPenitipan);
                     </div>
 
                     <?php if ($role === 'Super Admin' || $role === 'Admin' || $role === 'Sales Manager') : ?>
-                        <div class="p-3 rounded-3 bg-light border mt-3">
-                            <h6 class="font-weight-bold text-dark text-xs text-uppercase mb-2"><i class="fa-solid fa-shield-halved text-primary me-1"></i> Proses Persetujuan Klaim</h6>
+                        <div class="p-3 rounded-2 bg-light border mt-3">
+                            <div class="form-label-taste mb-2">Proses Persetujuan Klaim (Admin View)</div>
                             <div class="row g-2">
                                 <div class="col-md-6">
-                                    <label class="form-label text-xs font-weight-bold text-uppercase text-dark">Ubah Status</label>
-                                    <select id="updateClaimStatusSelect" class="form-control-custom w-100">
+                                    <label class="form-label-taste">Ubah Status</label>
+                                    <select id="updateClaimStatusSelect" class="form-control-taste w-100">
                                         <option value="menunggu_approval">Menunggu Approval</option>
                                         <option value="disetujui">Disetujui</option>
                                         <option value="cair">Cair (Selesai Dibayarkan)</option>
@@ -1265,12 +1250,12 @@ $resPenitipan = $conn->query($sqlPenitipan);
                                     </select>
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label text-xs font-weight-bold text-uppercase text-dark">Catatan Admin / Payout</label>
-                                    <input type="text" id="updateClaimAdminNote" class="form-control-custom w-100" placeholder="No referensi transfer / catatan...">
+                                    <label class="form-label-taste">Catatan Admin / Payout</label>
+                                    <input type="text" id="updateClaimAdminNote" class="form-control-taste w-100" placeholder="No referensi transfer / catatan...">
                                 </div>
                             </div>
                             <div class="text-end mt-2">
-                                <button class="btn btn-primary btn-sm font-weight-bold mb-0" onclick="submitUpdateClaimStatus()">
+                                <button class="btn-taste-primary btn-sm" onclick="submitUpdateClaimStatus()">
                                     <i class="fa-solid fa-check me-1"></i> Simpan Status Klaim
                                 </button>
                             </div>
@@ -1278,8 +1263,8 @@ $resPenitipan = $conn->query($sqlPenitipan);
                     <?php endif; ?>
                 </div>
 
-                <div class="modal-footer bg-light border-top p-3">
-                    <button type="button" class="btn btn-secondary mb-0" data-bs-dismiss="modal">Tutup</button>
+                <div class="modal-footer p-3 bg-light border-top">
+                    <button type="button" class="btn-taste-secondary" data-bs-dismiss="modal">Tutup</button>
                 </div>
             </div>
         </div>
@@ -1291,11 +1276,10 @@ $resPenitipan = $conn->query($sqlPenitipan);
         let currentLoadedPenitipan = null;
         let currentClaimId = 0;
 
-        // Init page & load dealer customer dropdown
         document.addEventListener('DOMContentLoaded', function() {
             updateBadgeCounts();
             loadDealers();
-            tambahBarisBarang(); // Baris pertama default
+            tambahBarisBarang();
         });
 
         function updateBadgeCounts() {
@@ -1305,9 +1289,8 @@ $resPenitipan = $conn->query($sqlPenitipan);
             document.getElementById('badgeCountSelesai').textContent = '<?php echo $countSelesai; ?>';
         }
 
-        // 1. Filter Table by Category
         function filterTable(category, btn) {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.segment-btn').forEach(b => b.classList.remove('active'));
             if (btn) btn.classList.add('active');
 
             const rows = document.querySelectorAll('#mainTiptokTable tbody tr.tiptok-row');
@@ -1321,7 +1304,6 @@ $resPenitipan = $conn->query($sqlPenitipan);
             });
         }
 
-        // 2. Search in table
         function searchTiptokTable() {
             const query = document.getElementById('tiptokSearchInput').value.toLowerCase();
             const rows = document.querySelectorAll('#mainTiptokTable tbody tr.tiptok-row');
@@ -1331,7 +1313,6 @@ $resPenitipan = $conn->query($sqlPenitipan);
             });
         }
 
-        // 3. Switch between Main Table & Claim Tab
         function switchViewToClaims() {
             document.getElementById('viewPenitipanTable').classList.add('d-none');
             document.getElementById('viewKlaimInsentif').classList.remove('d-none');
@@ -1347,7 +1328,6 @@ $resPenitipan = $conn->query($sqlPenitipan);
             switchViewToClaims();
         }
 
-        // 4. Load Dealers for Autocomplete
         function loadDealers() {
             fetch('tiptok-ajax.php?action=search_dealer')
                 .then(r => r.json())
@@ -1379,35 +1359,34 @@ $resPenitipan = $conn->query($sqlPenitipan);
             }
         }
 
-        // 5. Dynamic Items Rows for Tambah Penitipan
         let itemRowIndex = 0;
         function tambahBarisBarang() {
             itemRowIndex++;
             const container = document.getElementById('containerItemRows');
             const rowHtml = `
-                <div class="item-input-row" id="itemRow_${itemRowIndex}">
+                <div class="p-3 mb-2 rounded-2 bg-light border" id="itemRow_${itemRowIndex}">
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="badge bg-primary text-xxs font-weight-bold">Item #${itemRowIndex}</span>
+                        <span class="taste-badge badge-neutral">Item #${itemRowIndex}</span>
                         <button type="button" class="btn btn-xs btn-link text-danger p-0 mb-0 font-weight-bold" onclick="hapusBarisBarang(${itemRowIndex})">
-                            <i class="fa-solid fa-trash-can me-1"></i> Hapus Baris
+                            <i class="fa-solid fa-trash-can me-1"></i> Hapus
                         </button>
                     </div>
                     <div class="row g-2">
                         <div class="col-md-5">
-                            <label class="form-label text-xxs font-weight-bold text-dark mb-1">NAMA BARANG / MODEL <span class="text-danger">*</span></label>
-                            <input type="text" name="items[${itemRowIndex}][nama_barang]" class="form-control-custom w-100" placeholder="Contoh: CCTV Loewix 2MP Outdoor" required>
+                            <label class="form-label-taste mb-1">NAMA BARANG <span class="text-danger">*</span></label>
+                            <input type="text" name="items[${itemRowIndex}][nama_barang]" class="form-control-taste w-100" placeholder="CCTV Loewix 2MP Outdoor" required>
                         </div>
                         <div class="col-md-2">
-                            <label class="form-label text-xxs font-weight-bold text-dark mb-1">TIPE / KATEGORI</label>
-                            <input type="text" name="items[${itemRowIndex}][tipe_barang]" class="form-control-custom w-100" placeholder="CCTV / NVR / DVR">
+                            <label class="form-label-taste mb-1">TIPE / KATEGORI</label>
+                            <input type="text" name="items[${itemRowIndex}][tipe_barang]" class="form-control-taste w-100" placeholder="CCTV / NVR">
                         </div>
                         <div class="col-md-2">
-                            <label class="form-label text-xxs font-weight-bold text-dark mb-1">QTY TITIP <span class="text-danger">*</span></label>
-                            <input type="number" name="items[${itemRowIndex}][qty_titip]" min="1" class="form-control-custom w-100" placeholder="Jml" required>
+                            <label class="form-label-taste mb-1">QTY TITIP <span class="text-danger">*</span></label>
+                            <input type="number" name="items[${itemRowIndex}][qty_titip]" min="1" class="form-control-taste w-100 text-center" placeholder="Jml" required>
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label text-xxs font-weight-bold text-dark mb-1">INSENTIF PER UNIT (RP) <span class="text-danger">*</span></label>
-                            <input type="number" name="items[${itemRowIndex}][insentif_per_unit]" min="0" step="500" class="form-control-custom w-100" placeholder="Contoh: 15000" required>
+                            <label class="form-label-taste mb-1">INSENTIF / UNIT (RP) <span class="text-danger">*</span></label>
+                            <input type="number" name="items[${itemRowIndex}][insentif_per_unit]" min="0" step="500" class="form-control-taste w-100 text-end" placeholder="15000" required>
                         </div>
                     </div>
                 </div>
@@ -1443,14 +1422,14 @@ $resPenitipan = $conn->query($sqlPenitipan);
                 .then(r => r.json())
                 .then(res => {
                     btn.disabled = false;
-                    btn.innerHTML = '<i class="fa-solid fa-floppy-disk me-1"></i> Simpan Data Penitipan';
+                    btn.innerHTML = '<i class="fa-solid fa-check me-1"></i> Simpan Penitipan';
 
                     if (res.status === 'success') {
                         Swal.fire({
                             icon: 'success',
                             title: 'Berhasil!',
                             text: res.message,
-                            timer: 2000,
+                            timer: 1800,
                             showConfirmButton: false
                         }).then(() => location.reload());
                     } else {
@@ -1459,16 +1438,15 @@ $resPenitipan = $conn->query($sqlPenitipan);
                 })
                 .catch(() => {
                     btn.disabled = false;
-                    btn.innerHTML = '<i class="fa-solid fa-floppy-disk me-1"></i> Simpan Data Penitipan';
+                    btn.innerHTML = '<i class="fa-solid fa-check me-1"></i> Simpan Penitipan';
                     Swal.fire({ icon: 'error', title: 'Error', text: 'Terjadi kesalahan jaringan.' });
                 });
         }
 
-        // 6. Modal Lapor Kunjungan & Cek Sisa
         function openModalLaporKunjungan(idPenitipan) {
             document.getElementById('kunjunganIdPenitipan').value = idPenitipan;
             const tbody = document.getElementById('kunjunganItemsBody');
-            tbody.innerHTML = '<tr><td colspan="5" class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary"></div> Memuat barang...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center py-3 text-muted"><div class="spinner-border spinner-border-sm text-dark"></div> Memuat barang...</td></tr>';
 
             new bootstrap.Modal(document.getElementById('modalLaporKunjungan')).show();
 
@@ -1488,29 +1466,29 @@ $resPenitipan = $conn->query($sqlPenitipan);
                                 <tr>
                                     <td>
                                         <input type="hidden" name="items[${idx}][id_item]" value="${it.id}">
-                                        <strong>${it.nama_barang}</strong>
+                                        <div class="font-weight-bold text-dark">${it.nama_barang}</div>
                                         <div class="text-xxs text-muted">Insentif: Rp ${new Intl.NumberFormat('id-ID').format(it.insentif_per_unit)}/unit</div>
                                     </td>
                                     <td class="text-center font-weight-bold text-dark">
-                                        <span class="badge bg-light text-dark font-monospace">${sisaCur} Unit</span>
+                                        <span class="taste-badge badge-neutral">${sisaCur}</span>
                                     </td>
                                     <td>
                                         <input type="number" name="items[${idx}][stok_sisa]" 
                                                id="stokSisa_${idx}" 
                                                min="0" max="${sisaCur}" 
-                                               class="form-control-custom w-100 text-center" 
+                                               class="form-control-taste w-100 text-center" 
                                                value="${sisaCur}" 
                                                required 
                                                oninput="hitungTerjualRow(${idx}, ${sisaCur})">
                                     </td>
                                     <td class="text-center font-weight-bold" id="terjualDisplay_${idx}">
-                                        <span class="badge bg-light text-muted">0</span>
+                                        <span class="taste-badge badge-neutral">0</span>
                                     </td>
                                     <td>
                                         <input type="text" name="items[${idx}][no_inv]" 
                                                id="noInv_${idx}" 
-                                               class="form-control-custom w-100 font-monospace text-xs" 
-                                               placeholder="Wajib jika laku...">
+                                               class="form-control-taste w-100 font-monospace text-xs" 
+                                               placeholder="No. Invoice">
                                     </td>
                                 </tr>
                             `;
@@ -1527,13 +1505,13 @@ $resPenitipan = $conn->query($sqlPenitipan);
             const inv = document.getElementById(`noInv_${idx}`);
 
             if (terjual > 0) {
-                disp.innerHTML = `<span class="badge bg-danger">${terjual} Laku</span>`;
+                disp.innerHTML = `<span class="taste-badge" style="background:#fee2e2; color:#b91c1c;">${terjual} Laku</span>`;
                 inv.setAttribute('required', 'required');
-                inv.classList.add('border-danger');
+                inv.style.borderColor = '#ef4444';
             } else {
-                disp.innerHTML = `<span class="badge bg-light text-muted">0</span>`;
+                disp.innerHTML = `<span class="taste-badge badge-neutral">0</span>`;
                 inv.removeAttribute('required');
-                inv.classList.remove('border-danger');
+                inv.style.borderColor = '';
             }
         }
 
@@ -1551,7 +1529,7 @@ $resPenitipan = $conn->query($sqlPenitipan);
                 .then(r => r.json())
                 .then(res => {
                     btn.disabled = false;
-                    btn.innerHTML = '<i class="fa-solid fa-check-circle me-1"></i> Simpan Laporan Kunjungan';
+                    btn.innerHTML = '<i class="fa-solid fa-check me-1"></i> Simpan Laporan';
 
                     if (res.status === 'success') {
                         Swal.fire({
@@ -1566,12 +1544,11 @@ $resPenitipan = $conn->query($sqlPenitipan);
                 })
                 .catch(() => {
                     btn.disabled = false;
-                    btn.innerHTML = '<i class="fa-solid fa-check-circle me-1"></i> Simpan Laporan Kunjungan';
+                    btn.innerHTML = '<i class="fa-solid fa-check me-1"></i> Simpan Laporan';
                     Swal.fire({ icon: 'error', title: 'Error', text: 'Terjadi kesalahan jaringan.' });
                 });
         }
 
-        // 7. Modal Detail & Riwayat Kunjungan
         function openModalDetailTiptok(idPenitipan) {
             document.getElementById('detailLoading').classList.remove('d-none');
             document.getElementById('detailContent').classList.add('d-none');
@@ -1592,7 +1569,6 @@ $resPenitipan = $conn->query($sqlPenitipan);
                         document.getElementById('detTglTitip').textContent = m.tgl_titip;
                         document.getElementById('detNamaSales').textContent = m.nama_sales || 'Sales';
 
-                        // Render items
                         const itemBody = document.getElementById('detItemsBody');
                         itemBody.innerHTML = '';
                         res.data.items.forEach(it => {
@@ -1608,14 +1584,13 @@ $resPenitipan = $conn->query($sqlPenitipan);
                             `;
                         });
 
-                        // Render Logs
                         const logBody = document.getElementById('detLogsBody');
                         logBody.innerHTML = '';
                         if (res.data.logs.length === 0) {
                             logBody.innerHTML = '<tr><td colspan="8" class="text-center py-3 text-muted">Belum ada riwayat kunjungan audit.</td></tr>';
                         } else {
                             res.data.logs.forEach(l => {
-                                const invBadge = l.no_inv ? `<span class="badge-pill badge-invoice">${l.no_inv}</span>` : '-';
+                                const invBadge = l.no_inv ? `<span class="taste-badge badge-invoice-tag">${l.no_inv}</span>` : '-';
                                 logBody.innerHTML += `
                                     <tr>
                                         <td>${l.tgl_kunjungan}</td>
@@ -1625,7 +1600,7 @@ $resPenitipan = $conn->query($sqlPenitipan);
                                         <td class="text-center font-weight-bold text-danger">${l.qty_terjual_kunjungan}</td>
                                         <td>${invBadge}</td>
                                         <td class="text-end font-weight-bold text-success">Rp ${new Intl.NumberFormat('id-ID').format(l.insentif_didapat)}</td>
-                                        <td class="text-xs">${l.catatan_kunjungan || '-'}</td>
+                                        <td class="text-xs text-muted">${l.catatan_kunjungan || '-'}</td>
                                     </tr>
                                 `;
                             });
@@ -1634,7 +1609,6 @@ $resPenitipan = $conn->query($sqlPenitipan);
                 });
         }
 
-        // 8. Load Claim Summary (Min 50 Unit)
         function loadClaimSummary() {
             fetch('tiptok-ajax.php?action=get_claim_summary')
                 .then(r => r.json())
@@ -1653,7 +1627,7 @@ $resPenitipan = $conn->query($sqlPenitipan);
                                         <td>${u.tgl_kunjungan}</td>
                                         <td><strong>${u.nama_toko}</strong></td>
                                         <td>${u.nama_barang}</td>
-                                        <td><span class="badge-pill badge-invoice">${u.no_inv || '-'}</span></td>
+                                        <td><span class="taste-badge badge-invoice-tag">${u.no_inv || '-'}</span></td>
                                         <td class="text-center font-weight-bold text-danger">${u.qty_terjual_kunjungan}</td>
                                         <td class="text-end">Rp ${new Intl.NumberFormat('id-ID').format(u.insentif_per_unit)}</td>
                                         <td class="text-end font-weight-bold text-success">Rp ${new Intl.NumberFormat('id-ID').format(u.insentif_didapat)}</td>
@@ -1662,18 +1636,16 @@ $resPenitipan = $conn->query($sqlPenitipan);
                             });
                         }
 
-                        // Claim History
                         const bodyClaim = document.getElementById('bodyClaimHistory');
                         bodyClaim.innerHTML = '';
                         if (d.claim_history.length === 0) {
                             bodyClaim.innerHTML = '<tr><td colspan="7" class="text-center py-3 text-muted">Belum ada riwayat pengajuan klaim.</td></tr>';
                         } else {
                             d.claim_history.forEach(c => {
-                                let stBadge = 'bg-secondary';
-                                if (c.status_claim === 'disetujui') stBadge = 'bg-info text-white';
-                                else if (c.status_claim === 'cair') stBadge = 'bg-success';
-                                else if (c.status_claim === 'menunggu_approval') stBadge = 'bg-warning text-dark';
-                                else if (c.status_claim === 'ditolak') stBadge = 'bg-danger';
+                                let stBadge = 'badge-neutral';
+                                if (c.status_claim === 'disetujui') stBadge = 'badge-active-tag';
+                                else if (c.status_claim === 'cair') stBadge = 'badge-active-tag';
+                                else if (c.status_claim === 'menunggu_approval') stBadge = 'badge-invoice-tag';
 
                                 bodyClaim.innerHTML += `
                                     <tr>
@@ -1682,9 +1654,9 @@ $resPenitipan = $conn->query($sqlPenitipan);
                                         <td>${c.tgl_claim}</td>
                                         <td class="text-center font-weight-bold">${c.total_unit_terjual} Unit</td>
                                         <td class="text-end font-weight-bold text-success">Rp ${new Intl.NumberFormat('id-ID').format(c.total_nominal_insentif)}</td>
-                                        <td class="text-center"><span class="badge ${stBadge} text-xxs">${c.status_claim.toUpperCase()}</span></td>
-                                        <td class="text-center">
-                                            <button class="btn btn-xs btn-outline-primary mb-0 font-weight-bold" onclick="openModalDetailClaim(${c.id})">
+                                        <td class="text-center"><span class="taste-badge ${stBadge}">${c.status_claim.toUpperCase()}</span></td>
+                                        <td style="text-align: right;">
+                                            <button class="btn-table-secondary" onclick="openModalDetailClaim(${c.id})">
                                                 <i class="fa-solid fa-eye me-1"></i> Rincian
                                             </button>
                                         </td>
@@ -1696,7 +1668,6 @@ $resPenitipan = $conn->query($sqlPenitipan);
                 });
         }
 
-        // 9. Submit Claim Modal
         function openModalSubmitClaim() {
             new bootstrap.Modal(document.getElementById('modalSubmitClaim')).show();
         }
@@ -1730,7 +1701,6 @@ $resPenitipan = $conn->query($sqlPenitipan);
                 });
         }
 
-        // 10. Detail & Approval Claim Modal
         function openModalDetailClaim(idClaim) {
             currentClaimId = idClaim;
             new bootstrap.Modal(document.getElementById('modalClaimApproval')).show();
@@ -1742,11 +1712,11 @@ $resPenitipan = $conn->query($sqlPenitipan);
                         const cl = res.data.claim;
                         document.getElementById('claimKodeTitle').textContent = 'Kode Klaim: ' + cl.kode_claim;
                         document.getElementById('claimSalesName').textContent = cl.nama_sales;
-                        document.getElementById('claimTgl').textContent = 'Tgl Klaim: ' + cl.tgl_claim + ' (' + cl.total_unit_terjual + ' Unit)';
+                        document.getElementById('claimTgl').textContent = 'Tgl: ' + cl.tgl_claim + ' (' + cl.total_unit_terjual + ' Unit)';
                         document.getElementById('claimNominal').textContent = 'Rp ' + new Intl.NumberFormat('id-ID').format(cl.total_nominal_insentif);
 
                         const badge = document.getElementById('claimStatusBadge');
-                        badge.className = 'badge ' + (cl.status_claim === 'cair' ? 'bg-success' : (cl.status_claim === 'disetujui' ? 'bg-info' : 'bg-warning text-dark'));
+                        badge.className = 'taste-badge ' + (cl.status_claim === 'cair' ? 'badge-active-tag' : (cl.status_claim === 'disetujui' ? 'badge-active-tag' : 'badge-invoice-tag'));
                         badge.textContent = cl.status_claim.toUpperCase();
 
                         const selStatus = document.getElementById('updateClaimStatusSelect');
@@ -1762,7 +1732,7 @@ $resPenitipan = $conn->query($sqlPenitipan);
                                 <tr>
                                     <td><strong>${d.nama_toko}</strong></td>
                                     <td>${d.nama_barang}</td>
-                                    <td><span class="badge-pill badge-invoice">${d.no_inv || '-'}</span></td>
+                                    <td><span class="taste-badge badge-invoice-tag">${d.no_inv || '-'}</span></td>
                                     <td class="text-center font-weight-bold">${d.qty_terjual}</td>
                                     <td class="text-end">Rp ${new Intl.NumberFormat('id-ID').format(d.insentif_per_unit)}</td>
                                     <td class="text-end font-weight-bold text-success">Rp ${new Intl.NumberFormat('id-ID').format(d.subtotal_insentif)}</td>
