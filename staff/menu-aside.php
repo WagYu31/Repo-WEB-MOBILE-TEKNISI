@@ -305,6 +305,7 @@ if ($isSalesDir) {
             $showJadwalKunjungan = hasMenuAccess($conn, $idSesi, 'jadwal_kunjungan', ($role == 'Super Admin' || $role == 'Admin' || $role == 'Sales Manager' || $role == 'Sales'));
             $showLaporanVisit = hasMenuAccess($conn, $idSesi, 'laporan_visit', ($role == 'Super Admin' || $role == 'Admin' || $role == 'Sales Manager'));
             $showCustomerSales = hasMenuAccess($conn, $idSesi, 'customer_sales', ($role == 'Super Admin' || $role == 'Admin' || $role == 'Sales Manager' || $role == 'Sales'));
+            $showTiptok = hasMenuAccess($conn, $idSesi, 'tiptok', ($role == 'Super Admin' || $role == 'Admin' || $role == 'Sales Manager' || $role == 'Sales'));
 
             $showKegiatanSaya = hasMenuAccess($conn, $idSesi, 'kegiatan_saya', ($role == 'Sales Manager' || $role == 'Sales'));
             $showDashboardTeknisi = hasMenuAccess($conn, $idSesi, 'dashboard_teknisi', ($role == 'Sales Manager' || $role == 'Sales'));
@@ -418,8 +419,8 @@ if ($isSalesDir) {
                 }
 
                 // Category: Aplikasi Sales
-                if ($showDashboardSales || $showDataSales || $showJadwalKunjungan || $showLaporanVisit || $showCustomerSales) {
-                    $isSalesActive = ($pageNow == "Dashboard Sales" || ($pageNow == "Dashboard" && $isSalesDir)) || ($pageNow == "Kegiatan Baru" && $isSalesDir) || ($pageNow == "Laporan" && $isSalesDir) || ($pageNow == "Data Customer" && $isSalesDir) || ($pageNow == "Sales" && $isSalesDir) || ($pageNow == "Scraping GMaps");
+                if ($showDashboardSales || $showDataSales || $showJadwalKunjungan || $showLaporanVisit || $showCustomerSales || $showTiptok) {
+                    $isSalesActive = ($pageNow == "Dashboard Sales" || ($pageNow == "Dashboard" && $isSalesDir)) || ($pageNow == "Kegiatan Baru" && $isSalesDir) || ($pageNow == "Laporan" && $isSalesDir) || ($pageNow == "Data Customer" && $isSalesDir) || ($pageNow == "Sales" && $isSalesDir) || ($pageNow == "Scraping GMaps") || ($pageNow == "TIP TOK");
                     $salesCollapse = $isSalesActive ? 'show' : '';
                     $salesAria = $isSalesActive ? 'true' : 'false';
                     $salesLinkClass = $isSalesActive ? '' : 'collapsed';
@@ -437,6 +438,7 @@ if ($isSalesDir) {
                                 if ($showJadwalKunjungan) renderSubNavItem(($pageNow == "Kegiatan Baru" && $isSalesDir), $salesPrefix . "kegiatan-baru.php", "fa-solid fa-map-location-dot", "Jadwal Kunjungan");
                                 if ($showLaporanVisit) renderSubNavItem(($pageNow == "Laporan" && $isSalesDir), $salesPrefix . "laporan-cust.php", "fa-solid fa-file-contract", "Laporan Visit");
                                 if ($showCustomerSales) renderSubNavItem(($pageNow == "Data Customer" && $isSalesDir), $salesPrefix . "customer.php", "fa-solid fa-address-book", "Customer Sales");
+                                if ($showTiptok) renderSubNavItem(($pageNow == "TIP TOK"), $salesPrefix . "tiptok.php", "fa-solid fa-boxes-packing", "TIP TOK");
                                 if ($showDataSales) renderSubNavItem(($pageNow == "Sales" && $isSalesDir), $salesPrefix . "sales.php", "fa-solid fa-user-group", "Data Sales");
                                 if ($role == 'Super Admin' || $role == 'Admin') renderSubNavItem(($pageNow == "Scraping GMaps"), $salesPrefix . "scraping-gmaps.php", "fa-solid fa-satellite-dish", "Scraping GMaps");
                                 ?>
@@ -447,8 +449,8 @@ if ($isSalesDir) {
                 }
             } elseif ($role == 'Sales Manager' || $role == 'Sales') {
                 // Category: Sales Menu for Staff
-                if ($showKegiatanSaya || $showDashboardSales || $showJadwalKunjungan || $showCustomerSales) {
-                    $isSalesStaffActive = ($pageNow == "Dashboard Sales" || ($pageNow == "Dashboard" && $isSalesDir)) || ($pageNow == "Kegiatan Saya" && $isSalesDir) || ($pageNow == "Kegiatan Baru" && $isSalesDir) || ($pageNow == "Laporan" && $isSalesDir) || ($pageNow == "Data Customer" && $isSalesDir) || ($pageNow == "Sales" && $isSalesDir);
+                if ($showKegiatanSaya || $showDashboardSales || $showJadwalKunjungan || $showCustomerSales || $showTiptok) {
+                    $isSalesStaffActive = ($pageNow == "Dashboard Sales" || ($pageNow == "Dashboard" && $isSalesDir)) || ($pageNow == "Kegiatan Saya" && $isSalesDir) || ($pageNow == "Kegiatan Baru" && $isSalesDir) || ($pageNow == "Laporan" && $isSalesDir) || ($pageNow == "Data Customer" && $isSalesDir) || ($pageNow == "Sales" && $isSalesDir) || ($pageNow == "TIP TOK");
                     $salesStaffCollapse = $isSalesStaffActive ? 'show' : '';
                     $salesStaffAria = $isSalesStaffActive ? 'true' : 'false';
                     $salesStaffLinkClass = $isSalesStaffActive ? '' : 'collapsed';
@@ -467,6 +469,7 @@ if ($isSalesDir) {
                                 if ($showJadwalKunjungan) renderSubNavItem(($pageNow == "Kegiatan Baru" && $isSalesDir), $salesPrefix . "kegiatan-baru.php", "fa-solid fa-map-location-dot", "Visit Customer");
                                 if ($role == 'Sales Manager' && $showLaporanVisit) renderSubNavItem(($pageNow == "Laporan" && $isSalesDir), $salesPrefix . "laporan-cust.php", "fa-solid fa-file-contract", "Laporan Visit");
                                 if ($showCustomerSales) renderSubNavItem(($pageNow == "Data Customer" && $isSalesDir), $salesPrefix . "customer.php", "fa-solid fa-address-book", "Customer");
+                                if ($showTiptok) renderSubNavItem(($pageNow == "TIP TOK"), $salesPrefix . "tiptok.php", "fa-solid fa-boxes-packing", "TIP TOK");
                                 if ($role == 'Sales Manager' && $showDataSales) renderSubNavItem(($pageNow == "Sales" && $isSalesDir), $salesPrefix . "sales.php", "fa-solid fa-user-group", "Tim Sales");
                                 ?>
                             </ul>

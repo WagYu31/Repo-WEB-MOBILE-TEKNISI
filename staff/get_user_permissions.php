@@ -49,6 +49,7 @@ $defaults = [
     'jadwal_kunjungan' => ($targetRole == 'Super Admin' || $targetRole == 'Admin' || $targetRole == 'Sales Manager' || $targetRole == 'Sales') ? 1 : 0,
     'laporan_visit' => ($targetRole == 'Super Admin' || $targetRole == 'Admin' || $targetRole == 'Sales Manager') ? 1 : 0,
     'customer_sales' => ($targetRole == 'Super Admin' || $targetRole == 'Admin' || $targetRole == 'Sales Manager' || $targetRole == 'Sales') ? 1 : 0,
+    'tiptok' => ($targetRole == 'Super Admin' || $targetRole == 'Admin' || $targetRole == 'Sales Manager' || $targetRole == 'Sales') ? 1 : 0,
     'kegiatan_saya' => ($targetRole == 'Sales Manager' || $targetRole == 'Sales') ? 1 : 0,
     'dashboard_teknisi' => ($targetRole == 'Sales Manager' || $targetRole == 'Sales') ? 1 : 0,
     'buat_request' => ($targetRole == 'Sales Manager' || $targetRole == 'Sales') ? 1 : 0,

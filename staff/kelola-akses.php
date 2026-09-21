@@ -320,6 +320,10 @@ if (isset($_POST['tambah_user'])) {
                                         <input class="form-check-input" type="checkbox" id="perm_customer_sales" name="permissions[customer_sales]" value="1">
                                         <label class="form-check-label text-xs text-dark font-weight-bold" for="perm_customer_sales">Customer Sales</label>
                                     </div>
+                                    <div class="form-check form-switch mb-2.5">
+                                        <input class="form-check-input" type="checkbox" id="perm_tiptok" name="permissions[tiptok]" value="1">
+                                        <label class="form-check-label text-xs text-dark font-weight-bold" for="perm_tiptok">TIP TOK (Titip Barang di Toko)</label>
+                                    </div>
                                 </div>
                             </div>
 

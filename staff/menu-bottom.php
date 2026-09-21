@@ -85,6 +85,7 @@ $showDataSales = hasMenuAccess($conn, $idSesi, 'data_sales', ($role == 'Super Ad
 $showJadwalKunjungan = hasMenuAccess($conn, $idSesi, 'jadwal_kunjungan', ($role == 'Super Admin' || $role == 'Admin' || $role == 'Sales Manager' || $role == 'Sales'));
 $showLaporanVisit = hasMenuAccess($conn, $idSesi, 'laporan_visit', ($role == 'Super Admin' || $role == 'Admin' || $role == 'Sales Manager'));
 $showCustomerSales = hasMenuAccess($conn, $idSesi, 'customer_sales', ($role == 'Super Admin' || $role == 'Admin' || $role == 'Sales Manager' || $role == 'Sales'));
+$showTiptok = hasMenuAccess($conn, $idSesi, 'tiptok', ($role == 'Super Admin' || $role == 'Admin' || $role == 'Sales Manager' || $role == 'Sales'));
 
 $showKegiatanSaya = hasMenuAccess($conn, $idSesi, 'kegiatan_saya', ($role == 'Sales Manager' || $role == 'Sales'));
 $showDashboardTeknisi = hasMenuAccess($conn, $idSesi, 'dashboard_teknisi', ($role == 'Sales Manager' || $role == 'Sales'));
@@ -136,7 +137,8 @@ $showBuatRequest = hasMenuAccess($conn, $idSesi, 'buat_request', ($role == 'Sale
                     <?php if ($showDashboardSales) { ?><a class="dropdown-item dropup-item-mobile" href="<?php echo $salesPrefix; ?>index-sa.php"><i class="material-icons">dashboard</i> Dashboard Sales</a><?php } ?>
                     <?php if ($showJadwalKunjungan) { ?><a class="dropdown-item dropup-item-mobile" href="<?php echo $salesPrefix; ?>kegiatan-baru.php"><i class="material-icons">pin_drop</i> Jadwal Kunjungan</a><?php } ?>
                     <?php if ($showLaporanVisit) { ?><a class="dropdown-item dropup-item-mobile" href="<?php echo $salesPrefix; ?>laporan-cust.php"><i class="material-icons">summarize</i> Laporan Visit</a><?php } ?>
-                    <?php if ($showCustomerSales) { ?><a class="dropdown-item dropup-item-mobile" href="<?php echo $salesPrefix; ?>customer.php"><i class="material-icons">contacts</i> Customer Sales</a><?php } ?>
+                    <?php if ($showCustomerSales) { ?><a class="dropdown-item dropup-item-mobile" href="<?php echo $salesPrefix; ?>customer.php"><i class="material-icons">contact_page</i> Customer Sales</a><?php } ?>
+                    <?php if ($showTiptok) { ?><a class="dropdown-item dropup-item-mobile" href="<?php echo $salesPrefix; ?>tiptok.php"><i class="material-icons">inventory</i> TIP TOK (Titip Barang)</a><?php } ?>
                     <?php if ($showDataSales) { ?><a class="dropdown-item dropup-item-mobile" href="<?php echo $salesPrefix; ?>sales.php"><i class="material-icons">groups</i> Data Sales</a><?php } ?>
                 </div>
             </li>
@@ -182,6 +184,9 @@ $showBuatRequest = hasMenuAccess($conn, $idSesi, 'buat_request', ($role == 'Sale
                     <a class="dropdown-item dropup-item-mobile" href="<?php echo $salesPrefix; ?>sales/index.php"><i class="material-icons">assignment_ind</i> Kegiatan Saya</a>
                     <a class="dropdown-item dropup-item-mobile" href="<?php echo $salesPrefix; ?>kegiatan-baru.php"><i class="material-icons">pin_drop</i> Visit Customer</a>
                     <a class="dropdown-item dropup-item-mobile" href="<?php echo $salesPrefix; ?>customer.php"><i class="material-icons">contacts</i> Data Customer</a>
+                    <?php if ($showTiptok) { ?>
+                        <a class="dropdown-item dropup-item-mobile" href="<?php echo $salesPrefix; ?>tiptok.php"><i class="material-icons">inventory</i> TIP TOK (Titip Barang)</a>
+                    <?php } ?>
                     <?php if ($role == 'Sales Manager') { ?>
                         <div class="menu-divider"></div>
                         <a class="dropdown-item dropup-item-mobile" href="<?php echo $salesPrefix; ?>laporan-cust.php"><i class="material-icons">summarize</i> Laporan Visit</a>
