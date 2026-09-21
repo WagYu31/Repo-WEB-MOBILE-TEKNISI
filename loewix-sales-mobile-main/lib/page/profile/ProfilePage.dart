@@ -419,7 +419,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text('Loewix Sales App', style: S.bodySm()),
-                            Text('Versi 1.6.0 • PT. Loewix Indonesia',
+                            Text('Versi ${Api.AppVersion} • PT. Loewix Indonesia',
                                 style: S.caption()),
                           ],
                         ),
