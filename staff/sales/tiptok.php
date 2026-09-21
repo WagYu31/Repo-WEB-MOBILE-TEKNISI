@@ -1,5 +1,9 @@
 <?php
-include "conn.php";
+if (file_exists("../conn.php")) {
+    include_once "../conn.php";
+} else {
+    include_once "conn.php";
+}
 include "session.php";
 include "get-user-data.php";
 
@@ -9,6 +13,107 @@ $currentPage = "Today";
 $idSesi = $_SESSION["id"] ?? 0;
 $role = $_SESSION["jabatan"] ?? 'Sales';
 $namaSesi = $nmUser ?? ($_SESSION["nama"] ?? 'Sales');
+
+// Safeguard: Pastikan tabel TIP TOK sudah ada sebelum query
+$checkTbl = mysqli_query($conn, "SHOW TABLES LIKE 'tiptok_penitipan'");
+if (!$checkTbl || mysqli_num_rows($checkTbl) == 0) {
+    if (isset($tiptokTables) && is_array($tiptokTables)) {
+        foreach ($tiptokTables as $tbl => $sql) {
+            mysqli_query($conn, $sql);
+        }
+    } else {
+        mysqli_query($conn, "CREATE TABLE IF NOT EXISTS `tiptok_penitipan` (
+            `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `kode_titip` VARCHAR(50) NOT NULL UNIQUE,
+            `id_customer` INT NOT NULL,
+            `id_sales` INT NULL,
+            `nama_sales` VARCHAR(100) NULL,
+            `tgl_titip` DATE NOT NULL,
+            `status` ENUM('aktif', 'selesai', 'ditarik') DEFAULT 'aktif',
+            `catatan` TEXT NULL,
+            `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+            `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            INDEX (`id_customer`),
+            INDEX (`id_sales`),
+            INDEX (`status`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+        
+        mysqli_query($conn, "CREATE TABLE IF NOT EXISTS `tiptok_items` (
+            `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `id_penitipan` INT NOT NULL,
+            `kode_titip` VARCHAR(50) NOT NULL,
+            `nama_barang` VARCHAR(255) NOT NULL,
+            `tipe_barang` VARCHAR(100) NULL,
+            `qty_titip` INT NOT NULL DEFAULT 0,
+            `qty_sisa` INT NOT NULL DEFAULT 0,
+            `qty_terjual` INT NOT NULL DEFAULT 0,
+            `insentif_per_unit` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+            `total_insentif` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+            `status_item` ENUM('titip', 'habis_terjual', 'ditarik') DEFAULT 'titip',
+            `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+            `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            INDEX (`id_penitipan`),
+            INDEX (`kode_titip`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+        
+        mysqli_query($conn, "CREATE TABLE IF NOT EXISTS `tiptok_kunjungan` (
+            `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `kode_kunjungan` VARCHAR(50) NOT NULL UNIQUE,
+            `id_penitipan` INT NOT NULL,
+            `id_item` INT NOT NULL,
+            `id_sales` INT NULL,
+            `nama_sales` VARCHAR(100) NULL,
+            `tgl_kunjungan` DATE NOT NULL,
+            `stok_sebelumnya` INT NOT NULL,
+            `stok_sisa` INT NOT NULL,
+            `qty_terjual_kunjungan` INT NOT NULL DEFAULT 0,
+            `no_inv` VARCHAR(100) NULL,
+            `tgl_invoice` DATE NULL,
+            `insentif_didapat` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+            `catatan_kunjungan` TEXT NULL,
+            `foto_kunjungan` VARCHAR(255) NULL,
+            `id_claim` INT NULL,
+            `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+            INDEX (`id_penitipan`),
+            INDEX (`id_item`),
+            INDEX (`id_sales`),
+            INDEX (`id_claim`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+        
+        mysqli_query($conn, "CREATE TABLE IF NOT EXISTS `tiptok_claim` (
+            `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `kode_claim` VARCHAR(50) NOT NULL UNIQUE,
+            `id_sales` INT NOT NULL,
+            `nama_sales` VARCHAR(100) NOT NULL,
+            `tgl_claim` DATE NOT NULL,
+            `total_unit_terjual` INT NOT NULL,
+            `total_nominal_insentif` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+            `status_claim` ENUM('menunggu_approval', 'disetujui', 'cair', 'ditolak') DEFAULT 'menunggu_approval',
+            `tgl_cair` DATE NULL,
+            `catatan_claim` TEXT NULL,
+            `catatan_admin` TEXT NULL,
+            `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+            `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            INDEX (`id_sales`),
+            INDEX (`status_claim`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+        
+        mysqli_query($conn, "CREATE TABLE IF NOT EXISTS `tiptok_claim_detail` (
+            `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `id_claim` INT NOT NULL,
+            `id_kunjungan_log` INT NOT NULL,
+            `id_penitipan` INT NOT NULL,
+            `id_item` INT NOT NULL,
+            `nama_barang` VARCHAR(255) NOT NULL,
+            `no_inv` VARCHAR(100) NULL,
+            `qty_terjual` INT NOT NULL,
+            `insentif_per_unit` DECIMAL(15,2) NOT NULL,
+            `subtotal_insentif` DECIMAL(15,2) NOT NULL,
+            INDEX (`id_claim`),
+            INDEX (`id_kunjungan_log`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+    }
+}
 
 // Ambil Statistik Live untuk Bento KPI
 $filterSales = "";
