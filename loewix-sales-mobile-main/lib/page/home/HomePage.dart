@@ -10,6 +10,8 @@ import '../profile/ProfilePage.dart';
 import '../../service/notification/NotificationService.dart';
 
 import '../tiptok/TipTokHomePage.dart';
+import '../../service/api/VersionChecker.dart';
+import '../update/ForceUpdatePage.dart';
 
 class HomePage extends StatefulWidget {
   static const routeName = '/home';
@@ -26,6 +28,20 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Active version check on resume / home load
+      VersionChecker.check().then((vInfo) {
+        if (!mounted) return;
+        if (vInfo.status == UpdateStatus.updateRequired) {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ForceUpdatePage(versionInfo: vInfo),
+            ),
+            (_) => false,
+          );
+        }
+      });
+
       final prov = context.read<SalesProvider>();
       prov.fetchTasks(filter: 'today');
       // Register background notification check
