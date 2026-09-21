@@ -17,6 +17,7 @@ import '../../core/app_theme.dart';
 import '../../service/model/SalesModel.dart';
 import '../../service/provider/SalesProvider.dart';
 import '../../service/api/ApiLink.dart';
+import '../tiptok/CreatePenitipanPage.dart';
 
 class TaskDetailPage extends StatefulWidget {
   final VisitTask task;
@@ -801,6 +802,39 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
                           text: t.keterangan,
                         ),
                       ],
+                      const SizedBox(height: 14),
+                      Container(height: 1, color: AppColors.divider),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: () {
+                                final prov = context.read<SalesProvider>();
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => CreatePenitipanPage(
+                                      salesId: prov.profile?.id ?? 0,
+                                      namaSales: prov.profile?.nama ?? '',
+                                      preselectedCustomerId: t.customerId,
+                                      preselectedCustomerName: t.namaCustomer,
+                                    ),
+                                  ),
+                                );
+                              },
+                              icon: const Icon(Icons.inventory_2_outlined, size: 16),
+                              label: const Text('Titip Barang di Toko Ini', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: const Color(0xFF0F172A),
+                                side: const BorderSide(color: Color(0xFFCBD5E1)),
+                                padding: const EdgeInsets.symmetric(vertical: 10),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1, end: 0),

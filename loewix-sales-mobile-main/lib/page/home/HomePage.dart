@@ -9,6 +9,8 @@ import '../rekap/RekapPage.dart';
 import '../profile/ProfilePage.dart';
 import '../../service/notification/NotificationService.dart';
 
+import '../tiptok/TipTokHomePage.dart';
+
 class HomePage extends StatefulWidget {
   static const routeName = '/home';
   const HomePage({super.key});
@@ -17,7 +19,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  int _navIdx  = 0; // 0=Kunjungan, 1=Rekap, 2=Profil
+  int _navIdx  = 0; // 0=Kunjungan, 1=TIP TOK, 2=Rekap, 3=Profil
   int _taskTab = 0; // 0=Hari Ini, 1=Semua
 
   @override
@@ -59,7 +61,9 @@ class _HomePageState extends State<HomePage> {
               final filters = ['today', 'upcoming', 'all'];
               prov.fetchTasks(filter: filters[i]);
             },
+            onOpenTipTok: () => setState(() => _navIdx = 1),
           ),
+          const TipTokHomePage(),
           const RekapPage(),
           const ProfilePage(),
         ],
@@ -98,8 +102,9 @@ class _BottomNavBar extends StatelessWidget {
           child: Row(
             children: [
               _navItem(0, Icons.home_rounded, Icons.home_outlined, 'Kunjungan'),
-              _navItem(1, Icons.bar_chart_rounded, Icons.bar_chart_outlined, 'Rekap'),
-              _navItem(2, Icons.person_rounded, Icons.person_outline_rounded, 'Profil'),
+              _navItem(1, Icons.inventory_2_rounded, Icons.inventory_2_outlined, 'TIP TOK'),
+              _navItem(2, Icons.bar_chart_rounded, Icons.bar_chart_outlined, 'Rekap'),
+              _navItem(3, Icons.person_rounded, Icons.person_outline_rounded, 'Profil'),
             ],
           ),
         ),
@@ -153,10 +158,12 @@ class _KunjunganTab extends StatefulWidget {
   final int taskTab;
   final String greeting;
   final ValueChanged<int> onTaskTabChange;
+  final VoidCallback? onOpenTipTok;
   const _KunjunganTab({
     required this.taskTab,
     required this.greeting,
     required this.onTaskTabChange,
+    this.onOpenTipTok,
   });
 
   @override
@@ -317,6 +324,50 @@ class _KunjunganTabState extends State<_KunjunganTab> {
                       ),
                     ],
                   ).animate(delay: 250.ms).fadeIn(duration: 500.ms).slideY(begin: 0.15, end: 0),
+
+                  if (widget.onOpenTipTok != null) ...[
+                    const SizedBox(height: 14),
+                    GestureDetector(
+                      onTap: widget.onOpenTipTok,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF0F172A),
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.04),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF1E293B),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(Icons.inventory_2_rounded, color: Color(0xFF38BDF8), size: 18),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('TIP TOK (Titip Barang di Toko)', style: S.caption(Colors.white).copyWith(fontWeight: FontWeight.w700)),
+                                  Text('Input konsinyasi, audit sisa stok & klaim insentif', style: S.caption(const Color(0xFF94A3B8)).copyWith(fontSize: 10)),
+                                ],
+                              ),
+                            ),
+                            const Icon(Icons.chevron_right_rounded, color: Color(0xFF94A3B8), size: 20),
+                          ],
+                        ),
+                      ),
+                    ).animate(delay: 300.ms).fadeIn(duration: 500.ms),
+                  ],
                 ],
               ),
             ),
