@@ -20,10 +20,10 @@ header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
 // KONFIGURASI VERSI - UBAH DI SINI UNTUK FORCE UPDATE
 // ═══════════════════════════════════════════════
 $response = [
-    'min_version'     => '1.9.1',   // Versi minimum yang dibolehkan (Force Update aktif)
-    'latest_version'  => '1.9.1',   // Versi terbaru yang tersedia
-    'update_url'      => 'https://jadwal.id-giti.com/staff/download/index.php?file=LoewixSales-v1.9.1.apk',
-    'update_message'  => 'Versi terbaru (v1.9.1) tersedia! Pembaruan modul konsinyasi toko & sistem TIP TOK.',
+    'min_version'     => '1.9.2',   // Versi minimum yang dibolehkan (Force Update aktif)
+    'latest_version'  => '1.9.2',   // Versi terbaru yang tersedia
+    'update_url'      => 'https://jadwal.id-giti.com/staff/download/index.php?file=LoewixSales-v1.9.2.apk',
+    'update_message'  => 'Versi terbaru (v1.9.2) tersedia! Integrasi penitipan barang khusus toko dalam jadwal kunjungan Admin.',
     'force_message'   => 'Versi aplikasi Anda sudah tidak didukung. Silakan update ke versi terbaru.',
 ];
 

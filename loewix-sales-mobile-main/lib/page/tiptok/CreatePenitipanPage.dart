@@ -79,7 +79,7 @@ class _CreatePenitipanPageState extends State<CreatePenitipanPage> {
 
   Future<void> _pickDealer() async {
     final searchCtrl = TextEditingController();
-    List<Map<String, dynamic>> dealerList = await _api.getDealers();
+    List<Map<String, dynamic>> dealerList = await _api.getDealers(salesId: widget.salesId);
 
     if (!mounted) return;
 
@@ -112,7 +112,13 @@ class _CreatePenitipanPageState extends State<CreatePenitipanPage> {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      Text('Pilih Toko / Dealer Mitra', style: S.h3()),
+                      Text('Pilih Toko Sesuai Jadwal Kunjungan', style: S.h3()),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Hanya toko yang dijadwalkan oleh Admin yang dapat dititipkan barang.',
+                        style: S.caption(AppColors.textMuted),
+                        textAlign: TextAlign.center,
+                      ),
                       const SizedBox(height: 12),
                       TextField(
                         controller: searchCtrl,
@@ -128,7 +134,7 @@ class _CreatePenitipanPageState extends State<CreatePenitipanPage> {
                           ),
                         ),
                         onChanged: (val) async {
-                          final res = await _api.getDealers(search: val);
+                          final res = await _api.getDealers(salesId: widget.salesId, search: val);
                           setModalState(() {
                             dealerList = res;
                           });
@@ -137,7 +143,21 @@ class _CreatePenitipanPageState extends State<CreatePenitipanPage> {
                       const SizedBox(height: 12),
                       Expanded(
                         child: dealerList.isEmpty
-                            ? const Center(child: Text('Toko tidak ditemukan', style: TextStyle(color: AppColors.textMuted)))
+                            ? Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(24),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const Icon(Icons.event_busy_rounded, color: Color(0xFFD97706), size: 42),
+                                      const SizedBox(height: 10),
+                                      Text('Tidak ada toko dalam jadwal kunjungan', style: S.bodySm().copyWith(fontWeight: FontWeight.w700), textAlign: TextAlign.center),
+                                      const SizedBox(height: 4),
+                                      Text('Penitipan barang baru hanya dapat dilakukan jika Admin telah membuatkan jadwal kunjungan ke toko tersebut.', style: S.caption(AppColors.textMuted), textAlign: TextAlign.center),
+                                    ],
+                                  ),
+                                ),
+                              )
                             : ListView.separated(
                                 controller: scrollCtrl,
                                 itemCount: dealerList.length,
@@ -145,6 +165,7 @@ class _CreatePenitipanPageState extends State<CreatePenitipanPage> {
                                 itemBuilder: (ctx, i) {
                                   final d = dealerList[i];
                                   final isDealer = (d['kategori']?.toString().toLowerCase() == 'dealer');
+                                  final jadwalStr = d['jadwal']?.toString() ?? '';
                                   return ListTile(
                                     contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                     leading: CircleAvatar(
@@ -156,9 +177,9 @@ class _CreatePenitipanPageState extends State<CreatePenitipanPage> {
                                     ),
                                     title: Text(d['nama'] ?? '', style: S.bodySm().copyWith(fontWeight: FontWeight.w700)),
                                     subtitle: Text(
-                                      "${d['kategori'] ?? 'Customer'} • ${d['alamat'] ?? ''}, ${d['kota'] ?? ''}",
+                                      "${d['kategori'] ?? 'Customer'} • ${d['alamat'] ?? ''}, ${d['kota'] ?? ''}${jadwalStr.isNotEmpty ? ' • Jadwal: $jadwalStr' : ''}",
                                       style: S.caption(),
-                                      maxLines: 1,
+                                      maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                     onTap: () {

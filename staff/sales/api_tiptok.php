@@ -139,17 +139,35 @@ if ($action === 'get_dashboard') {
 }
 
 // ─────────────────────────────────────────────────────────────
-// 2. GET DEALERS LIST
+// 2. GET DEALERS LIST (Hanya Toko yang Terjadwal untuk Sales)
 // ─────────────────────────────────────────────────────────────
 if ($action === 'get_dealers') {
+    $salesId = intval($_GET['sales_id'] ?? ($jsonInput['sales_id'] ?? 0));
     $search = $conn->real_escape_string($_GET['q'] ?? ($jsonInput['q'] ?? ''));
-    $whereSearch = $search !== '' ? " AND (nama LIKE '%$search%' OR alamat LIKE '%$search%' OR kota LIKE '%$search%') " : "";
+    $whereSearch = $search !== '' ? " AND (c.nama LIKE '%$search%' OR c.alamat LIKE '%$search%' OR c.kota LIKE '%$search%') " : "";
     
-    $res = $conn->query("SELECT id, nama, kategori, telp_pribadi, alamat, kota 
-                         FROM sales_customer 
-                         WHERE deleted_at IS NULL $whereSearch 
-                         ORDER BY (kategori = 'Dealer') DESC, nama ASC 
-                         LIMIT 50");
+    if ($salesId > 0) {
+        // HANYA toko yang ADA DI JADWAL KUNJUNGAN resmi dari Admin untuk sales ini!
+        $sql = "SELECT DISTINCT c.id, c.nama, c.kategori, c.telp_pribadi, c.alamat, c.kota, ks.jadwal, ks.id AS id_kegiatan
+                FROM team_kegiatan_sales tks
+                JOIN kegiatan_sales ks ON ks.id = tks.id_kegiatan_sales AND ks.deleted_at IS NULL
+                JOIN sales_customer c  ON c.id  = ks.id_customer        AND c.deleted_at IS NULL
+                WHERE tks.id_sales = $salesId
+                  AND tks.deleted_at IS NULL
+                  AND ks.status NOT IN ('waiting', 'dibatalkan', 'reschedule', 'cancelled')
+                  AND (ks.reschedule_reason IS NULL OR ks.reschedule_reason = '')
+                  $whereSearch
+                ORDER BY ks.jadwal DESC
+                LIMIT 50";
+    } else {
+        $sql = "SELECT id, nama, kategori, telp_pribadi, alamat, kota 
+                FROM sales_customer c
+                WHERE deleted_at IS NULL $whereSearch 
+                ORDER BY (kategori = 'Dealer') DESC, nama ASC 
+                LIMIT 50";
+    }
+    
+    $res = $conn->query($sql);
     $dealers = [];
     if ($res) {
         while ($row = $res->fetch_assoc()) {
@@ -181,6 +199,23 @@ if ($action === 'create_penitipan') {
     if (empty($items) || !is_array($items)) {
         echo json_encode(['status' => 'error', 'message' => 'Minimal harus menambahkan 1 barang titipan!']);
         exit;
+    }
+
+    // Validasi Wajib Jadwal Kunjungan dari Admin
+    if ($idSales > 0) {
+        $checkJadwal = $conn->query("SELECT ks.id FROM team_kegiatan_sales tks
+            JOIN kegiatan_sales ks ON ks.id = tks.id_kegiatan_sales AND ks.deleted_at IS NULL
+            WHERE tks.id_sales = $idSales AND ks.id_customer = $idCustomer
+              AND tks.deleted_at IS NULL
+              AND ks.status NOT IN ('waiting', 'dibatalkan', 'reschedule', 'cancelled')
+            LIMIT 1");
+        if (!$checkJadwal || $checkJadwal->num_rows == 0) {
+            echo json_encode([
+                'status' => 'error',
+                'message' => 'Penitipan ditolak: Anda belum memiliki jadwal kunjungan dari Admin untuk toko ini. Titip barang hanya dapat dilakukan jika ada jadwal kunjungan resmi dari Admin.'
+            ]);
+            exit;
+        }
     }
 
     $prefix = "TP-" . date('Ymd', strtotime($tglTitip)) . "-";

@@ -54,9 +54,9 @@ class ApiTipTok {
     throw Exception(data['message'] ?? 'Gagal memuat data TIP TOK');
   }
 
-  /// Get Dealers for Search / Autocomplete
-  Future<List<Map<String, dynamic>>> getDealers({String search = ''}) async {
-    final data = await _fetchJson('api_sales_tiptok.php?action=get_dealers&q=${Uri.encodeComponent(search)}');
+  /// Get Dealers for Search / Autocomplete (Filtered by Sales Schedule)
+  Future<List<Map<String, dynamic>>> getDealers({int salesId = 0, String search = ''}) async {
+    final data = await _fetchJson('api_sales_tiptok.php?action=get_dealers&sales_id=$salesId&q=${Uri.encodeComponent(search)}');
     if (data['status'] == 'success') {
       return List<Map<String, dynamic>>.from(data['data'] ?? []);
     }
