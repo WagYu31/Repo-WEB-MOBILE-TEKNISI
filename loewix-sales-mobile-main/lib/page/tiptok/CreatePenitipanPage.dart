@@ -36,6 +36,8 @@ class _CreatePenitipanPageState extends State<CreatePenitipanPage> {
   DateTime _tglTitip = DateTime.now();
   final _catatanCtrl = TextEditingController();
   bool _isLoading = false;
+  bool _isCheckingSchedule = true;
+  List<Map<String, dynamic>> _dealersToday = [];
 
   final List<_ItemRow> _items = [_ItemRow()];
 
@@ -45,6 +47,30 @@ class _CreatePenitipanPageState extends State<CreatePenitipanPage> {
     if (widget.preselectedCustomerId != null && widget.preselectedCustomerId! > 0) {
       _selectedCustomerId = widget.preselectedCustomerId;
       _selectedCustomerName = widget.preselectedCustomerName;
+      _isCheckingSchedule = false;
+    } else {
+      _loadScheduleToday();
+    }
+  }
+
+  Future<void> _loadScheduleToday() async {
+    setState(() => _isCheckingSchedule = true);
+    try {
+      final list = await _api.getDealers(salesId: widget.salesId);
+      if (mounted) {
+        setState(() {
+          _dealersToday = list;
+          _isCheckingSchedule = false;
+          if (list.length == 1) {
+            _selectedCustomerId = int.tryParse(list[0]['id'].toString());
+            _selectedCustomerName = list[0]['nama']?.toString();
+          }
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() => _isCheckingSchedule = false);
+      }
     }
   }
 
@@ -78,8 +104,20 @@ class _CreatePenitipanPageState extends State<CreatePenitipanPage> {
   }
 
   Future<void> _pickDealer() async {
+    if (widget.preselectedCustomerId != null || _dealersToday.length == 1) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Toko telah terkunci sesuai jadwal kunjungan resmi Admin hari ini.'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
     final searchCtrl = TextEditingController();
-    List<Map<String, dynamic>> dealerList = await _api.getDealers(salesId: widget.salesId);
+    List<Map<String, dynamic>> dealerList = _dealersToday.isNotEmpty
+        ? List.from(_dealersToday)
+        : await _api.getDealers(salesId: widget.salesId);
 
     if (!mounted) return;
 
@@ -293,6 +331,8 @@ class _CreatePenitipanPageState extends State<CreatePenitipanPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isStoreLocked = (widget.preselectedCustomerId != null || _dealersToday.length == 1);
+
     return Scaffold(
       backgroundColor: AppColors.bg,
       appBar: AppBar(
@@ -301,44 +341,119 @@ class _CreatePenitipanPageState extends State<CreatePenitipanPage> {
         elevation: 0.5,
         foregroundColor: AppColors.textPrimary,
       ),
-      body: _isLoading
+      body: _isCheckingSchedule
           ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 1. Pilih Toko
-                  Text('Toko / Dealer Mitra *', style: S.label().copyWith(color: AppColors.textPrimary)),
-                  const SizedBox(height: 6),
-                  GestureDetector(
-                    onTap: _pickDealer,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                      decoration: BoxDecoration(
-                        color: AppColors.surface,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.border),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.storefront_rounded, color: AppColors.primary),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              _selectedCustomerName ?? 'Pilih Toko Pelanggan / Dealer...',
-                              style: _selectedCustomerName != null
-                                  ? S.bodySm().copyWith(fontWeight: FontWeight.w700)
-                                  : S.bodySm().copyWith(color: AppColors.textMuted),
+          : (widget.preselectedCustomerId == null && _dealersToday.isEmpty)
+              ? Center(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFEF3C7),
+                            shape: BoxShape.circle,
+                            border: Border.all(color: const Color(0xFFFDE68A), width: 2),
+                          ),
+                          child: const Icon(Icons.event_busy_rounded, size: 40, color: Color(0xFFD97706)),
+                        ),
+                        const SizedBox(height: 20),
+                        const Text(
+                          'Tidak Ada Jadwal Kunjungan Hari Ini',
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF0F172A)),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 10),
+                        const Text(
+                          'Sales TIDAK BISA menitipkan barang baru jika belum ada jadwal kunjungan resmi dari Admin hari ini.\n\nSilakan minta Admin untuk membuatkan jadwal kunjungan toko terlebih dahulu.',
+                          style: TextStyle(fontSize: 13, color: Color(0xFF64748B), height: 1.5),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 24),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 46,
+                          child: ElevatedButton.icon(
+                            onPressed: () => Navigator.pop(context),
+                            icon: const Icon(Icons.arrow_back_rounded, size: 18),
+                            label: const Text('Kembali ke Beranda', style: TextStyle(fontWeight: FontWeight.w700)),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF0F172A),
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                             ),
                           ),
-                          const Icon(Icons.arrow_drop_down, color: AppColors.textMuted),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
+                )
+              : _isLoading
+                  ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+                  : SingleChildScrollView(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // 1. Pilih Toko
+                          Text('Toko / Dealer Mitra *', style: S.label().copyWith(color: AppColors.textPrimary)),
+                          const SizedBox(height: 6),
+                          GestureDetector(
+                            onTap: _pickDealer,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                              decoration: BoxDecoration(
+                                color: isStoreLocked ? const Color(0xFFF8FAFC) : AppColors.surface,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: isStoreLocked ? const Color(0xFF10B981).withOpacity(0.5) : AppColors.border,
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    isStoreLocked ? Icons.verified_rounded : Icons.storefront_rounded,
+                                    color: isStoreLocked ? const Color(0xFF10B981) : AppColors.primary,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          _selectedCustomerName ?? 'Pilih Toko Pelanggan / Dealer...',
+                                          style: _selectedCustomerName != null
+                                              ? S.bodySm().copyWith(fontWeight: FontWeight.w700)
+                                              : S.bodySm().copyWith(color: AppColors.textMuted),
+                                        ),
+                                        if (_selectedCustomerName != null && isStoreLocked) ...[
+                                          const SizedBox(height: 2),
+                                          const Text(
+                                            '✓ Sesuai Jadwal Kunjungan Resmi Admin Hari Ini',
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              color: Color(0xFF059669),
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                  ),
+                                  Icon(
+                                    isStoreLocked ? Icons.lock_outline_rounded : Icons.arrow_drop_down,
+                                    color: AppColors.textMuted,
+                                    size: 20,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
 
-                  const SizedBox(height: 16),
+                          const SizedBox(height: 16),
 
                   // 2. Tanggal Titip
                   Text('Tanggal Penitipan *', style: S.label().copyWith(color: AppColors.textPrimary)),

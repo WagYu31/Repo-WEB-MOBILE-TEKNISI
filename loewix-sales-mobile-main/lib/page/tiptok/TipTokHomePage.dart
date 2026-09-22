@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:quickalert/quickalert.dart';
 import '../../core/app_theme.dart';
 import '../../service/api/ApiTipTok.dart';
 import '../../service/model/TipTokModel.dart';
@@ -232,26 +233,70 @@ class _TipTokHomePageState extends State<TipTokHomePage> {
                         const SizedBox(height: 18),
 
                         // ── CTA Bar: + Titip Barang Baru ─────────────
+                        if (prov.tasks.isEmpty) ...[
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFEF3C7),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: const Color(0xFFFDE68A)),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.info_outline_rounded, color: Color(0xFFD97706), size: 18),
+                                const SizedBox(width: 10),
+                                const Expanded(
+                                  child: Text(
+                                    'Belum ada jadwal kunjungan toko hari ini dari Admin. Penitipan barang baru terkunci.',
+                                    style: TextStyle(color: Color(0xFF92400E), fontSize: 11, fontWeight: FontWeight.w600),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                        ],
+
                         SizedBox(
                           width: double.infinity,
                           height: 46,
                           child: ElevatedButton.icon(
                             onPressed: () async {
+                              if (prov.tasks.isEmpty) {
+                                QuickAlert.show(
+                                  context: context,
+                                  type: QuickAlertType.warning,
+                                  title: 'Tidak Ada Jadwal Kunjungan',
+                                  text: 'Sales TIDAK BISA menitipkan barang jika belum ada jadwal kunjungan resmi dari Admin hari ini.\n\nSilakan minta Admin untuk membuatkan jadwal kunjungan terlebih dahulu.',
+                                  confirmBtnText: 'Mengerti',
+                                  confirmBtnColor: AppColors.warning,
+                                );
+                                return;
+                              }
+
                               final res = await Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder: (_) => CreatePenitipanPage(
                                     salesId: salesId,
                                     namaSales: namaSales,
+                                    preselectedCustomerId: prov.tasks.length == 1 ? prov.tasks.first.customerId : null,
+                                    preselectedCustomerName: prov.tasks.length == 1 ? prov.tasks.first.namaCustomer : null,
                                   ),
                                 ),
                               );
                               if (res == true) _loadData();
                             },
-                            icon: const Icon(Icons.add_circle_outline_rounded, size: 20),
-                            label: const Text('Titip Barang Baru di Toko', style: TextStyle(fontWeight: FontWeight.w700)),
+                            icon: Icon(
+                              prov.tasks.isEmpty ? Icons.lock_outline_rounded : Icons.add_circle_outline_rounded,
+                              size: 20,
+                            ),
+                            label: Text(
+                              prov.tasks.isEmpty ? 'Titip Barang Baru (Perlu Jadwal Admin)' : 'Titip Barang Baru di Toko',
+                              style: const TextStyle(fontWeight: FontWeight.w700),
+                            ),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF0F172A),
+                              backgroundColor: prov.tasks.isEmpty ? const Color(0xFF475569) : const Color(0xFF0F172A),
                               foregroundColor: Colors.white,
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                             ),

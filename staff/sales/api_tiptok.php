@@ -147,13 +147,14 @@ if ($action === 'get_dealers') {
     $whereSearch = $search !== '' ? " AND (c.nama LIKE '%$search%' OR c.alamat LIKE '%$search%' OR c.kota LIKE '%$search%') " : "";
     
     if ($salesId > 0) {
-        // HANYA toko yang ADA DI JADWAL KUNJUNGAN resmi dari Admin untuk sales ini!
+        // HANYA toko yang ADA DI JADWAL KUNJUNGAN resmi dari Admin untuk sales ini PADA HARI INI!
         $sql = "SELECT DISTINCT c.id, c.nama, c.kategori, c.telp_pribadi, c.alamat, c.kota, ks.jadwal, ks.id AS id_kegiatan
                 FROM team_kegiatan_sales tks
                 JOIN kegiatan_sales ks ON ks.id = tks.id_kegiatan_sales AND ks.deleted_at IS NULL
                 JOIN sales_customer c  ON c.id  = ks.id_customer        AND c.deleted_at IS NULL
                 WHERE tks.id_sales = $salesId
                   AND tks.deleted_at IS NULL
+                  AND DATE(ks.jadwal) = CURDATE()
                   AND ks.status NOT IN ('waiting', 'dibatalkan', 'reschedule', 'cancelled')
                   AND (ks.reschedule_reason IS NULL OR ks.reschedule_reason = '')
                   $whereSearch
@@ -201,18 +202,19 @@ if ($action === 'create_penitipan') {
         exit;
     }
 
-    // Validasi Wajib Jadwal Kunjungan dari Admin
+    // Validasi Wajib Jadwal Kunjungan dari Admin pada hari ini
     if ($idSales > 0) {
         $checkJadwal = $conn->query("SELECT ks.id FROM team_kegiatan_sales tks
             JOIN kegiatan_sales ks ON ks.id = tks.id_kegiatan_sales AND ks.deleted_at IS NULL
             WHERE tks.id_sales = $idSales AND ks.id_customer = $idCustomer
               AND tks.deleted_at IS NULL
+              AND DATE(ks.jadwal) = CURDATE()
               AND ks.status NOT IN ('waiting', 'dibatalkan', 'reschedule', 'cancelled')
             LIMIT 1");
         if (!$checkJadwal || $checkJadwal->num_rows == 0) {
             echo json_encode([
                 'status' => 'error',
-                'message' => 'Penitipan ditolak: Anda belum memiliki jadwal kunjungan dari Admin untuk toko ini. Titip barang hanya dapat dilakukan jika ada jadwal kunjungan resmi dari Admin.'
+                'message' => 'Penitipan ditolak: Anda tidak memiliki jadwal kunjungan aktif dari Admin untuk toko ini hari ini. Sales TIDAK BISA menitipkan barang sembarangan jika toko tidak ada di jadwal kunjungan resmi dari Admin.'
             ]);
             exit;
         }
