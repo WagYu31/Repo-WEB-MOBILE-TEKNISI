@@ -876,9 +876,12 @@ class _CreatePenitipanPageState extends State<CreatePenitipanPage> {
         return {
           'kategori': p.category,
           'type_barang': p.type,
+          'tipe_barang': p.type,
           'nama_barang': p.description,
           'qty': it.qty,
+          'qty_titip': it.qty,
           'insentif': p.insentif,
+          'insentif_per_unit': p.insentif,
         };
       }).toList();
 
