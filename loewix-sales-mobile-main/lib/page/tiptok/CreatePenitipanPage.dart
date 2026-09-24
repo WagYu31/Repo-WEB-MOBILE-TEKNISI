@@ -895,7 +895,8 @@ class _CreatePenitipanPageState extends State<CreatePenitipanPage> {
 
       if (!mounted) return;
 
-      if (res['success'] == true) {
+      final isSuccess = (res['status'] == 'success' || res['success'] == true || res['status'] == true);
+      if (isSuccess) {
         await QuickAlert.show(
           context: context,
           type: QuickAlertType.success,
