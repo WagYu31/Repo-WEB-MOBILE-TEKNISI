@@ -20,10 +20,10 @@ header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
 // KONFIGURASI VERSI - UBAH DI SINI UNTUK FORCE UPDATE
 // ===============================================
 $response = [
-    'min_version'     => '1.9.4',   // Versi minimum yang dibolehkan (Force Update aktif)
-    'latest_version'  => '1.9.4',   // Versi terbaru yang tersedia
-    'update_url'      => 'https://jadwal.id-giti.com/staff/download/index.php?file=LoewixSales-v1.9.4.apk',
-    'update_message'  => 'Versi terbaru (v1.9.4) tersedia! Pembaruan TIP TOK: Pemilihan 6 model kamera resmi Loewix & insentif otomatis.',
+    'min_version'     => '1.9.5',   // Versi minimum yang dibolehkan (Force Update aktif)
+    'latest_version'  => '1.9.5',   // Versi terbaru yang tersedia
+    'update_url'      => 'https://jadwal.id-giti.com/staff/download/index.php?file=LoewixSales-v1.9.5.apk',
+    'update_message'  => 'Versi terbaru (v1.9.5) tersedia! Pembaruan TIP TOK: Tampilan UI modern baru, filter kategori cepat, & insentif otomatis.',
     'force_message'   => 'Versi aplikasi Anda sudah tidak didukung. Silakan update ke versi terbaru.',
 ];
 
