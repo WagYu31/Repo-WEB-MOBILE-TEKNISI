@@ -16,14 +16,14 @@ header('Cache-Control: post-check=0, pre-check=0', false);
 header('Pragma: no-cache');
 header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
 
-// ═══════════════════════════════════════════════
+// ===============================================
 // KONFIGURASI VERSI - UBAH DI SINI UNTUK FORCE UPDATE
-// ═══════════════════════════════════════════════
+// ===============================================
 $response = [
-    'min_version'     => '1.9.3',   // Versi minimum yang dibolehkan (Force Update aktif)
-    'latest_version'  => '1.9.3',   // Versi terbaru yang tersedia
-    'update_url'      => 'https://jadwal.id-giti.com/staff/download/index.php?file=LoewixSales-v1.9.3.apk',
-    'update_message'  => 'Versi terbaru (v1.9.3) tersedia! Pembatasan ketat penitipan barang hanya untuk toko yang dijadwalkan Admin hari ini.',
+    'min_version'     => '1.9.4',   // Versi minimum yang dibolehkan (Force Update aktif)
+    'latest_version'  => '1.9.4',   // Versi terbaru yang tersedia
+    'update_url'      => 'https://jadwal.id-giti.com/staff/download/index.php?file=LoewixSales-v1.9.4.apk',
+    'update_message'  => 'Versi terbaru (v1.9.4) tersedia! Pembaruan TIP TOK: Pemilihan 6 model kamera resmi Loewix & insentif otomatis.',
     'force_message'   => 'Versi aplikasi Anda sudah tidak didukung. Silakan update ke versi terbaru.',
 ];
 
