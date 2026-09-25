@@ -70,7 +70,7 @@ const List<OfficialTipTokProduct> kOfficialTipTokProducts = [
     model: 'LX-IPF40CMT02',
     description: 'Kamera CCTV Loewix 4MP IP Camera Indoor (LX-IPF40CMT02)',
     msrp: 350000,
-    insentif: 15000,
+    insentif: 30000,
   ),
   OfficialTipTokProduct(
     id: 6,
@@ -79,7 +79,7 @@ const List<OfficialTipTokProduct> kOfficialTipTokProducts = [
     model: 'LX+IPF40CMT17',
     description: 'Kamera CCTV Loewix 4MP IP Camera Indoor (LX+IPF40CMT17)',
     msrp: 360000,
-    insentif: 15000,
+    insentif: 30000,
   ),
 ];
 
@@ -494,7 +494,7 @@ class _CreatePenitipanPageState extends State<CreatePenitipanPage> {
                       SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          'Insentif Sales: Tetap Rp 15.000 / unit untuk seluruh 6 model kamera.',
+                          'Insentif Sales: 2MP AHD Rp 15.000/unit & 4MP IP Camera Rp 30.000/unit.',
                           style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF065F46)),
                         ),
                       ),
@@ -553,8 +553,8 @@ class _CreatePenitipanPageState extends State<CreatePenitipanPage> {
                                 color: const Color(0xFFDCFCE7),
                                 borderRadius: BorderRadius.circular(6),
                               ),
-                              child: const Text(
-                                '+Rp 15.000',
+                              child: Text(
+                                '+'+_formatRp(p.insentif),
                                 style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFF15803D)),
                               ),
                             ),
@@ -642,7 +642,7 @@ class _CreatePenitipanPageState extends State<CreatePenitipanPage> {
                               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF0F172A)),
                             ),
                             Text(
-                              'Program Konsinyasi Loewix (Insentif Rp 15.000 / unit)',
+                              'Program Konsinyasi Loewix (Insentif s/d Rp 30.000 / unit)',
                               style: TextStyle(fontSize: 11.5, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
                             ),
                           ],
@@ -774,14 +774,14 @@ class _CreatePenitipanPageState extends State<CreatePenitipanPage> {
                                               borderRadius: BorderRadius.circular(6),
                                               border: Border.all(color: const Color(0xFFA7F3D0), width: 0.6),
                                             ),
-                                            child: const Row(
+                                            child: Row(
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
-                                                Icon(Icons.monetization_on_rounded, size: 12, color: Color(0xFF15803D)),
-                                                SizedBox(width: 3),
+                                                const Icon(Icons.monetization_on_rounded, size: 12, color: Color(0xFF15803D)),
+                                                const SizedBox(width: 3),
                                                 Text(
-                                                  '+Rp 15.000 / unit',
-                                                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFF15803D)),
+                                                  '+'+_formatRp(p.insentif)+' / unit',
+                                                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFF15803D)),
                                                 ),
                                               ],
                                             ),

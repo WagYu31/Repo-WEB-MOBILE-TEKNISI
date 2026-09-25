@@ -7,10 +7,35 @@
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET');
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Pragma: no-cache');
 
-echo json_encode([
-    'latest_version' => '1.6.0',
-    'min_version'    => '1.6.0',   // ← Samakan dengan latest_version untuk WAJIB update
-    'download_url'   => 'https://api-teknisi.id-giti.com/downloads/LoewixSales-latest.apk',
-    'changelog'      => 'Fitur baru: Penambahan kolom Nama Client dan Nomor Client di Clock Out.',
-]);
+$apkUrl = 'https://jadwal.id-giti.com/staff/download/LoewixSales-v1.9.8.apk?v=' . time();
+
+$response = [
+    'status'         => 'success',
+    'latest_version' => '1.9.8',
+    'min_version'    => '1.9.8',
+    'version'        => '1.9.8',
+    'version_code'   => 198,
+    'force_update'   => true,
+    'update_url'     => $apkUrl,
+    'download_url'   => $apkUrl,
+    'update_message' => 'Versi terbaru (v1.9.8) tersedia! Update tarif insentif resmi TIP TOK: 4MP IP Camera Rp 30.000/unit & 2MP AHD Rp 15.000/unit.',
+    'force_message'  => 'Versi aplikasi Anda perlu diperbarui ke v1.9.8 untuk sinkronisasi tarif insentif terbaru.',
+    'changelog'      => 'Versi terbaru (v1.9.8) tersedia! Update tarif insentif resmi TIP TOK: 4MP IP Camera Rp 30.000/unit & 2MP AHD Rp 15.000/unit.',
+    'data' => [
+        'latest_version' => '1.9.8',
+        'min_version'    => '1.9.8',
+        'version'        => '1.9.8',
+        'version_code'   => 198,
+        'force_update'   => true,
+        'update_url'     => $apkUrl,
+        'download_url'   => $apkUrl,
+        'update_message' => 'Versi terbaru (v1.9.8) tersedia! Update tarif insentif resmi TIP TOK: 4MP IP Camera Rp 30.000/unit & 2MP AHD Rp 15.000/unit.',
+        'force_message'  => 'Versi aplikasi Anda perlu diperbarui ke v1.9.8 untuk sinkronisasi tarif insentif terbaru.',
+        'changelog'      => 'Versi terbaru (v1.9.8) tersedia! Update tarif insentif resmi TIP TOK: 4MP IP Camera Rp 30.000/unit & 2MP AHD Rp 15.000/unit.',
+    ]
+];
+
+echo json_encode($response);
