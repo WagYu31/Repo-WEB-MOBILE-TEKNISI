@@ -320,16 +320,52 @@ if ($action === 'get_product_prices') {
 // 1.5. GET DAFTAR SALES PIC (UNTUK DROPDOWN & FILTER SALES)
 // -------------------------------------------------------------
 if ($action === 'get_sales_list' || $action === 'search_sales') {
-    $colNama = "nama_lengkap";
-    $chkCol = @$conn->query("SHOW COLUMNS FROM sales LIKE 'nama_lengkap'");
-    if (!$chkCol || $chkCol->num_rows == 0) {
-        $colNama = "nama";
+    $salesCols = [];
+    $chkSalesCols = @$conn->query("SHOW COLUMNS FROM sales");
+    if ($chkSalesCols) {
+        while ($c = $chkSalesCols->fetch_assoc()) {
+            $salesCols[strtolower($c['Field'])] = true;
+        }
     }
 
-    $sql = "SELECT id, $colNama AS nama, role AS jabatan, email FROM sales WHERE deleted_at IS NULL ORDER BY (role = 'sales') DESC, $colNama ASC";
-    $res = $conn->query($sql);
+    $nameExpr = "'Sales'";
+    if (isset($salesCols['nama_lengkap']) && isset($salesCols['nama'])) {
+        $nameExpr = "COALESCE(NULLIF(nama_lengkap, ''), nama, 'Sales')";
+    } elseif (isset($salesCols['nama_lengkap'])) {
+        $nameExpr = "COALESCE(nama_lengkap, 'Sales')";
+    } elseif (isset($salesCols['nama'])) {
+        $nameExpr = "COALESCE(nama, 'Sales')";
+    } elseif (isset($salesCols['username'])) {
+        $nameExpr = "COALESCE(username, 'Sales')";
+    }
+
+    $roleExpr = "'Sales'";
+    if (isset($salesCols['role']) && isset($salesCols['jabatan'])) {
+        $roleExpr = "COALESCE(NULLIF(role, ''), jabatan, 'Sales')";
+    } elseif (isset($salesCols['role'])) {
+        $roleExpr = "COALESCE(role, 'Sales')";
+    } elseif (isset($salesCols['jabatan'])) {
+        $roleExpr = "COALESCE(jabatan, 'Sales')";
+    }
+
+    $whereSales = "1=1";
+    if (isset($salesCols['deleted_at'])) {
+        $whereSales .= " AND deleted_at IS NULL";
+    }
+    if (isset($salesCols['status'])) {
+        $whereSales .= " AND (status != 'nonaktif' AND status != 'inactive' AND status != 'deleted')";
+    }
+
+    $orderSales = "ORDER BY $nameExpr ASC";
+    if (isset($salesCols['role'])) {
+        $orderSales = "ORDER BY (LOWER(role) = 'sales') DESC, $nameExpr ASC";
+    } elseif (isset($salesCols['jabatan'])) {
+        $orderSales = "ORDER BY (LOWER(jabatan) = 'sales') DESC, $nameExpr ASC";
+    }
+
     $salesList = [];
-    if ($res) {
+    $res = @$conn->query("SELECT id, $nameExpr AS nama, $roleExpr AS jabatan FROM sales WHERE $whereSales $orderSales");
+    if ($res && $res->num_rows > 0) {
         while ($r = $res->fetch_assoc()) {
             $salesList[] = [
                 'id' => intval($r['id']),
@@ -337,6 +373,18 @@ if ($action === 'get_sales_list' || $action === 'search_sales') {
                 'jabatan' => $r['jabatan'] ?? 'Sales',
                 'email' => $r['email'] ?? ''
             ];
+        }
+    } else {
+        $qFallback = @$conn->query("SELECT * FROM sales LIMIT 100");
+        if ($qFallback && $qFallback->num_rows > 0) {
+            while ($r = $qFallback->fetch_assoc()) {
+                $salesList[] = [
+                    'id' => intval($r['id']),
+                    'nama' => $r['nama_lengkap'] ?? ($r['nama'] ?? ($r['username'] ?? 'Sales')),
+                    'jabatan' => $r['role'] ?? ($r['jabatan'] ?? 'Sales'),
+                    'email' => $r['email'] ?? ''
+                ];
+            }
         }
     }
     echo json_encode(['status' => 'success', 'data' => $salesList]);
@@ -358,13 +406,10 @@ if ($action === 'simpan_penitipan') {
 
     if ($id_sales_input > 0 && $jabatanUser !== 'Sales') {
         $target_id_sales = $id_sales_input;
-        $chkS = $conn->query("SELECT nama_lengkap FROM sales WHERE id = '$target_id_sales' LIMIT 1");
-        if (!$chkS || $chkS->num_rows == 0) {
-            $chkS = $conn->query("SELECT nama FROM sales WHERE id = '$target_id_sales' LIMIT 1");
-        }
+        $chkS = @$conn->query("SELECT * FROM sales WHERE id = '$target_id_sales' LIMIT 1");
         if ($chkS && $chkS->num_rows > 0) {
             $rowS = $chkS->fetch_assoc();
-            $target_nama_sales = $rowS['nama_lengkap'] ?? ($rowS['nama'] ?? $namaUser);
+            $target_nama_sales = $rowS['nama_lengkap'] ?? ($rowS['nama'] ?? ($rowS['username'] ?? $namaUser));
         }
     }
 
@@ -996,13 +1041,10 @@ if ($action === 'update_penitipan') {
         $target_nama_sales = $master['nama_sales'] ?? $namaUser;
 
         if ($target_id_sales > 0 && $jabatanUser !== 'Sales') {
-            $chkS = $conn->query("SELECT nama_lengkap FROM sales WHERE id = '$target_id_sales' LIMIT 1");
-            if (!$chkS || $chkS->num_rows == 0) {
-                $chkS = $conn->query("SELECT nama FROM sales WHERE id = '$target_id_sales' LIMIT 1");
-            }
+            $chkS = @$conn->query("SELECT * FROM sales WHERE id = '$target_id_sales' LIMIT 1");
             if ($chkS && $chkS->num_rows > 0) {
                 $rowS = $chkS->fetch_assoc();
-                $target_nama_sales = $rowS['nama_lengkap'] ?? ($rowS['nama'] ?? $target_nama_sales);
+                $target_nama_sales = $rowS['nama_lengkap'] ?? ($rowS['nama'] ?? ($rowS['username'] ?? $target_nama_sales));
             }
         }
 
@@ -1162,10 +1204,10 @@ if ($action === 'get_tiptok_invoices') {
     if ($jabatanUser === 'Sales') {
         $where[] = "(p.id_sales = '$idUser' OR k.id_sales = '$idUser' OR p.nama_sales = '" . $conn->real_escape_string($namaUser) . "')";
     } elseif ($id_sales_filter > 0) {
-        $qS = $conn->query("SELECT nama_lengkap, nama FROM sales WHERE id = '$id_sales_filter' LIMIT 1");
+        $qS = @$conn->query("SELECT * FROM sales WHERE id = '$id_sales_filter' LIMIT 1");
         if ($qS && $qS->num_rows > 0) {
             $rowS = $qS->fetch_assoc();
-            $salesNameFilter = !empty($rowS['nama_lengkap']) ? $rowS['nama_lengkap'] : ($rowS['nama'] ?? '');
+            $salesNameFilter = $rowS['nama_lengkap'] ?? ($rowS['nama'] ?? ($rowS['username'] ?? ''));
         }
 
         if (!empty($salesNameFilter)) {
@@ -1445,6 +1487,63 @@ if ($action === 'hapus_invoice_item') {
         echo json_encode(['status' => 'error', 'message' => 'Gagal mereset invoice: ' . $conn->error]);
     }
     $stmt->close();
+    exit;
+}
+
+// -------------------------------------------------------------
+// 21. BATALKAN PENJUALAN AUDIT / RESTORE STOK KE TOKO
+// -------------------------------------------------------------
+if ($action === 'batalkan_penjualan_kunjungan') {
+    $id_kunjungan = intval($_POST['id_kunjungan'] ?? 0);
+    if ($id_kunjungan <= 0) {
+        echo json_encode(['status' => 'error', 'message' => 'ID transaksi kunjungan tidak valid.']);
+        exit;
+    }
+
+    $qKunj = $conn->query("SELECT * FROM tiptok_kunjungan WHERE id = $id_kunjungan LIMIT 1");
+    if (!$qKunj || $qKunj->num_rows === 0) {
+        echo json_encode(['status' => 'error', 'message' => 'Data transaksi kunjungan tidak ditemukan.']);
+        exit;
+    }
+    $kunj = $qKunj->fetch_assoc();
+
+    // Cek apakah transaksi sudah diklaim insentif
+    if (!empty($kunj['id_claim']) && intval($kunj['id_claim']) > 0) {
+        echo json_encode(['status' => 'error', 'message' => 'Transaksi ini tidak dapat dibatalkan karena sudah masuk pengajuan klaim insentif yang terkunci.']);
+        exit;
+    }
+
+    $id_penitipan = intval($kunj['id_penitipan']);
+    $id_item = intval($kunj['id_item']);
+    $qty_batal = intval($kunj['qty_terjual_kunjungan']);
+    $insentif_batal = floatval($kunj['insentif_didapat']);
+    $kode_kunjungan = $kunj['kode_kunjungan'];
+
+    // 1. Pulihkan stok dan insentif di tiptok_items
+    $qItem = $conn->query("SELECT * FROM tiptok_items WHERE id = $id_item LIMIT 1");
+    if ($qItem && $qItem->num_rows > 0) {
+        $curItem = $qItem->fetch_assoc();
+        $restored_sisa = intval($curItem['qty_sisa']) + $qty_batal;
+        $reduced_terjual = max(0, intval($curItem['qty_terjual']) - $qty_batal);
+        $reduced_insentif = max(0.0, floatval($curItem['total_insentif']) - $insentif_batal);
+        $new_status = ($restored_sisa > 0) ? 'titip' : $curItem['status_item'];
+
+        $stmtUpItem = $conn->prepare("UPDATE tiptok_items SET qty_sisa = ?, qty_terjual = ?, total_insentif = ?, status_item = ?, updated_at = NOW() WHERE id = ?");
+        $stmtUpItem->bind_param("iidsi", $restored_sisa, $reduced_terjual, $reduced_insentif, $new_status, $id_item);
+        $stmtUpItem->execute();
+        $stmtUpItem->close();
+    }
+
+    // 2. Pulihkan status master penitipan kembali aktif jika sebelumnya selesai
+    $conn->query("UPDATE tiptok_penitipan SET status = 'aktif', updated_at = NOW() WHERE id = $id_penitipan AND status = 'selesai'");
+
+    // 3. Hapus baris tiptok_kunjungan
+    $conn->query("DELETE FROM tiptok_kunjungan WHERE id = $id_kunjungan");
+
+    echo json_encode([
+        'status' => 'success',
+        'message' => "Penjualan ($kode_kunjungan) berhasil dibatalkan. Stok sebanyak $qty_batal unit otomatis dikembalikan ke toko mitra."
+    ]);
     exit;
 }
 
