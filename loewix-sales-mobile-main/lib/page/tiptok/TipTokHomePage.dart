@@ -184,6 +184,7 @@ class _TipTokHomePageState extends State<TipTokHomePage> {
                                               salesId: salesId,
                                               namaSales: namaSales,
                                               metrics: _metrics!,
+                                              penitipanList: _allList,
                                             ),
                                           ),
                                         ).then((_) => _loadData());
@@ -195,7 +196,7 @@ class _TipTokHomePageState extends State<TipTokHomePage> {
                                           borderRadius: BorderRadius.circular(12),
                                         ),
                                         child: Text(
-                                          _metrics!.isClaimEligible ? 'Klaim Sekarang' : 'Klaim (Min. 50)',
+                                          _metrics!.isClaimEligible ? '${_metrics!.eligibleStoresCount} Toko Siap Klaim' : 'Klaim (Min. 50/Toko)',
                                           style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700),
                                         ),
                                       ),
@@ -557,6 +558,41 @@ class _PenitipanCardState extends State<_PenitipanCard> {
                     ),
                   ],
                 ),
+                if (p.unclaimedUnits > 0) ...[
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: (p.isClaimEligible || p.unclaimedUnits >= 50) ? const Color(0xFFF0FDF4) : const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: (p.isClaimEligible || p.unclaimedUnits >= 50) ? const Color(0xFFBBF7D0) : const Color(0xFFE2E8F0),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          (p.isClaimEligible || p.unclaimedUnits >= 50) ? Icons.check_circle_rounded : Icons.trending_up_rounded,
+                          size: 13,
+                          color: (p.isClaimEligible || p.unclaimedUnits >= 50) ? const Color(0xFF10B981) : const Color(0xFF3B82F6),
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            (p.isClaimEligible || p.unclaimedUnits >= 50)
+                                ? 'Target Klaim: ${p.unclaimedUnits} Unit (Siap Klaim)'
+                                : 'Target Klaim: ${p.unclaimedUnits}/50 Unit (${50 - p.unclaimedUnits} lagi)',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: (p.isClaimEligible || p.unclaimedUnits >= 50) ? const Color(0xFF065F46) : const Color(0xFF475569),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
 
                 if (p.lastNoInv.isNotEmpty) ...[
                   const SizedBox(height: 8),

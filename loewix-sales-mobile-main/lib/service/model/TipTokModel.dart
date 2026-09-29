@@ -60,6 +60,11 @@ class TipTokPenitipanModel {
   final double sumInsentif;
   final String lastNoInv;
   final String lastKunjungan;
+  final int unclaimedUnits;
+  final double unclaimedNominal;
+  final bool isClaimEligible;
+  final double claimProgress;
+  final int sisaUnitKlaim;
   final List<TipTokItemModel> items;
 
   TipTokPenitipanModel({
@@ -80,12 +85,23 @@ class TipTokPenitipanModel {
     required this.sumInsentif,
     required this.lastNoInv,
     required this.lastKunjungan,
+    this.unclaimedUnits = 0,
+    this.unclaimedNominal = 0.0,
+    this.isClaimEligible = false,
+    this.claimProgress = 0.0,
+    this.sisaUnitKlaim = 50,
     required this.items,
   });
 
   factory TipTokPenitipanModel.fromJson(Map<String, dynamic> json) {
     var rawItems = json['items'] as List? ?? [];
     List<TipTokItemModel> itemList = rawItems.map((e) => TipTokItemModel.fromJson(e)).toList();
+
+    final unUnits = int.tryParse(json['unclaimed_units']?.toString() ?? '0') ?? 0;
+    final unNominal = double.tryParse(json['unclaimed_nominal']?.toString() ?? '0') ?? 0.0;
+    final isEligible = json['is_claim_eligible'] == true || unUnits >= 50;
+    final progress = double.tryParse(json['claim_progress']?.toString() ?? '') ?? ((unUnits / 50.0) * 100.0).clamp(0.0, 100.0);
+    final sisa = int.tryParse(json['sisa_unit_klaim']?.toString() ?? '') ?? (50 - unUnits).clamp(0, 50);
 
     return TipTokPenitipanModel(
       id: int.tryParse(json['id']?.toString() ?? '0') ?? 0,
@@ -105,6 +121,11 @@ class TipTokPenitipanModel {
       sumInsentif: double.tryParse(json['sum_insentif']?.toString() ?? '0') ?? 0.0,
       lastNoInv: json['last_no_inv']?.toString() ?? '',
       lastKunjungan: json['last_kunjungan']?.toString() ?? '',
+      unclaimedUnits: unUnits,
+      unclaimedNominal: unNominal,
+      isClaimEligible: isEligible,
+      claimProgress: progress,
+      sisaUnitKlaim: sisa,
       items: itemList,
     );
   }
@@ -118,6 +139,8 @@ class TipTokMetricsModel {
   final double totalInsentif;
   final int unclaimedUnits;
   final double unclaimedNominal;
+  final int eligibleStoresCount;
+  final double eligibleNominalTotal;
   final int claimTarget;
   final double claimProgress;
   final bool isClaimEligible;
@@ -130,23 +153,29 @@ class TipTokMetricsModel {
     required this.totalInsentif,
     required this.unclaimedUnits,
     required this.unclaimedNominal,
+    this.eligibleStoresCount = 0,
+    this.eligibleNominalTotal = 0.0,
     required this.claimTarget,
     required this.claimProgress,
     required this.isClaimEligible,
   });
 
   factory TipTokMetricsModel.fromJson(Map<String, dynamic> json) {
+    final unUnits = int.tryParse(json['unclaimed_units']?.toString() ?? '0') ?? 0;
+    final elCount = int.tryParse(json['eligible_stores_count']?.toString() ?? '0') ?? (unUnits >= 50 ? 1 : 0);
     return TipTokMetricsModel(
       totalTokoAktif: int.tryParse(json['total_toko_aktif']?.toString() ?? '0') ?? 0,
       totalTitip: int.tryParse(json['total_titip']?.toString() ?? '0') ?? 0,
       totalSisa: int.tryParse(json['total_sisa']?.toString() ?? '0') ?? 0,
       totalTerjual: int.tryParse(json['total_terjual']?.toString() ?? '0') ?? 0,
       totalInsentif: double.tryParse(json['total_insentif']?.toString() ?? '0') ?? 0.0,
-      unclaimedUnits: int.tryParse(json['unclaimed_units']?.toString() ?? '0') ?? 0,
+      unclaimedUnits: unUnits,
       unclaimedNominal: double.tryParse(json['unclaimed_nominal']?.toString() ?? '0') ?? 0.0,
+      eligibleStoresCount: elCount,
+      eligibleNominalTotal: double.tryParse(json['eligible_nominal_total']?.toString() ?? '0') ?? 0.0,
       claimTarget: int.tryParse(json['claim_target']?.toString() ?? '50') ?? 50,
       claimProgress: double.tryParse(json['claim_progress']?.toString() ?? '0') ?? 0.0,
-      isClaimEligible: json['is_claim_eligible'] == true || json['is_claim_eligible'] == 1 || (json['unclaimed_units'] ?? 0) >= 50,
+      isClaimEligible: json['is_claim_eligible'] == true || elCount > 0,
     );
   }
 }
@@ -154,6 +183,8 @@ class TipTokMetricsModel {
 class TipTokClaimModel {
   final int id;
   final String kodeClaim;
+  final int? idPenitipan;
+  final String? namaToko;
   final String tglClaim;
   final int totalUnitTerjual;
   final double totalNominalInsentif;
@@ -165,6 +196,8 @@ class TipTokClaimModel {
   TipTokClaimModel({
     required this.id,
     required this.kodeClaim,
+    this.idPenitipan,
+    this.namaToko,
     required this.tglClaim,
     required this.totalUnitTerjual,
     required this.totalNominalInsentif,
@@ -178,6 +211,8 @@ class TipTokClaimModel {
     return TipTokClaimModel(
       id: int.tryParse(json['id']?.toString() ?? '0') ?? 0,
       kodeClaim: json['kode_claim']?.toString() ?? '',
+      idPenitipan: int.tryParse(json['id_penitipan']?.toString() ?? ''),
+      namaToko: json['nama_toko']?.toString() ?? json['display_nama_toko']?.toString(),
       tglClaim: json['tgl_claim']?.toString() ?? '',
       totalUnitTerjual: int.tryParse(json['total_unit_terjual']?.toString() ?? '0') ?? 0,
       totalNominalInsentif: double.tryParse(json['total_nominal_insentif']?.toString() ?? '0') ?? 0.0,

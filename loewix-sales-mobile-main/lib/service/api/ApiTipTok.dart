@@ -122,15 +122,17 @@ class ApiTipTok {
     throw Exception(data['message'] ?? 'Gagal menyimpan audit kunjungan');
   }
 
-  /// Submit Incentive Claim
+  /// Submit Incentive Claim for a Store
   Future<Map<String, dynamic>> claimInsentif({
     required int salesId,
     required String namaSales,
+    required int idPenitipan,
     required String catatanClaim,
   }) async {
     final data = await _postJson('claim_insentif', {
       'sales_id': salesId,
       'nama_sales': namaSales,
+      'id_penitipan': idPenitipan,
       'catatan_claim': catatanClaim,
     });
     if (data['status'] == 'success' || data['success'] == true) {
