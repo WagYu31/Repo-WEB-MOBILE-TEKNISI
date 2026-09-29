@@ -59,6 +59,8 @@ class _AuditKunjunganPageState extends State<AuditKunjunganPage> {
   final _api = ApiTipTok();
   final DateTime _tglKunjungan = DateTime.now();
   final _catatanCtrl = TextEditingController();
+  final _masterNoInvCtrl = TextEditingController();
+  bool _gabungInvoice = true; // Default: Gabung 1 No. Invoice
   bool _isLoading = false;
   bool _showPanduan = true;
 
@@ -73,6 +75,7 @@ class _AuditKunjunganPageState extends State<AuditKunjunganPage> {
   @override
   void dispose() {
     _catatanCtrl.dispose();
+    _masterNoInvCtrl.dispose();
     for (var r in _itemRows) {
       r.sisaCtrl.dispose();
       r.noInvCtrl.dispose();
@@ -99,7 +102,85 @@ class _AuditKunjunganPageState extends State<AuditKunjunganPage> {
     });
   }
 
+  String? _getSuggestedNextInv(String lastInv) {
+    if (lastInv.trim().isEmpty) return null;
+    final trimmed = lastInv.trim();
+    final reg = RegExp(r'^(.*?)(\d+)$');
+    final match = reg.firstMatch(trimmed);
+    if (match != null) {
+      final prefix = match.group(1) ?? '';
+      final numStr = match.group(2) ?? '';
+      final numVal = int.tryParse(numStr);
+      if (numVal != null) {
+        final nextNum = (numVal + 1).toString().padLeft(numStr.length, '0');
+        return '$prefix$nextNum';
+      }
+    }
+    return null;
+  }
+
+  void _toggleModeInvoice(bool gabung) {
+    setState(() {
+      _gabungInvoice = gabung;
+      if (!gabung && _masterNoInvCtrl.text.trim().isNotEmpty) {
+        // Pre-fill each sold row with master text if row is empty
+        for (var r in _itemRows) {
+          if (r.calculatedTerjual > 0 && r.noInvCtrl.text.trim().isEmpty) {
+            r.noInvCtrl.text = _masterNoInvCtrl.text.trim();
+          }
+        }
+      } else if (gabung && _masterNoInvCtrl.text.trim().isEmpty) {
+        // Pick first sold row's text if master is empty
+        for (var r in _itemRows) {
+          if (r.calculatedTerjual > 0 && r.noInvCtrl.text.trim().isNotEmpty) {
+            _masterNoInvCtrl.text = r.noInvCtrl.text.trim();
+            break;
+          }
+        }
+      }
+    });
+  }
+
   Future<void> _submit() async {
+    // Validasi No Invoice jika ada penjualan
+    if (_totalTerjualAll > 0) {
+      if (_gabungInvoice) {
+        final masterInv = _masterNoInvCtrl.text.trim();
+        if (masterInv.isEmpty) {
+          QuickAlert.show(
+            context: context,
+            type: QuickAlertType.warning,
+            title: 'Nomor Invoice Wajib Diisi!',
+            text: 'Ada $_totalTerjualAll unit barang yang laku terjual. Silakan masukkan Nomor Invoice Penjualan (berlaku untuk semua barang laku).',
+            confirmBtnColor: AppColors.warning,
+          );
+          return;
+        }
+        // Sync master invoice to all sold rows
+        for (var r in _itemRows) {
+          if (r.calculatedTerjual > 0) {
+            r.noInvCtrl.text = masterInv;
+          } else {
+            r.noInvCtrl.text = '';
+          }
+        }
+      } else {
+        // Mode Pisah: Validasi masing-masing item terjual
+        for (var r in _itemRows) {
+          if (r.calculatedTerjual > 0 && r.noInvCtrl.text.trim().isEmpty) {
+            QuickAlert.show(
+              context: context,
+              type: QuickAlertType.warning,
+              title: 'Nomor Invoice Belum Lengkap!',
+              text: 'Barang "${r.item.namaBarang}" terjual ${r.calculatedTerjual} unit namun belum memiliki Nomor Invoice. Dalam mode pisah, setiap barang laku wajib diisi nomor invoicenya.',
+              confirmBtnColor: AppColors.warning,
+            );
+            return;
+          }
+        }
+      }
+    }
+
     List<Map<String, dynamic>> itemsPayload = [];
 
     for (int i = 0; i < _itemRows.length; i++) {
@@ -129,21 +210,10 @@ class _AuditKunjunganPageState extends State<AuditKunjunganPage> {
       }
 
       final terjual = r.item.qtySisa - sisa;
-      if (terjual > 0 && noInv.isEmpty) {
-        QuickAlert.show(
-          context: context,
-          type: QuickAlertType.warning,
-          title: 'Nomor Invoice Wajib Diisi!',
-          text: 'Ada $terjual unit "${r.item.namaBarang}" terjual. Silakan masukkan Nomor Invoice (No. INV) untuk barang ini.',
-          confirmBtnColor: AppColors.warning,
-        );
-        return;
-      }
-
       itemsPayload.add({
         'id_item': r.item.id,
         'stok_sisa': sisa,
-        'no_inv': noInv,
+        'no_inv': terjual > 0 ? noInv : '',
         'tgl_invoice': DateFormat('yyyy-MM-dd').format(_tglKunjungan),
       });
     }
@@ -231,6 +301,321 @@ class _AuditKunjunganPageState extends State<AuditKunjunganPage> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildInvoiceSettingsCard() {
+    final lastInv = widget.penitipan.lastNoInv;
+    final nextSuggestedInv = _getSuggestedNextInv(lastInv);
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: _gabungInvoice ? const Color(0xFF10B981) : const Color(0xFFF59E0B),
+          width: 1.5,
+        ),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x0A000000),
+            blurRadius: 8,
+            offset: Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header Row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: _gabungInvoice ? const Color(0xFFECFDF5) : const Color(0xFFFEF3C7),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      Icons.receipt_long_rounded,
+                      size: 18,
+                      color: _gabungInvoice ? const Color(0xFF059669) : const Color(0xFFD97706),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Nomor Invoice Penjualan',
+                    style: S.bodySm().copyWith(fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  '$_totalTerjualAll Unit Laku',
+                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFF0F172A)),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+
+          // Opsi Segmented Toggle: [Gabung 1 No. Invoice] | [Pisah per Barang]
+          Container(
+            padding: const EdgeInsets.all(3),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(8),
+                    onTap: () => _toggleModeInvoice(true),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      decoration: BoxDecoration(
+                        color: _gabungInvoice ? Colors.white : Colors.transparent,
+                        borderRadius: BorderRadius.circular(8),
+                        boxShadow: _gabungInvoice
+                            ? const [BoxShadow(color: Color(0x14000000), blurRadius: 4, offset: Offset(0, 2))]
+                            : null,
+                      ),
+                      alignment: Alignment.center,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            _gabungInvoice ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
+                            size: 15,
+                            color: _gabungInvoice ? const Color(0xFF059669) : AppColors.textMuted,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Gabung 1 Invoice',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: _gabungInvoice ? FontWeight.w800 : FontWeight.w600,
+                              color: _gabungInvoice ? const Color(0xFF059669) : AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(8),
+                    onTap: () => _toggleModeInvoice(false),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      decoration: BoxDecoration(
+                        color: !_gabungInvoice ? Colors.white : Colors.transparent,
+                        borderRadius: BorderRadius.circular(8),
+                        boxShadow: !_gabungInvoice
+                            ? const [BoxShadow(color: Color(0x14000000), blurRadius: 4, offset: Offset(0, 2))]
+                            : null,
+                      ),
+                      alignment: Alignment.center,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            !_gabungInvoice ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
+                            size: 15,
+                            color: !_gabungInvoice ? const Color(0xFFD97706) : AppColors.textMuted,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Pisah per Barang',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: !_gabungInvoice ? FontWeight.w800 : FontWeight.w600,
+                              color: !_gabungInvoice ? const Color(0xFFD97706) : AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Mode Content
+          if (_gabungInvoice) ...[
+            Text(
+              'Nomor Invoice Penjualan (Sama untuk semua barang) *',
+              style: S.caption(AppColors.textPrimary).copyWith(fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 6),
+            TextField(
+              controller: _masterNoInvCtrl,
+              textCapitalization: TextCapitalization.characters,
+              onChanged: (val) {
+                setState(() {});
+              },
+              decoration: InputDecoration(
+                hintText: 'Cth: INV/2026/09/0018',
+                filled: true,
+                fillColor: const Color(0xFFF8FAFC),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(color: Color(0xFF059669), width: 1.5),
+                ),
+                prefixIcon: const Icon(Icons.tag_rounded, size: 18, color: Color(0xFF059669)),
+                suffixIcon: _masterNoInvCtrl.text.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear_rounded, size: 18, color: AppColors.textMuted),
+                        onPressed: () {
+                          setState(() {
+                            _masterNoInvCtrl.clear();
+                          });
+                        },
+                      )
+                    : null,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                isDense: true,
+              ),
+            ),
+            const SizedBox(height: 8),
+
+            // Shortcut buttons from last invoice
+            if (lastInv.isNotEmpty) ...[
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: [
+                  if (nextSuggestedInv != null)
+                    InkWell(
+                      borderRadius: BorderRadius.circular(6),
+                      onTap: () {
+                        setState(() {
+                          _masterNoInvCtrl.text = nextSuggestedInv;
+                        });
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFECFDF5),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: const Color(0xFFA7F3D0)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.auto_mode_rounded, size: 12, color: Color(0xFF059669)),
+                            const SizedBox(width: 4),
+                            Text(
+                              '+1 Lanjut: $nextSuggestedInv',
+                              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF059669)),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  InkWell(
+                    borderRadius: BorderRadius.circular(6),
+                    onTap: () {
+                      setState(() {
+                        _masterNoInvCtrl.text = lastInv;
+                      });
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: const Color(0xFFCBD5E1)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.history_rounded, size: 12, color: AppColors.textSecondary),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Sama dgn Terakhir: $lastInv',
+                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+            ],
+
+            Row(
+              children: [
+                const Icon(Icons.info_outline_rounded, size: 13, color: Color(0xFF059669)),
+                const SizedBox(width: 5),
+                Expanded(
+                  child: Text(
+                    'No. invoice ini otomatis digunakan untuk semua barang yang terjual.',
+                    style: S.caption(const Color(0xFF15803D)).copyWith(fontSize: 11),
+                  ),
+                ),
+              ],
+            ),
+          ] else ...[
+            // Mode Pisah Info Banner
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFFBEB),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFFFDE68A)),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.call_split_rounded, size: 16, color: Color(0xFFD97706)),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Mode Pisah per Barang Aktif',
+                          style: S.bodySm().copyWith(fontWeight: FontWeight.w700, color: const Color(0xFFB45309)),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Silakan isi kolom Nomor Invoice pada masing-masing barang yang laku di bawah.',
+                          style: S.caption(const Color(0xFF92400E)).copyWith(fontSize: 11),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
     );
   }
 
@@ -399,8 +784,8 @@ class _AuditKunjunganPageState extends State<AuditKunjunganPage> {
                                 const SizedBox(height: 10),
                                 _buildPanduanItem(
                                   step: '4',
-                                  title: 'Wajib Isi No. Invoice Jika Terjual',
-                                  desc: 'Jika ada barang yang laku, kolom Nomor Invoice akan otomatis muncul dan wajib diisi.',
+                                  title: 'No. Invoice Fleksibel (Gabung / Pisah)',
+                                  desc: 'Secara standar, no. invoice otomatis digabung (1 faktur untuk semua barang laku). Anda juga bisa memilih mode pisah jika toko memakai no. faktur berbeda.',
                                   icon: Icons.receipt_long_rounded,
                                   color: const Color(0xFF7C3AED),
                                 ),
@@ -470,6 +855,13 @@ class _AuditKunjunganPageState extends State<AuditKunjunganPage> {
                   ),
                   const SizedBox(height: 10),
 
+                  // Card Pengaturan Nomor Invoice Penjualan (Muncul jika ada barang terjual)
+                  if (_totalTerjualAll > 0) ...[
+                    _buildInvoiceSettingsCard(),
+                    const SizedBox(height: 14),
+                  ],
+
+                  // List Item Barang
                   ListView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
@@ -716,37 +1108,113 @@ class _AuditKunjunganPageState extends State<AuditKunjunganPage> {
                             // Dynamic Invoice Field
                             if (isTerjual) ...[
                               const SizedBox(height: 12),
-                              Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFFFFBEB),
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(color: const Color(0xFFFDE68A)),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        const Icon(Icons.receipt_long_rounded, size: 16, color: Color(0xFFD97706)),
-                                        const SizedBox(width: 6),
-                                        Text('Wajib Nomor Invoice Penjualan *', style: S.caption(const Color(0xFFB45309)).copyWith(fontWeight: FontWeight.w700)),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 6),
-                                    TextField(
-                                      controller: row.noInvCtrl,
-                                      decoration: const InputDecoration(
-                                        hintText: 'Cth: INV/2026/09/0012',
-                                        filled: true,
-                                        fillColor: Colors.white,
-                                        border: OutlineInputBorder(),
-                                        isDense: true,
+                              if (_gabungInvoice) ...[
+                                // Mode Gabung: Sleek synchronized indicator badge
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFF0FDF4),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: const Color(0xFFBBF7D0)),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      const Icon(Icons.receipt_long_rounded, size: 16, color: Color(0xFF16A34A)),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              'Faktur Penjualan (Gabung 1 Invoice)',
+                                              style: S.caption(const Color(0xFF166534)).copyWith(fontWeight: FontWeight.w700, fontSize: 10),
+                                            ),
+                                            Text(
+                                              _masterNoInvCtrl.text.trim().isEmpty
+                                                  ? 'Menunggu input No. Invoice di atas...'
+                                                  : _masterNoInvCtrl.text.trim(),
+                                              style: TextStyle(
+                                                fontSize: 13,
+                                                fontWeight: FontWeight.w800,
+                                                color: _masterNoInvCtrl.text.trim().isEmpty
+                                                  ? const Color(0xFF94A3B8)
+                                                  : const Color(0xFF15803D),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                      InkWell(
+                                        borderRadius: BorderRadius.circular(6),
+                                        onTap: () => _toggleModeInvoice(false),
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            borderRadius: BorderRadius.circular(6),
+                                            border: Border.all(color: const Color(0xFFCBD5E1)),
+                                          ),
+                                          child: const Text(
+                                            'Pisah',
+                                            style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Color(0xFF475569)),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
+                              ] else ...[
+                                // Mode Pisah: Separate TextField for this item
+                                Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFFFFBEB),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: const Color(0xFFFDE68A)),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              const Icon(Icons.receipt_long_rounded, size: 15, color: Color(0xFFD97706)),
+                                              const SizedBox(width: 6),
+                                              Text(
+                                                'No. Invoice Khusus Barang Ini *',
+                                                style: S.caption(const Color(0xFFB45309)).copyWith(fontWeight: FontWeight.w700),
+                                              ),
+                                            ],
+                                          ),
+                                          InkWell(
+                                            borderRadius: BorderRadius.circular(4),
+                                            onTap: () => _toggleModeInvoice(true),
+                                            child: const Text(
+                                              'Gabung',
+                                              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF2563EB)),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 6),
+                                      TextField(
+                                        controller: row.noInvCtrl,
+                                        textCapitalization: TextCapitalization.characters,
+                                        decoration: const InputDecoration(
+                                          hintText: 'Cth: INV/2026/09/0012',
+                                          filled: true,
+                                          fillColor: Colors.white,
+                                          border: OutlineInputBorder(),
+                                          isDense: true,
+                                          contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ],
                           ],
                         ),
@@ -778,21 +1246,52 @@ class _AuditKunjunganPageState extends State<AuditKunjunganPage> {
                         color: const Color(0xFF0F172A),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      child: Column(
                         children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text('Total Terjual Hari Ini', style: S.caption(const Color(0xFF94A3B8))),
-                              Text('$_totalTerjualAll Unit', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 16)),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Total Terjual Hari Ini', style: S.caption(const Color(0xFF94A3B8))),
+                                  Text('$_totalTerjualAll Unit', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 16)),
+                                ],
+                              ),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Text('Tambahan Insentif', style: S.caption(const Color(0xFF94A3B8))),
+                                  Text(curFormat.format(_totalInsentifAll), style: const TextStyle(color: Color(0xFF34D399), fontWeight: FontWeight.w800, fontSize: 16)),
+                                ],
+                              ),
                             ],
                           ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
+                          const Divider(height: 16, color: Color(0xFF334155)),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text('Tambahan Insentif', style: S.caption(const Color(0xFF94A3B8))),
-                              Text(curFormat.format(_totalInsentifAll), style: const TextStyle(color: Color(0xFF34D399), fontWeight: FontWeight.w800, fontSize: 16)),
+                              Row(
+                                children: [
+                                  const Icon(Icons.receipt_long_outlined, size: 14, color: Color(0xFF94A3B8)),
+                                  const SizedBox(width: 6),
+                                  Text('Status Invoice:', style: S.caption(const Color(0xFF94A3B8))),
+                                ],
+                              ),
+                              Text(
+                                _gabungInvoice
+                                    ? (_masterNoInvCtrl.text.trim().isNotEmpty
+                                        ? 'Gabung: ${_masterNoInvCtrl.text.trim()}'
+                                        : 'Gabung (Belum diisi)')
+                                    : 'Pisah per Barang',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: _gabungInvoice
+                                      ? (_masterNoInvCtrl.text.trim().isNotEmpty ? const Color(0xFF38BDF8) : const Color(0xFFF87171))
+                                      : const Color(0xFFFBBF24),
+                                ),
+                              ),
                             ],
                           ),
                         ],
