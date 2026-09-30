@@ -446,7 +446,7 @@ $currentPage = "Today";
                   INSERT INTO kegiatan_sales (kode, jadwal, keterangan, id_customer, status, lat, lon, rad, alamat_lokasi, created_at, updated_at) 
                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
               ");
-              $stmt->bind_param("ssssissss", $kode_kegiatan, $jadwal, $visit, $id_customer, $status, $lat, $lon, $rad, $location_address);
+              $stmt->bind_param("sssisssss", $kode_kegiatan, $jadwal, $visit, $id_customer, $status, $lat, $lon, $rad, $location_address);
               $stmt->execute();
               $kegiatanId = $stmt->insert_id;
               $stmt->close();

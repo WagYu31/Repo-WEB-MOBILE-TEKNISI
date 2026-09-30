@@ -7,32 +7,7 @@ header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET');
 
-// Read DB credentials from Laravel's .env
-$envPath = __DIR__ . '/../.env';
-$envVars = [];
-if (file_exists($envPath)) {
-    $lines = file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-    foreach ($lines as $line) {
-        if (strpos(trim($line), '#') === 0) continue;
-        if (strpos($line, '=') === false) continue;
-        list($key, $value) = explode('=', $line, 2);
-        $envVars[trim($key)] = trim($value);
-    }
-}
-$servername = $envVars['DB_HOST']     ?? 'localhost';
-$username   = $envVars['DB_USERNAME'] ?? 'teknisi_api_root';
-$password   = $envVars['DB_PASSWORD'] ?? 'OffOff@18';
-$database   = $envVars['DB_DATABASE'] ?? 'teknisi_api_root';
-
-$conn = new mysqli($servername, $username, $password, $database);
-if ($conn->connect_error) {
-    http_response_code(500);
-    echo json_encode(['status' => 'error', 'message' => 'Database connection failed']);
-    exit;
-}
-$conn->set_charset('utf8');
-date_default_timezone_set('Asia/Jakarta');
-$conn->query("SET time_zone = '+07:00'");
+require_once __DIR__ . '/api_db.php';
 
 // Auto-fix 1: Mark old tasks referenced in rescheduled_from as 'dibatalkan'
 $conn->query("UPDATE kegiatan_sales SET status = 'dibatalkan' WHERE id IN (SELECT rescheduled_from FROM (SELECT DISTINCT rescheduled_from FROM kegiatan_sales WHERE rescheduled_from IS NOT NULL AND deleted_at IS NULL) AS t) AND status != 'dibatalkan'");
@@ -50,6 +25,20 @@ JOIN kegiatan_sales ks_new
 SET ks_old.status = 'dibatalkan', 
     ks_old.reschedule_reason = CONCAT('[Reschedule] Dijadwalkan ulang ke tanggal ', DATE_FORMAT(ks_new.jadwal, '%d %b %Y %H:%i'))";
 $conn->query($sqlAutoResched);
+
+// Auto-fix 3: Auto-close past-day visits left 'berjalan' without checkout
+$conn->query("UPDATE pelaksanaan_sales ps
+JOIN kegiatan_sales ks ON ks.id = ps.kegiatan_id
+SET ps.status = 'selesai',
+    ps.co_at = DATE_ADD(ps.ci_at, INTERVAL 1 HOUR),
+    ps.catatan_visit = COALESCE(NULLIF(ps.catatan_visit, ''), 'Kunjungan selesai otomatis (Lewat hari)'),
+    ks.status = 'selesai'
+WHERE ps.status = 'berjalan'
+  AND ps.co_at IS NULL
+  AND DATE(ps.ci_at) < CURDATE()");
+
+// Auto-fix 4: Harmonize status '0' in kegiatan_sales to 'dijadwalkan'
+$conn->query("UPDATE kegiatan_sales SET status = 'dijadwalkan' WHERE (status = '0' OR status = '') AND deleted_at IS NULL");
 
 $salesId = intval($_GET['sales_id'] ?? 0);
 $filter  = trim($_GET['filter'] ?? 'today');
