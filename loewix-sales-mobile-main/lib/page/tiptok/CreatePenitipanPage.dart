@@ -144,10 +144,7 @@ class _CreatePenitipanPageState extends State<CreatePenitipanPage> {
         setState(() {
           _dealersToday = list;
           _isCheckingSchedule = false;
-          if (list.length == 1) {
-            _selectedCustomerId = int.tryParse(list[0]['id'].toString());
-            _selectedCustomerName = list[0]['nama']?.toString();
-          }
+          // Tidak auto-lock agar sales bebas memilih toko TIP TOK
         });
       }
     } catch (_) {
@@ -213,7 +210,7 @@ class _CreatePenitipanPageState extends State<CreatePenitipanPage> {
   }
 
   Future<void> _pickDealer() async {
-    if (widget.preselectedCustomerId != null || _dealersToday.length == 1) {
+    if (widget.preselectedCustomerId != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Toko telah terkunci sesuai jadwal kunjungan resmi Admin hari ini.'),
@@ -260,12 +257,12 @@ class _CreatePenitipanPageState extends State<CreatePenitipanPage> {
                       ),
                       const SizedBox(height: 16),
                       const Text(
-                        'Pilih Toko Sesuai Jadwal Kunjungan',
+                        'Pilih Toko Mitra TIP TOK',
                         style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: Color(0xFF0F172A)),
                       ),
                       const SizedBox(height: 4),
                       const Text(
-                        'Hanya toko yang dijadwalkan oleh Admin yang dapat dititipkan barang.',
+                        'Hanya toko mitra yang telah ditandai program TIP TOK yang dapat dipilih.',
                         style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
                         textAlign: TextAlign.center,
                       ),
@@ -315,7 +312,7 @@ class _CreatePenitipanPageState extends State<CreatePenitipanPage> {
                                     ),
                                     const SizedBox(height: 12),
                                     const Text(
-                                      'Tidak ada jadwal toko yang cocok',
+                                      'Tidak ada toko mitra TIP TOK yang cocok',
                                       style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF334155)),
                                     ),
                                   ],
@@ -1023,7 +1020,7 @@ class _CreatePenitipanPageState extends State<CreatePenitipanPage> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      _selectedCustomerName ?? 'Pilih Toko Jadwal Kunjungan...',
+                                      _selectedCustomerName ?? 'Pilih Toko Mitra TIP TOK...',
                                       style: TextStyle(
                                         fontSize: 14.5,
                                         fontWeight: FontWeight.w800,
@@ -1034,13 +1031,13 @@ class _CreatePenitipanPageState extends State<CreatePenitipanPage> {
                                     Row(
                                       children: [
                                         Icon(
-                                          _selectedCustomerId != null ? Icons.check_circle_rounded : Icons.schedule_rounded,
+                                          _selectedCustomerId != null ? Icons.check_circle_rounded : Icons.store_rounded,
                                           size: 13,
                                           color: _selectedCustomerId != null ? const Color(0xFF059669) : const Color(0xFF64748B),
                                         ),
                                         const SizedBox(width: 4),
                                         Text(
-                                          _selectedCustomerId != null ? 'Sesuai Jadwal Kunjungan Resmi Hari Ini' : 'Wajib sesuai jadwal kunjungan Admin',
+                                          _selectedCustomerId != null ? 'Toko Mitra TIP TOK Terpilih' : 'Hanya toko resmi bertanda TIP TOK',
                                           style: TextStyle(
                                             fontSize: 11,
                                             fontWeight: FontWeight.w600,
@@ -1053,7 +1050,7 @@ class _CreatePenitipanPageState extends State<CreatePenitipanPage> {
                                 ),
                               ),
                               Icon(
-                                (widget.preselectedCustomerId != null || _dealersToday.length == 1)
+                                (widget.preselectedCustomerId != null)
                                     ? Icons.lock_outline_rounded
                                     : Icons.chevron_right_rounded,
                                 color: const Color(0xFF94A3B8),
