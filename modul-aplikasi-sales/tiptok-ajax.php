@@ -111,6 +111,16 @@ if (!$checkTbl || mysqli_num_rows($checkTbl) == 0) {
     }
 }
 
+// Auto-ensure no_so column in tiptok_kunjungan and tiptok_claim_detail
+$chkColSo = @mysqli_query($conn, "SHOW COLUMNS FROM `tiptok_kunjungan` LIKE 'no_so'");
+if ($chkColSo && mysqli_num_rows($chkColSo) == 0) {
+    @mysqli_query($conn, "ALTER TABLE `tiptok_kunjungan` ADD COLUMN `no_so` VARCHAR(100) NULL AFTER `no_inv`");
+}
+$chkColClaimSo = @mysqli_query($conn, "SHOW COLUMNS FROM `tiptok_claim_detail` LIKE 'no_so'");
+if ($chkColClaimSo && mysqli_num_rows($chkColClaimSo) == 0) {
+    @mysqli_query($conn, "ALTER TABLE `tiptok_claim_detail` ADD COLUMN `no_so` VARCHAR(100) NULL AFTER `no_inv`");
+}
+
 $idUser = $_SESSION['id'];
 $namaUser = $_SESSION['nama'] ?? ($nmUser ?? 'Sales');
 $jabatanUser = $_SESSION['jabatan'] ?? ($role ?? 'Sales');
@@ -149,27 +159,19 @@ if ($action === 'search_dealer') {
             @$conn->query("ALTER TABLE sales_customer ADD COLUMN is_tiptok TINYINT(1) NOT NULL DEFAULT 0 AFTER kategori");
         }
 
-        // Only show stores marked as TIP TOK or with existing consignment records
-        $whereTiptok = " (is_tiptok = 1";
-        if ($hasTiptokTbl) {
-            $whereTiptok .= " OR id IN (SELECT DISTINCT id_customer FROM tiptok_penitipan WHERE deleted_at IS NULL)";
-        }
-        $whereTiptok .= ") ";
-
+        // Hanya tampilkan toko aktif yang sudah ditandai sebagai Mitra TIP TOK (is_tiptok = 1)
         if (!empty($q)) {
             $stmt = $conn->prepare("SELECT id, kode_customer, nama, kategori, telp_pribadi, alamat, kota, alamat_lokasi 
                                    FROM sales_customer 
-                                   WHERE deleted_at IS NULL 
-                                     AND $whereTiptok
-                                     AND (nama LIKE ? OR telp_pribadi LIKE ? OR alamat LIKE ? OR kota LIKE ?) 
-                                   ORDER BY (kategori = 'Dealer') DESC, nama ASC LIMIT 100");
-            $stmt->bind_param("ssss", $qLike, $qLike, $qLike, $qLike);
+                                   WHERE deleted_at IS NULL AND is_tiptok = 1 
+                                     AND (nama LIKE ? OR kode_customer LIKE ? OR telp_pribadi LIKE ? OR alamat LIKE ? OR kota LIKE ?) 
+                                   ORDER BY (kategori = 'Dealer') DESC, nama ASC LIMIT 200");
+            $stmt->bind_param("sssss", $qLike, $qLike, $qLike, $qLike, $qLike);
         } else {
             $stmt = $conn->prepare("SELECT id, kode_customer, nama, kategori, telp_pribadi, alamat, kota, alamat_lokasi 
                                    FROM sales_customer 
-                                   WHERE deleted_at IS NULL 
-                                     AND $whereTiptok
-                                   ORDER BY (kategori = 'Dealer') DESC, nama ASC LIMIT 100");
+                                   WHERE deleted_at IS NULL AND is_tiptok = 1 
+                                   ORDER BY (kategori = 'Dealer') DESC, nama ASC LIMIT 1000");
         }
     } else {
         if (!empty($q)) {
@@ -473,6 +475,11 @@ if ($action === 'simpan_penitipan') {
         exit;
     }
 
+    // Otomatis tandai toko ini sebagai mitra TIP TOK aktif
+    if ($hasSalesCustomer && $id_customer > 0) {
+        @$conn->query("UPDATE sales_customer SET is_tiptok = 1 WHERE id = $id_customer");
+    }
+
     echo json_encode([
         'status' => 'success', 
         'message' => "Penitipan barang berhasil disimpan ($validCount item) dengan Kode: $kode_titip",
@@ -732,6 +739,12 @@ if ($action === 'get_claim_summary') {
         $whereSales = " AND (p.id_sales = '$idUser' OR k.id_sales = '$idUser') ";
     }
 
+    // Ensure tiptok_claim has id_penitipan and nama_toko
+    $chkColPen = @$conn->query("SHOW COLUMNS FROM `tiptok_claim` LIKE 'id_penitipan'");
+    if ($chkColPen && $chkColPen->num_rows == 0) {
+        @$conn->query("ALTER TABLE `tiptok_claim` ADD COLUMN `id_penitipan` INT NULL AFTER `id_sales`, ADD COLUMN `nama_toko` VARCHAR(255) NULL AFTER `id_penitipan`");
+    }
+
     $custJoin = $hasSalesCustomer ? "JOIN sales_customer c ON p.id_customer = c.id" : "JOIN customers c ON p.id_customer = c.id";
     $custField = $hasSalesCustomer ? "c.nama" : "c.nama_toko";
 
@@ -754,21 +767,91 @@ if ($action === 'get_claim_summary') {
     $unclaimedItems = [];
     $totalUnit = 0;
     $totalNominal = 0;
+    $storesMap = [];
+
+    // Ambil seluruh toko penitipan aktif
+    $wherePenSales = ($jabatanUser === 'Sales') ? " WHERE p.id_sales = '$idUser' " : "";
+    $sqlAllStores = "SELECT p.id AS id_penitipan, p.kode_titip, p.nama_sales, $custField AS nama_toko 
+                     FROM tiptok_penitipan p 
+                     $custJoin 
+                     $wherePenSales 
+                     ORDER BY p.id DESC";
+    $resAllStores = $conn->query($sqlAllStores);
+    if ($resAllStores) {
+        while ($st = $resAllStores->fetch_assoc()) {
+            $idP = intval($st['id_penitipan']);
+            $storesMap[$idP] = [
+                'id_penitipan' => $idP,
+                'kode_titip' => $st['kode_titip'] ?? 'TITIP',
+                'nama_toko' => $st['nama_toko'] ?? 'Toko Tanpa Nama',
+                'nama_sales' => $st['nama_sales'] ?? 'Sales',
+                'total_unclaimed_units' => 0,
+                'total_unclaimed_nominal' => 0,
+                'is_eligible' => false,
+                'progress' => 0,
+                'sisa_unit' => 50,
+                'items_count' => 0,
+            ];
+        }
+    }
 
     if ($res) {
         while ($r = $res->fetch_assoc()) {
             $totalUnit += intval($r['qty_terjual_kunjungan']);
             $totalNominal += floatval($r['insentif_didapat']);
             $unclaimedItems[] = $r;
+
+            $idPen = intval($r['id_penitipan']);
+            if (!isset($storesMap[$idPen])) {
+                $storesMap[$idPen] = [
+                    'id_penitipan' => $idPen,
+                    'kode_titip' => $r['kode_titip'] ?? 'TITIP',
+                    'nama_toko' => $r['nama_toko'] ?? 'Toko Tanpa Nama',
+                    'nama_sales' => $r['nama_sales'] ?? 'Sales',
+                    'total_unclaimed_units' => 0,
+                    'total_unclaimed_nominal' => 0,
+                    'is_eligible' => false,
+                    'progress' => 0,
+                    'sisa_unit' => 50,
+                    'items_count' => 0,
+                ];
+            }
+            $storesMap[$idPen]['total_unclaimed_units'] += intval($r['qty_terjual_kunjungan']);
+            $storesMap[$idPen]['total_unclaimed_nominal'] += floatval($r['insentif_didapat']);
+            $storesMap[$idPen]['items_count']++;
         }
     }
+
+    $eligibleStoresCount = 0;
+    $eligibleNominalTotal = 0;
+    foreach ($storesMap as &$s) {
+        $s['is_eligible'] = ($s['total_unclaimed_units'] >= 50);
+        $s['progress'] = min(100, round(($s['total_unclaimed_units'] / 50) * 100, 1));
+        $s['sisa_unit'] = max(0, 50 - $s['total_unclaimed_units']);
+        if ($s['is_eligible']) {
+            $eligibleStoresCount++;
+            $eligibleNominalTotal += $s['total_unclaimed_nominal'];
+        }
+    }
+    unset($s);
+
+    // Sort stores: eligible first, then highest units
+    usort($storesMap, function($a, $b) {
+        if ($a['is_eligible'] !== $b['is_eligible']) {
+            return $b['is_eligible'] ? 1 : -1;
+        }
+        return $b['total_unclaimed_units'] <=> $a['total_unclaimed_units'];
+    });
+    $storeList = array_values($storesMap);
 
     // Ambil riwayat claim yang pernah diajukan
     $whereClaimSales = "";
     if ($jabatanUser === 'Sales') {
         $whereClaimSales = " WHERE c.id_sales = '$idUser' ";
     }
-    $resClaims = $conn->query("SELECT c.* FROM tiptok_claim c $whereClaimSales ORDER BY c.id DESC");
+    $resClaims = $conn->query("SELECT c.*, 
+                                      COALESCE(NULLIF(c.nama_toko, ''), (SELECT COALESCE(cust.nama, cust.nama_toko) FROM tiptok_penitipan pen LEFT JOIN sales_customer cust ON pen.id_customer = cust.id WHERE pen.id = c.id_penitipan LIMIT 1), 'Toko Mitra') AS display_nama_toko
+                               FROM tiptok_claim c $whereClaimSales ORDER BY c.id DESC");
     $claimHistory = [];
     if ($resClaims) {
         while ($cl = $resClaims->fetch_assoc()) {
@@ -776,19 +859,16 @@ if ($action === 'get_claim_summary') {
         }
     }
 
-    $isEligible = ($totalUnit >= 50);
-    $progress = min(100, round(($totalUnit / 50) * 100, 1));
-
     echo json_encode([
         'status' => 'success',
         'data' => [
+            'stores' => $storeList,
+            'total_eligible_stores' => $eligibleStoresCount,
+            'total_eligible_nominal' => $eligibleNominalTotal,
             'unclaimed_items' => $unclaimedItems,
             'total_unit_terjual' => $totalUnit,
             'total_nominal_insentif' => $totalNominal,
-            'is_eligible' => $isEligible,
             'target_unit' => 50,
-            'sisa_menuju_target' => max(0, 50 - $totalUnit),
-            'progress_percentage' => $progress,
             'claim_history' => $claimHistory
         ]
     ]);
@@ -796,24 +876,40 @@ if ($action === 'get_claim_summary') {
 }
 
 // -------------------------------------------------------------
-// 6. AJUKAN KLAIM INSENTIF (MIN 50 UNIT)
+// 6. AJUKAN KLAIM INSENTIF (MIN 50 UNIT PER TOKO)
 // -------------------------------------------------------------
 if ($action === 'ajukan_claim') {
+    $id_penitipan = intval($_POST['id_penitipan'] ?? 0);
     $catatan_claim = trim($_POST['catatan_claim'] ?? '');
     
+    if ($id_penitipan <= 0) {
+        echo json_encode([
+            'status' => 'error', 
+            'message' => 'Pilih toko yang ingin diajukan klaim insentifnya! Syarat klaim berlaku minimal 50 unit per masing-masing toko mitra.'
+        ]);
+        exit;
+    }
+
     $whereSales = "";
     if ($jabatanUser === 'Sales') {
         $whereSales = " AND k.id_sales = '$idUser' ";
     }
 
-    // Query eligible unclaimed visit items
+    $custJoin = $hasSalesCustomer ? "JOIN sales_customer c ON p.id_customer = c.id" : "JOIN customers c ON p.id_customer = c.id";
+    $custField = $hasSalesCustomer ? "c.nama" : "c.nama_toko";
+
+    // Query eligible unclaimed visit items FOR THIS SPECIFIC STORE
     $sql = "SELECT k.id AS id_kunjungan, k.id_penitipan, k.id_item, k.id_sales, k.nama_sales, 
                    k.qty_terjual_kunjungan, k.no_inv, k.insentif_didapat, 
-                   i.nama_barang, i.insentif_per_unit 
+                   i.nama_barang, i.insentif_per_unit, 
+                   p.kode_titip, $custField AS nama_toko 
             FROM tiptok_kunjungan k 
             JOIN tiptok_items i ON k.id_item = i.id 
+            JOIN tiptok_penitipan p ON k.id_penitipan = p.id 
+            $custJoin 
             WHERE k.id_claim IS NULL 
               AND k.qty_terjual_kunjungan > 0 
+              AND k.id_penitipan = $id_penitipan
               $whereSales 
             ORDER BY k.tgl_kunjungan ASC, k.id ASC";
 
@@ -821,11 +917,13 @@ if ($action === 'ajukan_claim') {
     $itemsToClaim = [];
     $totalUnit = 0;
     $totalNominal = 0;
+    $namaTokoClaim = 'Toko';
 
     if ($res) {
         while ($r = $res->fetch_assoc()) {
             $totalUnit += intval($r['qty_terjual_kunjungan']);
             $totalNominal += floatval($r['insentif_didapat']);
+            $namaTokoClaim = $r['nama_toko'] ?? 'Toko';
             $itemsToClaim[] = $r;
         }
     }
@@ -833,7 +931,7 @@ if ($action === 'ajukan_claim') {
     if ($totalUnit < 50) {
         echo json_encode([
             'status' => 'error', 
-            'message' => "Syarat minimal klaim adalah 50 unit terjual. Total unit Anda saat ini baru $totalUnit unit."
+            'message' => "Syarat klaim adalah minimal 50 unit terjual per toko. Toko '$namaTokoClaim' saat ini baru mencapai $totalUnit unit terjual (kurang " . (50 - $totalUnit) . " unit lagi)."
         ]);
         exit;
     }
@@ -851,9 +949,15 @@ if ($action === 'ajukan_claim') {
     $kode_claim = $prefixClm . str_pad($nextClmNum, 4, '0', STR_PAD_LEFT);
     $tgl_claim = date('Y-m-d');
 
-    // Insert master claim
-    $stmtClaim = $conn->prepare("INSERT INTO tiptok_claim (kode_claim, id_sales, nama_sales, tgl_claim, total_unit_terjual, total_nominal_insentif, status_claim, catatan_claim, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, 'menunggu_approval', ?, NOW(), NOW())");
-    $stmtClaim->bind_param("sissids", $kode_claim, $idUser, $namaUser, $tgl_claim, $totalUnit, $totalNominal, $catatan_claim);
+    // Ensure columns exist
+    $chkColPen = $conn->query("SHOW COLUMNS FROM `tiptok_claim` LIKE 'id_penitipan'");
+    if ($chkColPen && $chkColPen->num_rows == 0) {
+        $conn->query("ALTER TABLE `tiptok_claim` ADD COLUMN `id_penitipan` INT NULL AFTER `id_sales`, ADD COLUMN `nama_toko` VARCHAR(255) NULL AFTER `id_penitipan`");
+    }
+
+    // Insert master claim with id_penitipan and nama_toko
+    $stmtClaim = $conn->prepare("INSERT INTO tiptok_claim (kode_claim, id_penitipan, nama_toko, id_sales, nama_sales, tgl_claim, total_unit_terjual, total_nominal_insentif, status_claim, catatan_claim, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'menunggu_approval', ?, NOW(), NOW())");
+    $stmtClaim->bind_param("sisissids", $kode_claim, $id_penitipan, $namaTokoClaim, $idUser, $namaUser, $tgl_claim, $totalUnit, $totalNominal, $catatan_claim);
     
     if (!$stmtClaim->execute()) {
         echo json_encode(['status' => 'error', 'message' => 'Gagal membuat pengajuan klaim: ' . $stmtClaim->error]);
@@ -877,9 +981,10 @@ if ($action === 'ajukan_claim') {
 
     echo json_encode([
         'status' => 'success',
-        'message' => "Pengajuan klaim insentif ($totalUnit unit - Rp " . number_format($totalNominal, 0, ',', '.') . ") berhasil diajukan dengan Kode: $kode_claim. Menunggu verifikasi tim admin.",
+        'message' => "Pengajuan klaim insentif untuk toko '$namaTokoClaim' ($totalUnit unit - Rp " . number_format($totalNominal, 0, ',', '.') . ") berhasil diajukan dengan Kode: $kode_claim. Menunggu verifikasi tim admin.",
         'kode_claim' => $kode_claim,
-        'id_claim' => $id_claim
+        'id_claim' => $id_claim,
+        'nama_toko' => $namaTokoClaim
     ]);
     exit;
 }
@@ -937,7 +1042,9 @@ if ($action === 'get_claim_detail') {
 // 8. UPDATE STATUS KLAIM (ADMIN / SALES MANAGER APPROVAL)
 // -------------------------------------------------------------
 if ($action === 'update_status_claim') {
-    if ($jabatanUser !== 'Super Admin' && $jabatanUser !== 'Admin' && $jabatanUser !== 'Sales Manager') {
+    $jabatanLower = strtolower(trim($jabatanUser ?? ''));
+    $canApprove = in_array($jabatanLower, ['superadmin', 'adminsales', 'admin', 'super admin', 'sales manager', 'owner', 'manager', 'finance']) || ($jabatanLower !== 'sales');
+    if (!$canApprove) {
         echo json_encode(['status' => 'error', 'message' => 'Anda tidak memiliki hak akses untuk memproses persetujuan klaim insentif.']);
         exit;
     }
@@ -945,6 +1052,7 @@ if ($action === 'update_status_claim') {
     $id_claim = intval($_POST['id_claim'] ?? 0);
     $status_claim = trim($_POST['status_claim'] ?? '');
     $catatan_admin = trim($_POST['catatan_admin'] ?? '');
+    $custom_tgl_cair = trim($_POST['tgl_cair'] ?? '');
 
     $allowedStatus = ['menunggu_approval', 'disetujui', 'cair', 'ditolak'];
     if (!in_array($status_claim, $allowedStatus)) {
@@ -952,10 +1060,13 @@ if ($action === 'update_status_claim') {
         exit;
     }
 
-    $tgl_cair_sql = ($status_claim === 'cair') ? "tgl_cair = NOW()," : "";
+    $tgl_cair_val = null;
+    if ($status_claim === 'cair') {
+        $tgl_cair_val = !empty($custom_tgl_cair) ? $custom_tgl_cair : date('Y-m-d');
+    }
 
-    $stmt = $conn->prepare("UPDATE tiptok_claim SET status_claim = ?, $tgl_cair_sql catatan_admin = ?, updated_at = NOW() WHERE id = ?");
-    $stmt->bind_param("ssi", $status_claim, $catatan_admin, $id_claim);
+    $stmt = $conn->prepare("UPDATE tiptok_claim SET status_claim = ?, tgl_cair = ?, catatan_admin = ?, updated_at = NOW() WHERE id = ?");
+    $stmt->bind_param("sssi", $status_claim, $tgl_cair_val, $catatan_admin, $id_claim);
     
     if ($stmt->execute()) {
         // Jika ditolak, unbind id_claim pada tiptok_kunjungan agar bisa diajukan kembali di kemudian hari
@@ -1118,6 +1229,9 @@ if ($action === 'update_penitipan') {
             }
         }
 
+        // Otomatis tandai toko ini sebagai mitra TIP TOK aktif
+        @$conn->query("UPDATE sales_customer SET is_tiptok = 1 WHERE id = $id_customer");
+
         $conn->commit();
         echo json_encode(['status' => 'success', 'message' => "Perubahan data penitipan [{$kode_titip}] berhasil disimpan."]);
     } catch (Exception $e) {
@@ -1244,7 +1358,7 @@ if ($action === 'get_tiptok_invoices') {
 
     if (!empty($search)) {
         $safeSearch = $conn->real_escape_string($search);
-        $where[] = "($custField LIKE '%$safeSearch%' OR p.kode_titip LIKE '%$safeSearch%' OR k.kode_kunjungan LIKE '%$safeSearch%' OR i.nama_barang LIKE '%$safeSearch%' OR k.no_inv LIKE '%$safeSearch%' OR p.nama_sales LIKE '%$safeSearch%' OR k.nama_sales LIKE '%$safeSearch%')";
+        $where[] = "($custField LIKE '%$safeSearch%' OR p.kode_titip LIKE '%$safeSearch%' OR k.kode_kunjungan LIKE '%$safeSearch%' OR i.nama_barang LIKE '%$safeSearch%' OR k.no_inv LIKE '%$safeSearch%' OR k.no_so LIKE '%$safeSearch%' OR p.nama_sales LIKE '%$safeSearch%' OR k.nama_sales LIKE '%$safeSearch%')";
     }
 
     $whereClause = implode(" AND ", $where);
@@ -1253,7 +1367,7 @@ if ($action === 'get_tiptok_invoices') {
                    COALESCE(NULLIF(p.id_sales, 0), k.id_sales) AS id_sales, 
                    COALESCE(NULLIF(p.nama_sales, ''), k.nama_sales) AS nama_sales, 
                    k.kode_kunjungan, k.tgl_kunjungan, k.stok_sebelumnya, k.stok_sisa, 
-                   k.qty_terjual_kunjungan, k.no_inv, k.tgl_invoice, k.insentif_didapat, 
+                   k.qty_terjual_kunjungan, k.no_inv, k.no_so, k.tgl_invoice, k.insentif_didapat, 
                    k.catatan_kunjungan, k.foto_kunjungan, k.id_claim, k.created_at,
                    i.nama_barang, i.tipe_barang, i.insentif_per_unit,
                    p.kode_titip, p.tgl_titip, p.id_customer,
@@ -1269,6 +1383,7 @@ if ($action === 'get_tiptok_invoices') {
 
     $res = $conn->query($sql);
     $items = [];
+    $groupedMap = [];
     $totalUnitTerjual = 0;
     $totalPendingInvoice = 0;
     $totalSudahInvoice = 0;
@@ -1286,8 +1401,86 @@ if ($action === 'get_tiptok_invoices') {
             }
             $totalNominalInsentif += floatval($r['insentif_didapat']);
             $items[] = $r;
+
+            // Grouping key: Same Customer + Same Date + (Same Invoice/SO or Pending)
+            $invKey = '';
+            if (!empty(trim($r['no_inv'] ?? ''))) {
+                $invKey = 'INV_' . trim($r['no_inv']);
+            } elseif (!empty(trim($r['no_so'] ?? ''))) {
+                $invKey = 'SO_' . trim($r['no_so']);
+            } else {
+                $invKey = 'PENDING';
+            }
+            $salesIdKey = intval($r['id_sales'] ?? 0);
+            $groupKey = intval($r['id_customer']) . '_' . $r['tgl_kunjungan'] . '_' . $salesIdKey . '_' . $invKey;
+
+            if (!isset($groupedMap[$groupKey])) {
+                $groupedMap[$groupKey] = [
+                    'group_id' => $groupKey,
+                    'id_customer' => intval($r['id_customer']),
+                    'nama_toko' => $r['nama_toko'] ?? 'Toko Mitra',
+                    'kategori_toko' => $r['kategori_toko'] ?? '',
+                    'kota_toko' => $r['kota_toko'] ?? '',
+                    'id_sales' => $salesIdKey,
+                    'nama_sales' => $r['nama_sales'] ?? 'Sales',
+                    'tgl_kunjungan' => $r['tgl_kunjungan'],
+                    'no_inv' => $r['no_inv'] ?? '',
+                    'no_so' => $r['no_so'] ?? '',
+                    'tgl_invoice' => $r['tgl_invoice'] ?? '',
+                    'catatan_kunjungan' => $r['catatan_kunjungan'] ?? '',
+                    'total_qty' => 0,
+                    'total_insentif' => 0.0,
+                    'is_claimed' => false,
+                    'kunjungan_ids' => [],
+                    'kode_kunjungan_list' => [],
+                    'items' => []
+                ];
+            }
+
+            $groupedMap[$groupKey]['total_qty'] += $qty;
+            $groupedMap[$groupKey]['total_insentif'] += floatval($r['insentif_didapat']);
+            if (!empty($r['id_claim']) && intval($r['id_claim']) > 0) {
+                $groupedMap[$groupKey]['is_claimed'] = true;
+            }
+            if (!in_array(intval($r['id_kunjungan']), $groupedMap[$groupKey]['kunjungan_ids'])) {
+                $groupedMap[$groupKey]['kunjungan_ids'][] = intval($r['id_kunjungan']);
+            }
+            if (!empty($r['kode_kunjungan']) && !in_array($r['kode_kunjungan'], $groupedMap[$groupKey]['kode_kunjungan_list'])) {
+                $groupedMap[$groupKey]['kode_kunjungan_list'][] = $r['kode_kunjungan'];
+            }
+
+            // Sync invoice / so / date to group if any item has it
+            if (empty($groupedMap[$groupKey]['no_inv']) && !empty($r['no_inv'])) {
+                $groupedMap[$groupKey]['no_inv'] = $r['no_inv'];
+            }
+            if (empty($groupedMap[$groupKey]['no_so']) && !empty($r['no_so'])) {
+                $groupedMap[$groupKey]['no_so'] = $r['no_so'];
+            }
+            if (empty($groupedMap[$groupKey]['tgl_invoice']) && !empty($r['tgl_invoice'])) {
+                $groupedMap[$groupKey]['tgl_invoice'] = $r['tgl_invoice'];
+            }
+            if (empty($groupedMap[$groupKey]['catatan_kunjungan']) && !empty($r['catatan_kunjungan'])) {
+                $groupedMap[$groupKey]['catatan_kunjungan'] = $r['catatan_kunjungan'];
+            }
+
+            $groupedMap[$groupKey]['items'][] = [
+                'id_kunjungan' => intval($r['id_kunjungan']),
+                'id_penitipan' => intval($r['id_penitipan']),
+                'id_item' => intval($r['id_item']),
+                'nama_barang' => $r['nama_barang'],
+                'tipe_barang' => $r['tipe_barang'] ?? '',
+                'qty_terjual_kunjungan' => $qty,
+                'insentif_per_unit' => floatval($r['insentif_per_unit'] ?? 0),
+                'insentif_didapat' => floatval($r['insentif_didapat'] ?? 0),
+                'kode_kunjungan' => $r['kode_kunjungan'] ?? '',
+                'kode_titip' => $r['kode_titip'] ?? '',
+                'no_inv' => $r['no_inv'] ?? '',
+                'no_so' => $r['no_so'] ?? '',
+                'id_claim' => intval($r['id_claim'] ?? 0)
+            ];
         }
     }
+    $groupedInvoices = array_values($groupedMap);
 
     // Global stats dengan filter sales jika dipilih
     $whereStatSales = "";
@@ -1306,7 +1499,7 @@ if ($action === 'get_tiptok_invoices') {
         SUM(k.qty_terjual_kunjungan) AS grand_total_unit,
         SUM(CASE WHEN k.no_inv IS NULL OR TRIM(k.no_inv) = '' THEN k.qty_terjual_kunjungan ELSE 0 END) AS grand_pending_unit,
         SUM(CASE WHEN k.no_inv IS NOT NULL AND TRIM(k.no_inv) != '' THEN k.qty_terjual_kunjungan ELSE 0 END) AS grand_invoiced_unit,
-        SUM(CASE WHEN k.no_inv IS NULL OR TRIM(k.no_inv) = '' THEN 1 ELSE 0 END) AS grand_pending_trx,
+        COUNT(DISTINCT CASE WHEN (k.no_inv IS NULL OR TRIM(k.no_inv) = '') THEN CONCAT(p.id_customer, '_', k.tgl_kunjungan) ELSE NULL END) AS grand_pending_trx,
         SUM(k.insentif_didapat) AS grand_total_insentif
         FROM tiptok_kunjungan k 
         JOIN tiptok_penitipan p ON k.id_penitipan = p.id
@@ -1323,7 +1516,7 @@ if ($action === 'get_tiptok_invoices') {
         SUM(CASE WHEN k.no_inv IS NOT NULL AND TRIM(k.no_inv) != '' THEN k.qty_terjual_kunjungan ELSE 0 END) AS invoiced_unit,
         SUM(CASE WHEN k.no_inv IS NULL OR TRIM(k.no_inv) = '' THEN k.qty_terjual_kunjungan ELSE 0 END) AS pending_unit,
         COUNT(DISTINCT CASE WHEN k.no_inv IS NOT NULL AND TRIM(k.no_inv) != '' THEN k.no_inv ELSE NULL END) AS count_invoices,
-        COUNT(CASE WHEN k.no_inv IS NULL OR TRIM(k.no_inv) = '' THEN 1 ELSE NULL END) AS count_pending_trx,
+        COUNT(DISTINCT CASE WHEN (k.no_inv IS NULL OR TRIM(k.no_inv) = '') THEN CONCAT(p.id_customer, '_', k.tgl_kunjungan) ELSE NULL END) AS count_pending_trx,
         SUM(k.insentif_didapat) AS total_insentif
         FROM tiptok_kunjungan k
         JOIN tiptok_penitipan p ON k.id_penitipan = p.id
@@ -1358,7 +1551,8 @@ if ($action === 'get_tiptok_invoices') {
     echo json_encode([
         'status' => 'success',
         'data' => [
-            'items' => $items,
+            'items' => $groupedInvoices,
+            'raw_items' => $items,
             'leaderboard' => $leaderboard,
             'filtered_stats' => [
                 'total_unit' => $totalUnitTerjual,
@@ -1379,47 +1573,88 @@ if ($action === 'get_tiptok_invoices') {
 }
 
 // -------------------------------------------------------------
-// 13. SIMPAN NO. INVOICE SINGLE ITEM
+// 13. SIMPAN NO. INVOICE & SO (SINGLE / MULTI-ITEM SATU INVOICE)
 // -------------------------------------------------------------
 if ($action === 'simpan_invoice_item') {
     $id_kunjungan = intval($_POST['id_kunjungan'] ?? 0);
+    $id_list_raw = $_POST['id_kunjungan_list'] ?? '';
     $no_inv = trim($_POST['no_inv'] ?? '');
+    $no_so = trim($_POST['no_so'] ?? '');
     $tgl_invoice = trim($_POST['tgl_invoice'] ?? '');
     $catatan = trim($_POST['catatan_invoice'] ?? '');
 
-    if ($id_kunjungan <= 0) {
+    $idArray = [];
+    if (!empty($id_list_raw)) {
+        if (is_array($id_list_raw)) {
+            foreach ($id_list_raw as $id) {
+                $v = intval($id);
+                if ($v > 0) $idArray[] = $v;
+            }
+        } else {
+            $exploded = explode(',', strval($id_list_raw));
+            foreach ($exploded as $id) {
+                $v = intval(trim($id));
+                if ($v > 0) $idArray[] = $v;
+            }
+        }
+    }
+    if (empty($idArray) && $id_kunjungan > 0) {
+        $idArray[] = $id_kunjungan;
+    }
+
+    if (empty($idArray)) {
         echo json_encode(['status' => 'error', 'message' => 'ID Transaksi Kunjungan tidak valid.']);
         exit;
     }
-    if (empty($no_inv)) {
-        echo json_encode(['status' => 'error', 'message' => 'Nomor Invoice wajib diisi.']);
+    if (empty($no_inv) && empty($no_so)) {
+        echo json_encode(['status' => 'error', 'message' => 'Silakan isi minimal Nomor Invoice atau Nomor SO.']);
         exit;
     }
     if (empty($tgl_invoice)) {
         $tgl_invoice = date('Y-m-d');
     }
 
-    $stmt = $conn->prepare("UPDATE tiptok_kunjungan SET no_inv = ?, tgl_invoice = ? WHERE id = ?");
-    $stmt->bind_param("ssi", $no_inv, $tgl_invoice, $id_kunjungan);
-    if ($stmt->execute()) {
-        echo json_encode(['status' => 'success', 'message' => "Nomor Invoice [{$no_inv}] berhasil disimpan."]);
+    $idString = implode(',', $idArray);
+    $safeInv = $conn->real_escape_string($no_inv);
+    $safeSo = $conn->real_escape_string($no_so);
+    $safeTgl = $conn->real_escape_string($tgl_invoice);
+    $safeCat = $conn->real_escape_string($catatan);
+
+    $setClauses = [];
+    $setClauses[] = "no_inv = " . (!empty($no_inv) ? "'$safeInv'" : "NULL");
+    $setClauses[] = "no_so = " . (!empty($no_so) ? "'$safeSo'" : "NULL");
+    $setClauses[] = "tgl_invoice = '$safeTgl'";
+    if (!empty($catatan)) {
+        $setClauses[] = "catatan_kunjungan = '$safeCat'";
+    }
+    $setString = implode(", ", $setClauses);
+
+    $upd = $conn->query("UPDATE tiptok_kunjungan SET $setString WHERE id IN ($idString)");
+    if ($upd) {
+        $infoParts = [];
+        if (!empty($no_inv)) $infoParts[] = "Invoice: {$no_inv}";
+        if (!empty($no_so)) $infoParts[] = "SO: {$no_so}";
+        $label = implode(' | ', $infoParts);
+        $count = count($idArray);
+        $itemLabel = ($count > 1) ? " ($count barang)" : "";
+        echo json_encode(['status' => 'success', 'message' => "Data [{$label}]{$itemLabel} berhasil disimpan."]);
     } else {
         echo json_encode(['status' => 'error', 'message' => 'Gagal menyimpan invoice: ' . $conn->error]);
     }
-    $stmt->close();
     exit;
 }
 
 // -------------------------------------------------------------
-// 14. SIMPAN BATCH / KOLEKTIF NO. INVOICE (MULTI ITEMS)
+// 14. SIMPAN BATCH / KOLEKTIF NO. INVOICE & SO (MULTI ITEMS)
 // -------------------------------------------------------------
 if ($action === 'simpan_batch_invoice') {
     $idListRaw = $_POST['id_kunjungan_list'] ?? [];
     $no_inv = trim($_POST['no_inv'] ?? '');
+    $no_so = trim($_POST['no_so'] ?? '');
     $tgl_invoice = trim($_POST['tgl_invoice'] ?? '');
 
-    if (empty($no_inv)) {
-        echo json_encode(['status' => 'error', 'message' => 'Nomor Invoice kolektif wajib diisi.']);
+    if (empty($no_inv) && empty($no_so)) {
+        echo json_encode(['status' => 'error', 'message' => 'Silakan isi minimal Nomor Invoice atau Nomor SO kolektif.']);
         exit;
     }
     if (empty($tgl_invoice)) {
@@ -1441,18 +1676,33 @@ if ($action === 'simpan_batch_invoice') {
     }
 
     if (empty($idArray)) {
-        echo json_encode(['status' => 'error', 'message' => 'Pilih minimal satu item barang untuk mengisi No. Invoice.']);
+        echo json_encode(['status' => 'error', 'message' => 'Pilih minimal satu item barang untuk mengisi No. Invoice / SO.']);
         exit;
     }
 
     $idString = implode(',', $idArray);
     $safeInv = $conn->real_escape_string($no_inv);
+    $safeSo = $conn->real_escape_string($no_so);
     $safeTgl = $conn->real_escape_string($tgl_invoice);
 
-    $upd = $conn->query("UPDATE tiptok_kunjungan SET no_inv = '$safeInv', tgl_invoice = '$safeTgl' WHERE id IN ($idString)");
+    $setClause = [];
+    if (!empty($no_inv)) {
+        $setClause[] = "no_inv = '$safeInv'";
+    }
+    if (!empty($no_so)) {
+        $setClause[] = "no_so = '$safeSo'";
+    }
+    $setClause[] = "tgl_invoice = '$safeTgl'";
+    $setString = implode(", ", $setClause);
+
+    $upd = $conn->query("UPDATE tiptok_kunjungan SET $setString WHERE id IN ($idString)");
     if ($upd) {
         $count = count($idArray);
-        echo json_encode(['status' => 'success', 'message' => "Berhasil menetapkan No. Invoice [{$no_inv}] ke {$count} transaksi barang terpilih."]);
+        $infoParts = [];
+        if (!empty($no_inv)) $infoParts[] = "Invoice: {$no_inv}";
+        if (!empty($no_so)) $infoParts[] = "SO: {$no_so}";
+        $label = implode(' | ', $infoParts);
+        echo json_encode(['status' => 'success', 'message' => "Berhasil menetapkan [{$label}] ke {$count} transaksi barang terpilih."]);
     } else {
         echo json_encode(['status' => 'error', 'message' => 'Gagal mengupdate batch invoice: ' . $conn->error]);
     }
@@ -1460,89 +1710,135 @@ if ($action === 'simpan_batch_invoice') {
 }
 
 // -------------------------------------------------------------
-// 15. HAPUS / RESET NO. INVOICE DARI ITEM
+// 15. HAPUS / RESET NO. INVOICE & SO DARI ITEM / INVOICE GROUP
 // -------------------------------------------------------------
 if ($action === 'hapus_invoice_item') {
     $id_kunjungan = intval($_POST['id_kunjungan'] ?? 0);
-    if ($id_kunjungan <= 0) {
+    $id_list_raw = $_POST['id_kunjungan_list'] ?? '';
+
+    $idArray = [];
+    if (!empty($id_list_raw)) {
+        if (is_array($id_list_raw)) {
+            foreach ($id_list_raw as $id) {
+                $v = intval($id);
+                if ($v > 0) $idArray[] = $v;
+            }
+        } else {
+            $exploded = explode(',', strval($id_list_raw));
+            foreach ($exploded as $id) {
+                $v = intval(trim($id));
+                if ($v > 0) $idArray[] = $v;
+            }
+        }
+    }
+    if (empty($idArray) && $id_kunjungan > 0) {
+        $idArray[] = $id_kunjungan;
+    }
+
+    if (empty($idArray)) {
         echo json_encode(['status' => 'error', 'message' => 'ID Transaksi Kunjungan tidak valid.']);
         exit;
     }
 
-    // Cek apakah item sudah diajukan claim
-    $qCheck = $conn->query("SELECT id_claim, no_inv FROM tiptok_kunjungan WHERE id = $id_kunjungan");
+    $idString = implode(',', $idArray);
+
+    // Cek apakah ada item yang sudah diajukan claim
+    $qCheck = $conn->query("SELECT id FROM tiptok_kunjungan WHERE id IN ($idString) AND id_claim IS NOT NULL AND id_claim > 0 LIMIT 1");
     if ($qCheck && $qCheck->num_rows > 0) {
-        $row = $qCheck->fetch_assoc();
-        if (!empty($row['id_claim'])) {
-            echo json_encode(['status' => 'error', 'message' => 'No. Invoice tidak dapat dihapus karena transaksi ini sudah masuk proses klaim insentif.']);
-            exit;
-        }
+        echo json_encode(['status' => 'error', 'message' => 'Data tidak dapat direset karena sebagian atau seluruh barang sudah masuk proses klaim insentif.']);
+        exit;
     }
 
-    $stmt = $conn->prepare("UPDATE tiptok_kunjungan SET no_inv = NULL, tgl_invoice = NULL WHERE id = ?");
-    $stmt->bind_param("i", $id_kunjungan);
-    if ($stmt->execute()) {
-        echo json_encode(['status' => 'success', 'message' => 'No. Invoice berhasil direset.']);
+    $upd = $conn->query("UPDATE tiptok_kunjungan SET no_inv = NULL, no_so = NULL, tgl_invoice = NULL WHERE id IN ($idString)");
+    if ($upd) {
+        echo json_encode(['status' => 'success', 'message' => 'No. Invoice & SO berhasil direset.']);
     } else {
         echo json_encode(['status' => 'error', 'message' => 'Gagal mereset invoice: ' . $conn->error]);
     }
-    $stmt->close();
     exit;
 }
 
 // -------------------------------------------------------------
-// 21. BATALKAN PENJUALAN AUDIT / RESTORE STOK KE TOKO
+// 21. BATALKAN PENJUALAN AUDIT / RESTORE STOK KE TOKO (SINGLE / GROUP)
 // -------------------------------------------------------------
 if ($action === 'batalkan_penjualan_kunjungan') {
     $id_kunjungan = intval($_POST['id_kunjungan'] ?? 0);
-    if ($id_kunjungan <= 0) {
+    $id_list_raw = $_POST['id_kunjungan_list'] ?? '';
+
+    $idArray = [];
+    if (!empty($id_list_raw)) {
+        if (is_array($id_list_raw)) {
+            foreach ($id_list_raw as $id) {
+                $v = intval($id);
+                if ($v > 0) $idArray[] = $v;
+            }
+        } else {
+            $exploded = explode(',', strval($id_list_raw));
+            foreach ($exploded as $id) {
+                $v = intval(trim($id));
+                if ($v > 0) $idArray[] = $v;
+            }
+        }
+    }
+    if (empty($idArray) && $id_kunjungan > 0) {
+        $idArray[] = $id_kunjungan;
+    }
+
+    if (empty($idArray)) {
         echo json_encode(['status' => 'error', 'message' => 'ID transaksi kunjungan tidak valid.']);
         exit;
     }
 
-    $qKunj = $conn->query("SELECT * FROM tiptok_kunjungan WHERE id = $id_kunjungan LIMIT 1");
+    $idString = implode(',', $idArray);
+    $qKunj = $conn->query("SELECT * FROM tiptok_kunjungan WHERE id IN ($idString)");
     if (!$qKunj || $qKunj->num_rows === 0) {
         echo json_encode(['status' => 'error', 'message' => 'Data transaksi kunjungan tidak ditemukan.']);
         exit;
     }
-    $kunj = $qKunj->fetch_assoc();
 
-    // Cek apakah transaksi sudah diklaim insentif
-    if (!empty($kunj['id_claim']) && intval($kunj['id_claim']) > 0) {
-        echo json_encode(['status' => 'error', 'message' => 'Transaksi ini tidak dapat dibatalkan karena sudah masuk pengajuan klaim insentif yang terkunci.']);
-        exit;
+    $totalQtyRestored = 0;
+    $penitipanTouched = [];
+    while ($kunj = $qKunj->fetch_assoc()) {
+        if (!empty($kunj['id_claim']) && intval($kunj['id_claim']) > 0) {
+            echo json_encode(['status' => 'error', 'message' => 'Transaksi tidak dapat dibatalkan karena sudah masuk pengajuan klaim insentif yang terkunci.']);
+            exit;
+        }
+
+        $id_penitipan = intval($kunj['id_penitipan']);
+        $id_item = intval($kunj['id_item']);
+        $qty_batal = intval($kunj['qty_terjual_kunjungan']);
+        $insentif_batal = floatval($kunj['insentif_didapat']);
+        $kunjId = intval($kunj['id']);
+        $penitipanTouched[$id_penitipan] = true;
+
+        // 1. Pulihkan stok dan insentif di tiptok_items
+        $qItem = $conn->query("SELECT * FROM tiptok_items WHERE id = $id_item LIMIT 1");
+        if ($qItem && $qItem->num_rows > 0) {
+            $curItem = $qItem->fetch_assoc();
+            $restored_sisa = intval($curItem['qty_sisa']) + $qty_batal;
+            $reduced_terjual = max(0, intval($curItem['qty_terjual']) - $qty_batal);
+            $reduced_insentif = max(0.0, floatval($curItem['total_insentif']) - $insentif_batal);
+            $new_status = ($restored_sisa > 0) ? 'titip' : $curItem['status_item'];
+
+            $stmtUpItem = $conn->prepare("UPDATE tiptok_items SET qty_sisa = ?, qty_terjual = ?, total_insentif = ?, status_item = ?, updated_at = NOW() WHERE id = ?");
+            $stmtUpItem->bind_param("iidsi", $restored_sisa, $reduced_terjual, $reduced_insentif, $new_status, $id_item);
+            $stmtUpItem->execute();
+            $stmtUpItem->close();
+        }
+
+        // 2. Hapus baris tiptok_kunjungan
+        $conn->query("DELETE FROM tiptok_kunjungan WHERE id = $kunjId");
+        $totalQtyRestored += $qty_batal;
     }
 
-    $id_penitipan = intval($kunj['id_penitipan']);
-    $id_item = intval($kunj['id_item']);
-    $qty_batal = intval($kunj['qty_terjual_kunjungan']);
-    $insentif_batal = floatval($kunj['insentif_didapat']);
-    $kode_kunjungan = $kunj['kode_kunjungan'];
-
-    // 1. Pulihkan stok dan insentif di tiptok_items
-    $qItem = $conn->query("SELECT * FROM tiptok_items WHERE id = $id_item LIMIT 1");
-    if ($qItem && $qItem->num_rows > 0) {
-        $curItem = $qItem->fetch_assoc();
-        $restored_sisa = intval($curItem['qty_sisa']) + $qty_batal;
-        $reduced_terjual = max(0, intval($curItem['qty_terjual']) - $qty_batal);
-        $reduced_insentif = max(0.0, floatval($curItem['total_insentif']) - $insentif_batal);
-        $new_status = ($restored_sisa > 0) ? 'titip' : $curItem['status_item'];
-
-        $stmtUpItem = $conn->prepare("UPDATE tiptok_items SET qty_sisa = ?, qty_terjual = ?, total_insentif = ?, status_item = ?, updated_at = NOW() WHERE id = ?");
-        $stmtUpItem->bind_param("iidsi", $restored_sisa, $reduced_terjual, $reduced_insentif, $new_status, $id_item);
-        $stmtUpItem->execute();
-        $stmtUpItem->close();
+    // 3. Pulihkan status master penitipan kembali aktif jika sebelumnya selesai
+    foreach (array_keys($penitipanTouched) as $pId) {
+        $conn->query("UPDATE tiptok_penitipan SET status = 'aktif', updated_at = NOW() WHERE id = $pId AND status = 'selesai'");
     }
-
-    // 2. Pulihkan status master penitipan kembali aktif jika sebelumnya selesai
-    $conn->query("UPDATE tiptok_penitipan SET status = 'aktif', updated_at = NOW() WHERE id = $id_penitipan AND status = 'selesai'");
-
-    // 3. Hapus baris tiptok_kunjungan
-    $conn->query("DELETE FROM tiptok_kunjungan WHERE id = $id_kunjungan");
 
     echo json_encode([
         'status' => 'success',
-        'message' => "Penjualan ($kode_kunjungan) berhasil dibatalkan. Stok sebanyak $qty_batal unit otomatis dikembalikan ke toko mitra."
+        'message' => "Penjualan berhasil dibatalkan. Total stok sebanyak $totalQtyRestored unit otomatis dikembalikan ke toko mitra."
     ]);
     exit;
 }
