@@ -1,13 +1,10 @@
 <?php
+ini_set("display_errors", 0);
+error_reporting(0);
 /**
- * Mirror Endpoint for TIP TOK Mobile API on Web Domain
+ * API Sales TIP TOK (Titip Barang di Toko / Konsinyasi)
+ * Melayani aplikasi mobile Flutter Loewix Sales
  */
-if (file_exists("../conn.php")) {
-    include_once "../conn.php";
-} else {
-    include_once "conn.php";
-}
-
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
@@ -18,20 +15,206 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-// Ensure database connection
-if (!$conn) {
-    http_response_code(500);
-    echo json_encode(['status' => 'error', 'message' => 'Database connection failed']);
-    exit;
+require_once __DIR__ . '/api_db.php';
+
+// Auto-create tables safeguard
+$checkTbl = mysqli_query($conn, "SHOW TABLES LIKE 'tiptok_penitipan'");
+if (!$checkTbl || mysqli_num_rows($checkTbl) == 0) {
+    mysqli_query($conn, "CREATE TABLE IF NOT EXISTS `tiptok_penitipan` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `kode_titip` VARCHAR(50) NOT NULL UNIQUE,
+        `id_customer` INT NOT NULL,
+        `id_sales` INT NULL,
+        `nama_sales` VARCHAR(100) NULL,
+        `tgl_titip` DATE NOT NULL,
+        `status` ENUM('aktif', 'selesai', 'ditarik') DEFAULT 'aktif',
+        `catatan` TEXT NULL,
+        `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+        `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX (`id_customer`),
+        INDEX (`id_sales`),
+        INDEX (`status`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+    
+    mysqli_query($conn, "CREATE TABLE IF NOT EXISTS `tiptok_items` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `id_penitipan` INT NOT NULL,
+        `kode_titip` VARCHAR(50) NOT NULL,
+        `nama_barang` VARCHAR(255) NOT NULL,
+        `tipe_barang` VARCHAR(100) NULL,
+        `qty_titip` INT NOT NULL DEFAULT 0,
+        `qty_sisa` INT NOT NULL DEFAULT 0,
+        `qty_terjual` INT NOT NULL DEFAULT 0,
+        `insentif_per_unit` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+        `total_insentif` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+        `status_item` ENUM('titip', 'habis_terjual', 'ditarik') DEFAULT 'titip',
+        `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+        `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX (`id_penitipan`),
+        INDEX (`kode_titip`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+    
+    mysqli_query($conn, "CREATE TABLE IF NOT EXISTS `tiptok_kunjungan` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `kode_kunjungan` VARCHAR(50) NOT NULL UNIQUE,
+        `id_penitipan` INT NOT NULL,
+        `id_item` INT NOT NULL,
+        `id_sales` INT NULL,
+        `nama_sales` VARCHAR(100) NULL,
+        `tgl_kunjungan` DATE NOT NULL,
+        `stok_sebelumnya` INT NOT NULL,
+        `stok_sisa` INT NOT NULL,
+        `qty_terjual_kunjungan` INT NOT NULL DEFAULT 0,
+        `no_inv` VARCHAR(100) NULL,
+        `tgl_invoice` DATE NULL,
+        `insentif_didapat` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+        `catatan_kunjungan` TEXT NULL,
+        `foto_kunjungan` VARCHAR(255) NULL,
+        `id_claim` INT NULL,
+        `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+        INDEX (`id_penitipan`),
+        INDEX (`id_item`),
+        INDEX (`id_sales`),
+        INDEX (`id_claim`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+    
+    mysqli_query($conn, "CREATE TABLE IF NOT EXISTS `tiptok_claim` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `kode_claim` VARCHAR(50) NOT NULL UNIQUE,
+        `id_sales` INT NOT NULL,
+        `nama_sales` VARCHAR(100) NOT NULL,
+        `tgl_claim` DATE NOT NULL,
+        `total_unit_terjual` INT NOT NULL,
+        `total_nominal_insentif` DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+        `status_claim` ENUM('menunggu_approval', 'disetujui', 'cair', 'ditolak') DEFAULT 'menunggu_approval',
+        `tgl_cair` DATE NULL,
+        `catatan_claim` TEXT NULL,
+        `catatan_admin` TEXT NULL,
+        `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+        `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX (`id_sales`),
+        INDEX (`status_claim`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+    
+    mysqli_query($conn, "CREATE TABLE IF NOT EXISTS `tiptok_claim_detail` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `id_claim` INT NOT NULL,
+        `id_kunjungan_log` INT NOT NULL,
+        `id_penitipan` INT NOT NULL,
+        `id_item` INT NOT NULL,
+        `nama_barang` VARCHAR(255) NOT NULL,
+        `no_inv` VARCHAR(100) NULL,
+        `qty_terjual` INT NOT NULL,
+        `insentif_per_unit` DECIMAL(15,2) NOT NULL,
+        `subtotal_insentif` DECIMAL(15,2) NOT NULL,
+        INDEX (`id_claim`),
+        INDEX (`id_kunjungan_log`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
 }
-$conn->set_charset('utf8mb4');
-date_default_timezone_set('Asia/Jakarta');
 
 $action = $_GET['action'] ?? ($_POST['action'] ?? '');
 $rawInput = file_get_contents('php://input');
 $jsonInput = json_decode($rawInput, true) ?? [];
 if (empty($action) && isset($jsonInput['action'])) {
     $action = $jsonInput['action'];
+}
+
+// Cek apakah tabel sales_customer ada, jika tidak gunakan tabel customers + customer_addresses + customer_pics
+$chkSC = $conn->query("SHOW TABLES LIKE 'sales_customer'");
+$hasSalesCustomer = ($chkSC && $chkSC->num_rows > 0);
+
+// ─────────────────────────────────────────────────────────────
+// 0. GET MASTER PRODUK RESMI TIP TOK (6 PRODUK RESMI BERINSENTIF)
+// ─────────────────────────────────────────────────────────────
+if ($action === 'get_products' || $action === 'get_product_prices' || $action === 'master_products' || $action === 'get_master_products') {
+    $masterProducts = [
+        [
+            'id' => 1,
+            'category' => '2MP AHD INDOOR',
+            'type' => '2MP AHD INDOOR LX-4F320-CE',
+            'model' => 'LX-4F320-CE',
+            'description' => 'Kamera CCTV Loewix 2MP AHD Indoor CatEyes (LX-4F320-CE)',
+            'msrp' => 145000,
+            'insentif' => 15000,
+            'insentif_per_unit' => 15000
+        ],
+        [
+            'id' => 2,
+            'category' => '2MP AHD OUTDOOR',
+            'type' => '2MP AHD OUTDOOR LX-50F320-CM',
+            'model' => 'LX-50F320-CM',
+            'description' => 'Kamera CCTV Loewix 2MP AHD Outdoor ColorMax (LX-50F320-CM)',
+            'msrp' => 170000,
+            'insentif' => 15000,
+            'insentif_per_unit' => 15000
+        ],
+        [
+            'id' => 3,
+            'category' => '2MP AHD INDOOR',
+            'type' => '2MP AHD INDOOR LX-4F320-CM',
+            'model' => 'LX-4F320-CM',
+            'description' => 'Kamera CCTV Loewix 2MP AHD Indoor ColorMax (LX-4F320-CM)',
+            'msrp' => 145000,
+            'insentif' => 15000,
+            'insentif_per_unit' => 15000
+        ],
+        [
+            'id' => 4,
+            'category' => '2MP AHD OUTDOOR',
+            'type' => '2MP AHD OUTDOOR LX-50F320-CE',
+            'model' => 'LX-50F320-CE',
+            'description' => 'Kamera CCTV Loewix 2MP AHD Outdoor CatEyes (LX-50F320-CE)',
+            'msrp' => 170000,
+            'insentif' => 15000,
+            'insentif_per_unit' => 15000
+        ],
+        [
+            'id' => 5,
+            'category' => '4MP IPCAM INDOOR',
+            'type' => '4MP IPCAM INDOOR LX-IPF40CMT02',
+            'model' => 'LX-IPF40CMT02',
+            'description' => 'Kamera CCTV Loewix 4MP IP Camera Indoor (LX-IPF40CMT02)',
+            'msrp' => 350000,
+            'insentif' => 30000,
+            'insentif_per_unit' => 30000
+        ],
+        [
+            'id' => 6,
+            'category' => '4MP IPCAM OUTDOOR',
+            'type' => '4MP IPCAM OUTDOOR LX-IPF40CMT17',
+            'model' => 'LX-IPF40CMT17',
+            'description' => 'Kamera CCTV Loewix 4MP IP Camera Outdoor (LX-IPF40CMT17)',
+            'msrp' => 380000,
+            'insentif' => 30000,
+            'insentif_per_unit' => 30000
+        ]
+    ];
+
+    $chk = @$conn->query("SHOW TABLES LIKE 'product_prices'");
+    if ($chk && $chk->num_rows > 0) {
+        $res = @$conn->query("SELECT category, type, description, msrp FROM product_prices");
+        if ($res && $res->num_rows > 0) {
+            $dbPrices = [];
+            while ($row = $res->fetch_assoc()) {
+                $dbPrices[] = $row;
+            }
+            foreach ($masterProducts as &$p) {
+                $cleanModel = str_replace('-', '', $p['model']);
+                foreach ($dbPrices as $dbP) {
+                    $dbTypeClean = str_replace('-', '', $dbP['type']);
+                    if (stripos($dbTypeClean, $cleanModel) !== false || stripos($dbP['type'], $p['model']) !== false) {
+                        if ((float)$dbP['msrp'] > 0) $p['msrp'] = (float)$dbP['msrp'];
+                        if (!empty($dbP['description'])) $p['description'] = $dbP['description'];
+                        break;
+                    }
+                }
+            }
+            unset($p);
+        }
+    }
+
+    echo json_encode(['status' => 'success', 'data' => $masterProducts]);
+    exit;
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -69,21 +252,41 @@ if ($action === 'get_dashboard') {
     $isClaimEligible = ($unclaimedUnits >= $claimTarget);
 
     // List Penitipan
-    $sqlList = "SELECT p.*, c.nama AS nama_toko, c.kategori AS kategori_customer, c.telp_pribadi AS telp_toko, 
-                       c.alamat AS alamat_toko, c.kota AS kota_toko,
-                       COUNT(i.id) AS total_jenis_barang,
-                       SUM(i.qty_titip) AS sum_titip,
-                       SUM(i.qty_sisa) AS sum_sisa,
-                       SUM(i.qty_terjual) AS sum_terjual,
-                       SUM(i.total_insentif) AS sum_insentif,
-                       (SELECT k.no_inv FROM tiptok_kunjungan k WHERE k.id_penitipan = p.id AND k.no_inv IS NOT NULL AND k.no_inv != '' ORDER BY k.tgl_kunjungan DESC, k.id DESC LIMIT 1) AS last_no_inv,
-                       (SELECT k.tgl_kunjungan FROM tiptok_kunjungan k WHERE k.id_penitipan = p.id ORDER BY k.tgl_kunjungan DESC, k.id DESC LIMIT 1) AS last_kunjungan
-                FROM tiptok_penitipan p 
-                LEFT JOIN sales_customer c ON p.id_customer = c.id 
-                LEFT JOIN tiptok_items i ON p.id = i.id_penitipan 
-                WHERE 1=1 $filterSales 
-                GROUP BY p.id 
-                ORDER BY p.id DESC";
+    if ($hasSalesCustomer) {
+        $sqlList = "SELECT p.*, c.nama AS nama_toko, c.kategori AS kategori_customer, c.telp_pribadi AS telp_toko, 
+                           c.alamat AS alamat_toko, c.kota AS kota_toko,
+                           COUNT(i.id) AS total_jenis_barang,
+                           SUM(i.qty_titip) AS sum_titip,
+                           SUM(i.qty_sisa) AS sum_sisa,
+                           SUM(i.qty_terjual) AS sum_terjual,
+                           SUM(i.total_insentif) AS sum_insentif,
+                           (SELECT k.no_inv FROM tiptok_kunjungan k WHERE k.id_penitipan = p.id AND k.no_inv IS NOT NULL AND k.no_inv != '' ORDER BY k.tgl_kunjungan DESC, k.id DESC LIMIT 1) AS last_no_inv,
+                           (SELECT k.tgl_kunjungan FROM tiptok_kunjungan k WHERE k.id_penitipan = p.id ORDER BY k.tgl_kunjungan DESC, k.id DESC LIMIT 1) AS last_kunjungan
+                    FROM tiptok_penitipan p 
+                    LEFT JOIN sales_customer c ON p.id_customer = c.id 
+                    LEFT JOIN tiptok_items i ON p.id = i.id_penitipan 
+                    WHERE 1=1 $filterSales 
+                    GROUP BY p.id 
+                    ORDER BY p.id DESC";
+    } else {
+        $sqlList = "SELECT p.*, c.nama_toko AS nama_toko, c.kategori AS kategori_customer, pic.tlp_pic AS telp_toko, 
+                           ca.alamat AS alamat_toko, ca.kota AS kota_toko,
+                           COUNT(i.id) AS total_jenis_barang,
+                           SUM(i.qty_titip) AS sum_titip,
+                           SUM(i.qty_sisa) AS sum_sisa,
+                           SUM(i.qty_terjual) AS sum_terjual,
+                           SUM(i.total_insentif) AS sum_insentif,
+                           (SELECT k.no_inv FROM tiptok_kunjungan k WHERE k.id_penitipan = p.id AND k.no_inv IS NOT NULL AND k.no_inv != '' ORDER BY k.tgl_kunjungan DESC, k.id DESC LIMIT 1) AS last_no_inv,
+                           (SELECT k.tgl_kunjungan FROM tiptok_kunjungan k WHERE k.id_penitipan = p.id ORDER BY k.tgl_kunjungan DESC, k.id DESC LIMIT 1) AS last_kunjungan
+                    FROM tiptok_penitipan p 
+                    LEFT JOIN customers c ON p.id_customer = c.id 
+                    LEFT JOIN customer_addresses ca ON c.id = ca.customer_id AND ca.deleted_at IS NULL
+                    LEFT JOIN customer_pics pic ON c.id = pic.customer_id AND pic.deleted_at IS NULL
+                    LEFT JOIN tiptok_items i ON p.id = i.id_penitipan 
+                    WHERE 1=1 $filterSales 
+                    GROUP BY p.id 
+                    ORDER BY p.id DESC";
+    }
     $resList = $conn->query($sqlList);
     $penitipanList = [];
     if ($resList) {
@@ -106,6 +309,22 @@ if ($action === 'get_dashboard') {
                     ];
                 }
             }
+            // Hitung status unclaimed insentif khusus toko ini
+            $qStoreUnclaimed = $conn->query("SELECT SUM(qty_terjual_kunjungan) as total_unclaimed, SUM(insentif_didapat) as nominal_unclaimed 
+                                            FROM tiptok_kunjungan 
+                                            WHERE id_penitipan = $idPen AND id_claim IS NULL AND qty_terjual_kunjungan > 0");
+            $unclaimedStoreUnits = 0;
+            $unclaimedStoreNominal = 0.0;
+            if ($qStoreUnclaimed && $rowU = $qStoreUnclaimed->fetch_assoc()) {
+                $unclaimedStoreUnits = intval($rowU['total_unclaimed'] ?? 0);
+                $unclaimedStoreNominal = floatval($rowU['nominal_unclaimed'] ?? 0);
+            }
+            $row['unclaimed_units'] = $unclaimedStoreUnits;
+            $row['unclaimed_nominal'] = $unclaimedStoreNominal;
+            $row['is_claim_eligible'] = ($unclaimedStoreUnits >= 50);
+            $row['claim_progress'] = min(100.0, round(($unclaimedStoreUnits / 50) * 100, 1));
+            $row['sisa_unit_klaim'] = max(0, 50 - $unclaimedStoreUnits);
+
             $row['items'] = $items;
             $row['id'] = intval($row['id']);
             $row['id_customer'] = intval($row['id_customer']);
@@ -114,6 +333,15 @@ if ($action === 'get_dashboard') {
             $row['sum_terjual'] = intval($row['sum_terjual'] ?? 0);
             $row['sum_insentif'] = floatval($row['sum_insentif'] ?? 0);
             $penitipanList[] = $row;
+        }
+    }
+
+    $eligibleStoresCount = 0;
+    $eligibleNominalTotal = 0.0;
+    foreach ($penitipanList as $pItem) {
+        if (!empty($pItem['is_claim_eligible'])) {
+            $eligibleStoresCount++;
+            $eligibleNominalTotal += floatval($pItem['unclaimed_nominal']);
         }
     }
 
@@ -128,9 +356,11 @@ if ($action === 'get_dashboard') {
                 'total_insentif' => $totalInsentif,
                 'unclaimed_units' => $unclaimedUnits,
                 'unclaimed_nominal' => $unclaimedNominal,
+                'eligible_stores_count' => $eligibleStoresCount,
+                'eligible_nominal_total' => $eligibleNominalTotal,
                 'claim_target' => $claimTarget,
                 'claim_progress' => $claimProgress,
-                'is_claim_eligible' => $isClaimEligible,
+                'is_claim_eligible' => ($eligibleStoresCount > 0),
             ],
             'penitipan_list' => $penitipanList,
         ]
@@ -144,28 +374,56 @@ if ($action === 'get_dashboard') {
 if ($action === 'get_dealers') {
     $salesId = intval($_GET['sales_id'] ?? ($jsonInput['sales_id'] ?? 0));
     $search = $conn->real_escape_string($_GET['q'] ?? ($jsonInput['q'] ?? ''));
-    $whereSearch = $search !== '' ? " AND (c.nama LIKE '%$search%' OR c.alamat LIKE '%$search%' OR c.kota LIKE '%$search%') " : "";
     
-    if ($salesId > 0) {
-        // HANYA toko yang ADA DI JADWAL KUNJUNGAN resmi dari Admin untuk sales ini PADA HARI INI!
-        $sql = "SELECT DISTINCT c.id, c.nama, c.kategori, c.telp_pribadi, c.alamat, c.kota, ks.jadwal, ks.id AS id_kegiatan
-                FROM team_kegiatan_sales tks
-                JOIN kegiatan_sales ks ON ks.id = tks.id_kegiatan_sales AND ks.deleted_at IS NULL
-                JOIN sales_customer c  ON c.id  = ks.id_customer        AND c.deleted_at IS NULL
-                WHERE tks.id_sales = $salesId
-                  AND tks.deleted_at IS NULL
-                  AND DATE(ks.jadwal) = CURDATE()
-                  AND ks.status NOT IN ('waiting', 'dibatalkan', 'reschedule', 'cancelled')
-                  AND (ks.reschedule_reason IS NULL OR ks.reschedule_reason = '')
-                  $whereSearch
-                ORDER BY ks.jadwal DESC
-                LIMIT 50";
+    if ($hasSalesCustomer) {
+        $whereSearch = $search !== '' ? " AND (c.nama LIKE '%$search%' OR c.alamat LIKE '%$search%' OR c.kota LIKE '%$search%') " : "";
+        if ($salesId > 0) {
+            $sql = "SELECT DISTINCT c.id, c.nama, c.kategori, c.telp_pribadi, c.alamat, c.kota, ks.jadwal, ks.id AS id_kegiatan
+                    FROM team_kegiatan_sales tks
+                    JOIN kegiatan_sales ks ON ks.id = tks.id_kegiatan_sales AND ks.deleted_at IS NULL
+                    JOIN sales_customer c  ON c.id  = ks.id_customer        AND c.deleted_at IS NULL
+                    WHERE tks.id_sales = $salesId
+                      AND tks.deleted_at IS NULL
+                      AND DATE(ks.jadwal) = CURDATE()
+                      AND ks.status NOT IN ('waiting', 'dibatalkan', 'reschedule', 'cancelled')
+                      AND (ks.reschedule_reason IS NULL OR ks.reschedule_reason = '')
+                      AND c.is_tiptok = 1
+                      $whereSearch
+                    ORDER BY ks.jadwal DESC
+                    LIMIT 50";
+        } else {
+            $sql = "SELECT id, nama, kategori, telp_pribadi, alamat, kota 
+                    FROM sales_customer c
+                    WHERE deleted_at IS NULL AND is_tiptok = 1 $whereSearch 
+                    ORDER BY (kategori = 'Dealer') DESC, nama ASC 
+                    LIMIT 50";
+        }
     } else {
-        $sql = "SELECT id, nama, kategori, telp_pribadi, alamat, kota 
-                FROM sales_customer c
-                WHERE deleted_at IS NULL $whereSearch 
-                ORDER BY (kategori = 'Dealer') DESC, nama ASC 
-                LIMIT 50";
+        $whereSearch = $search !== '' ? " AND (c.nama_toko LIKE '%$search%' OR ca.alamat LIKE '%$search%' OR ca.kota LIKE '%$search%') " : "";
+        if ($salesId > 0) {
+            $sql = "SELECT DISTINCT c.id, c.nama_toko AS nama, c.kategori, pic.tlp_pic AS telp_pribadi, ca.alamat, ca.kota, ks.jadwal, ks.id AS id_kegiatan
+                    FROM team_kegiatan_sales tks
+                    JOIN kegiatan_sales ks ON ks.id = tks.id_kegiatan_sales AND ks.deleted_at IS NULL
+                    JOIN customers c       ON c.id  = ks.id_customer        AND c.deleted_at IS NULL
+                    LEFT JOIN customer_addresses ca ON c.id = ca.customer_id AND ca.deleted_at IS NULL
+                    LEFT JOIN customer_pics pic ON c.id = pic.customer_id AND pic.deleted_at IS NULL
+                    WHERE tks.id_sales = $salesId
+                      AND tks.deleted_at IS NULL
+                      AND DATE(ks.jadwal) = CURDATE()
+                      AND ks.status NOT IN ('waiting', 'dibatalkan', 'reschedule', 'cancelled')
+                      AND (ks.reschedule_reason IS NULL OR ks.reschedule_reason = '')
+                      $whereSearch
+                    ORDER BY ks.jadwal DESC
+                    LIMIT 50";
+        } else {
+            $sql = "SELECT c.id, c.nama_toko AS nama, c.kategori, pic.tlp_pic AS telp_pribadi, ca.alamat, ca.kota 
+                    FROM customers c
+                    LEFT JOIN customer_addresses ca ON c.id = ca.customer_id AND ca.deleted_at IS NULL
+                    LEFT JOIN customer_pics pic ON c.id = pic.customer_id AND pic.deleted_at IS NULL
+                    WHERE c.deleted_at IS NULL $whereSearch 
+                    ORDER BY (c.kategori = 'Dealer') DESC, c.nama_toko ASC 
+                    LIMIT 50";
+        }
     }
     
     $res = $conn->query($sql);
@@ -181,7 +439,7 @@ if ($action === 'get_dealers') {
 }
 
 // ─────────────────────────────────────────────────────────────
-// 3. CREATE PENITIPAN BARU
+// 3. CREATE PENITIPAN BARU (TITIP BARANG)
 // ─────────────────────────────────────────────────────────────
 if ($action === 'create_penitipan') {
     $input = !empty($jsonInput) ? $jsonInput : $_POST;
@@ -202,6 +460,20 @@ if ($action === 'create_penitipan') {
         exit;
     }
 
+    // Validasi Wajib Toko Mitra TIP TOK (Harus ditandai)
+    if ($hasSalesCustomer) {
+        $checkTiptok = $conn->query("SELECT is_tiptok FROM sales_customer WHERE id = $idCustomer AND deleted_at IS NULL LIMIT 1");
+        if ($checkTiptok && $rowT = $checkTiptok->fetch_assoc()) {
+            if (intval($rowT['is_tiptok']) !== 1) {
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'Penitipan ditolak: Toko ini belum ditandai sebagai Mitra Program TIP TOK. Hubungi Admin untuk menandai toko ini di sistem.'
+                ]);
+                exit;
+            }
+        }
+    }
+
     // Validasi Wajib Jadwal Kunjungan dari Admin pada hari ini
     if ($idSales > 0) {
         $checkJadwal = $conn->query("SELECT ks.id FROM team_kegiatan_sales tks
@@ -214,7 +486,7 @@ if ($action === 'create_penitipan') {
         if (!$checkJadwal || $checkJadwal->num_rows == 0) {
             echo json_encode([
                 'status' => 'error',
-                'message' => 'Penitipan ditolak: Anda tidak memiliki jadwal kunjungan aktif dari Admin untuk toko ini hari ini. Sales TIDAK BISA menitipkan barang sembarangan jika toko tidak ada di jadwal kunjungan resmi dari Admin.'
+                'message' => 'Penitipan ditolak: Anda belum memiliki jadwal kunjungan dari Admin untuk toko ini. Titip barang hanya dapat dilakukan jika ada jadwal kunjungan resmi dari Admin.'
             ]);
             exit;
         }
@@ -241,9 +513,19 @@ if ($action === 'create_penitipan') {
 
     foreach ($items as $it) {
         $namaBarang = trim($it['nama_barang'] ?? '');
-        $tipeBarang = trim($it['tipe_barang'] ?? '');
-        $qtyTitip = intval($it['qty_titip'] ?? 0);
-        $insentifUnit = floatval($it['insentif_per_unit'] ?? 0);
+        $tipeBarang = trim($it['tipe_barang'] ?? ($it['type_barang'] ?? ($it['type'] ?? '')));
+        $qtyTitip = intval($it['qty_titip'] ?? ($it['qty'] ?? 0));
+        $insentifUnit = floatval($it['insentif_per_unit'] ?? ($it['insentif'] ?? 0));
+
+        // Auto-koreksi insentif resmi TIP TOK (4MP IPCAM = 30.000, 2MP AHD = 15.000)
+        $comboName = strtoupper($namaBarang . ' ' . $tipeBarang);
+        if (strpos($comboName, '4MP') !== false || strpos($comboName, 'IPCAM') !== false || strpos($comboName, 'IPF40') !== false) {
+            if ($insentifUnit < 30000) {
+                $insentifUnit = 30000.00;
+            }
+        } elseif ($insentifUnit <= 0) {
+            $insentifUnit = 15000.00;
+        }
 
         if (!empty($namaBarang) && $qtyTitip > 0) {
             $qtySisa = $qtyTitip;
@@ -264,7 +546,7 @@ if ($action === 'create_penitipan') {
 }
 
 // ─────────────────────────────────────────────────────────────
-// 4. AUDIT KUNJUNGAN & CEK SISA STOK
+// 4. AUDIT KUNJUNGAN & CEK SISA STOK TOKO
 // ─────────────────────────────────────────────────────────────
 if ($action === 'audit_kunjungan') {
     $input = !empty($jsonInput) ? $jsonInput : $_POST;
@@ -285,10 +567,10 @@ if ($action === 'audit_kunjungan') {
         exit;
     }
 
-    // Validasi No Invoice jika ada unit terjual
+    // Validasi stok
     foreach ($items as $it) {
         $idItem = intval($it['id_item'] ?? 0);
-        $stokSisa = intval($it['stok_sisa'] ?? 0);
+        $stokSisa = intval($it['stok_sisa'] ?? ($it['qty_sisa'] ?? 0));
         $noInv = trim($it['no_inv'] ?? '');
 
         $qCur = $conn->query("SELECT * FROM tiptok_items WHERE id = $idItem AND id_penitipan = $idPenitipan");
@@ -300,11 +582,6 @@ if ($action === 'audit_kunjungan') {
             }
             if ($stokSisa > $stokPrev) {
                 echo json_encode(['status' => 'error', 'message' => 'Stok sisa (' . $stokSisa . ') tidak boleh lebih besar dari stok sebelumnya (' . $stokPrev . ')!']);
-                exit;
-            }
-            $terjual = $stokPrev - $stokSisa;
-            if ($terjual > 0 && empty($noInv)) {
-                echo json_encode(['status' => 'error', 'message' => 'Terdapat ' . $terjual . ' unit "' . $cur['nama_barang'] . '" terjual. Nomor Invoice (No. INV) WAJIB DIISI!']);
                 exit;
             }
         }
@@ -323,14 +600,17 @@ if ($action === 'audit_kunjungan') {
 
     foreach ($items as $it) {
         $idItem = intval($it['id_item'] ?? 0);
-        $stokSisa = intval($it['stok_sisa'] ?? 0);
+        $stokSisa = intval($it['stok_sisa'] ?? ($it['qty_sisa'] ?? 0));
         $noInv = trim($it['no_inv'] ?? '');
-        $tglInvoice = !empty($it['tgl_invoice']) ? trim($it['tgl_invoice']) : ($terjual > 0 ? $tglKunjungan : null);
+        $tglInvoice = !empty($it['tgl_invoice']) ? trim($it['tgl_invoice']) : null;
 
         $qCur = $conn->query("SELECT * FROM tiptok_items WHERE id = $idItem AND id_penitipan = $idPenitipan");
         if ($qCur && $cur = $qCur->fetch_assoc()) {
             $stokPrev = intval($cur['qty_sisa']);
             $terjual = max(0, $stokPrev - $stokSisa);
+            if ($terjual > 0 && empty($tglInvoice)) {
+                $tglInvoice = $tglKunjungan;
+            }
             $insentifUnit = floatval($cur['insentif_per_unit']);
             $insentifKunjungan = $terjual * $insentifUnit;
 
@@ -338,8 +618,10 @@ if ($action === 'audit_kunjungan') {
             $kodeKunjungan = $prefixVis . str_pad($lastVisNum, 3, '0', STR_PAD_LEFT);
 
             $stmtLog = $conn->prepare("INSERT INTO tiptok_kunjungan (kode_kunjungan, id_penitipan, id_item, id_sales, nama_sales, tgl_kunjungan, stok_sebelumnya, stok_sisa, qty_terjual_kunjungan, no_inv, tgl_invoice, insentif_didapat, catatan_kunjungan, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())");
-            $stmtLog->bind_param("siiissiiisdds", $kodeKunjungan, $idPenitipan, $idItem, $idSales, $namaSales, $tglKunjungan, $stokPrev, $stokSisa, $terjual, $noInv, $tglInvoice, $insentifKunjungan, $catatanKunjungan);
-            $stmtLog->execute();
+            if ($stmtLog) {
+                $stmtLog->bind_param("siiissiiissds", $kodeKunjungan, $idPenitipan, $idItem, $idSales, $namaSales, $tglKunjungan, $stokPrev, $stokSisa, $terjual, $noInv, $tglInvoice, $insentifKunjungan, $catatanKunjungan);
+                $stmtLog->execute();
+            }
 
             // Update Master Item
             $newTerjualTotal = intval($cur['qty_terjual']) + $terjual;
@@ -347,8 +629,10 @@ if ($action === 'audit_kunjungan') {
             $newItemStatus = ($stokSisa == 0) ? 'habis_terjual' : 'titip';
 
             $stmtUpItem = $conn->prepare("UPDATE tiptok_items SET qty_sisa = ?, qty_terjual = ?, total_insentif = ?, status_item = ?, updated_at = NOW() WHERE id = ?");
-            $stmtUpItem->bind_param("iidsi", $stokSisa, $newTerjualTotal, $newInsentifTotal, $newItemStatus, $idItem);
-            $stmtUpItem->execute();
+            if ($stmtUpItem) {
+                $stmtUpItem->bind_param("iidsi", $stokSisa, $newTerjualTotal, $newInsentifTotal, $newItemStatus, $idItem);
+                $stmtUpItem->execute();
+            }
 
             $totalInsentifDidapat += $insentifKunjungan;
             $totalTerjualKunjungan += $terjual;
@@ -374,12 +658,13 @@ if ($action === 'audit_kunjungan') {
 }
 
 // ─────────────────────────────────────────────────────────────
-// 5. CLAIM INSENTIF (MIN. 50 UNIT)
+// 5. CLAIM INSENTIF (MIN. 50 UNIT PER TOKO)
 // ─────────────────────────────────────────────────────────────
 if ($action === 'claim_insentif') {
     $input = !empty($jsonInput) ? $jsonInput : $_POST;
 
     $idSales = intval($input['sales_id'] ?? ($input['id_sales'] ?? 0));
+    $idPenitipan = intval($input['id_penitipan'] ?? 0);
     $namaSales = trim($input['nama_sales'] ?? '');
     $catatanClaim = trim($input['catatan_claim'] ?? '');
 
@@ -388,11 +673,39 @@ if ($action === 'claim_insentif') {
         exit;
     }
 
-    // Ambil semua log penjualan yang belum diklaim
+    if ($idPenitipan <= 0) {
+        echo json_encode([
+            'status' => 'error', 
+            'message' => 'Pilih toko yang ingin diajukan klaim insentifnya! Syarat klaim berlaku minimal 50 unit per masing-masing toko mitra.'
+        ]);
+        exit;
+    }
+
+    // Ensure columns exist in tiptok_claim
+    $chkColPen = @$conn->query("SHOW COLUMNS FROM `tiptok_claim` LIKE 'id_penitipan'");
+    if ($chkColPen && $chkColPen->num_rows == 0) {
+        @$conn->query("ALTER TABLE `tiptok_claim` ADD COLUMN `id_penitipan` INT NULL AFTER `id_sales`, ADD COLUMN `nama_toko` VARCHAR(255) NULL AFTER `id_penitipan`");
+    }
+
+    // Ambil nama toko
+    $custJoin = $hasSalesCustomer ? "JOIN sales_customer c ON p.id_customer = c.id" : "JOIN customers c ON p.id_customer = c.id";
+    $custField = $hasSalesCustomer ? "c.nama" : "c.nama_toko";
+    $qPen = $conn->query("SELECT p.*, $custField AS nama_toko FROM tiptok_penitipan p $custJoin WHERE p.id = $idPenitipan LIMIT 1");
+    $namaToko = 'Toko Mitra';
+    if ($qPen && $rPen = $qPen->fetch_assoc()) {
+        $namaToko = !empty($rPen['nama_toko']) ? $rPen['nama_toko'] : 'Toko Mitra';
+        if (empty($namaSales) && !empty($rPen['nama_sales'])) {
+            $namaSales = $rPen['nama_sales'];
+        }
+    }
+
+    // Ambil semua log penjualan yang belum diklaim KHUSUS TOKO INI
     $qUnclaimed = $conn->query("SELECT k.id as id_kunjungan, k.id_penitipan, k.id_item, k.qty_terjual_kunjungan, k.no_inv, k.insentif_didapat, i.nama_barang, i.insentif_per_unit 
                                 FROM tiptok_kunjungan k 
                                 JOIN tiptok_items i ON k.id_item = i.id 
-                                WHERE k.id_claim IS NULL AND k.qty_terjual_kunjungan > 0 AND k.id_sales = $idSales 
+                                WHERE k.id_claim IS NULL 
+                                  AND k.qty_terjual_kunjungan > 0 
+                                  AND k.id_penitipan = $idPenitipan
                                 ORDER BY k.id ASC");
     $unclaimedRows = [];
     $totalUnitTerjual = 0;
@@ -407,7 +720,10 @@ if ($action === 'claim_insentif') {
     }
 
     if ($totalUnitTerjual < 50) {
-        echo json_encode(['status' => 'error', 'message' => "Syarat klaim insentif minimal 50 unit terjual! Saat ini baru terkumpul $totalUnitTerjual unit (Kurang " . (50 - $totalUnitTerjual) . " unit lagi)."]);
+        echo json_encode([
+            'status' => 'error', 
+            'message' => "Syarat klaim insentif minimal 50 unit terjual per toko! Toko '$namaToko' baru mencapai $totalUnitTerjual unit (Kurang " . (50 - $totalUnitTerjual) . " unit lagi)."
+        ]);
         exit;
     }
 
@@ -420,8 +736,8 @@ if ($action === 'claim_insentif') {
     $kodeClaim = $prefixClm . str_pad($lastClmNum + 1, 3, '0', STR_PAD_LEFT);
     $tglClaim = date('Y-m-d');
 
-    $stmtClaim = $conn->prepare("INSERT INTO tiptok_claim (kode_claim, id_sales, nama_sales, tgl_claim, total_unit_terjual, total_nominal_insentif, status_claim, catatan_claim, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, 'menunggu_approval', ?, NOW(), NOW())");
-    $stmtClaim->bind_param("sissids", $kodeClaim, $idSales, $namaSales, $tglClaim, $totalUnitTerjual, $totalNominalInsentif, $catatanClaim);
+    $stmtClaim = $conn->prepare("INSERT INTO tiptok_claim (kode_claim, id_sales, id_penitipan, nama_toko, nama_sales, tgl_claim, total_unit_terjual, total_nominal_insentif, status_claim, catatan_claim, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'menunggu_approval', ?, NOW(), NOW())");
+    $stmtClaim->bind_param("siisssids", $kodeClaim, $idSales, $idPenitipan, $namaToko, $namaSales, $tglClaim, $totalUnitTerjual, $totalNominalInsentif, $catatanClaim);
     
     if (!$stmtClaim->execute()) {
         echo json_encode(['status' => 'error', 'message' => 'Gagal membuat pengajuan klaim: ' . $stmtClaim->error]);
@@ -448,10 +764,12 @@ if ($action === 'claim_insentif') {
 
     echo json_encode([
         'status' => 'success',
-        'message' => "Pengajuan klaim berhasil diajukan dengan kode: $kodeClaim (Total: $totalUnitTerjual unit - Rp " . number_format($totalNominalInsentif, 0, ',', '.') . "). Menunggu persetujuan Admin.",
+        'message' => "Pengajuan klaim toko '$namaToko' berhasil diajukan dengan kode: $kodeClaim (Total: $totalUnitTerjual unit - Rp " . number_format($totalNominalInsentif, 0, ',', '.') . "). Menunggu persetujuan Admin.",
         'data' => [
             'id_claim' => $idClaim,
             'kode_claim' => $kodeClaim,
+            'id_penitipan' => $idPenitipan,
+            'nama_toko' => $namaToko,
             'total_unit' => $totalUnitTerjual,
             'total_nominal' => $totalNominalInsentif,
         ]
@@ -466,11 +784,15 @@ if ($action === 'get_claims') {
     $salesId = intval($_GET['sales_id'] ?? ($jsonInput['sales_id'] ?? 0));
     $whereSales = $salesId > 0 ? " WHERE c.id_sales = $salesId " : "";
 
-    $res = $conn->query("SELECT c.* FROM tiptok_claim c $whereSales ORDER BY c.id DESC LIMIT 50");
+    $res = $conn->query("SELECT c.*, 
+                                COALESCE(NULLIF(c.nama_toko, ''), (SELECT COALESCE(cust.nama, cust.nama_toko) FROM tiptok_penitipan pen LEFT JOIN sales_customer cust ON pen.id_customer = cust.id WHERE pen.id = c.id_penitipan LIMIT 1), 'Toko Mitra') AS display_nama_toko 
+                         FROM tiptok_claim c $whereSales ORDER BY c.id DESC LIMIT 50");
     $claims = [];
     if ($res) {
         while ($row = $res->fetch_assoc()) {
             $row['id'] = intval($row['id']);
+            $row['id_penitipan'] = intval($row['id_penitipan'] ?? 0);
+            $row['nama_toko'] = $row['display_nama_toko'] ?? ($row['nama_toko'] ?? 'Toko Mitra');
             $row['total_unit_terjual'] = intval($row['total_unit_terjual']);
             $row['total_nominal_insentif'] = floatval($row['total_nominal_insentif']);
             $claims[] = $row;
