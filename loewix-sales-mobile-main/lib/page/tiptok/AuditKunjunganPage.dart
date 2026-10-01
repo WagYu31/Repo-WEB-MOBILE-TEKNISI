@@ -26,6 +26,8 @@ class _AuditItemRow {
   late TextEditingController sisaCtrl;
   late TextEditingController noInvCtrl;
   late TextEditingController tambahStokCtrl;
+  DateTime tglInvoice = DateTime.now();
+  DateTime tglRestock = DateTime.now();
   int calculatedTerjual = 0;
   double calculatedInsentif = 0.0;
 
@@ -96,12 +98,89 @@ class _AuditItemRow {
 
 class _AuditKunjunganPageState extends State<AuditKunjunganPage> {
   final _api = ApiTipTok();
-  final DateTime _tglKunjungan = DateTime.now();
+  DateTime _tglKunjungan = DateTime.now();
+  DateTime _masterTglInvoice = DateTime.now();
   final _catatanCtrl = TextEditingController();
   final _masterNoInvCtrl = TextEditingController();
   bool _gabungInvoice = true; // Default: Gabung 1 No. Invoice
   bool _isLoading = false;
   bool _showPanduan = true;
+
+  Future<void> _selectTglKunjungan() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _tglKunjungan,
+      firstDate: DateTime(2023),
+      lastDate: DateTime.now().add(const Duration(days: 1)),
+      helpText: 'PILIH TANGGAL KUNJUNGAN AUDIT',
+      confirmText: 'PILIH',
+      cancelText: 'BATAL',
+    );
+    if (picked != null) {
+      setState(() {
+        _tglKunjungan = picked;
+        _masterTglInvoice = picked;
+        for (var r in _itemRows) {
+          r.tglInvoice = picked;
+          r.tglRestock = picked;
+        }
+      });
+    }
+  }
+
+  Future<void> _selectMasterInvoiceDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _masterTglInvoice,
+      firstDate: DateTime(2023),
+      lastDate: DateTime.now().add(const Duration(days: 1)),
+      helpText: 'PILIH TANGGAL TERJUAL / INVOICE',
+      confirmText: 'PILIH',
+      cancelText: 'BATAL',
+    );
+    if (picked != null) {
+      setState(() {
+        _masterTglInvoice = picked;
+        for (var r in _itemRows) {
+          r.tglInvoice = picked;
+        }
+      });
+    }
+  }
+
+  Future<void> _selectRowInvoiceDate(_AuditItemRow row) async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: row.tglInvoice,
+      firstDate: DateTime(2023),
+      lastDate: DateTime.now().add(const Duration(days: 1)),
+      helpText: 'PILIH TANGGAL INVOICE BARANG INI',
+      confirmText: 'PILIH',
+      cancelText: 'BATAL',
+    );
+    if (picked != null) {
+      setState(() {
+        row.tglInvoice = picked;
+      });
+    }
+  }
+
+  Future<void> _selectRowRestockDate(_AuditItemRow row) async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: row.tglRestock,
+      firstDate: DateTime(2023),
+      lastDate: DateTime.now().add(const Duration(days: 1)),
+      helpText: 'PILIH TANGGAL RESTOCK BARANG',
+      confirmText: 'PILIH',
+      cancelText: 'BATAL',
+    );
+    if (picked != null) {
+      setState(() {
+        row.tglRestock = picked;
+      });
+    }
+  }
 
   late List<_AuditItemRow> _itemRows;
 
@@ -166,8 +245,11 @@ class _AuditKunjunganPageState extends State<AuditKunjunganPage> {
       if (!gabung && _masterNoInvCtrl.text.trim().isNotEmpty) {
         // Pre-fill each sold row with master text if row is empty
         for (var r in _itemRows) {
-          if (r.calculatedTerjual > 0 && r.noInvCtrl.text.trim().isEmpty) {
-            r.noInvCtrl.text = _masterNoInvCtrl.text.trim();
+          if (r.calculatedTerjual > 0) {
+            if (r.noInvCtrl.text.trim().isEmpty) {
+              r.noInvCtrl.text = _masterNoInvCtrl.text.trim();
+            }
+            r.tglInvoice = _masterTglInvoice;
           }
         }
       } else if (gabung && _masterNoInvCtrl.text.trim().isEmpty) {
@@ -267,7 +349,8 @@ class _AuditKunjunganPageState extends State<AuditKunjunganPage> {
         'stok_sisa': sisa,
         'tambah_stok': tambah,
         'no_inv': terjual > 0 ? noInv : '',
-        'tgl_invoice': DateFormat('yyyy-MM-dd').format(_tglKunjungan),
+        'tgl_invoice': terjual > 0 ? DateFormat('yyyy-MM-dd').format(r.tglInvoice) : null,
+        'tgl_restock': tambah > 0 ? DateFormat('yyyy-MM-dd').format(r.tglRestock) : null,
       });
     }
 
@@ -633,6 +716,68 @@ class _AuditKunjunganPageState extends State<AuditKunjunganPage> {
                 ),
               ],
             ),
+            const SizedBox(height: 10),
+            // Tanggal Terjual / Invoice Selector
+            InkWell(
+              borderRadius: BorderRadius.circular(10),
+              onTap: _selectMasterInvoiceDate,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF0FDF4),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0xFFA7F3D0)),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFDCFCE7),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(Icons.calendar_month_rounded, size: 18, color: Color(0xFF059669)),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Tanggal Terjual / Invoice *',
+                            style: S.caption(const Color(0xFF166534)).copyWith(fontWeight: FontWeight.w700),
+                          ),
+                          Text(
+                            DateFormat('EEEE, dd MMMM yyyy', 'id').format(_masterTglInvoice),
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFF15803D),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: const Color(0xFFA7F3D0)),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text('Ubah', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF059669))),
+                          SizedBox(width: 3),
+                          Icon(Icons.edit_calendar_rounded, size: 13, color: Color(0xFF059669)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ] else ...[
             // Mode Pisah Info Banner
             Container(
@@ -734,14 +879,28 @@ class _AuditKunjunganPageState extends State<AuditKunjunganPage> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Row(
-                              children: [
-                                const Icon(Icons.calendar_today_outlined, size: 14, color: AppColors.textMuted),
-                                const SizedBox(width: 6),
-                                Text('Tgl Audit:', style: S.caption()),
-                                const SizedBox(width: 4),
-                                Text(DateFormat('dd MMM yyyy', 'id').format(_tglKunjungan), style: S.caption().copyWith(fontWeight: FontWeight.w700)),
-                              ],
+                            InkWell(
+                              borderRadius: BorderRadius.circular(6),
+                              onTap: _selectTglKunjungan,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF1F5F9),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Icons.calendar_today_outlined, size: 13, color: AppColors.primary),
+                                    const SizedBox(width: 5),
+                                    Text('Tgl Audit:', style: S.caption()),
+                                    const SizedBox(width: 4),
+                                    Text(DateFormat('dd MMM yyyy', 'id').format(_tglKunjungan), style: S.caption().copyWith(fontWeight: FontWeight.w700, color: AppColors.primary)),
+                                    const SizedBox(width: 3),
+                                    const Icon(Icons.edit_calendar_rounded, size: 12, color: AppColors.primary),
+                                  ],
+                                ),
+                              ),
                             ),
                             Text('Total ${_itemRows.length} Jenis Barang', style: S.caption(AppColors.primary).copyWith(fontWeight: FontWeight.w700)),
                           ],
@@ -1172,120 +1331,172 @@ class _AuditKunjunganPageState extends State<AuditKunjunganPage> {
                                   width: row.tambahStok > 0 ? 1.4 : 1.0,
                                 ),
                               ),
-                              child: Row(
+                              child: Column(
                                 children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(6),
-                                    decoration: BoxDecoration(
-                                      color: row.tambahStok > 0 ? const Color(0xFFDCFCE7) : const Color(0xFFF1F5F9),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Icon(
-                                      Icons.add_business_rounded,
-                                      size: 16,
-                                      color: row.tambahStok > 0 ? const Color(0xFF16A34A) : const Color(0xFF64748B),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'Tambah Stok Titip (Restock)',
-                                          style: S.caption(AppColors.textPrimary).copyWith(fontWeight: FontWeight.w700),
+                                  Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(6),
+                                        decoration: BoxDecoration(
+                                          color: row.tambahStok > 0 ? const Color(0xFFDCFCE7) : const Color(0xFFF1F5F9),
+                                          borderRadius: BorderRadius.circular(8),
                                         ),
-                                        Text(
-                                          row.tambahStok > 0
-                                              ? 'Stok akhir toko: ${row.stokAkhir} unit'
-                                              : 'Titip unit baru jika restock',
-                                          style: S.caption(row.tambahStok > 0 ? const Color(0xFF15803D) : AppColors.textMuted),
+                                        child: Icon(
+                                          Icons.add_business_rounded,
+                                          size: 16,
+                                          color: row.tambahStok > 0 ? const Color(0xFF16A34A) : const Color(0xFF64748B),
                                         ),
-                                      ],
-                                    ),
+                                      ),
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              'Tambah Stok Titip (Restock)',
+                                              style: S.caption(AppColors.textPrimary).copyWith(fontWeight: FontWeight.w700),
+                                            ),
+                                            Text(
+                                              row.tambahStok > 0
+                                                  ? 'Stok akhir toko: ${row.stokAkhir} unit'
+                                                  : 'Titip unit baru jika restock',
+                                              style: S.caption(row.tambahStok > 0 ? const Color(0xFF15803D) : AppColors.textMuted),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      // Stepper Tambah Stok
+                                      Container(
+                                        height: 34,
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.circular(8),
+                                          border: Border.all(
+                                            color: row.tambahStok > 0 ? const Color(0xFF86EFAC) : const Color(0xFFCBD5E1),
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Material(
+                                              color: Colors.transparent,
+                                              child: InkWell(
+                                                borderRadius: const BorderRadius.horizontal(left: Radius.circular(7)),
+                                                onTap: row.tambahStok > 0
+                                                    ? () {
+                                                        setState(() {
+                                                          row.stepTambah(-1);
+                                                        });
+                                                      }
+                                                    : null,
+                                                child: Container(
+                                                  width: 32,
+                                                  height: double.infinity,
+                                                  alignment: Alignment.center,
+                                                  child: Icon(
+                                                    Icons.remove_rounded,
+                                                    size: 16,
+                                                    color: row.tambahStok > 0 ? AppColors.textPrimary : const Color(0xFFCBD5E1),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                            Container(
+                                              width: 42,
+                                              alignment: Alignment.center,
+                                              child: TextField(
+                                                controller: row.tambahStokCtrl,
+                                                keyboardType: TextInputType.number,
+                                                textAlign: TextAlign.center,
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.w800,
+                                                  fontSize: 14,
+                                                  color: row.tambahStok > 0 ? const Color(0xFF15803D) : AppColors.textPrimary,
+                                                ),
+                                                decoration: const InputDecoration(
+                                                  border: InputBorder.none,
+                                                  contentPadding: EdgeInsets.zero,
+                                                  isDense: true,
+                                                ),
+                                                onChanged: (_) {
+                                                  setState(() {});
+                                                },
+                                              ),
+                                            ),
+                                            Material(
+                                              color: Colors.transparent,
+                                              child: InkWell(
+                                                borderRadius: const BorderRadius.horizontal(right: Radius.circular(7)),
+                                                onTap: () {
+                                                  setState(() {
+                                                    row.stepTambah(1);
+                                                  });
+                                                },
+                                                child: Container(
+                                                  width: 32,
+                                                  height: double.infinity,
+                                                  alignment: Alignment.center,
+                                                  child: const Icon(
+                                                    Icons.add_rounded,
+                                                    size: 16,
+                                                    color: Color(0xFF059669),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  // Stepper Tambah Stok
-                                  Container(
-                                    height: 34,
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
+                                  if (row.tambahStok > 0) ...[
+                                    const Divider(height: 14, color: Color(0xFFBBF7D0)),
+                                    InkWell(
                                       borderRadius: BorderRadius.circular(8),
-                                      border: Border.all(
-                                        color: row.tambahStok > 0 ? const Color(0xFF86EFAC) : const Color(0xFFCBD5E1),
+                                      onTap: () => _selectRowRestockDate(row),
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(vertical: 2),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                const Icon(Icons.event_available_rounded, size: 15, color: Color(0xFF16A34A)),
+                                                const SizedBox(width: 6),
+                                                Text(
+                                                  'Tanggal Restock:',
+                                                  style: S.caption(const Color(0xFF166534)).copyWith(fontWeight: FontWeight.w700),
+                                                ),
+                                              ],
+                                            ),
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                              decoration: BoxDecoration(
+                                                color: Colors.white,
+                                                borderRadius: BorderRadius.circular(6),
+                                                border: Border.all(color: const Color(0xFF86EFAC)),
+                                              ),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Text(
+                                                    DateFormat('dd MMM yyyy', 'id').format(row.tglRestock),
+                                                    style: const TextStyle(
+                                                      fontSize: 12,
+                                                      fontWeight: FontWeight.w800,
+                                                      color: Color(0xFF15803D),
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 4),
+                                                  const Icon(Icons.edit_calendar_rounded, size: 13, color: Color(0xFF16A34A)),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Material(
-                                          color: Colors.transparent,
-                                          child: InkWell(
-                                            borderRadius: const BorderRadius.horizontal(left: Radius.circular(7)),
-                                            onTap: row.tambahStok > 0
-                                                ? () {
-                                                    setState(() {
-                                                      row.stepTambah(-1);
-                                                    });
-                                                  }
-                                                : null,
-                                            child: Container(
-                                              width: 32,
-                                              height: double.infinity,
-                                              alignment: Alignment.center,
-                                              child: Icon(
-                                                Icons.remove_rounded,
-                                                size: 16,
-                                                color: row.tambahStok > 0 ? AppColors.textPrimary : const Color(0xFFCBD5E1),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                        Container(
-                                          width: 42,
-                                          alignment: Alignment.center,
-                                          child: TextField(
-                                            controller: row.tambahStokCtrl,
-                                            keyboardType: TextInputType.number,
-                                            textAlign: TextAlign.center,
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.w800,
-                                              fontSize: 14,
-                                              color: row.tambahStok > 0 ? const Color(0xFF15803D) : AppColors.textPrimary,
-                                            ),
-                                            decoration: const InputDecoration(
-                                              border: InputBorder.none,
-                                              contentPadding: EdgeInsets.zero,
-                                              isDense: true,
-                                            ),
-                                            onChanged: (_) {
-                                              setState(() {});
-                                            },
-                                          ),
-                                        ),
-                                        Material(
-                                          color: Colors.transparent,
-                                          child: InkWell(
-                                            borderRadius: const BorderRadius.horizontal(right: Radius.circular(7)),
-                                            onTap: () {
-                                              setState(() {
-                                                row.stepTambah(1);
-                                              });
-                                            },
-                                            child: Container(
-                                              width: 32,
-                                              height: double.infinity,
-                                              alignment: Alignment.center,
-                                              child: const Icon(
-                                                Icons.add_rounded,
-                                                size: 16,
-                                                color: Color(0xFF059669),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
+                                  ],
                                 ],
                               ),
                             ),
@@ -1317,7 +1528,7 @@ class _AuditKunjunganPageState extends State<AuditKunjunganPage> {
                                             Text(
                                               _masterNoInvCtrl.text.trim().isEmpty
                                                   ? 'Menunggu input No. Invoice di atas...'
-                                                  : _masterNoInvCtrl.text.trim(),
+                                                  : '${_masterNoInvCtrl.text.trim()} • ${DateFormat('dd MMM yyyy', 'id').format(_masterTglInvoice)}',
                                               style: TextStyle(
                                                 fontSize: 13,
                                                 fontWeight: FontWeight.w800,
@@ -1394,6 +1605,40 @@ class _AuditKunjunganPageState extends State<AuditKunjunganPage> {
                                           border: OutlineInputBorder(),
                                           isDense: true,
                                           contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      InkWell(
+                                        borderRadius: BorderRadius.circular(8),
+                                        onTap: () => _selectRowInvoiceDate(row),
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            borderRadius: BorderRadius.circular(8),
+                                            border: Border.all(color: const Color(0xFFFDE68A)),
+                                          ),
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  const Icon(Icons.calendar_today_rounded, size: 14, color: Color(0xFFD97706)),
+                                                  const SizedBox(width: 6),
+                                                  Text(
+                                                    'Tgl Faktur / Terjual:',
+                                                    style: S.caption(const Color(0xFFB45309)).copyWith(fontWeight: FontWeight.w600),
+                                                  ),
+                                                  const SizedBox(width: 6),
+                                                  Text(
+                                                    DateFormat('dd MMM yyyy', 'id').format(row.tglInvoice),
+                                                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Color(0xFFB45309)),
+                                                  ),
+                                                ],
+                                              ),
+                                              const Text('Ubah', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF2563EB))),
+                                            ],
+                                          ),
                                         ),
                                       ),
                                     ],
