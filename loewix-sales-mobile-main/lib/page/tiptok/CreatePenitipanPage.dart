@@ -210,15 +210,6 @@ class _CreatePenitipanPageState extends State<CreatePenitipanPage> {
   }
 
   Future<void> _pickDealer() async {
-    if (widget.preselectedCustomerId != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Toko telah terkunci sesuai jadwal kunjungan resmi Admin hari ini.'),
-          duration: Duration(seconds: 2),
-        ),
-      );
-      return;
-    }
 
     final searchCtrl = TextEditingController();
     List<Map<String, dynamic>> dealerList = _dealersToday.isNotEmpty
@@ -849,7 +840,7 @@ class _CreatePenitipanPageState extends State<CreatePenitipanPage> {
         context: context,
         type: QuickAlertType.error,
         title: 'Toko Belum Dipilih',
-        text: 'Silakan pilih toko yang Anda kunjungi hari ini sesuai jadwal resmi Admin.',
+        text: 'Silakan pilih toko mitra TIP TOK terlebih dahulu.',
       );
       return;
     }
