@@ -25,26 +25,65 @@ class _AuditItemRow {
   final TipTokItemModel item;
   late TextEditingController sisaCtrl;
   late TextEditingController noInvCtrl;
+  late TextEditingController tambahStokCtrl;
   int calculatedTerjual = 0;
   double calculatedInsentif = 0.0;
 
   _AuditItemRow({required this.item}) {
     sisaCtrl = TextEditingController(text: item.qtySisa.toString());
     noInvCtrl = TextEditingController();
+    tambahStokCtrl = TextEditingController(text: '0');
   }
+
+  int get sisaFisik => int.tryParse(sisaCtrl.text.trim()) ?? item.qtySisa;
+  int get tambahStok => int.tryParse(tambahStokCtrl.text.trim()) ?? 0;
+  int get stokAkhir => sisaFisik + tambahStok;
 
   void updateTerjual() {
     final sisa = int.tryParse(sisaCtrl.text.trim()) ?? item.qtySisa;
-    calculatedTerjual = (item.qtySisa - sisa).clamp(0, item.qtySisa);
+    if (sisa > item.qtySisa) {
+      final excess = sisa - item.qtySisa;
+      final curTambah = tambahStok;
+      tambahStokCtrl.text = (curTambah + excess).toString();
+      sisaCtrl.text = item.qtySisa.toString();
+      sisaCtrl.selection = TextSelection.fromPosition(TextPosition(offset: sisaCtrl.text.length));
+    }
+    final actualSisa = int.tryParse(sisaCtrl.text.trim()) ?? item.qtySisa;
+    calculatedTerjual = (item.qtySisa - actualSisa).clamp(0, item.qtySisa);
     calculatedInsentif = calculatedTerjual * item.insentifPerUnit;
   }
 
-  void stepSisa(int delta) {
+  void stepSisa(int delta, [BuildContext? context]) {
     int cur = int.tryParse(sisaCtrl.text.trim()) ?? item.qtySisa;
+    if (delta > 0 && cur >= item.qtySisa) {
+      stepTambah(delta);
+      if (context != null) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Stok sisa sudah utuh (${item.qtySisa}). Ditambahkan ke Tambah Stok Titip (Restock: +$tambahStok).',
+              style: const TextStyle(fontSize: 12),
+            ),
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: const Color(0xFF0D9488),
+          ),
+        );
+      }
+      return;
+    }
     int next = (cur + delta).clamp(0, item.qtySisa);
     sisaCtrl.text = next.toString();
     sisaCtrl.selection = TextSelection.fromPosition(TextPosition(offset: sisaCtrl.text.length));
     updateTerjual();
+  }
+
+  void stepTambah(int delta) {
+    int cur = int.tryParse(tambahStokCtrl.text.trim()) ?? 0;
+    int next = (cur + delta).clamp(0, 999);
+    tambahStokCtrl.text = next.toString();
+    tambahStokCtrl.selection = TextSelection.fromPosition(TextPosition(offset: tambahStokCtrl.text.length));
   }
 
   void setSisa(int val) {
@@ -79,12 +118,14 @@ class _AuditKunjunganPageState extends State<AuditKunjunganPage> {
     for (var r in _itemRows) {
       r.sisaCtrl.dispose();
       r.noInvCtrl.dispose();
+      r.tambahStokCtrl.dispose();
     }
     super.dispose();
   }
 
   int get _totalTerjualAll => _itemRows.fold(0, (sum, r) => sum + r.calculatedTerjual);
   double get _totalInsentifAll => _itemRows.fold(0.0, (sum, r) => sum + r.calculatedInsentif);
+  int get _totalRestockAll => _itemRows.fold(0, (sum, r) => sum + r.tambahStok);
 
   void _setSemuaUtuh() {
     setState(() {
@@ -186,6 +227,7 @@ class _AuditKunjunganPageState extends State<AuditKunjunganPage> {
     for (int i = 0; i < _itemRows.length; i++) {
       final r = _itemRows[i];
       final sisa = int.tryParse(r.sisaCtrl.text.trim());
+      final tambah = int.tryParse(r.tambahStokCtrl.text.trim()) ?? 0;
       final noInv = r.noInvCtrl.text.trim();
 
       if (sisa == null || sisa < 0) {
@@ -203,7 +245,17 @@ class _AuditKunjunganPageState extends State<AuditKunjunganPage> {
           context: context,
           type: QuickAlertType.warning,
           title: 'Stok Melebihi Batas',
-          text: 'Stok sisa ($sisa) tidak boleh lebih banyak dari stok sebelumnya (${r.item.qtySisa})!',
+          text: 'Stok sisa ($sisa) tidak boleh lebih banyak dari stok sebelumnya (${r.item.qtySisa})! Silakan gunakan kolom Tambah Stok Titip (Restock).',
+          confirmBtnColor: AppColors.warning,
+        );
+        return;
+      }
+      if (tambah < 0) {
+        QuickAlert.show(
+          context: context,
+          type: QuickAlertType.warning,
+          title: 'Tambah Stok Tidak Valid',
+          text: 'Tambah stok untuk "${r.item.namaBarang}" tidak boleh negatif!',
           confirmBtnColor: AppColors.warning,
         );
         return;
@@ -213,6 +265,7 @@ class _AuditKunjunganPageState extends State<AuditKunjunganPage> {
       itemsPayload.add({
         'id_item': r.item.id,
         'stok_sisa': sisa,
+        'tambah_stok': tambah,
         'no_inv': terjual > 0 ? noInv : '',
         'tgl_invoice': DateFormat('yyyy-MM-dd').format(_tglKunjungan),
       });
@@ -769,7 +822,7 @@ class _AuditKunjunganPageState extends State<AuditKunjunganPage> {
                                 _buildPanduanItem(
                                   step: '2',
                                   title: 'Gunakan Tombol [−] atau [+]',
-                                  desc: 'Tekan [−] jika ada barang laku terjual, atau [+] jika keliru. Anda juga bisa ketik angka langsung.',
+                                  desc: 'Tekan [−] jika ada barang laku terjual. Untuk restock barang baru ke toko, gunakan kolom Tambah Stok Titip atau tekan [+] saat stok penuh.',
                                   icon: Icons.add_circle_outline_rounded,
                                   color: const Color(0xFFD97706),
                                 ),
@@ -1001,21 +1054,17 @@ class _AuditKunjunganPageState extends State<AuditKunjunganPage> {
                                               color: Colors.transparent,
                                               child: InkWell(
                                                 borderRadius: const BorderRadius.horizontal(right: Radius.circular(9)),
-                                                onTap: sisaInt < row.item.qtySisa
-                                                    ? () {
-                                                        setState(() {
-                                                          row.stepSisa(1);
-                                                        });
-                                                      }
-                                                    : null,
+                                                onTap: () {
+                                                  setState(() {
+                                                    row.stepSisa(1, context);
+                                                  });
+                                                },
                                                 child: Container(
                                                   width: 38,
                                                   height: double.infinity,
-                                                  decoration: BoxDecoration(
-                                                    color: sisaInt < row.item.qtySisa
-                                                        ? const Color(0xFFF1F5F9)
-                                                        : const Color(0xFFF8FAFC),
-                                                    borderRadius: const BorderRadius.horizontal(right: Radius.circular(9)),
+                                                  decoration: const BoxDecoration(
+                                                    color: Color(0xFFF1F5F9),
+                                                    borderRadius: BorderRadius.horizontal(right: Radius.circular(9)),
                                                   ),
                                                   alignment: Alignment.center,
                                                   child: Icon(
@@ -1023,7 +1072,7 @@ class _AuditKunjunganPageState extends State<AuditKunjunganPage> {
                                                     size: 20,
                                                     color: sisaInt < row.item.qtySisa
                                                         ? AppColors.textPrimary
-                                                        : const Color(0xFF94A3B8),
+                                                        : const Color(0xFF0D9488),
                                                   ),
                                                 ),
                                               ),
@@ -1033,8 +1082,14 @@ class _AuditKunjunganPageState extends State<AuditKunjunganPage> {
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
-                                        'Unit tersisa di toko',
-                                        style: S.caption(AppColors.textMuted),
+                                        sisaInt >= row.item.qtySisa
+                                            ? 'Utuh (Tekan + utk restock)'
+                                            : 'Unit tersisa di toko',
+                                        style: S.caption(
+                                          sisaInt >= row.item.qtySisa
+                                              ? const Color(0xFF0D9488)
+                                              : AppColors.textMuted,
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -1103,6 +1158,136 @@ class _AuditKunjunganPageState extends State<AuditKunjunganPage> {
                                   ),
                                 ),
                               ],
+                            ),
+
+                            // Tambah Stok Titip (Restock Baru) Container
+                            const SizedBox(height: 10),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+                              decoration: BoxDecoration(
+                                color: row.tambahStok > 0 ? const Color(0xFFF0FDF4) : const Color(0xFFF8FAFC),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                  color: row.tambahStok > 0 ? const Color(0xFF86EFAC) : const Color(0xFFE2E8F0),
+                                  width: row.tambahStok > 0 ? 1.4 : 1.0,
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(6),
+                                    decoration: BoxDecoration(
+                                      color: row.tambahStok > 0 ? const Color(0xFFDCFCE7) : const Color(0xFFF1F5F9),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Icon(
+                                      Icons.add_business_rounded,
+                                      size: 16,
+                                      color: row.tambahStok > 0 ? const Color(0xFF16A34A) : const Color(0xFF64748B),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Tambah Stok Titip (Restock)',
+                                          style: S.caption(AppColors.textPrimary).copyWith(fontWeight: FontWeight.w700),
+                                        ),
+                                        Text(
+                                          row.tambahStok > 0
+                                              ? 'Stok akhir toko: ${row.stokAkhir} unit'
+                                              : 'Titip unit baru jika restock',
+                                          style: S.caption(row.tambahStok > 0 ? const Color(0xFF15803D) : AppColors.textMuted),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  // Stepper Tambah Stok
+                                  Container(
+                                    height: 34,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        color: row.tambahStok > 0 ? const Color(0xFF86EFAC) : const Color(0xFFCBD5E1),
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Material(
+                                          color: Colors.transparent,
+                                          child: InkWell(
+                                            borderRadius: const BorderRadius.horizontal(left: Radius.circular(7)),
+                                            onTap: row.tambahStok > 0
+                                                ? () {
+                                                    setState(() {
+                                                      row.stepTambah(-1);
+                                                    });
+                                                  }
+                                                : null,
+                                            child: Container(
+                                              width: 32,
+                                              height: double.infinity,
+                                              alignment: Alignment.center,
+                                              child: Icon(
+                                                Icons.remove_rounded,
+                                                size: 16,
+                                                color: row.tambahStok > 0 ? AppColors.textPrimary : const Color(0xFFCBD5E1),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        Container(
+                                          width: 42,
+                                          alignment: Alignment.center,
+                                          child: TextField(
+                                            controller: row.tambahStokCtrl,
+                                            keyboardType: TextInputType.number,
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.w800,
+                                              fontSize: 14,
+                                              color: row.tambahStok > 0 ? const Color(0xFF15803D) : AppColors.textPrimary,
+                                            ),
+                                            decoration: const InputDecoration(
+                                              border: InputBorder.none,
+                                              contentPadding: EdgeInsets.zero,
+                                              isDense: true,
+                                            ),
+                                            onChanged: (_) {
+                                              setState(() {});
+                                            },
+                                          ),
+                                        ),
+                                        Material(
+                                          color: Colors.transparent,
+                                          child: InkWell(
+                                            borderRadius: const BorderRadius.horizontal(right: Radius.circular(7)),
+                                            onTap: () {
+                                              setState(() {
+                                                row.stepTambah(1);
+                                              });
+                                            },
+                                            child: Container(
+                                              width: 32,
+                                              height: double.infinity,
+                                              alignment: Alignment.center,
+                                              child: const Icon(
+                                                Icons.add_rounded,
+                                                size: 16,
+                                                color: Color(0xFF059669),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
 
                             // Dynamic Invoice Field
@@ -1238,7 +1423,7 @@ class _AuditKunjunganPageState extends State<AuditKunjunganPage> {
                   const SizedBox(height: 20),
 
                   // Summary Bar
-                  if (_totalTerjualAll > 0)
+                  if (_totalTerjualAll > 0 || _totalRestockAll > 0)
                     Container(
                       margin: const EdgeInsets.only(bottom: 16),
                       padding: const EdgeInsets.all(14),
@@ -1254,10 +1439,17 @@ class _AuditKunjunganPageState extends State<AuditKunjunganPage> {
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text('Total Terjual Hari Ini', style: S.caption(const Color(0xFF94A3B8))),
+                                  Text('Total Terjual', style: S.caption(const Color(0xFF94A3B8))),
                                   Text('$_totalTerjualAll Unit', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 16)),
                                 ],
                               ),
+                              if (_totalRestockAll > 0)
+                                Column(
+                                  children: [
+                                    Text('Restock Baru', style: S.caption(const Color(0xFF94A3B8))),
+                                    Text('+$_totalRestockAll Unit', style: const TextStyle(color: Color(0xFF38BDF8), fontWeight: FontWeight.w800, fontSize: 16)),
+                                  ],
+                                ),
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.end,
                                 children: [
@@ -1267,33 +1459,35 @@ class _AuditKunjunganPageState extends State<AuditKunjunganPage> {
                               ),
                             ],
                           ),
-                          const Divider(height: 16, color: Color(0xFF334155)),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
-                                children: [
-                                  const Icon(Icons.receipt_long_outlined, size: 14, color: Color(0xFF94A3B8)),
-                                  const SizedBox(width: 6),
-                                  Text('Status Invoice:', style: S.caption(const Color(0xFF94A3B8))),
-                                ],
-                              ),
-                              Text(
-                                _gabungInvoice
-                                    ? (_masterNoInvCtrl.text.trim().isNotEmpty
-                                        ? 'Gabung: ${_masterNoInvCtrl.text.trim()}'
-                                        : 'Gabung (Belum diisi)')
-                                    : 'Pisah per Barang',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w700,
-                                  color: _gabungInvoice
-                                      ? (_masterNoInvCtrl.text.trim().isNotEmpty ? const Color(0xFF38BDF8) : const Color(0xFFF87171))
-                                      : const Color(0xFFFBBF24),
+                          if (_totalTerjualAll > 0) ...[
+                            const Divider(height: 16, color: Color(0xFF334155)),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    const Icon(Icons.receipt_long_outlined, size: 14, color: Color(0xFF94A3B8)),
+                                    const SizedBox(width: 6),
+                                    Text('Status Invoice:', style: S.caption(const Color(0xFF94A3B8))),
+                                  ],
                                 ),
-                              ),
-                            ],
-                          ),
+                                Text(
+                                  _gabungInvoice
+                                      ? (_masterNoInvCtrl.text.trim().isNotEmpty
+                                          ? 'Gabung: ${_masterNoInvCtrl.text.trim()}'
+                                          : 'Gabung (Belum diisi)')
+                                      : 'Pisah per Barang',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: _gabungInvoice
+                                        ? (_masterNoInvCtrl.text.trim().isNotEmpty ? const Color(0xFF38BDF8) : const Color(0xFFF87171))
+                                        : const Color(0xFFFBBF24),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ],
                       ),
                     ),
@@ -1305,7 +1499,12 @@ class _AuditKunjunganPageState extends State<AuditKunjunganPage> {
                     child: ElevatedButton.icon(
                       onPressed: _submit,
                       icon: const Icon(Icons.check_circle_outline_rounded),
-                      label: const Text('Simpan Hasil Audit', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+                      label: Text(
+                        _totalRestockAll > 0
+                            ? 'Simpan Audit & Restock (+$_totalRestockAll Unit)'
+                            : 'Simpan Hasil Audit',
+                        style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+                      ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF059669),
                         foregroundColor: Colors.white,
