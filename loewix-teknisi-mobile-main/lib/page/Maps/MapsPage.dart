@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geocoding/geocoding.dart';
@@ -34,11 +35,243 @@ class GoogleMapSampleState extends State<GoogleMapSample>
 
   // Untuk tracking animation controllers
   final List<AnimationController> _animationControllers = [];
+  late final AnimationController _pulseController;
 
   @override
   void initState() {
     super.initState();
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2000),
+    )..repeat();
     _initializeMap();
+  }
+
+
+  String _getFormattedDistance() {
+    if (_userLocation == null || _taskLocation == null) return '';
+    final meters = const Distance().as(LengthUnit.Meter, _userLocation!, _taskLocation!);
+    if (meters < 1000) {
+      return '${meters.round()} m • ~1 mnt';
+    }
+    final km = (meters / 1000).toStringAsFixed(1);
+    final minutes = (meters / 1000 / 30 * 60).round().clamp(1, 180);
+    return '$km km • ~$minutes mnt';
+  }
+
+  double _getTechnicianHeading() {
+    // If device heading is available and valid from Geolocator
+    final heading = GoogleMapSample.currentPosition?.heading;
+    if (heading != null && heading > 0) {
+      return heading * (pi / 180.0);
+    }
+    // Calculate angle towards task destination
+    if (_userLocation != null && _taskLocation != null) {
+      final lat1 = _userLocation!.latitude * (pi / 180.0);
+      final lon1 = _userLocation!.longitude * (pi / 180.0);
+      final lat2 = _taskLocation!.latitude * (pi / 180.0);
+      final lon2 = _taskLocation!.longitude * (pi / 180.0);
+
+      final dLon = lon2 - lon1;
+      final y = sin(dLon) * cos(lat2);
+      final x = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(dLon);
+
+      final bearing = atan2(y, x);
+      return bearing;
+    }
+    return 0.0;
+  }
+
+  Widget _buildTechnicianMarkerWidget() {
+    final bearing = _getTechnicianHeading();
+    return SizedBox(
+      width: 80,
+      height: 90,
+      child: Stack(
+        alignment: Alignment.center,
+        clipBehavior: Clip.none,
+        children: [
+          // Animated Radar Pulse
+          AnimatedBuilder(
+            animation: _pulseController,
+            builder: (context, child) {
+              final val = _pulseController.value;
+              return Container(
+                width: 36 + (val * 38),
+                height: 36 + (val * 38),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: const Color(0xFFFF5B22).withValues(alpha: (1 - val) * 0.28),
+                  border: Border.all(
+                    color: const Color(0xFFFF5B22).withValues(alpha: (1 - val) * 0.55),
+                    width: 1.5,
+                  ),
+                ),
+              );
+            },
+          ),
+          // Soft ground shadow circle
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.black.withValues(alpha: 0.12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.15),
+                  blurRadius: 10,
+                  spreadRadius: 2,
+                ),
+              ],
+            ),
+          ),
+          // Lego Toy Motorcycle 2D Sprite (Rotated along route)
+          Transform.rotate(
+            angle: bearing,
+            child: Image.asset(
+              'assets/lego_motorcycle.png',
+              width: 36,
+              height: 78,
+              fit: BoxFit.contain,
+              filterQuality: FilterQuality.high,
+            ),
+          ),
+          // Floating "Anda" Badge (always remains upright)
+          Positioned(
+            top: 0,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0F172A),
+                borderRadius: BorderRadius.circular(6),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.28),
+                    blurRadius: 4,
+                    offset: const Offset(0, 1),
+                  ),
+                ],
+              ),
+              child: const Text(
+                'Anda',
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 9,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDestinationMarkerWidget() {
+    final customerName = widget.taskData?.dataCustomer.nama ?? 'Lokasi Tugas';
+    final distText = _getFormattedDistance();
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Floating Callout Pill
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.15),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                customerName,
+                style: const TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF0F172A),
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              if (distText.isNotEmpty)
+                Text(
+                  distText,
+                  style: const TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 9,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFFFF5B22),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 2),
+        // Teardrop Pin
+        Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: const LinearGradient(
+              colors: [Color(0xFFEF4444), Color(0xFFB91C1C)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            border: Border.all(color: Colors.white, width: 2.5),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.25),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: const Center(
+            child: Icon(
+              Icons.business_rounded,
+              color: Colors.white,
+              size: 18,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  List<Polyline> _buildPolylines() {
+    if (_userLocation == null || _taskLocation == null) return [];
+    return [
+      // Glow Layer
+      Polyline(
+        points: [_userLocation!, _taskLocation!],
+        strokeWidth: 8.0,
+        color: const Color(0xFFFF5B22).withValues(alpha: 0.3),
+        strokeCap: StrokeCap.round,
+      ),
+      // Core Route Line
+      Polyline(
+        points: [_userLocation!, _taskLocation!],
+        strokeWidth: 4.5,
+        color: const Color(0xFFFF5B22),
+        borderColor: Colors.white,
+        borderStrokeWidth: 1.5,
+        strokeCap: StrokeCap.round,
+      ),
+    ];
   }
 
   Future<void> _initializeMap() async {
@@ -81,13 +314,10 @@ class GoogleMapSampleState extends State<GoogleMapSample>
           _markers.add(
             Marker(
               point: _taskLocation!,
-              width: 40,
-              height: 40,
-              child: const Icon(
-                Icons.location_on,
-                color: Colors.red,
-                size: 40,
-              ),
+              width: 160,
+              height: 96,
+              alignment: Alignment.bottomCenter,
+              child: _buildDestinationMarkerWidget(),
             ),
           );
 
@@ -97,9 +327,9 @@ class GoogleMapSampleState extends State<GoogleMapSample>
                 point: _taskLocation!,
                 radius: taskRadius,
                 useRadiusInMeter: true,
-                color: Colors.blue.withValues(alpha: 0.15),
-                borderColor: Colors.blue,
-                borderStrokeWidth: 2,
+                color: const Color(0xFFFF5B22).withValues(alpha: 0.10),
+                borderColor: const Color(0xFFFF5B22).withValues(alpha: 0.5),
+                borderStrokeWidth: 1.5,
               ),
             );
           }
@@ -119,33 +349,21 @@ class GoogleMapSampleState extends State<GoogleMapSample>
         _markers.add(
           Marker(
             point: _taskLocation!,
-            width: 40,
-            height: 40,
-            child: const Icon(Icons.location_on, color: Colors.red, size: 40),
+            width: 160,
+            height: 96,
+            alignment: Alignment.bottomCenter,
+            child: _buildDestinationMarkerWidget(),
           ),
         );
       }
-      // Add user location marker
+      // Add user location marker with Gojek / Shopee style radar pulse
       _markers.add(
         Marker(
           point: _userLocation!,
-          width: 40,
-          height: 40,
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.blue,
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.white, width: 2),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.blue.withValues(alpha: 0.3),
-                  blurRadius: 8,
-                  spreadRadius: 2,
-                ),
-              ],
-            ),
-            child: const Icon(Icons.person, color: Colors.white, size: 18),
-          ),
+          width: 80,
+          height: 90,
+          alignment: Alignment.center,
+          child: _buildTechnicianMarkerWidget(),
         ),
       );
     });
@@ -225,12 +443,15 @@ class GoogleMapSampleState extends State<GoogleMapSample>
           children: [
             TileLayer(
               urlTemplate: AppConstants.useMapbox
-                  ? 'https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/{z}/{x}/{y}?access_token=${AppConstants.mapboxAccessToken}'
-                  : 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-              userAgentPackageName: 'com.loewix.teknisi',
-              maxZoom: 19,
+                  ? 'https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/256/{z}/{x}/{y}?access_token=${AppConstants.mapboxAccessToken}'
+                  : 'https://{s}.google.com/vt/lyrs=m&hl=id&x={x}&y={y}&z={z}',
+              subdomains: AppConstants.useMapbox
+                  ? const ['a', 'b', 'c', 'd']
+                  : const ['mt0', 'mt1', 'mt2', 'mt3'],
+              maxZoom: 20,
             ),
             CircleLayer(circles: _circles),
+            PolylineLayer(polylines: _buildPolylines()),
             MarkerLayer(markers: _markers),
           ],
         ),
@@ -271,15 +492,16 @@ class GoogleMapSampleState extends State<GoogleMapSample>
             ),
           ),
         Positioned(
-          top: 16,
+          bottom: 275,
           right: 16,
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
               _buildFabButton(
                 heroTag: 'fab_gps_location',
-                icon: Icons.my_location,
+                icon: Icons.my_location_rounded,
                 tooltip: 'Lokasi Saya',
-                color: Colors.blue,
+                color: const Color(0xFF0284C7),
                 onPressed: () {
                   if (_userLocation != null) {
                     _animatedMove(_userLocation!, 17.0);
@@ -288,22 +510,22 @@ class GoogleMapSampleState extends State<GoogleMapSample>
                   }
                 },
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 10),
               if (_taskLocation != null)
                 _buildFabButton(
                   heroTag: 'fab_task_location',
-                  icon: Icons.flag,
+                  icon: Icons.location_on_rounded,
                   tooltip: 'Lokasi Tugas',
-                  color: Colors.red,
+                  color: const Color(0xFFEF4444),
                   onPressed: _centerToTaskLocation,
                 ),
               if (_userLocation != null && _taskLocation != null) ...[
-                const SizedBox(height: 8),
+                const SizedBox(height: 10),
                 _buildFabButton(
                   heroTag: 'fab_fit_bounds',
-                  icon: Icons.zoom_out_map,
-                  tooltip: 'Lihat Semua',
-                  color: Colors.green,
+                  icon: Icons.alt_route_rounded,
+                  tooltip: 'Lihat Rute',
+                  color: const Color(0xFFFF5B22),
                   onPressed: _fitBothLocations,
                 ),
               ],
@@ -321,15 +543,31 @@ class GoogleMapSampleState extends State<GoogleMapSample>
     required Color color,
     required VoidCallback onPressed,
   }) {
-    return FloatingActionButton(
-      heroTag: heroTag,
-      onPressed: onPressed,
-      tooltip: tooltip,
-      mini: true,
-      backgroundColor: Colors.white,
-      foregroundColor: color,
-      elevation: 4,
-      child: Icon(icon),
+    return Container(
+      width: 44,
+      height: 44,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.12),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onPressed,
+          customBorder: const CircleBorder(),
+          child: Center(
+            child: Icon(icon, color: color, size: 20),
+          ),
+        ),
+      ),
     );
   }
 
@@ -344,14 +582,11 @@ class GoogleMapSampleState extends State<GoogleMapSample>
 
     final bounds = LatLngBounds.fromPoints([_userLocation!, _taskLocation!]);
 
-    // Hitung center dan zoom yang tepat
-    final centerLat =
-        (bounds.northEast.latitude + bounds.southWest.latitude) / 2;
-    final centerLng =
-        (bounds.northEast.longitude + bounds.southWest.longitude) / 2;
-    final center = LatLng(centerLat, centerLng);
+    // Hitung center dan geser sedikit ke atas (north) agar pas di area pandang atas bottom panel
+    final centerLat = (bounds.northEast.latitude + bounds.southWest.latitude) / 2;
+    final centerLng = (bounds.northEast.longitude + bounds.southWest.longitude) / 2;
+    final center = LatLng(centerLat - 0.0035, centerLng);
 
-    // Hitung zoom berdasarkan jarak
     final distance = const Distance().as(
       LengthUnit.Meter,
       _userLocation!,
@@ -360,15 +595,15 @@ class GoogleMapSampleState extends State<GoogleMapSample>
 
     double zoom;
     if (distance < 500) {
-      zoom = 16.0;
+      zoom = 15.5;
     } else if (distance < 1000) {
-      zoom = 15.0;
-    } else if (distance < 5000) {
-      zoom = 13.0;
-    } else if (distance < 10000) {
+      zoom = 14.5;
+    } else if (distance < 3000) {
+      zoom = 13.5;
+    } else if (distance < 8000) {
       zoom = 12.0;
     } else {
-      zoom = 10.0;
+      zoom = 10.5;
     }
 
     _animatedMove(center, zoom);
@@ -548,6 +783,7 @@ class GoogleMapSampleState extends State<GoogleMapSample>
 
   @override
   void dispose() {
+    _pulseController.dispose();
     // Dispose semua animation controllers yang masih aktif
     for (final controller in _animationControllers) {
       controller.dispose();

@@ -1821,136 +1821,147 @@ class _TaskPageState extends State<TaskPage> {
     );
   }
 
+  Future<void> _makePhoneCall(String? phoneNumber) async {
+    if (phoneNumber == null || phoneNumber.trim().isEmpty) {
+      if (!mounted) return;
+      QuickAlert.show(
+        context: context,
+        type: QuickAlertType.warning,
+        title: 'Nomor Tidak Tersedia',
+        text: 'Nomor telepon pelanggan belum terdaftar',
+      );
+      return;
+    }
+    final clean = phoneNumber.replaceAll(RegExp(r'[^0-9+]'), '');
+    final uri = Uri.parse('tel:$clean');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    }
+  }
+
+  Future<void> _openWhatsAppChat(String? phoneNumber) async {
+    if (phoneNumber == null || phoneNumber.trim().isEmpty) {
+      if (!mounted) return;
+      QuickAlert.show(
+        context: context,
+        type: QuickAlertType.warning,
+        title: 'Nomor Tidak Tersedia',
+        text: 'Nomor telepon pelanggan belum terdaftar',
+      );
+      return;
+    }
+    var clean = phoneNumber.replaceAll(RegExp(r'[^0-9]'), '');
+    if (clean.startsWith('0')) {
+      clean = '62${clean.substring(1)}';
+    } else if (!clean.startsWith('62')) {
+      clean = '62$clean';
+    }
+    final message = 'Halo ${data.dataCustomer.nama}, saya teknisi PT Loewix yang bertugas untuk kegiatan ${data.kegiatan} (${data.kode}). Saya sedang menuju lokasi Anda.';
+    final appUrl = Uri.parse('whatsapp://send?phone=$clean&text=${Uri.encodeComponent(message)}');
+    final webUrl = Uri.parse('https://wa.me/$clean?text=${Uri.encodeComponent(message)}');
+
+    if (await canLaunchUrl(appUrl)) {
+      await launchUrl(appUrl, mode: LaunchMode.externalApplication);
+    } else if (await canLaunchUrl(webUrl)) {
+      await launchUrl(webUrl, mode: LaunchMode.externalApplication);
+    }
+  }
+
   Widget _buildCustomAppBar() {
+    final topPadding = MediaQuery.of(context).padding.top;
     return Container(
-      padding: EdgeInsets.fromLTRB(
-        16,
-        MediaQuery.of(context).padding.top + 8,
-        16,
-        14,
-      ),
+      margin: EdgeInsets.fromLTRB(16, topPadding + 10, 16, 0),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF1E40AF), Color(0xFF0369A1), Color(0xFF0891B2)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: Colors.white.withValues(alpha: 0.96),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: primaryColor.withValues(alpha: 0.15),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: Colors.black.withValues(alpha: 0.10),
+            blurRadius: 18,
+            offset: const Offset(0, 4),
           ),
         ],
+        border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
-      child: Column(
+      child: Row(
         children: [
-          Row(
-            children: [
-              // Back button
-              Material(
-                color: Colors.white.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(12),
-                child: InkWell(
-                  onTap: () => Navigator.pop(context),
-                  borderRadius: BorderRadius.circular(12),
-                  child: const Padding(
-                    padding: EdgeInsets.all(10),
-                    child: Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 18),
-                  ),
-                ),
+          // Circular Frosted Back Button
+          Material(
+            color: const Color(0xFFF1F5F9),
+            borderRadius: BorderRadius.circular(12),
+            child: InkWell(
+              onTap: () => Navigator.pop(context),
+              borderRadius: BorderRadius.circular(12),
+              child: const Padding(
+                padding: EdgeInsets.all(9),
+                child: Icon(Icons.arrow_back_ios_new_rounded, size: 16, color: Color(0xFF0F172A)),
               ),
-              const SizedBox(width: 14),
-              // Title + subtitle
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+            ),
+          ),
+          const SizedBox(width: 12),
+          // Task Title & Code
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
                   children: [
-                    const Text(
-                      'Detail Tugas',
-                      style: TextStyle(
+                    Text(
+                      data.kode,
+                      style: const TextStyle(
                         fontFamily: 'Poppins',
-                        fontSize: 17,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF0F172A),
                       ),
                     ),
-                    Text(
-                      data.kegiatan,
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 11,
-                        color: Colors.white.withValues(alpha: 0.75),
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFF5B22).withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        data.kegiatan,
+                        style: const TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFFFF5B22),
+                        ),
                       ),
                     ),
                   ],
                 ),
-              ),
-              // Navigation button
-              Material(
-                color: Colors.white.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(12),
-                child: InkWell(
-                  onTap: _openGoogleMapsNavigation,
-                  borderRadius: BorderRadius.circular(12),
-                  child: const Padding(
-                    padding: EdgeInsets.all(10),
-                    child: Icon(Icons.navigation_rounded, color: Colors.white, size: 20),
+                const SizedBox(height: 1),
+                Text(
+                  data.dataCustomer.nama,
+                  style: const TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 11,
+                    color: Color(0xFF64748B),
+                    fontWeight: FontWeight.w500,
                   ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          // Integrated status + customer row
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Row(
-              children: [
-                // Status badge
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: _getStatusColor().withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(_getStatusIcon(), color: Colors.white, size: 12),
-                      const SizedBox(width: 4),
-                      Text(
-                        _getTaskStatus(),
-                        style: const TextStyle(
-                          fontFamily: 'Poppins',
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const Spacer(),
-                // Customer name
-                Flexible(
-                  child: Text(
-                    data.dataCustomer.nama,
-                    style: TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.white.withValues(alpha: 0.9),
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
+            ),
+          ),
+          // Google Maps Nav Shortcut Button
+          Material(
+            color: const Color(0xFF0284C7).withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(12),
+            child: InkWell(
+              onTap: _openGoogleMapsNavigation,
+              borderRadius: BorderRadius.circular(12),
+              child: const Padding(
+                padding: EdgeInsets.all(9),
+                child: Icon(Icons.navigation_rounded, size: 18, color: Color(0xFF0284C7)),
+              ),
             ),
           ),
         ],
@@ -1958,179 +1969,368 @@ class _TaskPageState extends State<TaskPage> {
     );
   }
 
+  Widget _buildQuickCircleButton({
+    required IconData icon,
+    required Color color,
+    required String tooltip,
+    required VoidCallback onTap,
+  }) {
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: color.withValues(alpha: 0.12),
+        shape: const CircleBorder(),
+        child: InkWell(
+          onTap: onTap,
+          customBorder: const CircleBorder(),
+          child: Padding(
+            padding: const EdgeInsets.all(9),
+            child: Icon(icon, color: color, size: 18),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProgressSteps() {
+    final status = data.status.toLowerCase();
+    int currentStep = 1; // 1: Menuju, 2: Tiba/ClockIn, 3: Pengerjaan, 4: Selesai
+    if (status == 'selesai') {
+      currentStep = 4;
+    } else if (status == 'berjalan') {
+      currentStep = 1;
+    }
+
+    final steps = [
+      {'title': 'Menuju Lokasi', 'icon': Icons.two_wheeler_rounded},
+      {'title': 'Tiba (Clock In)', 'icon': Icons.pin_drop_rounded},
+      {'title': 'Pengerjaan', 'icon': Icons.build_rounded},
+      {'title': 'Selesai', 'icon': Icons.check_circle_rounded},
+    ];
+
+    return Row(
+      children: List.generate(steps.length, (index) {
+        final stepIndex = index + 1;
+        final isActive = stepIndex <= currentStep;
+        final isCurrent = stepIndex == currentStep;
+
+        return Expanded(
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  children: [
+                    Container(
+                      width: 28,
+                      height: 28,
+                      decoration: BoxDecoration(
+                        color: isCurrent
+                            ? const Color(0xFFFF5B22)
+                            : (isActive ? const Color(0xFF10B981) : const Color(0xFFE2E8F0)),
+                        shape: BoxShape.circle,
+                        boxShadow: isCurrent
+                            ? [
+                                BoxShadow(
+                                  color: const Color(0xFFFF5B22).withValues(alpha: 0.35),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ]
+                            : null,
+                      ),
+                      child: Center(
+                        child: Icon(
+                          steps[index]['icon'] as IconData,
+                          size: 14,
+                          color: (isActive || isCurrent) ? Colors.white : const Color(0xFF94A3B8),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      steps[index]['title'] as String,
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 9,
+                        fontWeight: isCurrent ? FontWeight.w700 : FontWeight.w500,
+                        color: isCurrent ? const Color(0xFFFF5B22) : const Color(0xFF64748B),
+                      ),
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              if (index < steps.length - 1)
+                Container(
+                  width: 12,
+                  height: 2,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  color: stepIndex < currentStep ? const Color(0xFF10B981) : const Color(0xFFE2E8F0),
+                ),
+            ],
+          ),
+        );
+      }),
+    );
+  }
+
   Widget _buildBottomPanel() {
     final bottomPadding = MediaQuery.of(context).padding.bottom;
     return Container(
-      padding: EdgeInsets.fromLTRB(20, 16, 20, 16 + bottomPadding),
       decoration: BoxDecoration(
-        color: cardColor,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        color: Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 20,
+            color: Colors.black.withValues(alpha: 0.12),
+            blurRadius: 24,
             offset: const Offset(0, -6),
           ),
         ],
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Info chips row
-          Container(
-            key: _keyInfoChips,
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF1F5F9),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Row(
-              children: [
-                // Jadwal chip
-                Expanded(
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF1E40AF).withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: const Icon(
-                          Icons.calendar_today_rounded,
-                          size: 16,
-                          color: Color(0xFF1E40AF),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Jadwal',
-                            style: TextStyle(
-                              fontFamily: 'Poppins',
-                              fontSize: 10,
-                              fontWeight: FontWeight.w500,
-                              color: textSecondary.withValues(alpha: 0.7),
-                            ),
-                          ),
-                          Text(
-                            '${data.jadwal.day}/${data.jadwal.month}/${data.jadwal.year}',
-                            style: const TextStyle(
-                              fontFamily: 'Poppins',
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: textPrimary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                // Divider
-                Container(
-                  width: 1,
-                  height: 36,
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
-                  color: const Color(0xFFCBD5E1),
-                ),
-                // Waktu chip
-                Expanded(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF0891B2).withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: const Icon(
-                          Icons.access_time_rounded,
-                          size: 16,
-                          color: Color(0xFF0891B2),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Waktu',
-                            style: TextStyle(
-                              fontFamily: 'Poppins',
-                              fontSize: 10,
-                              fontWeight: FontWeight.w500,
-                              color: textSecondary.withValues(alpha: 0.7),
-                            ),
-                          ),
-                          Text(
-                            '${data.jadwal.hour.toString().padLeft(2, '0')}:${data.jadwal.minute.toString().padLeft(2, '0')}',
-                            style: const TextStyle(
-                              fontFamily: 'Poppins',
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: textPrimary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 14),
-          // Gradient action button
-          Container(
-            key: _keyActionButton,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF1E40AF), Color(0xFF0891B2)],
-                begin: Alignment.centerLeft,
-                end: Alignment.centerRight,
-              ),
-              borderRadius: BorderRadius.circular(14),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF1E40AF).withValues(alpha: 0.3),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: _showBottomSheetActions,
-                borderRadius: BorderRadius.circular(14),
-                child: const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.touch_app_rounded, size: 20, color: Colors.white),
-                      SizedBox(width: 10),
-                      Text(
-                        'Detail & Aksi',
-                        style: TextStyle(
-                          fontFamily: 'Poppins',
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(20, 10, 20, 16 + (bottomPadding > 0 ? 0 : 8)),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Grab Handle
+              Center(
+                child: Container(
+                  width: 38,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFCBD5E1),
+                    borderRadius: BorderRadius.circular(2),
                   ),
                 ),
               ),
-            ),
+
+              // Live Status Header Row
+              Row(
+                key: _keyInfoChips,
+                children: [
+                  Container(
+                    width: 9,
+                    height: 9,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF10B981),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    data.status.toLowerCase() == 'berjalan'
+                        ? 'Menuju Lokasi Pelanggan'
+                        : (data.status.toLowerCase() == 'selesai' ? 'Tugas Selesai' : 'Jadwal Siap'),
+                    style: const TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF0F172A),
+                    ),
+                  ),
+                  const Spacer(),
+                  // Schedule Time Badge
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.access_time_rounded, size: 13, color: Color(0xFF64748B)),
+                        const SizedBox(width: 5),
+                        Text(
+                          '${data.jadwal.hour.toString().padLeft(2, '0')}:${data.jadwal.minute.toString().padLeft(2, '0')} WIB',
+                          style: const TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF0F172A),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+
+              // Customer Quick Card (Sekelas Gojek / Shopee)
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                ),
+                child: Row(
+                  children: [
+                    // Company / Customer Avatar
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFFF5B22), Color(0xFFFF8A00)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFFFF5B22).withValues(alpha: 0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: const Center(
+                        child: Icon(Icons.business_rounded, color: Colors.white, size: 22),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    // Customer Details
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            data.dataCustomer.nama,
+                            style: const TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF0F172A),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 2),
+                          Row(
+                            children: [
+                              const Icon(Icons.location_on_outlined, size: 12, color: Color(0xFF64748B)),
+                              const SizedBox(width: 3),
+                              Expanded(
+                                child: Text(
+                                  data.dataCustomer.alamat.isNotEmpty ? data.dataCustomer.alamat : 'Alamat sesuai jadwal',
+                                  style: const TextStyle(
+                                    fontFamily: 'Poppins',
+                                    fontSize: 11,
+                                    color: Color(0xFF64748B),
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    // Quick Action Buttons (Call, WhatsApp)
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // WhatsApp Button
+                        _buildQuickCircleButton(
+                          icon: Icons.chat_bubble_rounded,
+                          color: const Color(0xFF25D366),
+                          tooltip: 'Chat WhatsApp',
+                          onTap: () => _openWhatsAppChat(data.dataCustomer.telp),
+                        ),
+                        const SizedBox(width: 8),
+                        // Call Button
+                        _buildQuickCircleButton(
+                          icon: Icons.phone_rounded,
+                          color: const Color(0xFF0284C7),
+                          tooltip: 'Telepon',
+                          onTap: () => _makePhoneCall(data.dataCustomer.telp),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 14),
+
+              // Gojek 4-Step Progress Indicator
+              _buildProgressSteps(),
+
+              const SizedBox(height: 14),
+
+              // Main CTA Action Button (Sekelas Gojek / Shopee)
+              Container(
+                key: _keyActionButton,
+                width: double.infinity,
+                height: 50,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFFF5B22), Color(0xFFFF7A00)],
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFFF5B22).withValues(alpha: 0.35),
+                      blurRadius: 14,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: _showBottomSheetActions,
+                    borderRadius: BorderRadius.circular(16),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 18),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.2),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(Icons.touch_app_rounded, color: Colors.white, size: 16),
+                              ),
+                              const SizedBox(width: 10),
+                              const Text(
+                                'Buka Detail & Aksi Tugas',
+                                style: TextStyle(
+                                  fontFamily: 'Poppins',
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white, size: 15),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -2139,18 +2339,28 @@ class _TaskPageState extends State<TaskPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       key: ValueKey('task_page_${data.id}_${data.kode}'),
-      backgroundColor: surfaceColor,
-      body: Column(
+      backgroundColor: Colors.white,
+      body: Stack(
         children: [
-          // Custom App Bar (includes status)
-          _buildCustomAppBar(),
-          // Map
-          Expanded(
+          // 1. Full-screen Map as the canvas
+          Positioned.fill(
             key: _keyMap,
-            child: ClipRRect(child: GoogleMapSample(taskData: data)),
+            child: GoogleMapSample(taskData: data),
           ),
-          // Bottom action panel
-          _buildBottomPanel(),
+          // 2. Floating Top Header (Gojek / Shopee Style)
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: _buildCustomAppBar(),
+          ),
+          // 3. Persistent Floating Bottom Card (Gojek / Shopee Style)
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: _buildBottomPanel(),
+          ),
         ],
       ),
     );

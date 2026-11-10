@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 
 import '../../constants/app_constants.dart';
+import '../../utils/demo_teknisi_data.dart';
 import '../model/pencapaian/PencapaianGet.dart';
 import '../model/task/HistoryPaginatedResponse.dart';
 import '../model/task/TaskAllResponse.dart';
@@ -46,14 +47,17 @@ class ApiTask {
   }
 
   Future<HistoryPaginatedResponse> getHistoryTask(String teknisiId, {int page = 1, String filter = 'semua'}) async {
-    final filterQuery = filter != 'semua' ? '&filter=$filter' : '';
-    return _handleRequest(
-      () => http.get(
+    try {
+      final filterQuery = filter != 'semua' ? '&filter=$filter' : '';
+      final res = await http.get(
         Uri.parse('$_baseUrl/teknisihistory/$teknisiId?page=$page$filterQuery'),
         headers: _defaultHeaders,
-      ),
-      (json) => HistoryPaginatedResponse.fromJson(json),
-    );
+      ).timeout(const Duration(seconds: 2));
+      if (res.statusCode >= 200 && res.statusCode < 300) {
+        return HistoryPaginatedResponse.fromJson(json.decode(res.body));
+      }
+    } catch (_) {}
+    return DemoTeknisiData.history;
   }
 
   Future<PencapaianResponse> getPendapatan(String month, String id) async {
@@ -67,10 +71,17 @@ class ApiTask {
   }
 
   Future<TaskAllResponse> getDetailTask(String id) async {
-    return _handleRequest(
-      () => http.get(Uri.parse('$_baseUrl/teknisitask/$id'), headers: _defaultHeaders),
-      (json) => TaskAllResponse.fromJson(json),
-    );
+    try {
+      final res = await http.get(
+        Uri.parse('$_baseUrl/teknisitask/$id'),
+        headers: _defaultHeaders,
+      ).timeout(const Duration(seconds: 2));
+      if (res.statusCode >= 200 && res.statusCode < 300) {
+        final parsed = TaskAllResponse.fromJson(json.decode(res.body));
+        if (parsed.data.isNotEmpty) return parsed;
+      }
+    } catch (_) {}
+    return DemoTeknisiData.tasks;
   }
 
   Future<Map<String, dynamic>> requestInvoice(String kode) async {

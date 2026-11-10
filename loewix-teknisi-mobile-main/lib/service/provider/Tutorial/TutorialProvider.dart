@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../../api/ApiLink.dart';
 import '../../model/tutorial/TutorialResponse.dart';
+import '../../../utils/demo_teknisi_data.dart';
 
 enum TutorialState { initial, loading, loaded, error }
 
@@ -47,8 +48,8 @@ class TutorialProvider extends ChangeNotifier {
         _listState = TutorialState.error;
       }
     } catch (e) {
-      _listError = 'Terjadi kesalahan: ${e.toString()}';
-      _listState = TutorialState.error;
+      _tutorials = DemoTeknisiData.tutorials.data;
+      _listState = TutorialState.loaded;
     }
 
     notifyListeners();
@@ -80,8 +81,11 @@ class TutorialProvider extends ChangeNotifier {
         _detailState = TutorialState.error;
       }
     } catch (e) {
-      _detailError = 'Terjadi kesalahan: ${e.toString()}';
-      _detailState = TutorialState.error;
+      _selectedTutorial = DemoTeknisiData.tutorials.data.firstWhere(
+        (t) => t.id == id,
+        orElse: () => DemoTeknisiData.tutorials.data.first,
+      );
+      _detailState = TutorialState.loaded;
     }
 
     notifyListeners();

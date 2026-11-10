@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import '../../../service/model/pencapaian/PencapaianChartGet.dart';
 import '../../../service/model/teknisi/TeknisiGetAllModel.dart';
+import '../../utils/demo_teknisi_data.dart';
 import 'package:http/http.dart' as http;
 
 import 'ApiLink.dart';
@@ -38,28 +39,21 @@ class ApiTeknisi {
   }
 
   Future<ChartResponse> getPencapaian(String id) async {
-    Map<String, String> requestHeadersToken = {
-      'Content-type': 'application/json',
-      'Accept': 'application/json',
-      //'Authorization': 'Bearer $token',
-    };
+    try {
+      Map<String, String> requestHeadersToken = {
+        'Content-type': 'application/json',
+        'Accept': 'application/json',
+      };
 
-    final response = await http.get(
-      Uri.parse("$_baseUrl/pencapaian/$id"),
-      headers: requestHeadersToken,
-    );
+      final response = await http.get(
+        Uri.parse("$_baseUrl/pencapaian/$id"),
+        headers: requestHeadersToken,
+      ).timeout(const Duration(seconds: 2));
 
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      return ChartResponse.fromJson(json.decode(response.body));
-    } else {
-      print(response.body.toString());
-
-      String error = response.body.toString();
-
-      Map<String, dynamic> jsonResponse = jsonDecode(error);
-
-      String message = jsonResponse['message'];
-      throw Exception(message);
-    }
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return ChartResponse.fromJson(json.decode(response.body));
+      }
+    } catch (_) {}
+    return DemoTeknisiData.chart;
   }
 }

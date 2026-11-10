@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:location/location.dart' as a;
-import 'package:permission_handler/permission_handler.dart';
+import 'package:permission_handler/permission_handler.dart' hide ServiceStatus;
 import 'package:provider/provider.dart';
 import 'package:quickalert/quickalert.dart';
 
@@ -37,19 +38,15 @@ class _CardTaskState extends State<CardTask> with SingleTickerProviderStateMixin
     'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'
   ];
 
-  // ─── Premium Color Palette ─────────────────────
-  static const Color _primaryBlue = Color(0xFF0EA5E9);
-  static const Color _deepBlue = Color(0xFF1E40AF);
-  static const Color _successGreen = Color(0xFF14B8A6);
-  static const Color _warningAmber = Color(0xFFF97316);
-  static const Color _errorRed = Color(0xFFF43F5E);
+  // ─── Parclgo Inspired Color Palette ─────────────────────
+  static const Color _primaryOrange = Color(0xFFFF5B22);
+  static const Color _darkCharcoal = Color(0xFF11141A);
   static const Color _textPrimary = Color(0xFF0F172A);
   static const Color _textSecondary = Color(0xFF64748B);
   static const Color _cardBg = Colors.white;
 
   String _statusLabel = '';
   Color _statusColor = Colors.grey;
-  Color _statusBgColor = Colors.grey;
   IconData _statusIcon = Icons.schedule;
   String _pelaksanaanStatus = 'Dijadwalkan';
 
@@ -60,7 +57,7 @@ class _CardTaskState extends State<CardTask> with SingleTickerProviderStateMixin
       duration: const Duration(milliseconds: 150),
       vsync: this,
     );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.97).animate(
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.98).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
     _computeStatus();
@@ -83,7 +80,6 @@ class _CardTaskState extends State<CardTask> with SingleTickerProviderStateMixin
   @override
   void didUpdateWidget(CardTask oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Re-compute status when parent rebuilds with fresh data
     if (oldWidget.data.id != widget.data.id ||
         oldWidget.data.pelaksanaan.length != widget.data.pelaksanaan.length ||
         oldWidget.data.status != widget.data.status) {
@@ -128,46 +124,38 @@ class _CardTaskState extends State<CardTask> with SingleTickerProviderStateMixin
 
     if (isNeedReport) {
       _statusLabel = 'Perlu Laporan';
-      _statusColor = _warningAmber;
-      _statusBgColor = const Color(0xFFFFF7ED);
+      _statusColor = const Color(0xFFF97316);
       _statusIcon = Icons.edit_document;
     } else if (isToday && data.status != 'dibatalkan') {
       _statusLabel = 'Hari Ini';
-      _statusColor = _warningAmber;
-      _statusBgColor = const Color(0xFFFFF7ED);
+      _statusColor = _primaryOrange;
       _statusIcon = Icons.wb_sunny_rounded;
     } else if (data.jadwal.isAfter(now) &&
         data.status != 'dibatalkan' &&
         data.status != 'lanjut nanti' &&
         data.status != 'selesai') {
       _statusLabel = 'Terjadwal';
-      _statusColor = _primaryBlue;
-      _statusBgColor = const Color(0xFFF0F9FF);
+      _statusColor = const Color(0xFF0284C7);
       _statusIcon = Icons.event_rounded;
     } else if (data.status == 'Lanjut Nanti') {
       _statusLabel = 'Ditunda';
       _statusColor = _textSecondary;
-      _statusBgColor = const Color(0xFFF8FAFC);
       _statusIcon = Icons.pause_circle_rounded;
     } else if (data.status == 'selesai' && isSelesai) {
       _statusLabel = 'Selesai';
-      _statusColor = _successGreen;
-      _statusBgColor = const Color(0xFFF0FDFA);
+      _statusColor = const Color(0xFF10B981);
       _statusIcon = Icons.check_circle_rounded;
     } else if (data.status == 'dibatalkan') {
       _statusLabel = 'Dibatalkan';
-      _statusColor = _errorRed;
-      _statusBgColor = const Color(0xFFFFF1F2);
+      _statusColor = const Color(0xFFEF4444);
       _statusIcon = Icons.cancel_rounded;
     } else if (isSelesai) {
       _statusLabel = _pelaksanaanStatus;
-      _statusColor = _successGreen;
-      _statusBgColor = const Color(0xFFF0FDFA);
+      _statusColor = const Color(0xFF10B981);
       _statusIcon = Icons.check_circle_outline_rounded;
     } else {
       _statusLabel = 'Terlambat';
-      _statusColor = _errorRed;
-      _statusBgColor = const Color(0xFFFFF1F2);
+      _statusColor = const Color(0xFFEF4444);
       _statusIcon = Icons.warning_amber_rounded;
     }
   }
@@ -186,7 +174,7 @@ class _CardTaskState extends State<CardTask> with SingleTickerProviderStateMixin
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Permintaan invoice berhasil dikirim ke Admin!'),
-            backgroundColor: _successGreen,
+            backgroundColor: Color(0xFF10B981),
           ),
         );
       }
@@ -195,7 +183,7 @@ class _CardTaskState extends State<CardTask> with SingleTickerProviderStateMixin
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Gagal mengirim permintaan: ${e.toString().replaceAll('Exception: ', '')}'),
-            backgroundColor: _errorRed,
+            backgroundColor: const Color(0xFFEF4444),
           ),
         );
       }
@@ -208,17 +196,17 @@ class _CardTaskState extends State<CardTask> with SingleTickerProviderStateMixin
     }
   }
 
-  // ─── Activity Type Color Mapping ───────────────
+  // ─── Activity Type Mapping ───────────────
   Color _getActivityColor(String kegiatan) {
     switch (kegiatan.toLowerCase()) {
       case 'survey':
-        return const Color(0xFF6366F1); // indigo
+        return const Color(0xFF6366F1);
       case 'service':
-        return const Color(0xFF0D9488); // teal
+        return const Color(0xFF0D9488);
       case 'pasang baru':
-        return const Color(0xFFD97706); // amber
+        return const Color(0xFFFF5B22);
       default:
-        return _deepBlue;
+        return const Color(0xFF0284C7);
     }
   }
 
@@ -229,7 +217,7 @@ class _CardTaskState extends State<CardTask> with SingleTickerProviderStateMixin
       case 'service':
         return const Color(0xFFF0FDFA);
       case 'pasang baru':
-        return const Color(0xFFFFFBEB);
+        return const Color(0xFFFFF7ED);
       default:
         return const Color(0xFFF0F9FF);
     }
@@ -242,26 +230,9 @@ class _CardTaskState extends State<CardTask> with SingleTickerProviderStateMixin
       case 'service':
         return Icons.build_rounded;
       case 'pasang baru':
-        return Icons.add_circle_rounded;
+        return Icons.videocam_rounded;
       default:
         return Icons.work_rounded;
-    }
-  }
-
-  // ─── Accent Gradient Based on Status ───────────
-  List<Color> _getAccentGradient() {
-    if (_statusLabel == 'Hari Ini') {
-      return [const Color(0xFFF97316), const Color(0xFFFBBF24)];
-    } else if (_statusLabel == 'Terjadwal') {
-      return [const Color(0xFF1E40AF), const Color(0xFF0EA5E9)];
-    } else if (_statusLabel == 'Selesai' || _pelaksanaanStatus == 'selesai') {
-      return [const Color(0xFF0D9488), const Color(0xFF14B8A6)];
-    } else if (_statusLabel == 'Dibatalkan') {
-      return [const Color(0xFFE11D48), const Color(0xFFF43F5E)];
-    } else if (_statusLabel == 'Terlambat') {
-      return [const Color(0xFFDC2626), const Color(0xFFF87171)];
-    } else {
-      return [const Color(0xFF64748B), const Color(0xFF94A3B8)];
     }
   }
 
@@ -308,7 +279,6 @@ class _CardTaskState extends State<CardTask> with SingleTickerProviderStateMixin
   }
 
   Future<void> _onCardTap() async {
-    // Jika history, langsung ke halaman detail history tanpa cek lokasi
     if (widget.history) {
       Navigator.push(
         context,
@@ -320,7 +290,6 @@ class _CardTaskState extends State<CardTask> with SingleTickerProviderStateMixin
       return;
     }
 
-    // Untuk task aktif, cek lokasi terlebih dahulu
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -334,7 +303,7 @@ class _CardTaskState extends State<CardTask> with SingleTickerProviderStateMixin
           child: const Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              CircularProgressIndicator(color: _primaryBlue),
+              CircularProgressIndicator(color: _primaryOrange),
               SizedBox(height: 16),
               Text('Memuat lokasi...', style: TextStyle(fontFamily: 'Poppins')),
             ],
@@ -377,7 +346,7 @@ class _CardTaskState extends State<CardTask> with SingleTickerProviderStateMixin
         }
       }
 
-      if (position != null && position.isMocked) {
+      if (position != null && position.isMocked && !kDebugMode) {
         if (!mounted) return;
         Navigator.pop(context);
         QuickAlert.show(
@@ -411,13 +380,259 @@ class _CardTaskState extends State<CardTask> with SingleTickerProviderStateMixin
     }
   }
 
+  Widget _build3DBoxGraphic() {
+    return Container(
+      width: 44,
+      height: 44,
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF7ED),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFFFEDD5), width: 1),
+      ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Positioned(
+            bottom: 5,
+            left: 5,
+            child: Container(
+              width: 17,
+              height: 17,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFFF7A3D), Color(0xFFFF5B22)],
+                ),
+                borderRadius: BorderRadius.circular(4),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFFF5B22).withValues(alpha: 0.3),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: const Icon(Icons.inventory_2_rounded, size: 10, color: Colors.white),
+            ),
+          ),
+          Positioned(
+            bottom: 5,
+            right: 5,
+            child: Container(
+              width: 17,
+              height: 17,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFFF9566), Color(0xFFFF7A3D)],
+                ),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: const Icon(Icons.inventory_2_rounded, size: 10, color: Colors.white),
+            ),
+          ),
+          Positioned(
+            top: 5,
+            child: Container(
+              width: 19,
+              height: 17,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFFFA880), Color(0xFFFF5B22)],
+                ),
+                borderRadius: BorderRadius.circular(4),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFFF5B22).withValues(alpha: 0.25),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: const Icon(Icons.videocam_rounded, size: 11, color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildParclgoStepper(bool isDone) {
+    return Column(
+      children: [
+        // Nodes and lines
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const SizedBox(width: 8),
+            // Step 1: Origin/Jadwal
+            Container(
+              width: 20,
+              height: 20,
+              decoration: const BoxDecoration(
+                color: _primaryOrange,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.check, size: 13, color: Colors.white),
+            ),
+            // Line 1
+            Expanded(
+              child: Container(
+                height: 2,
+                color: _primaryOrange,
+              ),
+            ),
+            // Step 2: Middle Status (with Speech Bubble above)
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Speech Bubble Tag
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: _darkCharcoal,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    _pelaksanaanStatus,
+                    style: const TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                ClipPath(
+                  clipper: _ArrowClipper(),
+                  child: Container(
+                    width: 7,
+                    height: 4,
+                    color: _darkCharcoal,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                // Glowing orange ring
+                Container(
+                  width: 18,
+                  height: 18,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: _primaryOrange, width: 3),
+                  ),
+                  child: Center(
+                    child: Container(
+                      width: 5,
+                      height: 5,
+                      decoration: const BoxDecoration(
+                        color: _primaryOrange,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            // Line 2
+            Expanded(
+              child: Container(
+                height: 2,
+                color: isDone ? _primaryOrange : const Color(0xFFE2E8F0),
+              ),
+            ),
+            // Step 3: Destination/Pelanggan
+            Container(
+              width: 20,
+              height: 20,
+              decoration: BoxDecoration(
+                color: isDone ? _primaryOrange : Colors.white,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isDone ? _primaryOrange : const Color(0xFFCBD5E1),
+                  width: 2,
+                ),
+              ),
+              child: isDone
+                  ? const Icon(Icons.check, size: 13, color: Colors.white)
+                  : Center(
+                      child: Container(
+                        width: 6,
+                        height: 6,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF94A3B8),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+            ),
+            const SizedBox(width: 8),
+          ],
+        ),
+        const SizedBox(height: 6),
+        // Labels below nodes
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            // Left label: Time
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.access_time_rounded, size: 11, color: Color(0xFF94A3B8)),
+                const SizedBox(width: 4),
+                Text(
+                  '${_formatTime(widget.data.jadwal)} WIB',
+                  style: const TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF64748B),
+                  ),
+                ),
+              ],
+            ),
+            // Center label: Menuju
+            const Text(
+              'Menuju Lokasi',
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 10.5,
+                fontWeight: FontWeight.w500,
+                color: Color(0xFF94A3B8),
+              ),
+            ),
+            // Right label: Location
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.location_on_rounded, size: 11, color: Color(0xFF94A3B8)),
+                const SizedBox(width: 4),
+                Text(
+                  widget.data.dataCustomer.kota ?? 'Pelanggan',
+                  style: const TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF64748B),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final data = widget.data;
-    final accentColors = _getAccentGradient();
     final activityColor = _getActivityColor(data.kegiatan);
     final activityBg = _getActivityBg(data.kegiatan);
     final activityIcon = _getActivityIcon(data.kegiatan);
+
+    final bool isDone = _pelaksanaanStatus.toLowerCase() == 'selesai' ||
+        data.status.toLowerCase() == 'selesai' ||
+        data.status.toLowerCase() == 'selesai by admin' ||
+        widget.history;
 
     return GestureDetector(
       onTapDown: (_) => _animationController.forward(),
@@ -433,503 +648,333 @@ class _CardTaskState extends State<CardTask> with SingleTickerProviderStateMixin
         child: Container(
           decoration: BoxDecoration(
             color: _cardBg,
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(
+              color: const Color(0xFFF1F5F9),
+              width: 1.2,
+            ),
             boxShadow: [
               BoxShadow(
-                color: accentColors[0].withValues(alpha: 0.1),
-                blurRadius: 20,
+                color: Colors.black.withValues(alpha: 0.035),
+                blurRadius: 18,
                 offset: const Offset(0, 6),
-              ),
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
               ),
             ],
           ),
-          child: Column(
-            children: [
-              // ─── Top accent gradient bar ─────────────
-              Container(
-                height: 4,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(colors: accentColors),
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(18),
-                  ),
-                ),
-              ),
-
-              // ─── Card body ───────────────────────────
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 14, 10, 14),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ── Top Row: Activity Avatar + ID/Title + 3D Box ──
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    // ── Left content ──
+                    // Activity Icon Avatar
+                    Container(
+                      width: 46,
+                      height: 46,
+                      decoration: BoxDecoration(
+                        color: activityBg,
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Icon(
+                        activityIcon,
+                        size: 22,
+                        color: activityColor,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    // ID & Customer Name
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // ── Row 1: Status + Activity ──
                           Row(
                             children: [
-                              // Status badge
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 5,
-                                ),
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      _statusColor.withValues(alpha: 0.12),
-                                      _statusColor.withValues(alpha: 0.06),
-                                    ],
-                                  ),
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(
-                                    color: _statusColor.withValues(alpha: 0.2),
-                                    width: 1,
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      _statusIcon,
-                                      size: 13,
-                                      color: _statusColor,
-                                    ),
-                                    const SizedBox(width: 5),
-                                    Text(
-                                      _statusLabel,
-                                      style: TextStyle(
-                                        fontFamily: 'Poppins',
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w700,
-                                        color: _statusColor,
-                                      ),
-                                    ),
-                                  ],
+                              Text(
+                                'ID: ${data.kode}',
+                                style: const TextStyle(
+                                  fontFamily: 'Poppins',
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: _textPrimary,
                                 ),
                               ),
-                              const SizedBox(width: 6),
+                              const SizedBox(width: 8),
                               Container(
                                 padding: const EdgeInsets.symmetric(
-                                  horizontal: 6,
-                                  vertical: 3,
+                                  horizontal: 8,
+                                  vertical: 2.5,
                                 ),
                                 decoration: BoxDecoration(
                                   color: const Color(0xFFF1F5F9),
-                                  borderRadius: BorderRadius.circular(6),
-                                  border: Border.all(
-                                    color: const Color(0xFFE2E8F0),
-                                    width: 0.8,
-                                  ),
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
-                                  data.kode,
+                                  data.kegiatan,
                                   style: const TextStyle(
-                                    fontFamily: 'SF Mono',
-                                    fontSize: 9.5,
-                                    fontWeight: FontWeight.w700,
+                                    fontFamily: 'Poppins',
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w600,
                                     color: Color(0xFF475569),
                                   ),
                                 ),
                               ),
-                              const Spacer(),
-                              // Activity type pill
-                              Container(
+                            ],
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            data.dataCustomer.nama,
+                            style: const TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 14.5,
+                              fontWeight: FontWeight.w700,
+                              color: _textPrimary,
+                              height: 1.25,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    // 3D Box Graphic
+                    _build3DBoxGraphic(),
+                  ],
+                ),
+
+                const SizedBox(height: 14),
+
+                // ── Middle Section: Parclgo Timeline Stepper ──
+                _buildParclgoStepper(isDone),
+
+                // ── Invoice Status if completed ──
+                if (isDone) ...[
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: data.paid != null
+                              ? const Color(0xFFEFF6FF)
+                              : const Color(0xFFFEF2F2),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: data.paid != null
+                                ? const Color(0xFFBFDBFE)
+                                : const Color(0xFFFECACA),
+                            width: 0.8,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              data.paid != null
+                                  ? Icons.check_circle_outline_rounded
+                                  : Icons.warning_amber_rounded,
+                              size: 12,
+                              color: data.paid != null
+                                  ? const Color(0xFF1D4ED8)
+                                  : const Color(0xFFB91C1C),
+                            ),
+                            const SizedBox(width: 5),
+                            Text(
+                              data.paid != null
+                                  ? 'Invoice Sudah Diinput'
+                                  : 'Belum Input Invoice',
+                              style: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                                color: data.paid != null
+                                    ? const Color(0xFF1D4ED8)
+                                    : const Color(0xFFB91C1C),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (data.paid == null) ...[
+                        const SizedBox(width: 8),
+                        if (data.reqInvoiceAt == null)
+                          Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: _isLoadingRequest ? null : _handleRequestInvoice,
+                              borderRadius: BorderRadius.circular(6),
+                              child: Ink(
                                 padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 5,
+                                  horizontal: 8,
+                                  vertical: 4,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: activityBg,
-                                  borderRadius: BorderRadius.circular(20),
+                                  color: const Color(0xFF0284C7).withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(
+                                    color: const Color(0xFF0284C7).withValues(alpha: 0.3),
+                                    width: 0.8,
+                                  ),
                                 ),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Icon(
-                                      activityIcon,
-                                      size: 12,
-                                      color: activityColor,
-                                    ),
+                                    if (_isLoadingRequest)
+                                      const SizedBox(
+                                        width: 10,
+                                        height: 10,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 1.5,
+                                          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF0284C7)),
+                                        ),
+                                      )
+                                    else
+                                      const Icon(
+                                        Icons.notification_add_rounded,
+                                        size: 11,
+                                        color: Color(0xFF0284C7),
+                                      ),
                                     const SizedBox(width: 4),
-                                    Text(
-                                      data.kegiatan,
+                                    const Text(
+                                      'Minta Invoice',
                                       style: TextStyle(
                                         fontFamily: 'Poppins',
-                                        fontSize: 10,
+                                        fontSize: 9.5,
                                         fontWeight: FontWeight.w600,
-                                        color: activityColor,
+                                        color: Color(0xFF0284C7),
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
-                            ],
-                          ),
-
-                          const SizedBox(height: 12),
-
-                          // ── Customer name ──
-                          Text(
-                            data.dataCustomer.nama,
-                            style: const TextStyle(
-                              fontFamily: 'Poppins',
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
-                              color: _textPrimary,
-                              height: 1.3,
-                              letterSpacing: -0.2,
                             ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-
-                          // ── Execution status (if active) ──
-                          if (_pelaksanaanStatus != 'Dijadwalkan') ...[
-                            const SizedBox(height: 6),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 3,
-                              ),
-                              decoration: BoxDecoration(
-                                color: _successGreen.withValues(alpha: 0.08),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    _getStatusIconForPelaksanaan(
-                                        _pelaksanaanStatus),
-                                    size: 12,
-                                    color: _successGreen,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    _pelaksanaanStatus,
-                                    style: TextStyle(
-                                      fontFamily: 'Poppins',
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w500,
-                                      color: _successGreen
-                                          .withValues(alpha: 0.9),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-
-                          if (_pelaksanaanStatus.toLowerCase() == 'selesai' || data.status.toLowerCase() == 'selesai' || data.status.toLowerCase() == 'selesai by admin') ...[
-                            const SizedBox(height: 6),
-                            Wrap(
-                              spacing: 8,
-                              runSpacing: 6,
-                              crossAxisAlignment: WrapCrossAlignment.center,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: data.paid != null
-                                        ? const Color(0xFFEFF6FF) // light blue
-                                        : const Color(0xFFFEF2F2), // light red
-                                    borderRadius: BorderRadius.circular(6),
-                                    border: Border.all(
-                                      color: data.paid != null
-                                          ? const Color(0xFFBFDBFE)
-                                          : const Color(0xFFFECACA),
-                                      width: 0.8,
-                                    ),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(
-                                        data.paid != null
-                                            ? Icons.check_circle_outline_rounded
-                                            : Icons.warning_amber_rounded,
-                                        size: 12,
-                                        color: data.paid != null
-                                            ? const Color(0xFF1D4ED8) // dark blue
-                                            : const Color(0xFFB91C1C), // dark red
-                                      ),
-                                      const SizedBox(width: 5),
-                                      Text(
-                                        data.paid != null
-                                            ? 'Invoice Sudah Diinput'
-                                            : 'Belum Input Invoice',
-                                        style: TextStyle(
-                                          fontFamily: 'Poppins',
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.w600,
-                                          color: data.paid != null
-                                              ? const Color(0xFF1D4ED8)
-                                              : const Color(0xFFB91C1C),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                if (data.paid == null) ...[
-                                  if (data.reqInvoiceAt == null)
-                                    Material(
-                                      color: Colors.transparent,
-                                      child: InkWell(
-                                        onTap: _isLoadingRequest ? null : _handleRequestInvoice,
-                                        borderRadius: BorderRadius.circular(6),
-                                        child: Ink(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 8,
-                                            vertical: 4,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: const Color(0xFF0284C7).withValues(alpha: 0.1),
-                                            borderRadius: BorderRadius.circular(6),
-                                            border: Border.all(
-                                              color: const Color(0xFF0284C7).withValues(alpha: 0.3),
-                                              width: 0.8,
-                                            ),
-                                          ),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              if (_isLoadingRequest)
-                                                const SizedBox(
-                                                  width: 10,
-                                                  height: 10,
-                                                  child: CircularProgressIndicator(
-                                                    strokeWidth: 1.5,
-                                                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF0284C7)),
-                                                  ),
-                                                )
-                                              else
-                                                const Icon(
-                                                  Icons.notification_add_rounded,
-                                                  size: 11,
-                                                  color: Color(0xFF0284C7),
-                                                ),
-                                              const SizedBox(width: 4),
-                                              const Text(
-                                                'Minta Invoice',
-                                                style: TextStyle(
-                                                  fontFamily: 'Poppins',
-                                                  fontSize: 9.5,
-                                                  fontWeight: FontWeight.w600,
-                                                  color: Color(0xFF0284C7),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    )
-                                  else
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 4,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFF475569).withValues(alpha: 0.1),
-                                        borderRadius: BorderRadius.circular(6),
-                                        border: Border.all(
-                                          color: const Color(0xFF475569).withValues(alpha: 0.2),
-                                          width: 0.8,
-                                        ),
-                                      ),
-                                      child: const Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Icon(
-                                            Icons.watch_later_rounded,
-                                            size: 11,
-                                            color: Color(0xFF475569),
-                                          ),
-                                          SizedBox(width: 4),
-                                          Text(
-                                            'Invoice Diminta',
-                                            style: TextStyle(
-                                              fontFamily: 'Poppins',
-                                              fontSize: 9.5,
-                                              fontWeight: FontWeight.w600,
-                                              color: Color(0xFF475569),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                ],
-                              ],
-                            ),
-                          ],
-
-                          const SizedBox(height: 12),
-
-                          // ── Date & Time row ──
+                          )
+                        else
                           Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 7,
+                              horizontal: 8,
+                              vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF8FAFC),
-                              borderRadius: BorderRadius.circular(10),
+                              color: const Color(0xFF475569).withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(
+                                color: const Color(0xFF475569).withValues(alpha: 0.2),
+                                width: 0.8,
+                              ),
                             ),
-                            child: Row(
+                            child: const Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(
-                                  Icons.calendar_today_rounded,
-                                  size: 13,
-                                  color:
-                                      _textSecondary.withValues(alpha: 0.6),
+                                  Icons.watch_later_rounded,
+                                  size: 11,
+                                  color: Color(0xFF475569),
                                 ),
-                                const SizedBox(width: 6),
+                                SizedBox(width: 4),
                                 Text(
-                                  _formatDate(data.jadwal),
+                                  'Invoice Diminta',
                                   style: TextStyle(
                                     fontFamily: 'Poppins',
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w500,
-                                    color: _textSecondary
-                                        .withValues(alpha: 0.8),
-                                  ),
-                                ),
-                                Container(
-                                  margin: const EdgeInsets.symmetric(
-                                      horizontal: 8),
-                                  width: 1,
-                                  height: 12,
-                                  color: const Color(0xFFE2E8F0),
-                                ),
-                                Icon(
-                                  Icons.access_time_rounded,
-                                  size: 13,
-                                  color:
-                                      _textSecondary.withValues(alpha: 0.6),
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  _formatTime(data.jadwal),
-                                  style: TextStyle(
-                                    fontFamily: 'Poppins',
-                                    fontSize: 11,
+                                    fontSize: 9.5,
                                     fontWeight: FontWeight.w600,
-                                    color: _textSecondary
-                                        .withValues(alpha: 0.8),
+                                    color: Color(0xFF475569),
                                   ),
                                 ),
-                                if (data.paid != null) ...[
-                                  const SizedBox(width: 8),
-                                  Container(
-                                    padding: const EdgeInsets.all(3),
-                                    decoration: BoxDecoration(
-                                      color: _successGreen
-                                          .withValues(alpha: 0.1),
-                                      borderRadius:
-                                          BorderRadius.circular(5),
-                                    ),
-                                    child: Icon(
-                                      Icons.receipt_long_rounded,
-                                      size: 12,
-                                      color: _successGreen
-                                          .withValues(alpha: 0.7),
-                                    ),
-                                  ),
-                                ],
                               ],
                             ),
                           ),
-                        ],
+                      ],
+                    ],
+                  ),
+                ],
+
+                const SizedBox(height: 12),
+                Container(height: 1, color: const Color(0xFFF1F5F9)),
+                const SizedBox(height: 10),
+
+                // ── Bottom Row: Date + Drag Handle & Chevron ──
+                Row(
+                  children: [
+                    Icon(
+                      Icons.calendar_today_rounded,
+                      size: 12,
+                      color: _textSecondary.withValues(alpha: 0.7),
+                    ),
+                    const SizedBox(width: 5),
+                    Text(
+                      _formatDate(data.jadwal),
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: _textSecondary.withValues(alpha: 0.8),
                       ),
                     ),
-
-                    // ── Right: drag handle + chevron ──
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        if (!widget.history) ...[
-                          Padding(
-                            key: widget.dragHandleKey,
-                            padding: const EdgeInsets.only(
-                                left: 4, top: 4, bottom: 8),
-                            child: Column(
-                              children: [
-                                for (int i = 0; i < 3; i++) ...[
-                                  Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Container(
-                                        width: 3,
-                                        height: 3,
-                                        decoration: BoxDecoration(
-                                          color: _textSecondary
-                                              .withValues(alpha: 0.2),
-                                          shape: BoxShape.circle,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 3),
-                                      Container(
-                                        width: 3,
-                                        height: 3,
-                                        decoration: BoxDecoration(
-                                          color: _textSecondary
-                                              .withValues(alpha: 0.2),
-                                          shape: BoxShape.circle,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  if (i < 2) const SizedBox(height: 3),
-                                ],
-                              ],
-                            ),
-                          ),
-                        ],
-                        Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            color: accentColors[0].withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Icon(
-                            Icons.chevron_right_rounded,
-                            size: 18,
-                            color: accentColors[0].withValues(alpha: 0.6),
-                          ),
+                    const Spacer(),
+                    // Reorder handle if active task
+                    if (!widget.history) ...[
+                      Padding(
+                        key: widget.dragHandleKey,
+                        padding: const EdgeInsets.symmetric(horizontal: 6),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            for (int i = 0; i < 3; i++) ...[
+                              Container(
+                                width: 3,
+                                height: 3,
+                                decoration: BoxDecoration(
+                                  color: _textSecondary.withValues(alpha: 0.25),
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              if (i < 2) const SizedBox(width: 2.5),
+                            ],
+                          ],
                         ),
-                      ],
+                      ),
+                    ],
+                    Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.chevron_right_rounded,
+                        size: 16,
+                        color: Color(0xFF94A3B8),
+                      ),
                     ),
                   ],
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
     );
   }
+}
 
-  IconData _getStatusIconForPelaksanaan(String status) {
-    switch (status.toLowerCase()) {
-      case 'berjalan':
-        return Icons.play_circle_outline;
-      case 'selesai':
-        return Icons.check_circle_outline;
-      case 'menunggu laporan':
-        return Icons.pending_outlined;
-      default:
-        return Icons.info_outline;
-    }
+class _ArrowClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    final path = Path();
+    path.moveTo(0, 0);
+    path.lineTo(size.width / 2, size.height);
+    path.lineTo(size.width, 0);
+    path.close();
+    return path;
   }
+
+  @override
+  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }

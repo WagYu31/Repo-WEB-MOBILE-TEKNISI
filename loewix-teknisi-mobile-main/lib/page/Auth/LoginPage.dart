@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../service/model/auth/LoginResponse.dart';
 import '../../service/provider/Auth/AuthProvider.dart';
@@ -11,6 +12,7 @@ import '../../service/provider/preferences/PreferencesIDProvider.dart';
 import '../../service/provider/preferences/PreferencesTokenProvider.dart';
 import '../../constants/app_constants.dart';
 import '../container/HomePage.dart';
+import '../Onboarding/OnboardingPage.dart';
 
 class LoginPage extends StatefulWidget {
   static const routeName = 'login_page';
@@ -21,17 +23,21 @@ class LoginPage extends StatefulWidget {
   State<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMixin {
-  // ─── Premium Color Palette ─────────────────────
-  static const Color _navy = Color(0xFF0F172A);
-  static const Color _navyLight = Color(0xFF1E293B);
-  static const Color _skyBlue = Color(0xFF0EA5E9);
-  static const Color _skyDark = Color(0xFF0284C7);
-  static const Color _rose = Color(0xFFF43F5E);
-  static const Color _textPrimary = Color(0xFF0F172A);
-  static const Color _textSecondary = Color(0xFF64748B);
+class _LoginPageState extends State<LoginPage>
+    with SingleTickerProviderStateMixin {
+  // ─── Ultra-Clean White Palette (Matching Reference Image 2 in Clean White) ───
+  static const Color _bgWhite = Colors.white;
   static const Color _inputBg = Color(0xFFF8FAFC);
   static const Color _inputBorder = Color(0xFFE2E8F0);
+  static const Color _inputBorderFocused = Color(0xFF0F172A);
+  static const Color _textPrimary = Color(0xFF0F172A);
+  static const Color _textMuted = Color(0xFF64748B);
+  static const Color _buttonBg = Color(0xFF0F172A);
+  static const Color _buttonText = Colors.white;
+  static const Color _tileBg = Color(0xFFF8FAFC);
+  static const Color _tileBorder = Color(0xFFE2E8F0);
+  static const Color _primaryBlue = Color(0xFF1E40AF);
+  static const Color _rose = Color(0xFFEF4444);
 
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
@@ -40,7 +46,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
   bool _isLoading = false;
   bool _obscurePassword = true;
   String? _errorMessage;
-  bool _rememberMe = true; // Default checked
+  bool _rememberMe = true;
 
   // Multi-account saved credentials
   static const String _prefSavedAccounts = 'saved_accounts_list';
@@ -55,7 +61,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
     super.initState();
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 900),
+      duration: const Duration(milliseconds: 550),
     );
 
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
@@ -63,9 +69,11 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
     );
 
     _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.2),
+      begin: const Offset(0, 0.06),
       end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic));
+    ).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
+    );
 
     _animationController.forward();
     _loadSavedAccounts();
@@ -77,8 +85,8 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
     if (jsonStr != null && jsonStr.isNotEmpty) {
       try {
         final List<dynamic> decoded = json.decode(jsonStr);
-        _savedAccounts = decoded.map((e) => Map<String, String>.from(e)).toList();
-        // Auto-fill with the last used account
+        _savedAccounts =
+            decoded.map((e) => Map<String, String>.from(e)).toList();
         if (_savedAccounts.isNotEmpty) {
           setState(() {
             _usernameController.text = _savedAccounts.first['username'] ?? '';
@@ -92,16 +100,14 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
     }
   }
 
-  Future<void> _saveAccount(String username, String password, String nama) async {
-    // Remove existing entry for this username (update)
+  Future<void> _saveAccount(
+      String username, String password, String nama) async {
     _savedAccounts.removeWhere((a) => a['username'] == username);
-    // Add at top (most recent first)
     _savedAccounts.insert(0, {
       'username': username,
       'password': password,
       'nama': nama,
     });
-    // Keep max 10 accounts
     if (_savedAccounts.length > 10) {
       _savedAccounts = _savedAccounts.sublist(0, 10);
     }
@@ -139,7 +145,8 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
     setState(() => _isLoading = true);
 
     try {
-      final loginProvider = Provider.of<TeknisiLoginProvider>(context, listen: false);
+      final loginProvider =
+          Provider.of<TeknisiLoginProvider>(context, listen: false);
       final result = await loginProvider.doLogin(
         _usernameController.text.trim(),
         _passwordController.text,
@@ -150,7 +157,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
       if (result != null) {
         await _handleSuccessLogin(result);
       } else {
-        _showError('Username atau password salah.');
+        _showError('Username atau password tidak cocok.');
       }
     } catch (e) {
       if (!mounted) return;
@@ -165,16 +172,16 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
   Future<void> _handleSuccessLogin(LoginResponse response) async {
     try {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final tokenProvider = Provider.of<PreferencesTokenProvider>(context, listen: false);
-      final idProvider = Provider.of<PreferencesIDProvider>(context, listen: false);
+      final tokenProvider =
+          Provider.of<PreferencesTokenProvider>(context, listen: false);
+      final idProvider =
+          Provider.of<PreferencesIDProvider>(context, listen: false);
 
       await authProvider.login();
       tokenProvider.setUserToken(response.token);
       await idProvider.setUserRole(response.user.teknisiId.toString());
-      // Force refresh the in-memory value
       await idProvider.getUserRolePreferences();
 
-      // Auto-save credentials if "Ingat Saya" is checked
       if (_rememberMe) {
         await _saveAccount(
           _usernameController.text.trim(),
@@ -218,7 +225,7 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
       return error.toString().replaceAll('Exception:', '').trim();
     }
 
-    return 'Terjadi kesalahan. Silakan coba lagi.';
+    return 'Terjadi kesalahan sistem. Silakan coba lagi.';
   }
 
   void _showError(String message) {
@@ -231,53 +238,138 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
       SnackBar(
         content: Row(
           children: [
-            const Icon(Icons.check_circle, color: Colors.white),
+            const Icon(Icons.check_circle_rounded, color: Colors.white),
             const SizedBox(width: 12),
-            Expanded(child: Text(message, style: const TextStyle(fontFamily: 'Poppins'))),
+            Expanded(
+              child: Text(
+                message,
+                style: const TextStyle(
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white,
+                ),
+              ),
+            ),
           ],
         ),
-        backgroundColor: const Color(0xFF14B8A6),
+        backgroundColor: const Color(0xFF10B981),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         margin: const EdgeInsets.all(16),
       ),
     );
   }
 
+  void _onBack() {
+    if (Navigator.canPop(context)) {
+      Navigator.pop(context);
+    } else {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const OnboardingPage()),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [_navy, _navyLight, Color(0xFF334155)],
-            stops: [0.0, 0.6, 1.0],
-          ),
-        ),
-        child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 28.0),
-              child: FadeTransition(
-                opacity: _fadeAnimation,
-                child: SlideTransition(
-                  position: _slideAnimation,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const SizedBox(height: 20),
-                      _buildLogo(),
-                      const SizedBox(height: 40),
-                      _buildLoginCard(),
-                      const SizedBox(height: 24),
-                      _buildFooter(),
-                      const SizedBox(height: 20),
-                    ],
+      backgroundColor: _bgWhite,
+      body: SafeArea(
+        child: FadeTransition(
+          opacity: _fadeAnimation,
+          child: SlideTransition(
+            position: _slideAnimation,
+            child: Column(
+              children: [
+                // ─── Top Bar (Back Arrow & Trouble Logging In? Help) ───
+                _buildTopBar(),
+
+                // ─── Main Content (Scrollable, Clean White) ───
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 32),
+
+                          // ─── Typography: Bold & Minimalist ───
+                          const Text(
+                            'Welcome\nback to Loewix',
+                            style: TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 32,
+                              fontWeight: FontWeight.w800,
+                              color: _textPrimary,
+                              height: 1.25,
+                              letterSpacing: -0.8,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            'Masuk ke akun teknisi Anda untuk memulai tugas',
+                            style: TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 13,
+                              fontWeight: FontWeight.w400,
+                              color: _textMuted,
+                            ),
+                          ),
+
+                          const SizedBox(height: 38),
+
+                          // Error Banner if exists
+                          if (_errorMessage != null) _buildErrorBanner(),
+
+                          // ─── Form Inputs: Clean Pill Inputs ───
+                          _buildUsernameField(),
+                          const SizedBox(height: 16),
+                          _buildPasswordField(),
+
+                          const SizedBox(height: 14),
+
+                          // ─── Options: Remember Me & Forgot Password ───
+                          _buildOptionsRow(),
+
+                          const SizedBox(height: 32),
+
+                          // ─── Primary Action: Clean Dark Pill Button (High Contrast) ───
+                          _buildSignInButton(),
+
+                          const SizedBox(height: 32),
+
+                          // ─── Divider "Or" ───
+                          Center(
+                            child: Text(
+                              'Or',
+                              style: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                                color: _textMuted.withOpacity(0.8),
+                              ),
+                            ),
+                          ),
+
+                          const SizedBox(height: 24),
+
+                          // ─── Alternative Quick Actions (Saved Accounts & CS) ───
+                          _buildQuickActionsRow(),
+
+                          const SizedBox(height: 48),
+
+                          // ─── Bottom Link & Version ───
+                          _buildBottomSection(),
+                          const SizedBox(height: 24),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
-              ),
+              ],
             ),
           ),
         ),
@@ -285,159 +377,463 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
     );
   }
 
-  Widget _buildLogo() {
-    return Column(
-      children: [
-        // Glassmorphism logo container
-        Container(
-          padding: const EdgeInsets.all(22),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.15),
-              width: 1.5,
+  // ════════════════════════════════════════════════════════════════════════════
+  // ─── Top Bar (Matching Image 2 Reference in White Theme) ───
+  // ════════════════════════════════════════════════════════════════════════════
+
+  Widget _buildTopBar() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(14, 8, 20, 0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // Left Back Button
+          IconButton(
+            onPressed: _onBack,
+            icon: const Icon(
+              Icons.arrow_back_rounded,
+              color: _textPrimary,
+              size: 24,
             ),
-            boxShadow: [
-              BoxShadow(
-                color: _skyBlue.withValues(alpha: 0.15),
-                blurRadius: 30,
-                offset: const Offset(0, 10),
+            splashRadius: 22,
+          ),
+
+          // Right "Trouble logging in? Help"
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Trouble logging in? ',
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 13,
+                  fontWeight: FontWeight.w400,
+                  color: _textMuted,
+                ),
+              ),
+              GestureDetector(
+                onTap: _showHelpSheet,
+                child: const Text(
+                  'Help',
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: _textPrimary,
+                  ),
+                ),
               ),
             ],
           ),
-          child: Image.asset(
-            'assets/imgLogo.png',
-            height: 56,
-            errorBuilder: (context, error, stackTrace) {
-              return const Icon(
-                Icons.engineering,
-                size: 56,
-                color: Colors.white,
-              );
+        ],
+      ),
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // ─── Input Fields: Minimalist Rounded Pills on White Background ───
+  // ════════════════════════════════════════════════════════════════════════════
+
+  Widget _buildUsernameField() {
+    return TextFormField(
+      controller: _usernameController,
+      keyboardType: TextInputType.text,
+      textInputAction: TextInputAction.next,
+      enabled: !_isLoading,
+      onChanged: (_) => _clearError(),
+      style: const TextStyle(
+        fontFamily: 'Poppins',
+        fontSize: 15,
+        color: _textPrimary,
+      ),
+      cursorColor: _textPrimary,
+      decoration: InputDecoration(
+        hintText: 'Phone, email, username',
+        hintStyle: const TextStyle(
+          fontFamily: 'Poppins',
+          fontSize: 14,
+          color: _textMuted,
+        ),
+        filled: true,
+        fillColor: _inputBg,
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 24, vertical: 19),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(32),
+          borderSide: const BorderSide(color: _inputBorder, width: 1.0),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(32),
+          borderSide: const BorderSide(color: _inputBorder, width: 1.0),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(32),
+          borderSide: const BorderSide(color: _inputBorderFocused, width: 1.5),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(32),
+          borderSide: const BorderSide(color: _rose, width: 1.2),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(32),
+          borderSide: const BorderSide(color: _rose, width: 1.5),
+        ),
+        errorStyle: const TextStyle(
+          fontFamily: 'Poppins',
+          fontSize: 12,
+          color: _rose,
+        ),
+        suffixIcon: _savedAccounts.isNotEmpty
+            ? IconButton(
+                icon: const Icon(
+                  Icons.arrow_drop_down_rounded,
+                  color: _textMuted,
+                  size: 28,
+                ),
+                onPressed: _showSavedAccountsPicker,
+              )
+            : null,
+      ),
+      validator: (value) {
+        if (value == null || value.trim().isEmpty) {
+          return 'Masukkan username akun Anda';
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildPasswordField() {
+    return TextFormField(
+      controller: _passwordController,
+      obscureText: _obscurePassword,
+      textInputAction: TextInputAction.done,
+      enabled: !_isLoading,
+      onChanged: (_) => _clearError(),
+      onFieldSubmitted: (_) => _login(),
+      style: const TextStyle(
+        fontFamily: 'Poppins',
+        fontSize: 15,
+        color: _textPrimary,
+        letterSpacing: 1.5,
+      ),
+      cursorColor: _textPrimary,
+      decoration: InputDecoration(
+        hintText: 'Password',
+        hintStyle: const TextStyle(
+          fontFamily: 'Poppins',
+          fontSize: 14,
+          letterSpacing: 0,
+          color: _textMuted,
+        ),
+        filled: true,
+        fillColor: _inputBg,
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 24, vertical: 19),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(32),
+          borderSide: const BorderSide(color: _inputBorder, width: 1.0),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(32),
+          borderSide: const BorderSide(color: _inputBorder, width: 1.0),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(32),
+          borderSide: const BorderSide(color: _inputBorderFocused, width: 1.5),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(32),
+          borderSide: const BorderSide(color: _rose, width: 1.2),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(32),
+          borderSide: const BorderSide(color: _rose, width: 1.5),
+        ),
+        errorStyle: const TextStyle(
+          fontFamily: 'Poppins',
+          fontSize: 12,
+          color: _rose,
+        ),
+        suffixIcon: Padding(
+          padding: const EdgeInsets.only(right: 8.0),
+          child: IconButton(
+            icon: Icon(
+              _obscurePassword
+                  ? Icons.visibility_off_outlined
+                  : Icons.visibility_outlined,
+              color: _textMuted,
+              size: 21,
+            ),
+            onPressed: () {
+              setState(() {
+                _obscurePassword = !_obscurePassword;
+              });
             },
           ),
         ),
-        const SizedBox(height: 28),
-        const Text(
-          'Selamat Datang',
-          style: TextStyle(
-            fontFamily: 'Poppins',
-            fontSize: 28,
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
-            letterSpacing: -0.5,
+      ),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Masukkan password akun Anda';
+        }
+        return null;
+      },
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // ─── Options Row: Remember Me & Forgot Password ───
+  // ════════════════════════════════════════════════════════════════════════════
+
+  Widget _buildOptionsRow() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        // Remember Me
+        GestureDetector(
+          onTap: () {
+            setState(() {
+              _rememberMe = !_rememberMe;
+            });
+          },
+          behavior: HitTestBehavior.opaque,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 18,
+                height: 18,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(
+                    color: _rememberMe
+                        ? _primaryBlue
+                        : _textMuted.withOpacity(0.5),
+                    width: 1.5,
+                  ),
+                  color: _rememberMe ? _primaryBlue : Colors.transparent,
+                ),
+                child: _rememberMe
+                    ? const Icon(Icons.check, size: 13, color: Colors.white)
+                    : null,
+              ),
+              const SizedBox(width: 8),
+              const Text(
+                'Ingat Saya',
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: _textPrimary,
+                ),
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: 8),
-        Text(
-          'Masuk ke akun teknisi Anda',
-          style: TextStyle(
-            fontFamily: 'Poppins',
-            fontSize: 14,
-            color: Colors.white.withValues(alpha: 0.6),
-            letterSpacing: 0.2,
+
+        // Forgot Password?
+        GestureDetector(
+          onTap: _showForgotPasswordSheet,
+          behavior: HitTestBehavior.opaque,
+          child: const Text(
+            'Forgot password?',
+            style: TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: _textMuted,
+            ),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildLoginCard() {
-    return Container(
-      padding: const EdgeInsets.all(28),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.15),
-            blurRadius: 40,
-            offset: const Offset(0, 16),
+  // ════════════════════════════════════════════════════════════════════════════
+  // ─── Primary Action: High-Contrast Solid Dark Pill Button ───
+  // ════════════════════════════════════════════════════════════════════════════
+
+  Widget _buildSignInButton() {
+    return SizedBox(
+      width: double.infinity,
+      height: 56,
+      child: ElevatedButton(
+        onPressed: _isLoading ? null : _login,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: _buttonBg,
+          foregroundColor: _buttonText,
+          disabledBackgroundColor: _buttonBg.withOpacity(0.6),
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(32),
           ),
-          BoxShadow(
-            color: _skyBlue.withValues(alpha: 0.08),
-            blurRadius: 60,
-            offset: const Offset(0, 20),
+        ),
+        child: _isLoading
+            ? const SizedBox(
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(
+                  color: _buttonText,
+                  strokeWidth: 2.2,
+                ),
+              )
+            : const Text(
+                'Sign In',
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: _buttonText,
+                  letterSpacing: 0.2,
+                ),
+              ),
+      ),
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // ─── Quick Actions: Clean Rounded Tiles on White Background ───
+  // ════════════════════════════════════════════════════════════════════════════
+
+  Widget _buildQuickActionsRow() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        // Tile 1: Saved Accounts Picker
+        _buildActionTile(
+          icon: Icons.account_circle_outlined,
+          tooltip: 'Akun Tersimpan',
+          badgeText: _savedAccounts.isNotEmpty
+              ? '${_savedAccounts.length}'
+              : null,
+          onTap: _showSavedAccountsPicker,
+        ),
+        const SizedBox(width: 20),
+
+        // Tile 2: Helpdesk / Admin Support
+        _buildActionTile(
+          icon: Icons.support_agent_rounded,
+          tooltip: 'Bantuan Support Admin',
+          onTap: _openWhatsAppAdmin,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActionTile({
+    required IconData icon,
+    required String tooltip,
+    String? badgeText,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            width: 62,
+            height: 62,
+            decoration: BoxDecoration(
+              color: _tileBg,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: _tileBorder,
+                width: 1.2,
+              ),
+            ),
+            child: Icon(
+              icon,
+              color: _textPrimary,
+              size: 28,
+            ),
           ),
+          if (badgeText != null)
+            Positioned(
+              top: -4,
+              right: -4,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: _primaryBlue,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  badgeText,
+                  style: const TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+    );
+  }
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // ─── Bottom Footer (New to Loewix? Contact Admin) ───
+  // ════════════════════════════════════════════════════════════════════════════
+
+  Widget _buildBottomSection() {
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Card header
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: _skyBlue.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(Icons.login_rounded, size: 20, color: _skyBlue),
-                ),
-                const SizedBox(width: 12),
-                const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Login Teknisi',
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: _textPrimary,
-                      ),
-                    ),
-                    Text(
-                      'Silakan masukkan kredensial Anda',
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 11,
-                        color: _textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+            const Text(
+              'New to Loewix? ',
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 13,
+                fontWeight: FontWeight.w400,
+                color: _textMuted,
+              ),
             ),
-            const SizedBox(height: 24),
-            if (_errorMessage != null) _buildErrorBanner(),
-            _buildUsernameField(),
-            const SizedBox(height: 18),
-            _buildPasswordField(),
-            const SizedBox(height: 14),
-            _buildRememberMeCheckbox(),
-            const SizedBox(height: 20),
-            _buildLoginButton(),
+            GestureDetector(
+              onTap: _showHelpSheet,
+              child: const Text(
+                'Hubungi Admin',
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: _textPrimary,
+                ),
+              ),
+            ),
           ],
         ),
-      ),
+        const SizedBox(height: 12),
+        Text(
+          'v${AppConstants.appVersion} • Loewix Teknisi',
+          style: TextStyle(
+            fontFamily: 'Poppins',
+            fontSize: 11,
+            color: _textMuted.withOpacity(0.6),
+          ),
+        ),
+      ],
     );
   }
 
   Widget _buildErrorBanner() {
     return Container(
-      margin: const EdgeInsets.only(bottom: 18),
-      padding: const EdgeInsets.all(14),
+      margin: const EdgeInsets.only(bottom: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: _rose.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: _rose.withValues(alpha: 0.2)),
+        color: _rose.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: _rose.withOpacity(0.25)),
       ),
       child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              color: _rose.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Icon(Icons.error_outline, color: _rose, size: 18),
-          ),
-          const SizedBox(width: 12),
+          const Icon(Icons.error_outline_rounded, color: _rose, size: 20),
+          const SizedBox(width: 10),
           Expanded(
             child: Text(
               _errorMessage!,
@@ -449,68 +845,18 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
               ),
             ),
           ),
-          InkWell(
+          GestureDetector(
             onTap: _clearError,
-            borderRadius: BorderRadius.circular(8),
-            child: Padding(
-              padding: const EdgeInsets.all(4),
-              child: Icon(Icons.close, color: _rose.withValues(alpha: 0.6), size: 18),
-            ),
+            child: Icon(Icons.close, color: _rose.withOpacity(0.7), size: 18),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildUsernameField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Username',
-          style: TextStyle(
-            fontFamily: 'Poppins',
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: _textPrimary,
-          ),
-        ),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: _usernameController,
-          keyboardType: TextInputType.text,
-          textInputAction: TextInputAction.next,
-          enabled: !_isLoading,
-          onChanged: (_) => _clearError(),
-          onTap: () {
-            if (_savedAccounts.isNotEmpty && _usernameController.text.isEmpty) {
-              _showSavedAccountsPicker();
-            }
-          },
-          decoration: _inputDecoration(
-            hint: 'Masukkan username',
-            prefixIcon: Icons.person_outline_rounded,
-            suffixIcon: _savedAccounts.isNotEmpty
-                ? IconButton(
-                    icon: const Icon(Icons.arrow_drop_down_rounded, color: _textSecondary, size: 28),
-                    onPressed: _isLoading ? null : _showSavedAccountsPicker,
-                  )
-                : null,
-          ),
-          style: const TextStyle(fontFamily: 'Poppins', fontSize: 14, color: _textPrimary),
-          validator: (value) {
-            if (value == null || value.trim().isEmpty) {
-              return 'Username tidak boleh kosong';
-            }
-            if (value.trim().length < 3) {
-              return 'Username minimal 3 karakter';
-            }
-            return null;
-          },
-        ),
-      ],
-    );
-  }
+  // ════════════════════════════════════════════════════════════════════════════
+  // ─── Modal Sheets: Clean White Theme ───
+  // ════════════════════════════════════════════════════════════════════════════
 
   void _showSavedAccountsPicker() {
     showModalBottomSheet(
@@ -520,421 +866,414 @@ class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMix
       builder: (ctx) => Container(
         decoration: const BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Handle bar
-            Container(
-              margin: const EdgeInsets.only(top: 12),
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: const Color(0xFFE2E8F0),
-                borderRadius: BorderRadius.circular(2),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Handle Bar
+              Container(
+                margin: const EdgeInsets.only(top: 14),
+                width: 38,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE2E8F0),
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
-            ),
-            // Header
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(colors: [_skyBlue, _skyDark]),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(Icons.key_rounded, color: Colors.white, size: 20),
-                  ),
-                  const SizedBox(width: 14),
-                  const Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Akun Tersimpan',
-                        style: TextStyle(
-                          fontFamily: 'Poppins',
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: _textPrimary,
-                        ),
-                      ),
-                      Text(
-                        'Pilih akun untuk login otomatis',
-                        style: TextStyle(
-                          fontFamily: 'Poppins',
-                          fontSize: 12,
-                          color: _textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const Divider(height: 1),
-            // Account list
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              itemCount: _savedAccounts.length,
-              itemBuilder: (context, index) {
-                final account = _savedAccounts[index];
-                final username = account['username'] ?? '';
-                final nama = account['nama'] ?? username;
-                final password = account['password'] ?? '';
-                final isSelected = _usernameController.text == username;
 
-                return Dismissible(
-                  key: Key(username),
-                  direction: DismissDirection.endToStart,
-                  background: Container(
-                    alignment: Alignment.centerRight,
-                    padding: const EdgeInsets.only(right: 24),
-                    color: _rose.withValues(alpha: 0.1),
-                    child: const Icon(Icons.delete_outline, color: _rose),
-                  ),
-                  onDismissed: (_) async {
-                    await _removeAccount(username);
-                    if (mounted) setState(() {});
-                  },
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
-                    leading: Container(
-                      width: 48,
-                      height: 48,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 20, 24, 12),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: isSelected ? _skyBlue : const Color(0xFFF1F5F9),
+                        color: _primaryBlue.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(14),
                       ),
-                      child: Center(
-                        child: Text(
-                          nama.isNotEmpty ? nama[0].toUpperCase() : '?',
-                          style: TextStyle(
-                            fontFamily: 'Poppins',
-                            fontSize: 20,
-                            fontWeight: FontWeight.w700,
-                            color: isSelected ? Colors.white : _skyBlue,
-                          ),
-                        ),
-                      ),
+                      child: const Icon(Icons.people_alt_rounded,
+                          color: _primaryBlue, size: 20),
                     ),
-                    title: Text(
-                      nama,
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 14,
-                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-                        color: _textPrimary,
-                      ),
-                    ),
-                    subtitle: Row(
+                    const SizedBox(width: 14),
+                    const Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          username,
-                          style: const TextStyle(
+                          'Akun Teknisi Tersimpan',
+                          style: TextStyle(
                             fontFamily: 'Poppins',
-                            fontSize: 12,
-                            color: _textSecondary,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: _textPrimary,
                           ),
                         ),
-                        const SizedBox(width: 8),
                         Text(
-                          '•  ${'•' * (password.length > 8 ? 8 : password.length)}',
-                          style: const TextStyle(
+                          'Pilih akun untuk mengisi otomatis',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
                             fontSize: 12,
-                            color: _textSecondary,
+                            color: _textMuted,
                           ),
                         ),
                       ],
                     ),
-                    trailing: isSelected
-                        ? const Icon(Icons.check_circle, color: _skyBlue, size: 22)
-                        : const Icon(Icons.arrow_forward_ios, size: 14, color: _textSecondary),
-                    onTap: () {
-                      setState(() {
-                        _usernameController.text = username;
-                        _passwordController.text = password;
-                        _rememberMe = true;
-                      });
-                      Navigator.pop(ctx);
-                    },
+                  ],
+                ),
+              ),
+              const Divider(color: Color(0xFFF1F5F9), height: 1),
+
+              if (_savedAccounts.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.all(32),
+                  child: Text(
+                    'Belum ada akun yang tersimpan.\nCentang "Ingat Saya" saat login.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 13,
+                      color: _textMuted,
+                    ),
                   ),
-                );
-              },
-            ),
-            // Manual login option
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
-              child: TextButton.icon(
-                onPressed: () {
-                  setState(() {
-                    _usernameController.clear();
-                    _passwordController.clear();
-                  });
-                  Navigator.pop(ctx);
-                },
-                icon: const Icon(Icons.add_circle_outline, size: 20),
-                label: const Text(
-                  'Login dengan akun lain',
-                  style: TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
+                )
+              else
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  itemCount: _savedAccounts.length,
+                  itemBuilder: (context, index) {
+                    final account = _savedAccounts[index];
+                    final username = account['username'] ?? '';
+                    final nama = account['nama'] ?? username;
+                    final password = account['password'] ?? '';
+                    final isSelected = _usernameController.text == username;
+
+                    return Dismissible(
+                      key: Key(username),
+                      direction: DismissDirection.endToStart,
+                      background: Container(
+                        alignment: Alignment.centerRight,
+                        padding: const EdgeInsets.only(right: 24),
+                        color: _rose.withOpacity(0.1),
+                        child: const Icon(Icons.delete_outline_rounded,
+                            color: _rose),
+                      ),
+                      onDismissed: (_) async {
+                        await _removeAccount(username);
+                        if (mounted) setState(() {});
+                      },
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 4),
+                        leading: Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? _buttonBg
+                                : const Color(0xFFF1F5F9),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: Center(
+                            child: Text(
+                              nama.isNotEmpty ? nama[0].toUpperCase() : '?',
+                              style: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                                color: isSelected ? Colors.white : _primaryBlue,
+                              ),
+                            ),
+                          ),
+                        ),
+                        title: Text(
+                          nama,
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 14,
+                            fontWeight: isSelected
+                                ? FontWeight.w700
+                                : FontWeight.w600,
+                            color: _textPrimary,
+                          ),
+                        ),
+                        subtitle: Text(
+                          username,
+                          style: const TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 12,
+                            color: _textMuted,
+                          ),
+                        ),
+                        trailing: isSelected
+                            ? const Icon(Icons.check_circle_rounded,
+                                color: _primaryBlue, size: 22)
+                            : const Icon(Icons.arrow_forward_ios_rounded,
+                                size: 14, color: _textMuted),
+                        onTap: () {
+                          setState(() {
+                            _usernameController.text = username;
+                            _passwordController.text = password;
+                            _rememberMe = true;
+                          });
+                          Navigator.pop(ctx);
+                        },
+                      ),
+                    );
+                  },
+                ),
+
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 8, 24, 18),
+                child: TextButton.icon(
+                  onPressed: () {
+                    setState(() {
+                      _usernameController.clear();
+                      _passwordController.clear();
+                    });
+                    Navigator.pop(ctx);
+                  },
+                  icon: const Icon(Icons.add_circle_outline_rounded,
+                      size: 18, color: _primaryBlue),
+                  label: const Text(
+                    'Gunakan Akun Baru',
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: _primaryBlue,
+                    ),
                   ),
                 ),
-                style: TextButton.styleFrom(
-                  foregroundColor: _skyBlue,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openWhatsAppAdmin() async {
+    const phoneNumber = '6285771593522';
+    const rawNumber = '085771593522';
+    const message = 'Halo Admin Loewix, saya butuh bantuan terkait akun teknisi saya.';
+    
+    // Direct WhatsApp app scheme
+    final nativeUri = Uri.parse(
+        'whatsapp://send?phone=$phoneNumber&text=${Uri.encodeComponent(message)}');
+    // Web fallback
+    final webUri = Uri.parse(
+        'https://wa.me/$phoneNumber?text=${Uri.encodeComponent(message)}');
+
+    try {
+      if (await canLaunchUrl(nativeUri)) {
+        await launchUrl(nativeUri, mode: LaunchMode.externalApplication);
+        return;
+      }
+      if (await canLaunchUrl(webUri)) {
+        await launchUrl(webUri, mode: LaunchMode.externalApplication);
+        return;
+      }
+    } catch (_) {
+      try {
+        final fallbackWeb = Uri.parse(
+            'https://api.whatsapp.com/send?phone=$phoneNumber&text=${Uri.encodeComponent(message)}');
+        await launchUrl(fallbackWeb, mode: LaunchMode.externalApplication);
+        return;
+      } catch (_) {}
+    }
+
+    // Fallback if device has no WhatsApp & browser failed
+    if (!mounted) return;
+    Clipboard.setData(const ClipboardData(text: rawNumber));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Row(
+          children: [
+            Icon(Icons.copy_rounded, color: Colors.white, size: 20),
+            SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Nomor WA Admin (0857-7159-3522) disalin ke clipboard.',
+                style: TextStyle(fontFamily: 'Poppins'),
               ),
             ),
           ],
         ),
+        backgroundColor: const Color(0xFF1E293B),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(16),
       ),
     );
   }
 
-  Widget _buildPasswordField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Password',
-          style: TextStyle(
-            fontFamily: 'Poppins',
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: _textPrimary,
-          ),
+  void _showHelpSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         ),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: _passwordController,
-          obscureText: _obscurePassword,
-          textInputAction: TextInputAction.done,
-          enabled: !_isLoading,
-          onChanged: (_) => _clearError(),
-          onFieldSubmitted: (_) => _login(),
-          decoration: _inputDecoration(
-            hint: 'Masukkan password',
-            prefixIcon: Icons.lock_outline_rounded,
-            suffixIcon: IconButton(
-              icon: Icon(
-                _obscurePassword ? Icons.visibility_off_rounded : Icons.visibility_rounded,
-                color: _textSecondary,
-                size: 20,
-              ),
-              onPressed: _isLoading ? null : () {
-                setState(() => _obscurePassword = !_obscurePassword);
-              },
-            ),
-          ),
-          style: const TextStyle(fontFamily: 'Poppins', fontSize: 14, color: _textPrimary),
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Password tidak boleh kosong';
-            }
-            if (value.length < 4) {
-              return 'Password minimal 4 karakter';
-            }
-            return null;
-          },
-        ),
-      ],
-    );
-  }
-
-  InputDecoration _inputDecoration({
-    required String hint,
-    required IconData prefixIcon,
-    Widget? suffixIcon,
-  }) {
-    return InputDecoration(
-      hintText: hint,
-      hintStyle: const TextStyle(
-        fontFamily: 'Poppins',
-        color: Color(0xFF94A3B8),
-        fontSize: 14,
-      ),
-      prefixIcon: Padding(
-        padding: const EdgeInsets.only(left: 14, right: 10),
-        child: Icon(prefixIcon, color: _textSecondary, size: 20),
-      ),
-      prefixIconConstraints: const BoxConstraints(minWidth: 44, minHeight: 44),
-      suffixIcon: suffixIcon,
-      filled: true,
-      fillColor: _inputBg,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: _inputBorder),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: _inputBorder),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: _skyBlue, width: 2),
-      ),
-      errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: _rose),
-      ),
-      focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: _rose, width: 2),
-      ),
-      errorStyle: const TextStyle(fontFamily: 'Poppins', fontSize: 12, color: _rose),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-    );
-  }
-
-  Widget _buildRememberMeCheckbox() {
-    return GestureDetector(
-      onTap: _isLoading ? null : () {
-        setState(() => _rememberMe = !_rememberMe);
-      },
-      child: Row(
-        children: [
-          SizedBox(
-            width: 22,
-            height: 22,
-            child: Checkbox(
-              value: _rememberMe,
-              onChanged: _isLoading ? null : (value) {
-                setState(() => _rememberMe = value ?? false);
-              },
-              activeColor: _skyBlue,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(5),
-              ),
-              side: const BorderSide(color: _inputBorder, width: 1.5),
-              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            ),
-          ),
-          const SizedBox(width: 10),
-          const Text(
-            'Ingat Saya',
-            style: TextStyle(
-              fontFamily: 'Poppins',
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: _textSecondary,
-            ),
-          ),
-          const Spacer(),
-          if (_rememberMe)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                color: _skyBlue.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.check_circle, size: 12, color: _skyBlue),
-                  const SizedBox(width: 4),
-                  Text(
-                    'Tersimpan',
-                    style: TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                      color: _skyBlue,
-                    ),
+        padding: const EdgeInsets.fromLTRB(24, 16, 24, 28),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 38,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE2E8F0),
+                    borderRadius: BorderRadius.circular(2),
                   ),
-                ],
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLoginButton() {
-    return Container(
-      height: 54,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
-        gradient: const LinearGradient(
-          colors: [_skyBlue, _skyDark],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: _skyBlue.withValues(alpha: 0.35),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: ElevatedButton(
-        onPressed: _isLoading ? null : _login,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.transparent,
-          shadowColor: Colors.transparent,
-          foregroundColor: Colors.white,
-          disabledBackgroundColor: Colors.transparent,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-        ),
-        child: _isLoading
-            ? const SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                  color: Colors.white,
-                  strokeWidth: 2.5,
                 ),
-              )
-            : const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.login_rounded, size: 20),
-                  SizedBox(width: 10),
-                  Text(
-                    'Masuk',
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'Bantuan Akun Teknisi',
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: _textPrimary,
+                ),
+              ),
+              const SizedBox(height: 6),
+              const Text(
+                'Akun teknisi didaftarkan dan dikelola langsung oleh Admin Operasional PT Loewix.',
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 13,
+                  color: _textMuted,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 18),
+              // WhatsApp Interactive Card
+              InkWell(
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _openWhatsAppAdmin();
+                },
+                borderRadius: BorderRadius.circular(18),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF0FDF4),
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(color: const Color(0xFFBBF7D0)),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF22C55E),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.chat_bubble_rounded,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'WhatsApp Admin PIC',
+                              style: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF14532D),
+                              ),
+                            ),
+                            SizedBox(height: 2),
+                            Text(
+                              '0857-7159-3522',
+                              style: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontSize: 15,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 0.5,
+                                color: Color(0xFF15803D),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        size: 14,
+                        color: Color(0xFF15803D),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              // Primary WhatsApp Button
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    _openWhatsAppAdmin();
+                  },
+                  icon: const Icon(Icons.chat_rounded,
+                      color: Colors.white, size: 20),
+                  label: const Text(
+                    'Chat WhatsApp Sekarang',
                     style: TextStyle(
                       fontFamily: 'Poppins',
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.5,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
                     ),
                   ),
-                ],
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF22C55E),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(28),
+                    ),
+                  ),
+                ),
               ),
+              const SizedBox(height: 8),
+              Center(
+                child: TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text(
+                    'Tutup',
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: _textMuted,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 
-  Widget _buildFooter() {
-    return Column(
-      children: [
-        Text(
-          'LOEWIX',
-          style: TextStyle(
-            fontFamily: 'Poppins',
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: Colors.white.withValues(alpha: 0.3),
-            letterSpacing: 3,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          'v${AppConstants.appVersion} • Teknisi App',
-          style: TextStyle(
-            fontFamily: 'Poppins',
-            fontSize: 11,
-            color: Colors.white.withValues(alpha: 0.2),
-          ),
-        ),
-      ],
-    );
+  void _showForgotPasswordSheet() {
+    _showHelpSheet();
   }
 }

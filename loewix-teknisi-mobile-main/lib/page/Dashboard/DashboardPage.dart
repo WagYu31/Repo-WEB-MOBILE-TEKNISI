@@ -13,6 +13,7 @@ import '../../widget/CardTask.dart';
 import '../../widget/CoachMarkHelper.dart';
 import '../../service/notification/NotificationService.dart';
 import '../../service/provider/Profile/ProfileProvider.dart';
+import '../Garansi/CekGaransiPage.dart';
 
 class DashboardPage extends StatefulWidget {
   final Function(int)? onNavigate;
@@ -59,6 +60,10 @@ class _DashboardPageState extends State<DashboardPage> {
   int _selectedTahun = DateTime.now().year;
   String _filterType = 'month'; // 'month' or 'quarter'
 
+  // Search filter
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
   // ─── Coach Mark Keys ──────────────────────────
   final GlobalKey _keyStatCard = GlobalKey();
   final GlobalKey _keyTugasAktif = GlobalKey();
@@ -75,6 +80,12 @@ class _DashboardPageState extends State<DashboardPage> {
       _loadInitialData();
     });
     _checkFirstLaunch();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadInitialData() async {
@@ -401,7 +412,19 @@ class _DashboardPageState extends State<DashboardPage> {
                       _orderedTasks = List<DataTask>.from(filteredData);
                     }
 
-                    return _buildTaskList(_orderedTasks);
+                    List<DataTask> displayData = List<DataTask>.from(_orderedTasks);
+                    if (_searchQuery.trim().isNotEmpty) {
+                      final q = _searchQuery.toLowerCase().trim();
+                      displayData = displayData.where((t) {
+                        final name = t.dataCustomer.nama.toLowerCase();
+                        final code = t.kode.toLowerCase();
+                        final activity = t.kegiatan.toLowerCase();
+                        final city = (t.dataCustomer.kota ?? '').toLowerCase();
+                        return name.contains(q) || code.contains(q) || activity.contains(q) || city.contains(q);
+                      }).toList();
+                    }
+
+                    return _buildTaskList(displayData);
                   } else {
                     return _buildErrorState(state.message);
                   }
@@ -472,38 +495,40 @@ class _DashboardPageState extends State<DashboardPage> {
     return RefreshIndicator(
       onRefresh: _onRefresh,
       color: Colors.white,
-      backgroundColor: _brandBlue,
+      backgroundColor: const Color(0xFF11141B),
       displacement: 60,
       child: CustomScrollView(
         physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
         slivers: [
-          // Header + floating stats combined
+          // Parclgo Dark Curved Header with Avatar, Greeting, Search pill & Quick Actions
           SliverToBoxAdapter(
-            child: _buildHeaderWithStats(filteredData.length),
+            child: _buildParclgoHeader(filteredData.length),
           ),
-          // Task count indicator
+          // Clean Parclgo-style Stats Summary Card
+          SliverToBoxAdapter(
+            child: _buildCleanStatsCard(),
+          ),
+          // Section Header: "Tugas Aktif"
           SliverToBoxAdapter(
             child: Padding(
               key: _keyTugasAktif,
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
+              padding: const EdgeInsets.fromLTRB(20, 18, 20, 10),
               child: Row(
                 children: [
                   const Text(
                     'Tugas Aktif',
                     style: TextStyle(
                       fontFamily: 'Poppins',
-                      fontSize: 15,
+                      fontSize: 17,
                       fontWeight: FontWeight.w700,
-                      color: _textPrimary,
+                      color: Color(0xFF11141A),
                     ),
                   ),
                   const SizedBox(width: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF1E40AF), Color(0xFF0891B2)],
-                      ),
+                      color: const Color(0xFF11141A),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
@@ -517,54 +542,476 @@ class _DashboardPageState extends State<DashboardPage> {
                     ),
                   ),
                   const Spacer(),
-                  Text(
-                    '${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}',
-                    style: TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 12,
-                      color: _textSecondary.withValues(alpha: 0.5),
-                    ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.calendar_month_rounded,
+                        size: 13,
+                        color: _textSecondary.withValues(alpha: 0.6),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}',
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 11.5,
+                          color: _textSecondary.withValues(alpha: 0.6),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
           ),
-          // Reorderable task list
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
-            sliver: SliverReorderableList(
-              itemBuilder: (context, index) {
-                return ReorderableDelayedDragStartListener(
-                  key: ValueKey(filteredData[index].id),
-                  index: index,
-                  child: RepaintBoundary(
-                    child: Padding(
-                      key: index == 0 ? _keyFirstTask : null,
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: CardTask(
-                        data: filteredData[index],
-                        history: false,
-                        dragHandleKey: index == 0 ? _keyDragHandle : null,
+          if (filteredData.isEmpty)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
+                child: Center(
+                  child: Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF1F5F9),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.search_off_rounded,
+                          size: 32,
+                          color: Color(0xFF94A3B8),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      const Text(
+                        'Tugas tidak ditemukan',
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF475569),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      const Text(
+                        'Coba kata kunci pencarian lainnya',
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 12,
+                          color: Color(0xFF94A3B8),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            )
+          else
+            // Reorderable task list with Parclgo delivery cards
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
+              sliver: SliverReorderableList(
+                itemBuilder: (context, index) {
+                  return ReorderableDelayedDragStartListener(
+                    key: ValueKey(filteredData[index].id),
+                    index: index,
+                    child: RepaintBoundary(
+                      child: Padding(
+                        key: index == 0 ? _keyFirstTask : null,
+                        padding: const EdgeInsets.only(bottom: 14),
+                        child: CardTask(
+                          data: filteredData[index],
+                          history: false,
+                          dragHandleKey: index == 0 ? _keyDragHandle : null,
+                        ),
                       ),
                     ),
-                  ),
-                );
-              },
-              itemCount: filteredData.length,
-              onReorder: _onReorder,
+                  );
+                },
+                itemCount: filteredData.length,
+                onReorder: _onReorder,
+              ),
             ),
-          ),
         ],
       ),
     );
   }
 
-  // ─── COMBINED HEADER + FLOATING STATS ─────────────
-  Widget _buildHeaderWithStats(int taskCount) {
+  // ─── PARCLGO INSPIRED DARK CURVED HEADER ─────────────
+  Widget _buildParclgoHeader(int taskCount) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Color(0xFF11141B),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(36),
+          bottomRight: Radius.circular(36),
+        ),
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ── Top Row: Profile Avatar + Notification Bell ──
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Profile Avatar
+                  GestureDetector(
+                    onTap: () => Scaffold.of(context).openDrawer(),
+                    child: Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          width: 2,
+                        ),
+                      ),
+                      child: ClipOval(
+                        child: Container(
+                          color: const Color(0xFF1E2330),
+                          child: const Center(
+                            child: Icon(
+                              Iconsax.user,
+                              color: Colors.white,
+                              size: 24,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  // Notification Bell with Orange Dot
+                  GestureDetector(
+                    onTap: () {
+                      final taskProvider = Provider.of<DetailTaskGetProvider>(context, listen: false);
+                      _checkPendingAndNotify(taskProvider);
+                    },
+                    child: Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1E2330),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.08),
+                          width: 1,
+                        ),
+                      ),
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          const Icon(
+                            Icons.notifications_none_rounded,
+                            color: Colors.white,
+                            size: 23,
+                          ),
+                          Positioned(
+                            top: 11,
+                            right: 13,
+                            child: Container(
+                              width: 8,
+                              height: 8,
+                              decoration: const BoxDecoration(
+                                color: Color(0xFFFF5B22),
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 18),
+
+              // ── Greeting (Halo, Brandon! 👋) ──
+              Consumer<ProfileProvider>(
+                builder: (context, profileProvider, child) {
+                  String name = 'Agung Putra Pratama';
+                  if (profileProvider.hasData) {
+                    name = profileProvider.response.data.nama;
+                  }
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Halo,',
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w400,
+                          color: Colors.white.withValues(alpha: 0.75),
+                        ),
+                      ),
+                      Text(
+                        '$name! 👋',
+                        style: const TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 24,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                          letterSpacing: -0.3,
+                          height: 1.2,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  );
+                },
+              ),
+
+              const SizedBox(height: 18),
+
+              // ── Search Pill Bar ──
+              Container(
+                height: 52,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(26),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.search_rounded,
+                      color: Color(0xFF11141A),
+                      size: 22,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: TextField(
+                        controller: _searchController,
+                        onChanged: (value) {
+                          setState(() {
+                            _searchQuery = value;
+                          });
+                        },
+                        style: const TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 13,
+                          color: Color(0xFF0F172A),
+                        ),
+                        decoration: const InputDecoration(
+                          hintText: 'Cari tugas, pelanggan, kode...',
+                          hintStyle: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 13,
+                            color: Color(0xFF94A3B8),
+                          ),
+                          border: InputBorder.none,
+                          isDense: true,
+                        ),
+                      ),
+                    ),
+                    if (_searchQuery.isNotEmpty)
+                      GestureDetector(
+                        onTap: () {
+                          _searchController.clear();
+                          setState(() {
+                            _searchQuery = '';
+                          });
+                        },
+                        child: const Padding(
+                          padding: EdgeInsets.only(right: 6),
+                          child: Icon(Icons.close_rounded, size: 18, color: Color(0xFF94A3B8)),
+                        ),
+                      ),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const CekGaransiPage()),
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(7),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF1F3F6),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(
+                          Icons.qr_code_scanner_rounded,
+                          size: 19,
+                          color: Color(0xFF11141A),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 14),
+
+              // ── Quick Action Cards (Side by side pills) ──
+              Consumer<PencapaianProvider>(
+                builder: (context, provider, child) {
+                  final totalPendapatan = provider.pendapatanData?.grandTotal ?? 0;
+                  final target = provider.pendapatanData?.target ?? 0;
+                  final progress = target > 0
+                      ? ((totalPendapatan / target) * 100).clamp(0, 999).toInt()
+                      : 0;
+
+                  return Row(
+                    children: [
+                      // Left Button: Tugas Aktif
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () {
+                            _onRefresh();
+                          },
+                          child: Container(
+                            height: 54,
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(18),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 34,
+                                  height: 34,
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFFFF5B22),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Center(
+                                    child: Icon(
+                                      Icons.send_rounded,
+                                      color: Colors.white,
+                                      size: 17,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        'Tugas Aktif',
+                                        style: TextStyle(
+                                          fontFamily: 'Poppins',
+                                          fontSize: 12.5,
+                                          fontWeight: FontWeight.w700,
+                                          color: Color(0xFF11141A),
+                                          height: 1.1,
+                                        ),
+                                      ),
+                                      Text(
+                                        '$taskCount Kegiatan',
+                                        style: const TextStyle(
+                                          fontFamily: 'Poppins',
+                                          fontSize: 10.5,
+                                          color: Color(0xFF64748B),
+                                          height: 1.2,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      // Right Button: Pencapaian
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => _navigateToMenu(3),
+                          child: Container(
+                            height: 54,
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(18),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 34,
+                                  height: 34,
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFFFF5B22),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Center(
+                                    child: Icon(
+                                      Icons.location_on_rounded,
+                                      color: Colors.white,
+                                      size: 18,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        'Pencapaian',
+                                        style: TextStyle(
+                                          fontFamily: 'Poppins',
+                                          fontSize: 12.5,
+                                          fontWeight: FontWeight.w700,
+                                          color: Color(0xFF11141A),
+                                          height: 1.1,
+                                        ),
+                                      ),
+                                      Text(
+                                        '$progress% Target',
+                                        style: const TextStyle(
+                                          fontFamily: 'Poppins',
+                                          fontSize: 10.5,
+                                          color: Color(0xFF64748B),
+                                          height: 1.2,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ─── PARCLGO CLEAN STATS SUMMARY CARD ─────────────
+  Widget _buildCleanStatsCard() {
     return Consumer<PencapaianProvider>(
       builder: (context, provider, child) {
-        final bool isLoading = provider.pendapatanState == PencapaianState.loading;
         final bool isLoaded = provider.pendapatanState == PencapaianState.loaded;
+        if (!isLoaded) return const SizedBox.shrink();
 
         final totalKegiatan = provider.pendapatanData?.jumlahKegiatan ?? 0;
         final totalPendapatan = provider.pendapatanData?.grandTotal ?? 0;
@@ -574,318 +1021,171 @@ class _DashboardPageState extends State<DashboardPage> {
             ? ((totalPendapatan / target) * 100).clamp(0, 999).toInt()
             : 0;
 
-        // Stats card height estimate for overlap
-        const double overlapAmount = 50;
-
-        return Column(
-          children: [
-            // Use Stack to properly overlap
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                // Header background — extra padding at bottom for overlap
-                _buildPremiumHeader(taskCount),
-                // Floating stats card positioned at bottom of header
-                Positioned(
-                  left: 20,
-                  right: 20,
-                  bottom: -overlapAmount,
-                  child: isLoading
-                    ? Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(18),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFF1E40AF).withValues(alpha: 0.1),
-                              blurRadius: 20,
-                              offset: const Offset(0, 8),
-                            ),
-                          ],
-                        ),
-                        child: const Center(
-                          child: SizedBox(
-                            width: 22, height: 22,
-                            child: CircularProgressIndicator(strokeWidth: 2.5, color: Color(0xFF0891B2)),
-                          ),
-                        ),
-                      )
-                    : !isLoaded
-                      ? const SizedBox.shrink()
-                      : Container(
-                          key: _keyStatCard,
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [Color(0xFF1E40AF), Color(0xFF0891B2)],
-                            ),
-                            borderRadius: BorderRadius.circular(20),
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFF1E40AF).withValues(alpha: 0.18),
-                                blurRadius: 24,
-                                offset: const Offset(0, 10),
-                              ),
-                            ],
-                          ),
-                          child: GestureDetector(
-                            onTap: _showFilterBottomSheet,
-                            child: Container(
-                              margin: const EdgeInsets.all(2),
-                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 20),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(18),
-                              ),
-                              child: Row(
-                                children: [
-                                _buildStatItem(
-                                  emoji: '\uD83D\uDCCB',
-                                  value: totalKegiatan.toString(),
-                                  label: 'Kegiatan',
-                                ),
-                                _buildStatDivider(),
-                                _buildStatItem(
-                                  emoji: '\u2B50',
-                                  value: bonus > 0 ? _formatRupiah(bonus) : '-',
-                                  label: 'Bonus',
-                                ),
-                                _buildStatDivider(),
-                                _buildStatItem(
-                                  emoji: '\uD83C\uDFAF',
-                                  value: '$progress%',
-                                  label: 'Target',
-                                ),
-                              ],
-                            ),
-                          ),
-                          ),
-                        ),
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+          child: GestureDetector(
+            key: _keyStatCard,
+            onTap: _showFilterBottomSheet,
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: const Color(0xFFF1F5F9),
+                  width: 1.2,
                 ),
-              ],
-            ),
-            // Space for the overlapping card
-            SizedBox(height: overlapAmount + 16),
-            // Pendapatan Card
-            if (isLoaded)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-                child: GestureDetector(
-                  onTap: _showFilterBottomSheet,
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.03),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF1F5F9),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Text('\uD83D\uDCB0', style: TextStyle(fontSize: 24)),
-                        ),
-                        const SizedBox(width: 16),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Total Pendapatan',
-                              style: TextStyle(
-                                fontFamily: 'Poppins',
-                                fontSize: 13,
-                                color: _textSecondary.withValues(alpha: 0.8),
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              _formatRupiah(totalPendapatan),
-                              style: const TextStyle(
-                                fontFamily: 'Poppins',
-                                fontSize: 18,
-                                fontWeight: FontWeight.w700,
-                                color: _textPrimary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.035),
+                    blurRadius: 14,
+                    offset: const Offset(0, 4),
                   ),
-                ),
+                ],
               ),
-            // Progress bar
-            if (isLoaded)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
-                child: GestureDetector(
-                  onTap: () => _navigateToMenu(3),
-                  child: Container(
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(14),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.03),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Row 1: Total Pendapatan + Period filter button
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Total Pendapatan',
+                            style: TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 11.5,
+                              color: Color(0xFF64748B),
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            _formatRupiah(totalPendapatan),
+                            style: const TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF0F172A),
+                            ),
+                          ),
+                        ],
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF8FAFC),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: const Color(0xFFE2E8F0)),
                         ),
-                      ],
-                    ),
-                    child: Column(
-                      children: [
-                        Row(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
                               _getPeriodeLabel(),
-                              style: TextStyle(
-                                fontFamily: 'Poppins',
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                                color: _textSecondary.withValues(alpha: 0.7),
-                              ),
-                            ),
-                            const Spacer(),
-                            Text(
-                              '$progress%',
                               style: const TextStyle(
                                 fontFamily: 'Poppins',
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                                color: _textPrimary,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF475569),
                               ),
+                            ),
+                            const SizedBox(width: 4),
+                            const Icon(
+                              Icons.keyboard_arrow_down_rounded,
+                              size: 16,
+                              color: Color(0xFF475569),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 10),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(6),
-                          child: Stack(
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // Row 2: 3 Mini Badges (Kegiatan, Bonus, Target)
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 7),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF8FAFC),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Column(
                             children: [
-                              Container(
-                                height: 8,
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFE2E8F0),
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                              ),
-                              FractionallySizedBox(
-                                widthFactor: (progress / 100).clamp(0.0, 1.0),
-                                child: Container(
-                                  height: 8,
-                                  decoration: BoxDecoration(
-                                    gradient: const LinearGradient(
-                                      colors: [Color(0xFF1E40AF), Color(0xFF0891B2)],
-                                    ),
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                ),
-                              ),
+                              const Text('📋 Kegiatan', style: TextStyle(fontSize: 10, color: Color(0xFF64748B))),
+                              const SizedBox(height: 2),
+                              Text('$totalKegiatan', style: const TextStyle(fontFamily: 'Poppins', fontSize: 12.5, fontWeight: FontWeight.w700, color: Color(0xFF0F172A))),
                             ],
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        );
-      },
-    );
-  }
-
-  // ─── PREMIUM GRADIENT HEADER ─────────────────────
-  Widget _buildPremiumHeader(int taskCount) {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF1E40AF),
-            Color(0xFF0369A1),
-            Color(0xFF0891B2),
-          ],
-          stops: [0.0, 0.5, 1.0],
-        ),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(28),
-          bottomRight: Radius.circular(28),
-        ),
-      ),
-      child: SafeArea(
-        bottom: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  // Menu button
-                  Material(
-                    color: Colors.white.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(12),
-                    child: InkWell(
-                      onTap: () => Scaffold.of(context).openDrawer(),
-                      borderRadius: BorderRadius.circular(12),
-                      child: Container(
-                        padding: const EdgeInsets.all(10),
-                        child: const Icon(
-                          Iconsax.menu_1,
-                          color: Colors.white,
-                          size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 7),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFFF7ED),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Column(
+                            children: [
+                              const Text('⭐ Bonus', style: TextStyle(fontSize: 10, color: Color(0xFFD97706))),
+                              const SizedBox(height: 2),
+                              Text(bonus > 0 ? _formatRupiah(bonus) : '-', style: const TextStyle(fontFamily: 'Poppins', fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFFD97706))),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Consumer<ProfileProvider>(
-                              builder: (context, profileProvider, child) {
-                                String nameText = '';
-                                if (profileProvider.state == ResultState.hasData) {
-                                  nameText = ', ${profileProvider.response.data.nama}';
-                                }
-                                return Text(
-                                  '${_getGreeting()}$nameText 🔥',
-                                  style: TextStyle(
-                                    fontFamily: 'Poppins',
-                                    fontSize: 12,
-                                    color: Colors.white.withValues(alpha: 0.65),
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 7),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF0FDFA),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Column(
+                            children: [
+                              const Text('🎯 Target', style: TextStyle(fontSize: 10, color: Color(0xFF0D9488))),
+                              const SizedBox(height: 2),
+                              Text('$progress%', style: const TextStyle(fontFamily: 'Poppins', fontSize: 12.5, fontWeight: FontWeight.w700, color: Color(0xFF0D9488))),
+                            ],
+                          ),
                         ),
-                        const Text(
-                          'Daftar Kegiatan',
-                          style: TextStyle(
-                            fontFamily: 'Poppins',
-                            fontSize: 22,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                            height: 1.2,
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  // Target Progress Bar
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(6),
+                    child: Stack(
+                      children: [
+                        Container(
+                          height: 6,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE2E8F0),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                        ),
+                        FractionallySizedBox(
+                          widthFactor: (progress / 100).clamp(0.0, 1.0),
+                          child: Container(
+                            height: 6,
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFFFF7A3D), Color(0xFFFF5B22)],
+                              ),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
                           ),
                         ),
                       ],
@@ -893,10 +1193,10 @@ class _DashboardPageState extends State<DashboardPage> {
                   ),
                 ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -907,7 +1207,7 @@ class _DashboardPageState extends State<DashboardPage> {
       child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
-          SliverToBoxAdapter(child: _buildPremiumHeader(0)),
+          SliverToBoxAdapter(child: _buildParclgoHeader(0)),
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
@@ -1278,7 +1578,7 @@ class _DashboardPageState extends State<DashboardPage> {
       child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
-          SliverToBoxAdapter(child: _buildPremiumHeader(0)),
+          SliverToBoxAdapter(child: _buildParclgoHeader(0)),
           SliverFillRemaining(
             hasScrollBody: false,
             child: Column(

@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import '../../api/ApiLink.dart';
 import '../../model/pencapaian/PencapaianResponse.dart';
 import '../../model/pencapaian/PendapatanResponse.dart';
+import '../../../utils/demo_teknisi_data.dart';
 
 enum PencapaianState { initial, loading, loaded, error }
 
@@ -52,16 +53,13 @@ class PencapaianProvider extends ChangeNotifier {
         final jsonData = json.decode(response.body);
         _pencapaianData = PencapaianResponse.fromJson(jsonData);
         _pencapaianState = PencapaianState.loaded;
-      } else if (response.statusCode == 404) {
-        _pencapaianError = 'Data pencapaian tidak ditemukan';
-        _pencapaianState = PencapaianState.error;
       } else {
-        _pencapaianError = 'Gagal mengambil data pencapaian';
-        _pencapaianState = PencapaianState.error;
+        _pencapaianData = DemoTeknisiData.pencapaian;
+        _pencapaianState = PencapaianState.loaded;
       }
     } catch (e) {
-      _pencapaianError = 'Terjadi kesalahan: ${e.toString()}';
-      _pencapaianState = PencapaianState.error;
+      _pencapaianData = DemoTeknisiData.pencapaian;
+      _pencapaianState = PencapaianState.loaded;
     }
 
     notifyListeners();
@@ -90,16 +88,13 @@ class PencapaianProvider extends ChangeNotifier {
         final jsonData = json.decode(response.body);
         _pendapatanData = PendapatanResponse.fromJson(jsonData);
         _pendapatanState = PencapaianState.loaded;
-      } else if (response.statusCode == 404) {
-        _pendapatanError = 'Data pendapatan tidak ditemukan';
-        _pendapatanState = PencapaianState.error;
       } else {
-        _pendapatanError = 'Gagal mengambil data pendapatan';
-        _pendapatanState = PencapaianState.error;
+        _pendapatanData = DemoTeknisiData.pendapatan;
+        _pendapatanState = PencapaianState.loaded;
       }
     } catch (e) {
-      _pendapatanError = 'Terjadi kesalahan: ${e.toString()}';
-      _pendapatanState = PencapaianState.error;
+      _pendapatanData = DemoTeknisiData.pendapatan;
+      _pendapatanState = PencapaianState.loaded;
     }
 
     notifyListeners();

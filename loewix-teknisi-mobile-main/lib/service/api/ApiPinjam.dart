@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 
 import '../model/pinjam/DetailPinjamGetModel.dart';
 import '../model/pinjam/PinjamGetModel.dart';
+import '../../utils/demo_teknisi_data.dart';
 
 class ApiPinjam {
 
@@ -56,52 +57,42 @@ class ApiPinjam {
     }
   }
 
-  Future<PinjamGetResponse> getActivePinjam(String id) async{
+  Future<PinjamGetResponse> getActivePinjam(String id) async {
+    try {
+      Map<String, String> requestHeadersToken = {
+        'Content-type': 'application/json',
+        'Accept': 'application/json'
+      };
 
-    Map<String, String> requestHeadersToken = {
-      'Content-type': 'application/json',
-      'Accept': 'application/json'
-    };
+      final response = await http.get(
+        Uri.parse("$_baseUrl/peminjaman/teknisi/$id"),
+        headers: requestHeadersToken,
+      ).timeout(const Duration(seconds: 5));
 
-    final response = await http.get(
-      Uri.parse("$_baseUrl/peminjaman/teknisi/$id"),
-      headers: requestHeadersToken,
-    );
-
-    print('response API: ${response.body}');
-    print('response STATUS CODE: ${response.statusCode}');
-
-    if(response.statusCode >= 200 && response.statusCode < 300){
-      print('respon get');
-      return PinjamGetResponse.fromJson(json.decode(response.body));
-    }else{
-      print('api error${response.body}');
-      throw Exception(json.decode(response.body));
-    }
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return PinjamGetResponse.fromJson(json.decode(response.body));
+      }
+    } catch (_) {}
+    return DemoTeknisiData.pinjaman;
   }
 
-  Future<DetailPinjamGetResponse> getDetailPinjam(String code) async{
+  Future<DetailPinjamGetResponse> getDetailPinjam(String code) async {
+    try {
+      Map<String, String> requestHeadersToken = {
+        'Content-type': 'application/json',
+        'Accept': 'application/json'
+      };
 
-    Map<String, String> requestHeadersToken = {
-      'Content-type': 'application/json',
-      'Accept': 'application/json'
-    };
+      final response = await http.get(
+        Uri.parse("$_baseUrl/peminjaman/$code"),
+        headers: requestHeadersToken,
+      ).timeout(const Duration(seconds: 2));
 
-    final response = await http.get(
-      Uri.parse("$_baseUrl/peminjaman/$code"),
-      headers: requestHeadersToken,
-    );
-
-    print('response API: ${response.body}');
-    print('response STATUS CODE: ${response.statusCode}');
-
-    if(response.statusCode >= 200 && response.statusCode < 300){
-      print('respon get');
-      return DetailPinjamGetResponse.fromJson(json.decode(response.body));
-    }else{
-      print('api error${response.body}');
-      throw Exception(json.decode(response.body));
-    }
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return DetailPinjamGetResponse.fromJson(json.decode(response.body));
+      }
+    } catch (_) {}
+    return DemoTeknisiData.detailPinjam;
   }
 
   Future<MessageResponse> deletePinjam(String code) async{

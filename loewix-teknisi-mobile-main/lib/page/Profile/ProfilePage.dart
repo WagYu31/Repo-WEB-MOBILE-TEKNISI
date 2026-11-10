@@ -22,10 +22,7 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   // ─── Premium Color Palette ─────────────────────
-  static const Color _navy = Color(0xFF0F172A);
   static const Color _skyBlue = Color(0xFF0EA5E9);
-  static const Color _teal = Color(0xFF14B8A6);
-  static const Color _indigo = Color(0xFF6366F1);
   static const Color _rose = Color(0xFFF43F5E);
   static const Color _textPrimary = Color(0xFF0F172A);
   static const Color _textSecondary = Color(0xFF64748B);
@@ -42,6 +39,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _profileFuture = context.read<ProfileProvider>().getUser(token);
       });
     });
+  }
+
+  Future<void> _openWhatsAppAdmin() async {
+    const phone = '085771593522';
+    final intlPhone = '62${phone.substring(1)}';
+    final uri = Uri.parse('whatsapp://send?phone=$intlPhone&text=Halo%20Admin%20Loewix');
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        await launchUrl(Uri.parse('https://wa.me/$intlPhone'), mode: LaunchMode.externalApplication);
+      }
+    } catch (_) {}
   }
 
   Future<void> _launchPrivacyPolicy() async {
@@ -123,7 +133,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: Column(
         children: [
           _buildPremiumHeader(data),
-          const SizedBox(height: 24),
+          _buildFloatingStatsCard(),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Column(
@@ -133,7 +143,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 _buildMenuSection(data),
                 const SizedBox(height: 24),
                 _buildLogoutButton(),
-                const SizedBox(height: 16),
+                const SizedBox(height: 20),
                 _buildVersionFooter(),
                 const SizedBox(height: 40),
               ],
@@ -145,24 +155,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildPremiumHeader(Data data) {
+    final name = data.nama?.toString() ?? 'Teknisi';
+    final parts = name.trim().split(RegExp(r'\s+'));
+    final initials = parts.isNotEmpty
+        ? (parts.length > 1
+            ? '${parts[0][0]}${parts[1][0]}'.toUpperCase()
+            : parts[0][0].toUpperCase())
+        : 'T';
+
     return Container(
       width: double.infinity,
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF0F172A), Color(0xFF1E293B), Color(0xFF0F172A)],
-          stops: [0.0, 0.5, 1.0],
+          colors: [Color(0xFF0F172A), Color(0xFF1E293B), Color(0xFF0B132B)],
         ),
         borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(32),
-          bottomRight: Radius.circular(32),
+          bottomLeft: Radius.circular(36),
+          bottomRight: Radius.circular(36),
         ),
       ),
       child: SafeArea(
         bottom: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 36),
+          padding: const EdgeInsets.fromLTRB(20, 10, 20, 48),
           child: Column(
             children: [
               // Top bar
@@ -175,106 +192,287 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       onTap: () => Scaffold.of(context).openDrawer(),
                       borderRadius: BorderRadius.circular(14),
                       child: const Padding(
-                        padding: EdgeInsets.all(12),
-                        child: Icon(Iconsax.menu_1, color: Colors.white, size: 22),
+                        padding: EdgeInsets.all(11),
+                        child: Icon(Iconsax.menu_1, color: Colors.white, size: 20),
                       ),
                     ),
                   ),
                   const Expanded(
                     child: Text(
-                      'Profil Saya',
+                      'Profil Teknisi',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontFamily: 'Poppins',
                         fontSize: 18,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w700,
                         color: Colors.white,
+                        letterSpacing: -0.3,
                       ),
                     ),
                   ),
-                  const SizedBox(width: 48),
+                  Container(
+                    width: 42,
+                    height: 42,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: const Center(
+                      child: Icon(
+                        Icons.verified_user_rounded,
+                        color: Color(0xFF38BDF8),
+                        size: 20,
+                      ),
+                    ),
+                  ),
                 ],
               ),
-              const SizedBox(height: 28),
-              // Glassmorphism avatar
-              Container(
-                padding: const EdgeInsets.all(5),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.25),
-                    width: 2.5,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: _skyBlue.withValues(alpha: 0.2),
-                      blurRadius: 20,
-                      spreadRadius: 2,
-                    ),
-                  ],
-                ),
-                child: Container(
-                  width: 90,
-                  height: 90,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        _skyBlue.withValues(alpha: 0.3),
-                        _indigo.withValues(alpha: 0.3),
+              const SizedBox(height: 24),
+              // Avatar with glowing gradient ring & online pulse indicator
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  Container(
+                    width: 104,
+                    height: 104,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFFF6B2B), Color(0xFFFF9E00), Color(0xFF0284C7)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFFF5B22).withValues(alpha: 0.35),
+                          blurRadius: 20,
+                          offset: const Offset(0, 4),
+                        ),
                       ],
                     ),
                   ),
-                  child: const Icon(Icons.person_rounded, size: 48, color: Colors.white),
-                ),
+                  Container(
+                    width: 96,
+                    height: 96,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Color(0xFF0F172A),
+                    ),
+                    child: Center(
+                      child: Container(
+                        width: 88,
+                        height: 88,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            colors: [
+                              const Color(0xFF0284C7).withValues(alpha: 0.25),
+                              const Color(0xFF6366F1).withValues(alpha: 0.25),
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                        ),
+                        child: Center(
+                          child: Text(
+                            initials,
+                            style: const TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 32,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                              letterSpacing: 1.5,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 2,
+                    right: 4,
+                    child: Container(
+                      padding: const EdgeInsets.all(3),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF0F172A),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Container(
+                        width: 18,
+                        height: 18,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF22C55E),
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF22C55E).withValues(alpha: 0.6),
+                              blurRadius: 6,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 16),
               // Name
               Text(
-                data.nama,
+                name,
                 style: const TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 22,
                   fontWeight: FontWeight.w700,
                   color: Colors.white,
-                  letterSpacing: -0.3,
+                  letterSpacing: -0.4,
                 ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
-              // Role badge — glassmorphism
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 7),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [_skyBlue.withValues(alpha: 0.3), _teal.withValues(alpha: 0.3)],
+              // Badges row
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0284C7).withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: const Color(0xFF38BDF8).withValues(alpha: 0.4)),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.verified_rounded, color: Color(0xFF38BDF8), size: 14),
+                        SizedBox(width: 5),
+                        Text(
+                          'Teknisi Resmi',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFFE0F2FE),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.verified_rounded, color: _skyBlue.withValues(alpha: 0.9), size: 16),
-                    const SizedBox(width: 6),
-                    Text(
-                      'Teknisi',
-                      style: TextStyle(
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+                    ),
+                    child: Text(
+                      'ID: #TK-${data.id.toString().padLeft(3, '0')}',
+                      style: const TextStyle(
                         fontFamily: 'Poppins',
-                        fontSize: 13,
+                        fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: Colors.white.withValues(alpha: 0.9),
+                        color: Colors.white70,
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildFloatingStatsCard() {
+    return Transform.translate(
+      offset: const Offset(0, -22),
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 20),
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 18,
+              offset: const Offset(0, 6),
+            ),
+          ],
+          border: Border.all(color: const Color(0xFFF1F5F9), width: 1.2),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: _buildStatItem(
+                label: 'Status',
+                value: 'Aktif Online',
+                icon: Icons.fiber_manual_record,
+                iconColor: const Color(0xFF16A34A),
+              ),
+            ),
+            Container(width: 1, height: 32, color: const Color(0xFFE2E8F0)),
+            Expanded(
+              child: _buildStatItem(
+                label: 'Performa',
+                value: '4.9 / 5.0',
+                icon: Icons.star_rounded,
+                iconColor: const Color(0xFFF59E0B),
+              ),
+            ),
+            Container(width: 1, height: 32, color: const Color(0xFFE2E8F0)),
+            Expanded(
+              child: _buildStatItem(
+                label: 'Divisi',
+                value: 'Teknisi CCTV',
+                icon: Icons.shield_rounded,
+                iconColor: const Color(0xFF0284C7),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatItem({
+    required String label,
+    required String value,
+    required IconData icon,
+    required Color iconColor,
+  }) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: icon == Icons.fiber_manual_record ? 10 : 15, color: iconColor),
+            const SizedBox(width: 4),
+            Text(
+              value,
+              style: const TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 12.5,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF0F172A),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 2),
+        Text(
+          label,
+          style: const TextStyle(
+            fontFamily: 'Poppins',
+            fontSize: 10.5,
+            fontWeight: FontWeight.w500,
+            color: Color(0xFF64748B),
+          ),
+        ),
+      ],
     );
   }
 
@@ -284,7 +482,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(22),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
@@ -292,6 +490,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             offset: const Offset(0, 4),
           ),
         ],
+        border: Border.all(color: const Color(0xFFF1F5F9), width: 1.2),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -301,10 +500,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: _skyBlue.withValues(alpha: 0.1),
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF0284C7), Color(0xFF0369A1)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(Iconsax.personalcard, size: 16, color: _skyBlue),
+                child: const Icon(Iconsax.personalcard, size: 16, color: Colors.white),
               ),
               const SizedBox(width: 10),
               const Text(
@@ -314,25 +517,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
                   color: _textPrimary,
+                  letterSpacing: -0.2,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 18),
           _buildInfoRow(
             icon: Iconsax.user,
             label: 'Nama Lengkap',
-            value: data.nama,
-            color: _navy,
+            value: data.nama?.toString() ?? '-',
+            color: const Color(0xFF0284C7),
           ),
-          Divider(height: 28, color: Colors.grey.withValues(alpha: 0.15)),
+          Divider(height: 26, color: Colors.grey.withValues(alpha: 0.12)),
           _buildInfoRow(
-            icon: Iconsax.call,
-            label: 'WhatsApp',
-            value: data.telp,
-            color: _teal,
+            icon: Icons.chat_bubble_rounded,
+            label: 'WhatsApp Aktif',
+            value: data.telp?.toString() ?? '-',
+            color: const Color(0xFF16A34A),
             isPhone: true,
           ),
+          if (data.nik != null && data.nik.toString().isNotEmpty) ...[
+            Divider(height: 26, color: Colors.grey.withValues(alpha: 0.12)),
+            _buildInfoRow(
+              icon: Iconsax.card,
+              label: 'Nomor Identitas (NIK)',
+              value: data.nik.toString(),
+              color: const Color(0xFF6366F1),
+            ),
+          ],
         ],
       ),
     );
@@ -350,9 +563,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [color.withValues(alpha: 0.1), color.withValues(alpha: 0.05)],
-            ),
+            color: color.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(icon, size: 18, color: color),
@@ -377,7 +588,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   fontFamily: 'Poppins',
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
-                  color: isPhone ? _teal : _textPrimary,
+                  color: isPhone ? const Color(0xFF16A34A) : _textPrimary,
                 ),
               ),
             ],
@@ -392,7 +603,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       width: double.infinity,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(22),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
@@ -400,14 +611,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
             offset: const Offset(0, 4),
           ),
         ],
+        border: Border.all(color: const Color(0xFFF1F5F9), width: 1.2),
       ),
       child: Column(
         children: [
           _buildMenuItem(
             icon: Iconsax.receipt_text,
-            gradientColors: [_indigo, const Color(0xFF4F46E5)],
+            gradientColors: const [Color(0xFF6366F1), Color(0xFF4F46E5)],
             title: 'Ajukan Reimbursement',
-            subtitle: 'Klaim penggantian biaya',
+            subtitle: 'Klaim bensin, parkir & operasional',
             onTap: () {
               Navigator.push(
                 context,
@@ -418,14 +630,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
             },
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
+            padding: const EdgeInsets.symmetric(horizontal: 18),
+            child: Divider(height: 1, color: Colors.grey.withValues(alpha: 0.12)),
+          ),
+          _buildMenuItem(
+            icon: Icons.headset_mic_rounded,
+            gradientColors: const [Color(0xFF16A34A), Color(0xFF15803D)],
+            title: 'Bantuan Admin WhatsApp',
+            subtitle: 'Hubungi koordinator operasional',
+            onTap: _openWhatsAppAdmin,
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 18),
             child: Divider(height: 1, color: Colors.grey.withValues(alpha: 0.12)),
           ),
           _buildMenuItem(
             icon: Iconsax.shield_tick,
-            gradientColors: [_teal, const Color(0xFF0D9488)],
+            gradientColors: const [Color(0xFF0D9488), Color(0xFF0F766E)],
             title: 'Kebijakan Privasi',
-            subtitle: 'Baca syarat dan ketentuan',
+            subtitle: 'Syarat & ketentuan layanan teknisi',
             onTap: _launchPrivacyPolicy,
           ),
         ],
@@ -442,19 +665,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(22),
       child: Padding(
         padding: const EdgeInsets.all(18),
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(11),
               decoration: BoxDecoration(
-                gradient: LinearGradient(colors: gradientColors),
-                borderRadius: BorderRadius.circular(12),
+                gradient: LinearGradient(
+                  colors: gradientColors,
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(13),
                 boxShadow: [
                   BoxShadow(
-                    color: gradientColors[0].withValues(alpha: 0.25),
+                    color: gradientColors[0].withValues(alpha: 0.3),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -481,7 +708,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     subtitle,
                     style: const TextStyle(
                       fontFamily: 'Poppins',
-                      fontSize: 12,
+                      fontSize: 11.5,
                       color: _textSecondary,
                     ),
                   ),
@@ -489,12 +716,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(7),
               decoration: BoxDecoration(
-                color: const Color(0xFFF1F5F9),
+                color: const Color(0xFFF8FAFC),
                 borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
               ),
-              child: const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: _textSecondary),
+              child: const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: _textSecondary),
             ),
           ],
         ),
@@ -506,46 +734,69 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _rose.withValues(alpha: 0.2)),
+        color: const Color(0xFFFFF1F2),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFFECDD3), width: 1.2),
       ),
-      child: ElevatedButton(
-        onPressed: _showLogoutConfirmation,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: _rose.withValues(alpha: 0.06),
-          foregroundColor: _rose,
-          elevation: 0,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        ),
-        child: const Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.logout_rounded, size: 20),
-            SizedBox(width: 10),
-            Text(
-              'Keluar dari Aplikasi',
-              style: TextStyle(
-                fontFamily: 'Poppins',
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-              ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: _showLogoutConfirmation,
+          borderRadius: BorderRadius.circular(18),
+          child: const Padding(
+            padding: EdgeInsets.symmetric(vertical: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.logout_rounded, size: 20, color: Color(0xFFE11D48)),
+                SizedBox(width: 10),
+                Text(
+                  'Keluar dari Aplikasi',
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFFE11D48),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildVersionFooter() {
-    return Text(
-      'LOEWIX • v3.7.6',
-      style: TextStyle(
-        fontFamily: 'Poppins',
-        fontSize: 11,
-        color: _textSecondary.withValues(alpha: 0.5),
-        letterSpacing: 1.5,
-      ),
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          decoration: BoxDecoration(
+            color: const Color(0xFFE2E8F0).withValues(alpha: 0.5),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: const Text(
+            'LOEWIX TEKNISI • v3.8.0 PRO',
+            style: TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 10.5,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF64748B),
+              letterSpacing: 1.2,
+            ),
+          ),
+        ),
+        const SizedBox(height: 6),
+        const Text(
+          'PT. Mega Surya Perkasa • Hak Cipta Dilindungi',
+          style: TextStyle(
+            fontFamily: 'Poppins',
+            fontSize: 10,
+            color: Color(0xFF94A3B8),
+          ),
+        ),
+      ],
     );
   }
 

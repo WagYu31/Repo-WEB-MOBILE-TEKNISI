@@ -9,12 +9,13 @@ class ProfileProvider extends ChangeNotifier {
 
   ProfileProvider({required this.api});
 
-  late ProfileTeknisiResponse _response;
-  late ResultState _state;
+  ProfileTeknisiResponse? _response;
+  ResultState _state = ResultState.loading;
   String _message = '';
 
-  ProfileTeknisiResponse get response => _response;
+  ProfileTeknisiResponse get response => _response!;
   ResultState get state => _state;
+  bool get hasData => _state == ResultState.hasData && _response != null;
   String get message => _message;
 
   Future<ProfileTeknisiResponse> getUser(String token) async {

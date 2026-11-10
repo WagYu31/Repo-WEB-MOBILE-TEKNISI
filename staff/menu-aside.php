@@ -285,6 +285,7 @@ if ($isSalesDir) {
             <?php
             // Check menu access permissions dynamically
             $showDashboard = hasMenuAccess($conn, $idSesi, 'dashboard', ($role == 'Super Admin' || $role == 'Admin'));
+            $showLiveTracking = hasMenuAccess($conn, $idSesi, 'live_tracking', ($role == 'Super Admin' || $role == 'Admin'));
             $showTambahKegiatan = hasMenuAccess($conn, $idSesi, 'tambah_kegiatan', ($role == 'Super Admin' || $role == 'Admin'));
             $showWaitingList = hasMenuAccess($conn, $idSesi, 'waiting_list', ($role == 'Super Admin' || $role == 'Admin'));
 
@@ -314,7 +315,7 @@ if ($isSalesDir) {
             // Render menus according to user permissions
             if ($role == 'Super Admin' || $role == 'Admin') {
                 // Category: Operasional
-                if ($showDashboard || $showTambahKegiatan || $showWaitingList) {
+                if ($showDashboard || $showTambahKegiatan || $showWaitingList || $showLiveTracking) {
                     $isOperasionalActive = ($pageNow == "Dashboard" && !$isSalesDir) || ($pageNow == "Kegiatan Baru" && !$isSalesDir) || ($pageNow == "Waiting List" && !$isSalesDir);
                     $operasionalCollapse = $isOperasionalActive ? 'show' : '';
                     $operasionalAria = $isOperasionalActive ? 'true' : 'false';
@@ -330,6 +331,7 @@ if ($isSalesDir) {
                             <ul class="nav flex-column ms-3 ps-2" style="border-left: 1.5px solid #374151; margin-left: 18px; padding-left: 8px;">
                                 <?php
                                 if ($showDashboard) renderSubNavItem(($pageNow == "Dashboard" && !$isSalesDir), $rootPrefix . "index-sa.php", "fa-solid fa-chart-pie", "Dashboard");
+                                if ($showLiveTracking) renderSubNavItem(false, "/admin_live_tracking.php", "fa-solid fa-map-location-dot", "Live Tracking Teknisi");
                                 if ($showTambahKegiatan) renderSubNavItem(($pageNow == "Kegiatan Baru" && !$isSalesDir), $rootPrefix . "kegiatan-baru.php", "fa-solid fa-file-circle-plus", "Tambah Kegiatan");
                                 if ($showWaitingList) renderSubNavItem(($pageNow == "Waiting List" && !$isSalesDir), $rootPrefix . "waiting-list.php", "fa-solid fa-hourglass-half", "Waiting List");
                                 ?>

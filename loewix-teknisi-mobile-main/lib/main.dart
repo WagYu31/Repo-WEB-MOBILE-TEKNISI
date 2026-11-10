@@ -11,6 +11,7 @@ import 'package:teknisi_loewix/service/provider/reimburse/ReimburseSendProvider.
 import 'package:timezone/data/latest.dart' as tz;
 import '../page/Auth/LoginPage.dart';
 import '../page/Auth/RegisterPage.dart';
+import '../page/Onboarding/OnboardingPage.dart';
 import '../page/Pinjam_Barang/CreatePinjamBarang.dart';
 import '../page/Pinjam_Barang/DetailPinjamPage.dart';
 import '../page/Pinjam_Barang/KembalikanPinjamanPage.dart';
@@ -180,6 +181,7 @@ class MyApp extends StatelessWidget {
         initialRoute: SplashScreen.routeName,
         routes: {
           SplashScreen.routeName: (context) => const SplashScreen(),
+          OnboardingPage.routeName: (context) => const OnboardingPage(),
           LoginPage.routeName: (context) => const LoginPage(),
           HomePageAdmin.routeName: (context) => const HomePageAdmin(),
           TaskPage.routeName: (context) => TaskPage(

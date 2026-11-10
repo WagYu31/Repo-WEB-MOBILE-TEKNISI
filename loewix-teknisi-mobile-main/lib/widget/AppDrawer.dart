@@ -9,6 +9,7 @@ import '../service/provider/Profile/ProfileProvider.dart';
 import '../service/model/profile/ProfileTeknisi.dart';
 import '../page/Auth/LoginPage.dart';
 import '../page/Garansi/CekGaransiPage.dart';
+import '../service/tracking/LiveTrackingService.dart';
 import '../constants/app_constants.dart';
 
 class AppDrawer extends StatefulWidget {
@@ -77,6 +78,7 @@ class _AppDrawerState extends State<AppDrawer> {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final prefsProvider = Provider.of<PreferencesIDProvider>(context, listen: false);
 
+    LiveTrackingService().stopTracking();
     authProvider.logout();
     prefsProvider.deleteRole();
 
