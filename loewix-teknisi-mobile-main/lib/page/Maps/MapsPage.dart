@@ -261,6 +261,7 @@ class GoogleMapSampleState extends State<GoogleMapSample>
 
     return Column(
       mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.end,
       children: [
         // Floating Callout Pill
         Container(
@@ -383,45 +384,61 @@ class GoogleMapSampleState extends State<GoogleMapSample>
 
     _lastRoutedUserLocation = _userLocation;
 
-    try {
-      final url = Uri.parse(
-        'https://router.project-osrm.org/route/v1/driving/'
-        '${_userLocation!.longitude},${_userLocation!.latitude};'
-        '${_taskLocation!.longitude},${_taskLocation!.latitude}'
-        '?overview=full&geometries=geojson',
-      );
+    final endpoints = [
+      'https://router.project-osrm.org/route/v1/driving/'
+          '${_userLocation!.longitude},${_userLocation!.latitude};'
+          '${_taskLocation!.longitude},${_taskLocation!.latitude}'
+          '?overview=full&geometries=geojson&snapping=any',
+      'https://routing.openstreetmap.de/routed-car/route/v1/driving/'
+          '${_userLocation!.longitude},${_userLocation!.latitude};'
+          '${_taskLocation!.longitude},${_taskLocation!.latitude}'
+          '?overview=full&geometries=geojson&snapping=any',
+    ];
 
-      final response = await http.get(url).timeout(const Duration(seconds: 7));
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data['code'] == 'Ok' && (data['routes'] as List).isNotEmpty) {
-          final route = data['routes'][0];
-          final coords = route['geometry']['coordinates'] as List;
-          final points = coords.map<LatLng>((c) {
-            final lon = (c[0] as num).toDouble();
-            final lat = (c[1] as num).toDouble();
-            return LatLng(lat, lon);
-          }).toList();
+    for (final urlStr in endpoints) {
+      try {
+        final url = Uri.parse(urlStr);
+        final response = await http.get(url).timeout(const Duration(seconds: 6));
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          if (data['code'] == 'Ok' && (data['routes'] as List).isNotEmpty) {
+            final route = data['routes'][0];
+            final coords = route['geometry']['coordinates'] as List;
 
-          final dist = (route['distance'] as num?)?.toDouble();
-          final dur = (route['duration'] as num?)?.round();
+            final List<LatLng> points = [];
+            // 1. Awali rute tepat di posisi GPS teknisi saat ini
+            points.add(_userLocation!);
 
-          if (mounted && points.isNotEmpty) {
-            setState(() {
-              _roadRoutePoints = points;
-              _roadDistanceMeters = dist;
-              _roadDurationSeconds = dur;
-            });
-            debugPrint('🛣️ OSRM Road Route loaded: ${points.length} road coordinates, $dist m');
-            return;
+            // 2. Masukkan seluruh titik jalan hasil routing
+            for (final c in coords) {
+              final lon = (c[0] as num).toDouble();
+              final lat = (c[1] as num).toDouble();
+              points.add(LatLng(lat, lon));
+            }
+
+            // 3. Akhiri rute tepat di pin lokasi customer agar tidak terputus/menggantung
+            points.add(_taskLocation!);
+
+            final dist = (route['distance'] as num?)?.toDouble();
+            final dur = (route['duration'] as num?)?.round();
+
+            if (mounted && points.isNotEmpty) {
+              setState(() {
+                _roadRoutePoints = points;
+                _roadDistanceMeters = dist;
+                _roadDurationSeconds = dur;
+              });
+              debugPrint('🛣️ OSRM Road Route loaded: ${points.length} coordinates, $dist m (snapping=any)');
+              return;
+            }
           }
         }
+      } catch (e) {
+        debugPrint('⚠️ Error fetching road route from $urlStr: $e');
       }
-    } catch (e) {
-      debugPrint('⚠️ Error fetching OSRM road route: $e');
     }
 
-    // Fallback if offline/failed
+    // Fallback if offline/failed: tarik garis langsung dari teknisi ke customer
     if (mounted && _roadRoutePoints.isEmpty) {
       setState(() {
         _roadRoutePoints = [_userLocation!, _taskLocation!];

@@ -896,14 +896,16 @@ $pageNow = "Live Tracking";
                                 }).addTo(map);
                                 routePolylines.push(line);
 
-                                // If focused, load real road routing geometry from OSRM
+                                // If focused, load real road routing geometry from OSRM (with snapping=any to reach complex/ruko)
                                 if (isSelected) {
-                                    fetch(`https://router.project-osrm.org/route/v1/driving/${tLon},${tLat};${cLon},${cLat}?overview=full&geometries=geojson`)
+                                    fetch(`https://router.project-osrm.org/route/v1/driving/${tLon},${tLat};${cLon},${cLat}?overview=full&geometries=geojson&snapping=any`)
                                         .then(r => r.json())
                                         .then(res => {
                                             if (res.code === 'Ok' && res.routes && res.routes.length > 0) {
                                                 const roadCoords = res.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
-                                                line.setLatLngs(roadCoords);
+                                                // Sambungkan titik awal teknisi dan titik akhir customer tanpa celah
+                                                const fullCoords = [[tLat, tLon], ...roadCoords, [cLat, cLon]];
+                                                line.setLatLngs(fullCoords);
                                                 line.setStyle({ dashArray: null, weight: 4.5, opacity: 0.95 });
                                             }
                                         })
@@ -1046,3 +1048,4 @@ $pageNow = "Live Tracking";
   </script>
 </body>
 </html>
+
