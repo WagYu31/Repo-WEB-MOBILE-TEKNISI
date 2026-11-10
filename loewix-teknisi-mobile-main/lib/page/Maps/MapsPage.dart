@@ -55,6 +55,21 @@ class GoogleMapSampleState extends State<GoogleMapSample>
     _initializeMap();
   }
 
+  @override
+  void didUpdateWidget(covariant GoogleMapSample oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final oldLat = oldWidget.taskData?.lat?.toString();
+    final newLat = widget.taskData?.lat?.toString();
+    final oldLon = oldWidget.taskData?.lon?.toString();
+    final newLon = widget.taskData?.lon?.toString();
+    final oldAddr = oldWidget.taskData?.dataCustomer.alamat?.toString();
+    final newAddr = widget.taskData?.dataCustomer.alamat?.toString();
+
+    if (oldLat != newLat || oldLon != newLon || oldAddr != newAddr) {
+      _addTaskLocationMarker();
+    }
+  }
+
   String _getFormattedDistance() {
     if (_userLocation == null || _taskLocation == null) return '';
 

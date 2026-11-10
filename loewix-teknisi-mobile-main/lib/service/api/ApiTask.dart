@@ -75,7 +75,7 @@ class ApiTask {
       final res = await http.get(
         Uri.parse('$_baseUrl/teknisitask/$id'),
         headers: _defaultHeaders,
-      ).timeout(const Duration(seconds: 2));
+      ).timeout(const Duration(seconds: 10));
       if (res.statusCode >= 200 && res.statusCode < 300) {
         final parsed = TaskAllResponse.fromJson(json.decode(res.body));
         if (parsed.data.isNotEmpty) return parsed;

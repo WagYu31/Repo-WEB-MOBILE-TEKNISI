@@ -1951,6 +1951,28 @@ class _TaskPageState extends State<TaskPage> {
               ],
             ),
           ),
+          // Refresh Data Button
+          Material(
+            color: const Color(0xFFF1F5F9),
+            borderRadius: BorderRadius.circular(12),
+            child: InkWell(
+              onTap: () async {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Memperbarui data kegiatan...'),
+                    duration: Duration(milliseconds: 700),
+                  ),
+                );
+                await _refreshFromApi();
+              },
+              borderRadius: BorderRadius.circular(12),
+              child: const Padding(
+                padding: EdgeInsets.all(9),
+                child: Icon(Icons.refresh_rounded, size: 18, color: Color(0xFF0F172A)),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
           // Google Maps Nav Shortcut Button
           Material(
             color: const Color(0xFF0284C7).withValues(alpha: 0.12),
@@ -2345,7 +2367,10 @@ class _TaskPageState extends State<TaskPage> {
           // 1. Full-screen Map as the canvas
           Positioned.fill(
             key: _keyMap,
-            child: GoogleMapSample(taskData: data),
+            child: GoogleMapSample(
+              key: ValueKey('map_${data.id}_${data.lat}_${data.lon}_${data.dataCustomer.alamat}'),
+              taskData: data,
+            ),
           ),
           // 2. Floating Top Header (Gojek / Shopee Style)
           Positioned(
