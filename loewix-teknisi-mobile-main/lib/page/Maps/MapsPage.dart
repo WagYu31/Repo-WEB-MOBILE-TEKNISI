@@ -394,39 +394,110 @@ class GoogleMapSampleState extends State<GoogleMapSample>
           ? double.tryParse(widget.taskData!.rad.toString())
           : null;
 
-      if (taskLat != null && taskLon != null) {
-        _taskLocation = LatLng(taskLat, taskLon);
-
-        if (!mounted) return;
-        setState(() {
-          _markers.add(
-            Marker(
-              point: _taskLocation!,
-              width: 160,
-              height: 96,
-              alignment: Alignment.bottomCenter,
-              child: _buildDestinationMarkerWidget(),
-            ),
-          );
-
-          if (taskRadius != null) {
-            _circles.add(
-              CircleMarker(
-                point: _taskLocation!,
-                radius: taskRadius,
-                useRadiusInMeter: true,
-                color: const Color(0xFFFF5B22).withValues(alpha: 0.10),
-                borderColor: const Color(0xFFFF5B22).withValues(alpha: 0.5),
-                borderStrokeWidth: 1.5,
-              ),
-            );
-          }
-        });
-
-        if (_userLocation != null) {
-          _fetchRoadRoute();
-        }
+      if (taskLat != null && taskLon != null && taskLat != 0.0 && taskLon != 0.0) {
+        _applyTaskLocation(LatLng(taskLat, taskLon), taskRadius);
+        return;
       }
+    }
+
+    // Fallback: Jika koordinat lat/lon dari admin di web masih kosong (NULL),
+    // coba cari koordinat otomatis dari teks alamat customer
+    _fallbackGeocodeCustomerAddress();
+  }
+
+  void _applyTaskLocation(LatLng location, double? radius) {
+    _taskLocation = location;
+
+    if (!mounted) return;
+    setState(() {
+      if (radius != null && radius > 0) {
+        _circles.clear();
+        _circles.add(
+          CircleMarker(
+            point: _taskLocation!,
+            radius: radius,
+            useRadiusInMeter: true,
+            color: const Color(0xFFFF5B22).withValues(alpha: 0.10),
+            borderColor: const Color(0xFFFF5B22).withValues(alpha: 0.5),
+            borderStrokeWidth: 1.5,
+          ),
+        );
+      }
+      _updateUserMarker();
+    });
+
+    if (_userLocation != null) {
+      _fetchRoadRoute(force: true);
+      if (_mapReady) {
+        Future.delayed(const Duration(milliseconds: 300), () {
+          if (mounted) _fitBothLocations();
+        });
+      }
+    }
+  }
+
+  Future<void> _fallbackGeocodeCustomerAddress() async {
+    final rawAddr = widget.taskData?.dataCustomer.alamat?.toString().trim();
+    if (rawAddr == null || rawAddr.isEmpty) return;
+
+    final kota = widget.taskData?.dataCustomer.kota?.toString().trim();
+
+    // Buat daftar query bertingkat dari spesifik ke umum
+    final List<String> queries = [];
+    queries.add(rawAddr);
+
+    if (rawAddr.contains(',')) {
+      final parts = rawAddr.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+      if (parts.length >= 2) {
+        // Contoh: "Ruko Food City no.92, Green Lake City, Jakarta Barat" -> "Green Lake City, Jakarta Barat"
+        queries.add(parts.sublist(1).join(', '));
+      }
+      if (parts.length >= 3) {
+        queries.add('${parts[1]}, ${parts[2]}');
+      }
+    }
+
+    if (kota != null && kota.isNotEmpty && !rawAddr.toLowerCase().contains(kota.toLowerCase())) {
+      queries.add('$rawAddr, $kota');
+    }
+
+    // 1. Coba geocoding native Android
+    for (final q in queries) {
+      try {
+        final locations = await locationFromAddress(q).timeout(const Duration(seconds: 3));
+        if (locations.isNotEmpty) {
+          final loc = locations.first;
+          if (loc.latitude != 0.0 && loc.longitude != 0.0) {
+            _applyTaskLocation(LatLng(loc.latitude, loc.longitude), 100);
+            return;
+          }
+        }
+      } catch (_) {}
+    }
+
+    // 2. Fallback Nominatim OSM Geocoding API
+    for (final q in queries) {
+      try {
+        final url = Uri.parse(
+          'https://nominatim.openstreetmap.org/search?format=json&q='
+          '${Uri.encodeComponent(q)}&limit=1',
+        );
+        final res = await http.get(url, headers: {
+          'User-Agent': 'LoewixTeknisiApp/1.0',
+        }).timeout(const Duration(seconds: 3));
+
+        if (res.statusCode == 200) {
+          final data = json.decode(res.body);
+          if (data is List && data.isNotEmpty) {
+            final lat = double.tryParse(data[0]['lat']?.toString() ?? '');
+            final lon = double.tryParse(data[0]['lon']?.toString() ?? '');
+            if (lat != null && lon != null && lat != 0.0 && lon != 0.0) {
+              _applyTaskLocation(LatLng(lat, lon), 100);
+              return;
+            }
+          }
+        }
+      } catch (_) {}
     }
   }
 
@@ -434,8 +505,7 @@ class GoogleMapSampleState extends State<GoogleMapSample>
   void _updateUserMarker() {
     if (_userLocation == null || !mounted) return;
     setState(() {
-      // Remove existing user marker
-      _markers.removeWhere((marker) => marker.point != _taskLocation);
+      _markers.clear();
       // Re-add task marker if exists
       if (_taskLocation != null) {
         _markers.add(
