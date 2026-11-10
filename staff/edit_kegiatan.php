@@ -172,9 +172,14 @@ if (substr($nomorHP, 0, 1) === '0') $nomorHP = '62' . substr($nomorHP, 1);
         <?php include "nav-top.php"; ?>
         <div class="container-fluid py-4">
             <div class="edit-container">
+                <?php
+                $fromPage = $_GET['from'] ?? '';
+                $backUrl = ($fromPage === 'task') ? 'task.php' : 'index-sa.php';
+                ?>
                 <form method="POST" action="edit_data_kegiatan.php" id="editForm">
                     <input type="hidden" name="kode_transaksi" value="<?= htmlspecialchars($kodeTransaksi) ?>">
                     <input type="hidden" name="kegiatan_id" value="<?= $id_kegiatan ?>">
+                    <input type="hidden" name="return_to" value="<?= htmlspecialchars($backUrl) ?>">
 
                     <div class="edit-card">
                         <!-- Header -->
@@ -281,7 +286,7 @@ if (substr($nomorHP, 0, 1) === '0') $nomorHP = '62' . substr($nomorHP, 1);
 
                         <!-- Footer -->
                         <div class="edit-footer">
-                            <a href="index-sa.php" class="btn-cancel">
+                            <a href="<?= htmlspecialchars($backUrl) ?>" class="btn-cancel">
                                 <i class="material-icons" style="font-size:14px;">arrow_back</i> Batal
                             </a>
                             <button type="submit" name="update_kegiatan" class="btn-submit" onclick="return validateEdit()">

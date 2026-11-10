@@ -99,7 +99,8 @@ $sqlLog = "INSERT INTO log_aktivitas (waktu, ip_pengunjung, halaman, metode, dur
            VALUES ('$now', '-', 'Edit Kegiatan', 'Edit', 0, '$isiPesan')";
 mysqli_query($conn, $sqlLog);
 
-// Redirect back to dashboard
-header("Location: index-sa.php");
+// Redirect back to dashboard / caller page
+$returnTo = !empty($_POST['return_to']) ? $_POST['return_to'] : 'index-sa.php';
+header("Location: " . $returnTo);
 exit;
 ?>

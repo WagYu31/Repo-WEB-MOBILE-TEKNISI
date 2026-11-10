@@ -645,12 +645,12 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
 
         /* Column widths - 100% Balanced Grid */
         .col-jadwal { width: 13%; min-width: 125px; }
-        .col-customer { width: 33%; min-width: 240px; }
+        .col-customer { width: 31%; min-width: 230px; }
         .col-so { width: 9%; min-width: 85px; }
         .col-invoice { width: 14%; min-width: 120px; }
         .col-teknisi { width: 17%; min-width: 130px; }
         .col-request { width: 8%; min-width: 55px; }
-        .col-aksi { width: 6%; min-width: 40px; }
+        .col-aksi { width: 8%; min-width: 76px; }
 
         /* Compact Customer elements */
         .cust-name-link {
@@ -901,11 +901,11 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
             box-shadow: 0 2px 6px rgba(0,0,0,0.12);
         }
 
-        /* View Button */
+        /* Action Buttons */
         .btn-action-view {
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
             background: #f1f5f9;
             color: #475569;
             border: 1px solid #e2e8f0;
@@ -919,8 +919,29 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
             background: #4f46e5;
             color: #ffffff;
             border-color: #4f46e5;
-            transform: scale(1.08);
-            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(79, 70, 229, 0.25);
+        }
+
+        .btn-action-edit {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: #fffbeb;
+            color: #d97706;
+            border: 1px solid #fde68a;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            text-decoration: none !important;
+        }
+        .btn-action-edit:hover {
+            background: #f59e0b;
+            color: #ffffff;
+            border-color: #f59e0b;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3);
         }
 
         /* Empty State */
@@ -1283,9 +1304,14 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
 
                                 <!-- Aksi -->
                                 <td class="col-aksi text-center pe-3">
-                                    <a class="btn-action-view" href="view-kegiatan.php?kode_transaksi=<?= $kodeTransaksi ?>" title="Lihat Detail Kegiatan">
-                                        <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 12px;"></i>
-                                    </a>
+                                    <div class="d-inline-flex align-items-center gap-1">
+                                        <a class="btn-action-edit" href="edit_kegiatan.php?kode_transaksi=<?= $kodeTransaksi ?>&from=task" title="Edit Kegiatan">
+                                            <i class="fa-solid fa-pen-to-square" style="font-size: 11.5px;"></i>
+                                        </a>
+                                        <a class="btn-action-view" href="view-kegiatan.php?kode_transaksi=<?= $kodeTransaksi ?>" title="Lihat Detail Kegiatan">
+                                            <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 11.5px;"></i>
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                             <?php endforeach; ?>
