@@ -78,9 +78,10 @@ class LiveTrackingService {
   /// Request "Allow all the time" permission, opening settings if needed
   Future<bool> requestLocationAlways() async {
     try {
-      final status = await Permission.locationAlways.request();
-      if (status.isGranted) return true;
-      await openAppSettings();
+      final opened = await openAppSettings();
+      if (!opened) {
+        await Geolocator.openAppSettings();
+      }
       return await isLocationAlwaysGranted();
     } catch (e) {
       debugPrint('⚠️ LiveTrackingService requestLocationAlways error: $e');

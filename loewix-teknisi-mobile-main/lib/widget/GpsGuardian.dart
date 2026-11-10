@@ -17,7 +17,6 @@ class _GpsGuardianState extends State<GpsGuardian> with WidgetsBindingObserver {
   bool _isGpsDisabled = false;
   bool _isPermissionDenied = false;
   bool _isLocationAlwaysDenied = false;
-  bool _bypassLocationAlways = false;
   StreamSubscription<ServiceStatus>? _serviceStatusSubscription;
   Timer? _pollingTimer;
 
@@ -100,40 +99,16 @@ class _GpsGuardianState extends State<GpsGuardian> with WidgetsBindingObserver {
 
   Future<void> _requestLocationAlways() async {
     try {
-      final status = await Permission.locationAlways.request();
-      if (!status.isGranted) {
-        await openAppSettings();
+      final opened = await openAppSettings();
+      if (!opened) {
+        await Geolocator.openAppSettings();
       }
     } catch (_) {
-      await openAppSettings();
+      try {
+        await Geolocator.openAppSettings();
+      } catch (_) {}
     }
     await _checkGpsStatus();
-  }
-
-  void _bypassLocationAlwaysTemporarily() {
-    setState(() {
-      _bypassLocationAlways = true;
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Row(
-          children: [
-            Icon(Icons.warning_amber_rounded, color: Colors.white, size: 20),
-            SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                'Perhatian: GPS mati jika layar HP terkunci sampai izin "Sepanjang Waktu" aktif.',
-                style: TextStyle(fontFamily: 'Poppins', fontSize: 12),
-              ),
-            ),
-          ],
-        ),
-        backgroundColor: const Color(0xFFD97706),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        duration: const Duration(seconds: 4),
-      ),
-    );
   }
 
   @override
@@ -242,8 +217,8 @@ class _GpsGuardianState extends State<GpsGuardian> with WidgetsBindingObserver {
               ),
             ),
           )
-        else if (_isLocationAlwaysDenied && !_bypassLocationAlways)
-          // Blocker for "Allow All The Time" (Sepanjang Waktu)
+        else if (_isLocationAlwaysDenied)
+          // Blocker for "Allow All The Time" (Sepanjang Waktu) - TIDAK BISA DILEWATI
           Positioned.fill(
             child: PopScope(
               canPop: false,
@@ -255,13 +230,13 @@ class _GpsGuardianState extends State<GpsGuardian> with WidgetsBindingObserver {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        // Icon glowing
+                        // Icon lock & location
                         Container(
                           width: 88,
                           height: 88,
                           decoration: BoxDecoration(
                             gradient: const LinearGradient(
-                              colors: [Color(0xFFFF6B2B), Color(0xFFFF4800)],
+                              colors: [Color(0xFFEF4444), Color(0xFFFF5B22)],
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                             ),
@@ -276,26 +251,27 @@ class _GpsGuardianState extends State<GpsGuardian> with WidgetsBindingObserver {
                           ),
                           child: const Center(
                             child: Icon(
-                              Icons.all_inclusive_rounded,
-                              size: 46,
+                              Icons.lock_person_rounded,
+                              size: 44,
                               color: Colors.white,
                             ),
                           ),
                         ),
                         const SizedBox(height: 22),
                         const Text(
-                          'Izin "Sepanjang Waktu" Wajib',
+                          'Aplikasi Terkunci!\nWajib "Sepanjang Waktu"',
                           style: TextStyle(
                             fontFamily: 'Poppins',
                             fontSize: 20,
                             fontWeight: FontWeight.w700,
                             color: Colors.white,
+                            height: 1.3,
                           ),
                           textAlign: TextAlign.center,
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 10),
                         Text(
-                          'Agar pelacakan posisi dan rute tugas Anda tetap berjalan saat layar HP dikunci, mati, atau HP disimpan di kantong.',
+                          'Untuk mencegah manipulasi GPS atau lokasi mati di jalan, aplikasi Loewix mewajibkan izin lokasi "Sepanjang Waktu" sebelum dapat digunakan.',
                           style: TextStyle(
                             fontFamily: 'Poppins',
                             fontSize: 13,
@@ -334,27 +310,27 @@ class _GpsGuardianState extends State<GpsGuardian> with WidgetsBindingObserver {
                                 ],
                               ),
                               const SizedBox(height: 10),
-                              _buildStepText('1', 'Ketuk tombol "Atur Sepanjang Waktu" di bawah'),
+                              _buildStepText('1', 'Ketuk tombol "Buka Setelan HP Sekarang" di bawah'),
                               _buildStepText('2', 'Buka menu "Izin" ➔ pilih "Lokasi"'),
-                              _buildStepText('3', 'Pilih opsi: "Izinkan sepanjang waktu"'),
+                              _buildStepText('3', 'Ubah pilihan ke: "Izinkan sepanjang waktu"'),
                               _buildStepText('4', '(Disarankan) Baterai: Pilih "Tanpa Batasan"'),
                             ],
                           ),
                         ),
                         const SizedBox(height: 24),
 
-                        // Primary Button
+                        // Primary Button: Direct to phone settings
                         SizedBox(
                           width: double.infinity,
-                          height: 50,
+                          height: 52,
                           child: ElevatedButton.icon(
                             onPressed: _requestLocationAlways,
                             icon: const Icon(Icons.settings_suggest_rounded, size: 20),
                             label: const Text(
-                              'Atur "Sepanjang Waktu" Sekarang',
+                              'Buka Setelan HP Sekarang',
                               style: TextStyle(
                                 fontFamily: 'Poppins',
-                                fontSize: 14,
+                                fontSize: 14.5,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -365,20 +341,6 @@ class _GpsGuardianState extends State<GpsGuardian> with WidgetsBindingObserver {
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(14),
                               ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-
-                        // Secondary bypass for testing
-                        TextButton(
-                          onPressed: _bypassLocationAlwaysTemporarily,
-                          child: Text(
-                            'Lewati Sementara (Mode Terbatas)',
-                            style: TextStyle(
-                              fontFamily: 'Poppins',
-                              fontSize: 12.5,
-                              color: Colors.white.withValues(alpha: 0.55),
                             ),
                           ),
                         ),

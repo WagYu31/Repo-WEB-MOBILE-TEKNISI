@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class LocationAlwaysSheet extends StatelessWidget {
@@ -16,16 +17,21 @@ class LocationAlwaysSheet extends StatelessWidget {
   }
 
   Future<void> _handleConfigure(BuildContext context) async {
-    try {
-      final status = await Permission.locationAlways.request();
-      if (!status.isGranted) {
-        await openAppSettings();
-      }
-    } catch (_) {
-      await openAppSettings();
-    }
+    // 1. Tutup bottom sheet terlebih dahulu
     if (context.mounted) {
       Navigator.of(context).pop(true);
+    }
+
+    // 2. Langsung buka setelan aplikasi di HP
+    try {
+      final opened = await openAppSettings();
+      if (!opened) {
+        await Geolocator.openAppSettings();
+      }
+    } catch (_) {
+      try {
+        await Geolocator.openAppSettings();
+      } catch (_) {}
     }
   }
 
@@ -145,7 +151,7 @@ class LocationAlwaysSheet extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 10),
-                _buildStep(1, 'Ketuk tombol "Atur Sekarang" di bawah'),
+                _buildStep(1, 'Ketuk tombol "Buka Setelan HP Sekarang" di bawah'),
                 _buildStep(2, 'Masuk menu "Izin" (Permissions) ➔ "Lokasi"'),
                 _buildStep(3, 'Pilih opsi: "Izinkan sepanjang waktu" (Allow all the time)'),
                 _buildStep(4, '(Saran) Baterai: Pilih "Tanpa Batasan" (Unrestricted)'),
@@ -162,7 +168,7 @@ class LocationAlwaysSheet extends StatelessWidget {
               onPressed: () => _handleConfigure(context),
               icon: const Icon(Icons.settings_suggest_rounded, size: 20),
               label: const Text(
-                'Atur ke "Sepanjang Waktu" Sekarang',
+                'Buka Setelan HP Sekarang',
                 style: TextStyle(
                   fontFamily: 'Poppins',
                   fontSize: 14,
