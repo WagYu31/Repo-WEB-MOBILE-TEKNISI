@@ -381,38 +381,67 @@
         /* Top Floating Stats on Map */
         .map-top-bar {
             position: absolute;
-            top: 16px;
-            left: 16px;
-            right: 16px;
+            top: 18px;
+            left: 20px;
             z-index: 1000;
             display: flex;
-            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
             pointer-events: none;
         }
         .map-stats-pill {
             pointer-events: auto;
-            background: rgba(15, 23, 42, 0.9);
-            backdrop-filter: blur(8px);
+            background: rgba(15, 23, 42, 0.92);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             color: #ffffff;
-            padding: 8px 18px;
-            border-radius: 30px;
+            padding: 9px 20px;
+            border-radius: 40px;
             font-size: 12.5px;
             font-weight: 600;
             display: flex;
             align-items: center;
-            gap: 16px;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.25);
-            border: 1px solid rgba(255,255,255,0.1);
+            gap: 14px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.12);
         }
         .stat-item {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 7px;
+            font-size: 12px;
+            letter-spacing: -0.1px;
+            white-space: nowrap;
         }
         .stat-divider {
             width: 1px;
-            height: 14px;
-            background: rgba(255,255,255,0.2);
+            height: 16px;
+            background: rgba(255, 255, 255, 0.15);
+        }
+        .map-tool-btn {
+            pointer-events: auto;
+            background: rgba(15, 23, 42, 0.92);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 30px;
+            padding: 9px 15px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        .map-tool-btn:hover {
+            background: #ff5b22;
+            border-color: #ff5b22;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px rgba(255, 91, 34, 0.4);
         }
 
         /* Custom Markers */
@@ -495,20 +524,27 @@
             <div class="map-top-bar">
                 <div class="map-stats-pill">
                     <div class="stat-item">
-                        <i class="fa-solid fa-calendar-check" style="color: #38bdf8;"></i>
+                        <i class="fa-solid fa-calendar-check" style="color: #38bdf8; font-size: 13px;"></i>
                         <span id="statKegiatan">0 Kegiatan Hari Ini</span>
                     </div>
                     <div class="stat-divider"></div>
                     <div class="stat-item">
-                        <i class="fa-solid fa-users" style="color: #a78bfa;"></i>
+                        <i class="fa-solid fa-users" style="color: #a78bfa; font-size: 13px;"></i>
                         <span id="statTeknisi">0 Teknisi Terjadwal</span>
                     </div>
                     <div class="stat-divider"></div>
                     <div class="stat-item">
-                        <i class="fa-solid fa-motorcycle" style="color: #ff5b22;"></i>
+                        <i class="fa-solid fa-motorcycle" style="color: #ff5b22; font-size: 13px;"></i>
                         <span id="statOnline">0 Teknisi Online</span>
                     </div>
                 </div>
+
+                <button class="map-tool-btn" onclick="fitAllMapBounds()" title="Lihat semua titik kegiatan dan teknisi di peta">
+                    <i class="fa-solid fa-expand"></i> Reset Peta
+                </button>
+                <button class="map-tool-btn" id="btnRefresh" onclick="manualRefresh()" title="Refresh data seketika">
+                    <i class="fa-solid fa-arrows-rotate" id="refreshIcon"></i> Refresh
+                </button>
             </div>
             <div id="map"></div>
         </div>
@@ -517,8 +553,9 @@
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // Init Leaflet Map centered on Jakarta
-        const map = L.map('map').setView([-6.2088, 106.8456], 12);
+        // Init Leaflet Map with zoomControl moved to bottomright
+        const map = L.map('map', { zoomControl: false }).setView([-6.2088, 106.8456], 12);
+        L.control.zoom({ position: 'bottomright' }).addTo(map);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
@@ -824,6 +861,32 @@
             } else if (targets.length > 1) {
                 map.fitBounds(targets, { padding: [80, 80], maxZoom: 16 });
             }
+        }
+
+        // Fit all markers in view
+        function fitAllMapBounds() {
+            selectedKegiatanKode = null;
+            renderKegiatanSidebar();
+            renderMapLayers();
+
+            const allBounds = [];
+            Object.values(customerMarkers).forEach(m => allBounds.push(m.getLatLng()));
+            Object.values(teknisiMarkers).forEach(m => allBounds.push(m.getLatLng()));
+
+            if (allBounds.length > 0) {
+                map.fitBounds(allBounds, { padding: [80, 80], maxZoom: 15 });
+            } else {
+                map.setView([-6.2088, 106.8456], 12);
+            }
+        }
+
+        async function manualRefresh() {
+            const icon = document.getElementById('refreshIcon');
+            if (icon) icon.classList.add('fa-spin');
+            await fetchTrackingData();
+            setTimeout(() => {
+                if (icon) icon.classList.remove('fa-spin');
+            }, 600);
         }
 
         document.getElementById('searchInput').addEventListener('input', () => {
