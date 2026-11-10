@@ -1,6 +1,9 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:flutter_compass/flutter_compass.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
@@ -45,6 +48,11 @@ class GoogleMapSampleState extends State<GoogleMapSample>
   final List<AnimationController> _animationControllers = [];
   late final AnimationController _pulseController;
 
+  // Real-time device compass / heading tracking
+  StreamSubscription<CompassEvent>? _compassSubscription;
+  final ValueNotifier<double> _headingNotifier = ValueNotifier<double>(0.0);
+  double _smoothHeadingRad = 0.0;
+
   @override
   void initState() {
     super.initState();
@@ -53,6 +61,35 @@ class GoogleMapSampleState extends State<GoogleMapSample>
       duration: const Duration(milliseconds: 2000),
     )..repeat();
     _initializeMap();
+    _headingNotifier.value = _getTechnicianHeading();
+    _startCompassListener();
+  }
+
+  void _startCompassListener() {
+    try {
+      _compassSubscription = FlutterCompass.events?.listen((CompassEvent event) {
+        if (!mounted) return;
+        final heading = event.heading;
+        if (heading != null) {
+          final targetRad = heading * (pi / 180.0);
+
+          // Wrap-around angle handling (-pi to pi)
+          var diff = targetRad - _smoothHeadingRad;
+          while (diff < -pi) {
+            diff += 2 * pi;
+          }
+          while (diff > pi) {
+            diff -= 2 * pi;
+          }
+
+          // Smooth exponential transition
+          _smoothHeadingRad = (_smoothHeadingRad + diff * 0.75) % (2 * pi);
+          _headingNotifier.value = _smoothHeadingRad;
+        }
+      });
+    } catch (e) {
+      debugPrint('⚠️ Error starting compass listener: $e');
+    }
   }
 
   @override
@@ -116,7 +153,6 @@ class GoogleMapSampleState extends State<GoogleMapSample>
   }
 
   Widget _buildTechnicianMarkerWidget() {
-    final bearing = _getTechnicianHeading();
     return SizedBox(
       width: 80,
       height: 90,
@@ -159,16 +195,33 @@ class GoogleMapSampleState extends State<GoogleMapSample>
               ],
             ),
           ),
-          // Lego Toy Motorcycle 2D Sprite (Rotated along route)
-          Transform.rotate(
-            angle: bearing,
-            child: Image.asset(
-              'assets/lego_motorcycle.png',
-              width: 36,
-              height: 78,
-              fit: BoxFit.contain,
-              filterQuality: FilterQuality.high,
-            ),
+          // Direction Beam Cone + Lego Motorcycle (Rotated live with device compass)
+          ValueListenableBuilder<double>(
+            valueListenable: _headingNotifier,
+            builder: (context, headingAngle, _) {
+              return Transform.rotate(
+                angle: headingAngle,
+                alignment: Alignment.center,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // Flashlight beam cone (Google Maps style) pointing in phone direction
+                    CustomPaint(
+                      size: const Size(80, 90),
+                      painter: _CompassBeamPainter(),
+                    ),
+                    // Lego Toy Motorcycle 2D Sprite
+                    Image.asset(
+                      'assets/lego_motorcycle.png',
+                      width: 36,
+                      height: 78,
+                      fit: BoxFit.contain,
+                      filterQuality: FilterQuality.high,
+                    ),
+                  ],
+                ),
+              );
+            },
           ),
           // Floating "Anda" Badge (always remains upright)
           Positioned(
@@ -964,6 +1017,8 @@ class GoogleMapSampleState extends State<GoogleMapSample>
 
   @override
   void dispose() {
+    _compassSubscription?.cancel();
+    _headingNotifier.dispose();
     _pulseController.dispose();
     // Dispose semua animation controllers yang masih aktif
     for (final controller in _animationControllers) {
@@ -972,4 +1027,35 @@ class GoogleMapSampleState extends State<GoogleMapSample>
     _animationControllers.clear();
     super.dispose();
   }
+}
+
+/// Google Maps-style flashlight / radar beam pointing forward from the front of the motorcycle
+class _CompassBeamPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final paint = Paint()
+      ..shader = RadialGradient(
+        colors: [
+          const Color(0xFFFF5B22).withValues(alpha: 0.38),
+          const Color(0xFFFF5B22).withValues(alpha: 0.0),
+        ],
+        stops: const [0.2, 1.0],
+      ).createShader(Rect.fromCircle(center: center, radius: 46));
+
+    final path = ui.Path()
+      ..moveTo(center.dx, center.dy)
+      ..arcTo(
+        Rect.fromCircle(center: center, radius: 44),
+        -pi / 2 - (pi / 5), // fanning ~36 degrees left of forward
+        2 * (pi / 5),       // sweep ~72 degrees forward
+        false,
+      )
+      ..close();
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

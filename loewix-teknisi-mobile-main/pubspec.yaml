@@ -75,6 +75,7 @@ dependencies:
   tutorial_coach_mark: ^1.2.11
   flutter_local_notifications: ^18.0.1
   workmanager: ^0.5.2
+  flutter_compass: ^0.8.1
 
 flutter_launcher_icons:
   #  image_path: "assets/images/icon-128x128.png"
