@@ -486,7 +486,7 @@
         <div id="sidebar">
             <div class="sidebar-header">
                 <div style="display: flex; align-items: center; gap: 10px;">
-                    <a href="staff/index-sa.php" style="color: #94a3b8; text-decoration: none; font-size: 14px; padding: 5px 9px; border-radius: 8px; background: rgba(255,255,255,0.08); transition: all 0.2s;" title="Kembali ke Dashboard">
+                    <a href="staff/index-sa.php" target="_self" style="color: #94a3b8; text-decoration: none; font-size: 14px; padding: 5px 9px; border-radius: 8px; background: rgba(255,255,255,0.08); transition: all 0.2s;" title="Kembali ke Dashboard">
                         <i class="fa-solid fa-arrow-left"></i>
                     </a>
                     <h2><i class="fa-solid fa-map-location-dot" style="color:#ff5b22;"></i> Tracking Kegiatan</h2>

@@ -7,7 +7,7 @@ function renderNavItem($isActive, $url, $icon, $text) {
     $activeClass = $isActive ? 'active' : '';
     echo '
     <li class="nav-item">
-        <a class="nav-link ' . $activeClass . '" href="' . $url . '">
+        <a class="nav-link ' . $activeClass . '" href="' . $url . '" target="_self">
             <i class="nav-icon fa-fw ' . $icon . '"></i>
             <p>' . htmlspecialchars($text) . '</p>
         </a>
@@ -18,7 +18,7 @@ function renderSubNavItem($isActive, $url, $icon, $text) {
     $activeClass = $isActive ? 'active' : '';
     echo '
     <li class="nav-item" style="list-style: none;">
-        <a class="nav-link subnav-link ' . $activeClass . '" href="' . $url . '">
+        <a class="nav-link subnav-link ' . $activeClass . '" href="' . $url . '" target="_self">
             <i class="nav-icon fa-fw ' . $icon . '"></i>
             <span>' . htmlspecialchars($text) . '</span>
         </a>
@@ -711,20 +711,20 @@ $avatarImgPath = file_exists(__DIR__ . '/assets/img/avatar-admin.png')
     
     <div class="sidenav-footer">
         <?php if ($role == 'Super Admin') : ?>
-            <a class="nav-link <?php echo ($pageNow == "Kelola Akses Menu") ? 'active' : ''; ?>" href="<?php echo $rootPrefix; ?>kelola-akses.php">
+            <a class="nav-link <?php echo ($pageNow == "Kelola Akses Menu") ? 'active' : ''; ?>" href="<?php echo $rootPrefix; ?>kelola-akses.php" target="_self">
                  <i class="nav-icon fa-fw fa-solid fa-user-shield"></i>
                  <p>Kelola Akses Menu</p>
             </a>
         <?php endif; ?>
-        <a class="nav-link <?php echo ($pageNow == "Data Administrator") ? 'active' : ''; ?>" href="<?php echo $rootPrefix; ?>data-admin.php">
+        <a class="nav-link <?php echo ($pageNow == "Data Administrator") ? 'active' : ''; ?>" href="<?php echo $rootPrefix; ?>data-admin.php" target="_self">
              <i class="nav-icon fa-fw fa-solid fa-user"></i>
              <p>Data Admin</p>
         </a>
-        <a class="nav-link <?php echo ($pageNow == "Ganti Password") ? 'active' : ''; ?>" href="<?php echo $rootPrefix; ?>change_password.php">
+        <a class="nav-link <?php echo ($pageNow == "Ganti Password") ? 'active' : ''; ?>" href="<?php echo $rootPrefix; ?>change_password.php" target="_self">
              <i class="nav-icon fa-fw fa-solid fa-key"></i>
              <p>Ganti Password</p>
         </a>
-        <a class="nav-link" href="<?php echo $rootPrefix; ?>../logout.php">
+        <a class="nav-link" href="<?php echo $rootPrefix; ?>../logout.php" target="_self">
              <i class="nav-icon fa-fw fa-solid fa-right-from-bracket"></i>
              <p>Sign Out</p>
         </a>
