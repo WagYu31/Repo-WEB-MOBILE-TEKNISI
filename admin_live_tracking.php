@@ -332,8 +332,19 @@
                 return;
             }
 
-            listEl.innerHTML = filtered.map(tek => `
-                <div class="teknisi-card" onclick="flyToTeknisi(${tek.teknisi_id}, ${tek.latitude}, ${tek.longitude})">
+            listEl.innerHTML = filtered.map(tek => {
+                const hasPos = tek.latitude && tek.longitude && !isNaN(parseFloat(tek.latitude)) && !isNaN(parseFloat(tek.longitude));
+                const nLat = hasPos ? parseFloat(tek.latitude).toFixed(5) : '-';
+                const nLon = hasPos ? parseFloat(tek.longitude).toFixed(5) : '-';
+                const clickAttr = hasPos ? `onclick="flyToTeknisi(${tek.teknisi_id}, ${tek.latitude}, ${tek.longitude})"` : '';
+                const cardCursor = hasPos ? 'cursor: pointer;' : 'cursor: default;';
+                const posText = hasPos ? `${nLat}, ${nLon}` : 'Belum kirim GPS';
+                const focusBtn = hasPos 
+                    ? `<button class="focus-btn"><i class="fa-solid fa-crosshairs"></i> Lihat di Peta</button>` 
+                    : `<span style="font-size: 11px; color: #94a3b8; font-style: italic;">Menunggu GPS</span>`;
+
+                return `
+                <div class="teknisi-card" style="${cardCursor}" ${clickAttr}>
                     <div class="teknisi-top">
                         <span class="teknisi-name">${tek.nama || 'Teknisi #' + tek.teknisi_id}</span>
                         <span class="status-pill ${tek.is_online ? 'status-online' : 'status-offline'}">
@@ -343,14 +354,15 @@
                     <div class="teknisi-info">
                         <div><i class="fa-regular fa-clock"></i> ${formatTimeAgo(tek.last_seen_seconds)}</div>
                         <div><i class="fa-solid fa-gauge-high"></i> Kecepatan: ${tek.speed ? Math.round(parseFloat(tek.speed)) + ' km/h' : '0 km/h'}</div>
-                        <div><i class="fa-solid fa-location-dot"></i> ${parseFloat(tek.latitude).toFixed(5)}, ${parseFloat(tek.longitude).toFixed(5)}</div>
+                        <div><i class="fa-solid fa-location-dot"></i> ${posText}</div>
                     </div>
                     <div class="teknisi-actions">
                         ${tek.telp ? `<a href="https://wa.me/62${tek.telp.replace(/^0/, '')}" target="_blank" class="wa-btn"><i class="fa-brands fa-whatsapp"></i> Hubungi</a>` : '<span></span>'}
-                        <button class="focus-btn"><i class="fa-solid fa-crosshairs"></i> Lihat di Peta</button>
+                        ${focusBtn}
                     </div>
                 </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
         function flyToTeknisi(id, lat, lon) {
