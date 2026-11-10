@@ -58,19 +58,97 @@ function renderSubNavItem($isActive, $url, $icon, $text) {
         background-color: #111827 !important;
     }
 
-    /* Header */
-    #sidenav-main .sidenav-header {
-        padding: 1.25rem 1rem !important;
+    /* Top Profile Card Banner (Deep Teal - Image 2 Style) */
+    #sidenav-main .sidebar-top-card {
+        background: linear-gradient(180deg, #0e3742 0%, #11414e 55%, #13333d 100%) !important;
+        padding: 18px 16px 16px !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+        flex-shrink: 0 !important;
+        text-align: center !important;
+        position: relative !important;
+        border-top-left-radius: 0.75rem !important;
+        border-top-right-radius: 0.75rem !important;
+    }
+    #sidenav-main .sidebar-brand-area {
         display: flex !important;
         justify-content: center !important;
         align-items: center !important;
-        min-height: 60px !important;
-        border-bottom: 1px solid #374151 !important;
-        background: transparent !important;
-        flex-shrink: 0 !important;
+        margin-bottom: 12px !important;
     }
-    #sidenav-main .navbar-brand-img {
-        max-height: 2.5rem !important;
+    #sidenav-main .sidebar-brand-img {
+        max-height: 1.85rem !important;
+        width: auto !important;
+        filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.4));
+    }
+    #sidenav-main .sidebar-profile-box {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+    }
+    #sidenav-main .sidebar-avatar-wrapper {
+        position: relative !important;
+        width: 72px !important;
+        height: 72px !important;
+        margin: 0 auto 10px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    #sidenav-main .sidebar-avatar-ring {
+        position: absolute !important;
+        inset: 0 !important;
+        border-radius: 50% !important;
+        border: 2.5px solid transparent !important;
+        border-top-color: #ffffff !important;
+        border-right-color: #38bdf8 !important;
+        border-bottom-color: #38bdf8 !important;
+        filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.4));
+    }
+    #sidenav-main .sidebar-avatar-circle {
+        width: 62px !important;
+        height: 62px !important;
+        border-radius: 50% !important;
+        overflow: hidden !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35) !important;
+        border: 2px solid #0e3742 !important;
+        background: #1e3a47 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    #sidenav-main .sidebar-avatar-img {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+        display: block !important;
+    }
+    #sidenav-main .avatar-initials {
+        font-weight: 700 !important;
+        font-size: 1.15rem !important;
+        color: #ffffff !important;
+        letter-spacing: 0.5px !important;
+    }
+    #sidenav-main .sidebar-user-name {
+        color: #ffffff !important;
+        font-weight: 700 !important;
+        font-size: 0.95rem !important;
+        letter-spacing: 0.3px !important;
+        line-height: 1.25 !important;
+        margin-bottom: 2px !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        max-width: 215px !important;
+    }
+    #sidenav-main .sidebar-user-email {
+        color: #a5f3fc !important;
+        font-size: 0.72rem !important;
+        opacity: 0.8 !important;
+        letter-spacing: 0.2px !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        max-width: 215px !important;
     }
 
     /* Scrollable nav collapse */
@@ -272,12 +350,62 @@ if ($isSalesDir) {
 } else {
     include_once "menu-access-helper.php";
 }
+
+// Retrieve user info for sidebar profile banner (Image 2 style)
+$sidebarUserName = !empty($nmUser) ? $nmUser : (!empty($_SESSION['name']) ? $_SESSION['name'] : '');
+$sidebarUserRole = !empty($role) ? $role : (!empty($_SESSION['jabatan']) ? $_SESSION['jabatan'] : '');
+$sidebarUserEmail = '';
+
+if (empty($sidebarUserName) || empty($sidebarUserEmail)) {
+    if (!empty($conn) && !empty($idSesi)) {
+        $qSidebarUser = mysqli_query($conn, "SELECT name, email, jabatan FROM users WHERE id = '" . mysqli_real_escape_string($conn, $idSesi) . "' LIMIT 1");
+        if ($qSidebarUser && mysqli_num_rows($qSidebarUser) > 0) {
+            $rSUser = mysqli_fetch_assoc($qSidebarUser);
+            if (empty($sidebarUserName)) $sidebarUserName = $rSUser['name'];
+            if (empty($sidebarUserRole)) $sidebarUserRole = $rSUser['jabatan'];
+            $sidebarUserEmail = $rSUser['email'] ?? '';
+        }
+    }
+}
+
+if (empty($sidebarUserName)) $sidebarUserName = 'Super Admin';
+if (empty($sidebarUserRole)) $sidebarUserRole = 'Super Admin';
+if (empty($sidebarUserEmail)) {
+    $cleanName = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $sidebarUserName));
+    $sidebarUserEmail = $cleanName . '@jadwal.id-giti.com';
+}
+
+$nameParts = explode(' ', trim($sidebarUserName));
+$initials = (count($nameParts) >= 2) 
+    ? strtoupper(substr($nameParts[0], 0, 1) . substr($nameParts[1], 0, 1))
+    : strtoupper(substr($sidebarUserName, 0, 2));
+
+$avatarImgPath = file_exists(__DIR__ . '/assets/img/avatar-admin.png') 
+    ? $rootPrefix . 'assets/img/avatar-admin.png' 
+    : (file_exists(__DIR__ . '/assets/img/avatar-admin.jpg') ? $rootPrefix . 'assets/img/avatar-admin.jpg' : '');
 ?>
 <aside class="sidenav navbar navbar-vertical navbar-expand-xs fixed-start ms-3 my-3" id="sidenav-main">
-    <div class="sidenav-header">
-        <a class="navbar-brand m-0" href="#">
-            <img src="<?php echo $rootPrefix; ?>assets/img/logo/lwx-logo.png" class="navbar-brand-img mt-3 mb-2" style="width:auto; max-height:2.5em;" alt="main_logo">
-        </a>
+    <!-- Top Profile & Brand Card (Image 2 Style) -->
+    <div class="sidebar-top-card">
+        <div class="sidebar-brand-area">
+            <a href="<?php echo $rootPrefix; ?>index-sa.php" class="d-inline-block">
+                <img src="<?php echo $rootPrefix; ?>assets/img/logo/lwx-logo.png" class="sidebar-brand-img" alt="Loewix CCTV">
+            </a>
+        </div>
+        <div class="sidebar-profile-box">
+            <div class="sidebar-avatar-wrapper">
+                <div class="sidebar-avatar-ring"></div>
+                <div class="sidebar-avatar-circle">
+                    <?php if (!empty($avatarImgPath)): ?>
+                        <img src="<?php echo $avatarImgPath; ?>" alt="Avatar" class="sidebar-avatar-img">
+                    <?php else: ?>
+                        <span class="avatar-initials"><?php echo htmlspecialchars($initials); ?></span>
+                    <?php endif; ?>
+                </div>
+            </div>
+            <div class="sidebar-user-name" title="<?php echo htmlspecialchars($sidebarUserName); ?>"><?php echo htmlspecialchars($sidebarUserName); ?></div>
+            <div class="sidebar-user-email" title="<?php echo htmlspecialchars($sidebarUserEmail); ?>"><?php echo htmlspecialchars($sidebarUserEmail); ?></div>
+        </div>
     </div>
 
     <div class="collapse navbar-collapse w-auto" id="sidenav-collapse-main">
