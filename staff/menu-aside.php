@@ -84,35 +84,24 @@ function renderSubNavItem($isActive, $url, $icon, $text) {
         flex-direction: column !important;
         align-items: center !important;
     }
-    #sidenav-main .sidebar-avatar-wrapper {
-        position: relative !important;
-        width: 68px !important;
-        height: 68px !important;
-        margin: 0 auto 8px !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-    }
-    #sidenav-main .sidebar-avatar-ring {
-        position: absolute !important;
-        inset: 0 !important;
-        border-radius: 50% !important;
-        border: 2px solid rgba(255, 255, 255, 0.12) !important;
-        border-top-color: #3b82f6 !important;
-        border-right-color: #60a5fa !important;
-        filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.4)) !important;
-    }
     #sidenav-main .sidebar-avatar-circle {
-        width: 58px !important;
-        height: 58px !important;
+        width: 64px !important;
+        height: 64px !important;
+        margin: 0 auto 10px !important;
         border-radius: 50% !important;
         overflow: hidden !important;
+        border: 2.5px solid rgba(255, 255, 255, 0.22) !important;
         box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45) !important;
-        border: 2px solid #1e293b !important;
         background: #1e293b !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
+        transition: all 0.25s ease !important;
+    }
+    #sidenav-main .sidebar-avatar-circle:hover {
+        border-color: #3b82f6 !important;
+        box-shadow: 0 0 16px rgba(59, 130, 246, 0.5) !important;
+        transform: scale(1.04) !important;
     }
     #sidenav-main .sidebar-avatar-img {
         width: 100% !important;
@@ -404,15 +393,12 @@ $avatarImgPath = file_exists(__DIR__ . '/assets/img/avatar-admin.png')
             </a>
         </div>
         <div class="sidebar-profile-box">
-            <div class="sidebar-avatar-wrapper">
-                <div class="sidebar-avatar-ring"></div>
-                <div class="sidebar-avatar-circle">
-                    <?php if (!empty($avatarImgPath)): ?>
-                        <img src="<?php echo $avatarImgPath; ?>" alt="Avatar" class="sidebar-avatar-img">
-                    <?php else: ?>
-                        <span class="avatar-initials"><?php echo htmlspecialchars($initials); ?></span>
-                    <?php endif; ?>
-                </div>
+            <div class="sidebar-avatar-circle">
+                <?php if (!empty($avatarImgPath)): ?>
+                    <img src="<?php echo $avatarImgPath; ?>" alt="Avatar" class="sidebar-avatar-img">
+                <?php else: ?>
+                    <span class="avatar-initials"><?php echo htmlspecialchars($initials); ?></span>
+                <?php endif; ?>
             </div>
             <div class="sidebar-user-name" title="<?php echo htmlspecialchars($sidebarUserName); ?>"><?php echo htmlspecialchars($sidebarUserName); ?></div>
             <div class="sidebar-user-role-badge"><?php echo htmlspecialchars($sidebarUserRole); ?></div>
