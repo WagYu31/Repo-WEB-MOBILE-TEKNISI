@@ -23,11 +23,11 @@ header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
 // KONFIGURASI VERSI - UBAH DI SINI UNTUK FORCE UPDATE
 // ═══════════════════════════════════════════════
 $response = [
-    'min_version'     => '4.0.33',   // Versi minimum yang dibolehkan
-    'latest_version'  => '4.0.33',   // Versi terbaru yang tersedia
-    'update_url'      => 'https://jadwal.id-giti.com/staff/download/teknisi-v4.0.33-b2.apk?v=' . time(), // URL download APK (bypassing CDN cache)
-    'update_message'  => 'Versi terbaru (v4.0.33) tersedia! Menampilkan riwayat catatan & lampiran bukti admin.',
-    'force_message'   => 'Versi aplikasi Anda perlu diperbarui (v4.0.33). Silakan update ke versi terbaru untuk melihat riwayat catatan admin.',
+    'min_version'     => '4.0.34',   // Versi minimum yang dibolehkan
+    'latest_version'  => '4.0.34',   // Versi terbaru yang tersedia
+    'update_url'      => 'https://jadwal.id-giti.com/staff/download/teknisi-v4.0.34.apk?v=' . time(), // URL download APK (bypassing CDN cache)
+    'update_message'  => 'Versi terbaru (v4.0.34) tersedia! Peningkatan akurasi rute navigasi peta menuju customer.',
+    'force_message'   => 'Versi aplikasi Anda perlu diperbarui (v4.0.34). Silakan update ke versi terbaru untuk perbaikan akurasi peta.',
 ];
 
 echo json_encode($response);
