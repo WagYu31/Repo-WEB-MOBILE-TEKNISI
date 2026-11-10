@@ -18,9 +18,9 @@ function renderSubNavItem($isActive, $url, $icon, $text) {
     $activeClass = $isActive ? 'active' : '';
     echo '
     <li class="nav-item" style="list-style: none;">
-        <a class="nav-link ' . $activeClass . '" href="' . $url . '">
-            <i class="nav-icon fa-fw ' . $icon . '"></i>
-            <span>' . htmlspecialchars($text) . '</span>
+        <a class="nav-link ' . $activeClass . '" href="' . $url . '" style="padding: 0.5rem 0.75rem 0.5rem 0.85rem !important; font-size: 0.825rem !important; margin-bottom: 1px !important;">
+            <i class="nav-icon fa-fw ' . $icon . '" style="font-size: 0.8rem !important; margin-right: 0.6rem !important;"></i>
+            <span style="font-size: 0.825rem !important; font-weight: 500;">' . htmlspecialchars($text) . '</span>
         </a>
     </li>';
 }
@@ -29,12 +29,14 @@ function renderSubNavItem($isActive, $url, $icon, $text) {
 
 <style>
     /* ==========================================================
-       SIDEBAR — Modern Redesign inspired by Image 2
+       SIDEBAR — inline-level specificity via #sidenav-main ID
+       Targets ID to guarantee win over .navbar-vertical classes
        ========================================================== */
 
+    /* Container */
     #sidenav-main {
-        background: #111c2a !important;
-        background-color: #111c2a !important;
+        background: #111827 !important;
+        background-color: #111827 !important;
         background-image: none !important;
         width: 250px !important;
         max-width: 250px !important;
@@ -42,116 +44,36 @@ function renderSubNavItem($isActive, $url, $icon, $text) {
         height: calc(100vh - 2rem) !important;
         top: 1rem !important;
         border: none !important;
-        border-radius: 1.5rem !important;
-        box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.35) !important;
+        border-radius: 0.75rem !important;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1) !important;
         display: flex !important;
         flex-direction: column !important;
         overflow: hidden !important;
         padding: 0 !important;
-        z-index: 1040 !important;
     }
-
+    /* Kill bg-white that JS adds */
     #sidenav-main.bg-white,
     #sidenav-main.bg-transparent {
-        background: #111c2a !important;
-        background-color: #111c2a !important;
+        background: #111827 !important;
+        background-color: #111827 !important;
     }
 
-    /* Top Profile Card Banner (Deep Teal) */
-    #sidenav-main .sidebar-top-card {
-        background: linear-gradient(180deg, #093744 0%, #0d4452 60%, #102e38 100%) !important;
-        padding: 16px 14px 18px !important;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    /* Header */
+    #sidenav-main .sidenav-header {
+        padding: 1.25rem 1rem !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        min-height: 60px !important;
+        border-bottom: 1px solid #374151 !important;
+        background: transparent !important;
         flex-shrink: 0 !important;
-        text-align: center !important;
-        position: relative !important;
+    }
+    #sidenav-main .navbar-brand-img {
+        max-height: 2.5rem !important;
     }
 
-    #sidenav-main .sidebar-brand-area {
-        display: flex !important;
-        justify-content: center !important;
-        align-items: center !important;
-        margin-bottom: 8px !important;
-    }
-
-    #sidenav-main .sidebar-brand-img {
-        max-height: 2.2rem !important;
-        width: auto !important;
-        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.35));
-    }
-
-    #sidenav-main .sidebar-profile-box {
-        display: flex !important;
-        flex-direction: column !important;
-        align-items: center !important;
-    }
-
-    #sidenav-main .sidebar-avatar-ring {
-        width: 64px !important;
-        height: 64px !important;
-        border-radius: 50% !important;
-        padding: 3px !important;
-        background: conic-gradient(#ffffff 0deg, #38bdf8 260deg, transparent 260deg 360deg) !important;
-        box-shadow: 0 4px 15px rgba(56, 189, 248, 0.28) !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        margin-bottom: 6px !important;
-        position: relative !important;
-    }
-
-    #sidenav-main .sidebar-avatar-circle {
-        width: 100% !important;
-        height: 100% !important;
-        border-radius: 50% !important;
-        background: linear-gradient(135deg, #1b3846 0%, #0e242d 100%) !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        color: #ffffff !important;
-        border: 2px solid #0d3b46 !important;
-        overflow: hidden !important;
-    }
-
-    #sidenav-main .sidebar-avatar-img {
-        width: 100% !important;
-        height: 100% !important;
-        object-fit: cover !important;
-        border-radius: 50% !important;
-    }
-
-    #sidenav-main .avatar-initials {
-        font-weight: 700 !important;
-        font-size: 1.15rem !important;
-        color: #ffffff !important;
-        letter-spacing: 0.5px !important;
-    }
-
-    #sidenav-main .sidebar-user-name {
-        color: #ffffff !important;
-        font-weight: 700 !important;
-        font-size: 0.92rem !important;
-        letter-spacing: 0.3px !important;
-        line-height: 1.3 !important;
-        white-space: nowrap !important;
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
-        max-width: 210px !important;
-    }
-
-    #sidenav-main .sidebar-user-email {
-        color: #a5f3fc !important;
-        font-size: 0.72rem !important;
-        opacity: 0.85 !important;
-        margin-top: 1px !important;
-        letter-spacing: 0.2px !important;
-        white-space: nowrap !important;
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
-        max-width: 210px !important;
-    }
-
-    /* Scrollable Nav Collapse */
+    /* Scrollable nav collapse */
     #sidenav-main .navbar-collapse {
         display: block !important;
         flex: 1 1 0% !important;
@@ -159,218 +81,184 @@ function renderSubNavItem($isActive, $url, $icon, $text) {
         min-height: 0 !important;
         overflow-y: auto !important;
         overflow-x: hidden !important;
-        padding-top: 8px !important;
     }
-    #sidenav-main .navbar-collapse::-webkit-scrollbar { width: 4px; }
+    #sidenav-main .navbar-collapse::-webkit-scrollbar { width: 5px; }
     #sidenav-main .navbar-collapse::-webkit-scrollbar-track { background: transparent; }
-    #sidenav-main .navbar-collapse::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    #sidenav-main .navbar-collapse::-webkit-scrollbar-thumb { background: #4B5563; border-radius: 5px; }
 
-    /* Nav List */
+    /* Nav list */
     #sidenav-main .navbar-nav {
-        padding: 0.4rem 0 0.4rem 0.6rem !important;
+        padding: 0.5rem 0.75rem !important;
     }
 
+    /* Nav items */
     #sidenav-main .nav-item {
         margin: 0 !important;
-        margin-bottom: 3px !important;
+        margin-bottom: 2px !important;
         width: 100% !important;
     }
 
-    /* Inactive Nav Links */
+    /* Nav links — the most critical override */
     #sidenav-main .nav-link {
         display: flex !important;
         align-items: center !important;
-        padding: 0.58rem 0.85rem !important;
+        padding: 0.6rem 0.75rem !important;
         margin: 0 !important;
-        margin-right: 0.6rem !important;
-        border-radius: 12px !important;
-        color: #e2e8f0 !important;
+        border-radius: 0.375rem !important;
+        color: #D1D5DB !important; /* Lighter gray for better contrast */
         background: transparent !important;
         box-shadow: none !important;
         white-space: nowrap !important;
         text-overflow: ellipsis !important;
-        transition: all 0.2s ease !important;
+        transition: background 0.15s ease, color 0.15s ease !important;
         position: relative !important;
-        font-weight: 500 !important;
-        font-size: 0.86rem !important;
+        font-weight: 500 !important; /* Emphasized weight */
     }
-
     #sidenav-main .nav-link:hover {
-        background: rgba(255, 255, 255, 0.07) !important;
-        color: #ffffff !important;
-        transform: translateX(2px) !important;
+        background: #1F2937 !important;
+        color: #FFFFFF !important;
+    }
+    #sidenav-main .nav-link.active {
+        background: rgba(59, 130, 246, 0.18) !important; /* Slightly more visible background */
+        color: #FFFFFF !important;
+        font-weight: 700 !important; /* Bold active state */
+    }
+    #sidenav-main .nav-link.active::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 15%;
+        height: 70%;
+        width: 3px;
+        background: #3B82F6;
+        border-radius: 0 3px 3px 0;
+    }
+    /* Kill framework gradient backgrounds on active */
+    #sidenav-main .nav-link.active[class*="bg-gradient"] {
+        background: rgba(59, 130, 246, 0.18) !important;
     }
 
-    /* Golden/Amber icons for inactive items (Image 2 style) */
+    /* Icon */
     #sidenav-main .nav-link .nav-icon,
     #sidenav-main .nav-link > i {
-        width: 1.35rem !important;
-        min-width: 1.35rem !important;
+        width: 1.25rem !important;
+        min-width: 1.25rem !important;
         text-align: center !important;
-        margin-right: 0.65rem !important;
-        font-size: 0.92rem !important;
-        color: #f59e0b !important; /* Golden/amber */
+        margin-right: 0.625rem !important;
+        font-size: 0.9rem !important; /* Increased slightly */
+        color: inherit !important;
         line-height: 1.5 !important;
-        transition: color 0.2s ease !important;
-    }
-
-    #sidenav-main .nav-link:hover .nav-icon,
-    #sidenav-main .nav-link:hover > i {
-        color: #fde047 !important; /* Bright gold on hover */
-    }
-
-    /* Active Tab with Inverted Curve Scoop (Image 2 signature effect) */
-    #sidenav-main .nav-link.active {
-        background: #f0f2f5 !important; /* Matches body background */
-        color: #0b3846 !important;
-        font-weight: 700 !important;
-        border-radius: 26px 0 0 26px !important;
-        margin-right: 0 !important;
-        position: relative !important;
-        box-shadow: -4px 0 12px rgba(0, 0, 0, 0.08) !important;
-    }
-
-    #sidenav-main .nav-link.active .nav-icon,
-    #sidenav-main .nav-link.active > i {
-        color: #0d9488 !important; /* Deep vibrant teal */
-    }
-
-    #sidenav-main .nav-link.active p,
-    #sidenav-main .nav-link.active span {
-        color: #0b3846 !important;
-        font-weight: 700 !important;
-    }
-
-    /* Concave curve scoops on top-right and bottom-right */
-    #sidenav-main .nav-link.active::before {
-        content: "" !important;
-        position: absolute !important;
-        top: -16px !important;
-        right: 0 !important;
-        width: 16px !important;
-        height: 16px !important;
-        background: transparent !important;
-        border-bottom-right-radius: 16px !important;
-        box-shadow: 5px 5px 0 5px #f0f2f5 !important;
-        pointer-events: none !important;
-    }
-
-    #sidenav-main .nav-link.active::after {
-        content: "" !important;
-        position: absolute !important;
-        bottom: -16px !important;
-        right: 0 !important;
-        width: 16px !important;
-        height: 16px !important;
-        background: transparent !important;
-        border-top-right-radius: 16px !important;
-        box-shadow: 5px -5px 0 5px #f0f2f5 !important;
-        pointer-events: none !important;
     }
 
     /* Text */
     #sidenav-main .nav-link p,
     #sidenav-main .nav-link span {
         margin: 0 !important;
-        font-size: 0.86rem !important;
+        font-size: 0.875rem !important; /* Emphasized text size */
         color: inherit !important;
         white-space: nowrap !important;
         overflow: hidden !important;
         text-overflow: ellipsis !important;
+        opacity: 1 !important;
     }
 
     /* Section headers */
     #sidenav-main .nav-header {
         padding: 1.1rem 0.75rem 0.45rem !important;
-        font-size: 0.725rem !important;
-        font-weight: 700 !important;
-        color: #94a3b8 !important;
+        font-size: 0.725rem !important; /* Emphasized font size */
+        font-weight: 700 !important; /* Bold headers */
+        color: #9CA3AF !important; /* More readable header color */
         text-transform: uppercase !important;
         letter-spacing: 0.8px !important;
         background: transparent !important;
         list-style: none !important;
     }
 
-    /* Chevron for collapsible parent */
-    #sidenav-main .nav-link .collapse-chevron {
-        transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
-        color: #94a3b8 !important;
-        font-size: 0.72rem !important;
-    }
-    #sidenav-main .nav-link[aria-expanded="true"] .collapse-chevron {
-        transform: rotate(90deg) !important;
-        color: #38bdf8 !important;
-    }
-    #sidenav-main .nav-link[aria-expanded="true"] {
-        color: #ffffff !important;
-        background: rgba(255, 255, 255, 0.05) !important;
-        border-radius: 12px !important;
-    }
-    #sidenav-main .nav-link[data-bs-toggle="collapse"]::after {
-        display: none !important;
-        content: none !important;
-    }
-
-    /* Sub-menu styling */
-    #sidenav-main .nav-item .collapse ul {
-        border-left: 2px solid rgba(255, 255, 255, 0.08) !important;
-        margin-left: 18px !important;
-        padding-left: 6px !important;
-        margin-top: 2px !important;
-        margin-bottom: 4px !important;
-    }
-    #sidenav-main .nav-item .collapse .nav-link {
-        padding: 0.48rem 0.75rem !important;
-        font-size: 0.82rem !important;
-        color: #cbd5e1 !important;
-    }
-    #sidenav-main .nav-item .collapse .nav-link .nav-icon {
-        font-size: 0.78rem !important;
-        color: #94a3b8 !important;
-    }
-    #sidenav-main .nav-item .collapse .nav-link:hover .nav-icon {
-        color: #f59e0b !important;
-    }
-    #sidenav-main .nav-item .collapse .nav-link.active {
-        background: #f0f2f5 !important;
-        color: #0b3846 !important;
-        border-radius: 20px 0 0 20px !important;
-        margin-right: 0 !important;
-    }
-    #sidenav-main .nav-item .collapse .nav-link.active .nav-icon {
-        color: #0d9488 !important;
-    }
-
-    /* Footer Section */
+    /* Footer */
     #sidenav-main .sidenav-footer {
-        padding: 0.65rem 0.6rem !important;
-        border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+        padding: 0.75rem !important;
+        border-top: 1px solid #374151 !important;
         margin-top: auto !important;
-        background: rgba(0, 0, 0, 0.15) !important;
+        background: transparent !important;
         flex-shrink: 0 !important;
     }
     #sidenav-main .sidenav-footer .nav-link {
         display: flex !important;
         align-items: center !important;
-        padding: 0.48rem 0.75rem !important;
+        padding: 0.5rem 0.75rem !important;
+        margin: 0 !important;
         margin-bottom: 2px !important;
-        border-radius: 10px !important;
-        color: #cbd5e1 !important;
-        font-size: 0.84rem !important;
+        border-radius: 0.375rem !important;
+        color: #D1D5DB !important; /* Lighter color */
+        background: transparent !important;
+        box-shadow: none !important;
+        text-decoration: none !important;
+        white-space: nowrap !important;
+        transition: background 0.15s ease, color 0.15s ease !important;
+        font-weight: 500 !important;
     }
     #sidenav-main .sidenav-footer .nav-link:hover {
-        background: rgba(255, 255, 255, 0.08) !important;
-        color: #ffffff !important;
+        background: #1F2937 !important;
+        color: #FFFFFF !important;
     }
-    #sidenav-main .sidenav-footer .nav-link .nav-icon {
-        color: #f59e0b !important;
+    #sidenav-main .sidenav-footer .nav-link .nav-icon,
+    #sidenav-main .sidenav-footer .nav-link > i {
+        width: 1.25rem !important;
+        min-width: 1.25rem !important;
+        text-align: center !important;
+        margin-right: 0.625rem !important;
+        font-size: 0.9rem !important;
+        color: inherit !important;
     }
-    #sidenav-main .sidenav-footer .nav-link.link-signout:hover {
-        background: rgba(239, 68, 68, 0.15) !important;
-        color: #fca5a5 !important;
+    #sidenav-main .sidenav-footer .nav-link p,
+    #sidenav-main .sidenav-footer .nav-link span {
+        margin: 0 !important;
+        font-size: 0.875rem !important; /* Emphasized size */
+        color: inherit !important;
+        display: inline !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        font-weight: 500 !important;
     }
-    #sidenav-main .sidenav-footer .nav-link.link-signout:hover .nav-icon {
-        color: #ef4444 !important;
+
+    /* Kill framework text-dark/text-white overrides from JS darkMode() */
+    #sidenav-main .text-dark,
+    #sidenav-main .text-white {
+        color: inherit !important;
+    }
+
+    /* Collapsible Parent Transitions & Style */
+    #sidenav-main .nav-link .collapse-chevron {
+        transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        color: #9CA3AF !important;
+        font-size: 0.75rem !important;
+    }
+    #sidenav-main .nav-link[aria-expanded="true"] .collapse-chevron {
+        transform: rotate(90deg) !important;
+        color: #FFFFFF !important;
+    }
+    #sidenav-main .nav-link[aria-expanded="true"] {
+        color: #FFFFFF !important;
+        background: rgba(255, 255, 255, 0.03) !important;
+    }
+    
+    /* Disable default theme caret indicator */
+    #sidenav-main .nav-link[data-bs-toggle="collapse"]::after {
+        display: none !important;
+        content: none !important;
+    }
+    
+    /* Sub-menu items styling */
+    #sidenav-main .nav-item .collapse .nav-link.active::before {
+        display: none !important;
+    }
+    #sidenav-main .nav-item .collapse .nav-link.active {
+        background: rgba(59, 130, 246, 0.1) !important;
+        color: #60a5fa !important;
+        font-weight: 700 !important;
+    }
+    #sidenav-main .nav-item .collapse .nav-link.active .nav-icon {
+        color: #60a5fa !important;
     }
 </style>
 <?php
@@ -384,57 +272,12 @@ if ($isSalesDir) {
 } else {
     include_once "menu-access-helper.php";
 }
-
-// Retrieve user info for sidebar profile banner (matching Image 2)
-$sidebarUserName = !empty($nmUser) ? $nmUser : (!empty($_SESSION['name']) ? $_SESSION['name'] : '');
-$sidebarUserRole = !empty($role) ? $role : (!empty($_SESSION['jabatan']) ? $_SESSION['jabatan'] : '');
-$sidebarUserEmail = '';
-
-if (empty($sidebarUserName) || empty($sidebarUserEmail)) {
-    if (!empty($conn) && !empty($idSesi)) {
-        $qSidebarUser = mysqli_query($conn, "SELECT name, email, jabatan FROM users WHERE id = '" . mysqli_real_escape_string($conn, $idSesi) . "' LIMIT 1");
-        if ($qSidebarUser && mysqli_num_rows($qSidebarUser) > 0) {
-            $rSUser = mysqli_fetch_assoc($qSidebarUser);
-            if (empty($sidebarUserName)) $sidebarUserName = $rSUser['name'];
-            if (empty($sidebarUserRole)) $sidebarUserRole = $rSUser['jabatan'];
-            $sidebarUserEmail = $rSUser['email'] ?? '';
-        }
-    }
-}
-
-if (empty($sidebarUserName)) $sidebarUserName = 'Administrator';
-if (empty($sidebarUserRole)) $sidebarUserRole = 'Staff';
-if (empty($sidebarUserEmail)) {
-    $cleanName = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $sidebarUserName));
-    $sidebarUserEmail = $cleanName . '@loewix.id';
-}
-
-$nameParts = explode(' ', trim($sidebarUserName));
-$initials = (count($nameParts) >= 2) 
-    ? strtoupper(substr($nameParts[0], 0, 1) . substr($nameParts[1], 0, 1))
-    : strtoupper(substr($sidebarUserName, 0, 2));
 ?>
 <aside class="sidenav navbar navbar-vertical navbar-expand-xs fixed-start ms-3 my-3" id="sidenav-main">
-    <!-- Top Profile & Brand Card (Image 2 style) -->
-    <div class="sidebar-top-card">
-        <div class="sidebar-brand-area">
-            <a href="<?php echo $rootPrefix; ?>index-sa.php" class="d-inline-block">
-                <img src="<?php echo $rootPrefix; ?>assets/img/logo/lwx-logo.png" class="sidebar-brand-img" alt="Loewix CCTV">
-            </a>
-        </div>
-        <div class="sidebar-profile-box">
-            <div class="sidebar-avatar-ring">
-                <div class="sidebar-avatar-circle">
-                    <?php if (file_exists(__DIR__ . '/assets/img/user.png')): ?>
-                        <img src="<?php echo $rootPrefix; ?>assets/img/user.png" alt="Avatar" class="sidebar-avatar-img">
-                    <?php else: ?>
-                        <span class="avatar-initials"><?php echo htmlspecialchars($initials); ?></span>
-                    <?php endif; ?>
-                </div>
-            </div>
-            <div class="sidebar-user-name" title="<?php echo htmlspecialchars($sidebarUserName); ?>"><?php echo htmlspecialchars($sidebarUserName); ?></div>
-            <div class="sidebar-user-email" title="<?php echo htmlspecialchars($sidebarUserEmail); ?>"><?php echo htmlspecialchars($sidebarUserEmail); ?></div>
-        </div>
+    <div class="sidenav-header">
+        <a class="navbar-brand m-0" href="#">
+            <img src="<?php echo $rootPrefix; ?>assets/img/logo/lwx-logo.png" class="navbar-brand-img mt-3 mb-2" style="width:auto; max-height:2.5em;" alt="main_logo">
+        </a>
     </div>
 
     <div class="collapse navbar-collapse w-auto" id="sidenav-collapse-main">
@@ -681,7 +524,7 @@ $initials = (count($nameParts) >= 2)
              <i class="nav-icon fa-fw fa-solid fa-key"></i>
              <p>Ganti Password</p>
         </a>
-        <a class="nav-link link-signout" href="<?php echo $rootPrefix; ?>../logout.php">
+        <a class="nav-link" href="<?php echo $rootPrefix; ?>../logout.php">
              <i class="nav-icon fa-fw fa-solid fa-right-from-bracket"></i>
              <p>Sign Out</p>
         </a>
