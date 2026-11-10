@@ -1,8 +1,10 @@
+import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 
@@ -33,6 +35,12 @@ class GoogleMapSampleState extends State<GoogleMapSample>
   LatLng? _userLocation;
   LatLng? _taskLocation;
 
+  // Real road route coordinates from OSRM
+  List<LatLng> _roadRoutePoints = [];
+  double? _roadDistanceMeters;
+  int? _roadDurationSeconds;
+  LatLng? _lastRoutedUserLocation;
+
   // Untuk tracking animation controllers
   final List<AnimationController> _animationControllers = [];
   late final AnimationController _pulseController;
@@ -47,9 +55,19 @@ class GoogleMapSampleState extends State<GoogleMapSample>
     _initializeMap();
   }
 
-
   String _getFormattedDistance() {
     if (_userLocation == null || _taskLocation == null) return '';
+
+    // If real road routing data is available, use it!
+    if (_roadDistanceMeters != null) {
+      final km = (_roadDistanceMeters! / 1000).toStringAsFixed(1);
+      final mins = _roadDurationSeconds != null
+          ? (_roadDurationSeconds! / 60).round().clamp(1, 240)
+          : ((_roadDistanceMeters! / 1000 / 30) * 60).round().clamp(1, 240);
+      return '$km km • ~$mins mnt';
+    }
+
+    // Fallback: straight line distance
     final meters = const Distance().as(LengthUnit.Meter, _userLocation!, _taskLocation!);
     if (meters < 1000) {
       return '${meters.round()} m • ~1 mnt';
@@ -254,24 +272,93 @@ class GoogleMapSampleState extends State<GoogleMapSample>
 
   List<Polyline> _buildPolylines() {
     if (_userLocation == null || _taskLocation == null) return [];
+    final points = _roadRoutePoints.isNotEmpty
+        ? _roadRoutePoints
+        : [_userLocation!, _taskLocation!];
+
     return [
       // Glow Layer
       Polyline(
-        points: [_userLocation!, _taskLocation!],
+        points: points,
         strokeWidth: 8.0,
-        color: const Color(0xFFFF5B22).withValues(alpha: 0.3),
+        color: const Color(0xFFFF5B22).withValues(alpha: 0.25),
         strokeCap: StrokeCap.round,
+        strokeJoin: StrokeJoin.round,
       ),
-      // Core Route Line
+      // Core Road Route Line
       Polyline(
-        points: [_userLocation!, _taskLocation!],
+        points: points,
         strokeWidth: 4.5,
         color: const Color(0xFFFF5B22),
         borderColor: Colors.white,
         borderStrokeWidth: 1.5,
         strokeCap: StrokeCap.round,
+        strokeJoin: StrokeJoin.round,
       ),
     ];
+  }
+
+  /// Fetch real turn-by-turn road route via OSRM (Open Source Routing Machine)
+  Future<void> _fetchRoadRoute({bool force = false}) async {
+    if (_userLocation == null || _taskLocation == null) return;
+
+    if (!force && _lastRoutedUserLocation != null) {
+      final distMoved = const Distance().as(
+        LengthUnit.Meter,
+        _lastRoutedUserLocation!,
+        _userLocation!,
+      );
+      if (distMoved < 30 && _roadRoutePoints.isNotEmpty) {
+        return;
+      }
+    }
+
+    _lastRoutedUserLocation = _userLocation;
+
+    try {
+      final url = Uri.parse(
+        'https://router.project-osrm.org/route/v1/driving/'
+        '${_userLocation!.longitude},${_userLocation!.latitude};'
+        '${_taskLocation!.longitude},${_taskLocation!.latitude}'
+        '?overview=full&geometries=geojson',
+      );
+
+      final response = await http.get(url).timeout(const Duration(seconds: 7));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['code'] == 'Ok' && (data['routes'] as List).isNotEmpty) {
+          final route = data['routes'][0];
+          final coords = route['geometry']['coordinates'] as List;
+          final points = coords.map<LatLng>((c) {
+            final lon = (c[0] as num).toDouble();
+            final lat = (c[1] as num).toDouble();
+            return LatLng(lat, lon);
+          }).toList();
+
+          final dist = (route['distance'] as num?)?.toDouble();
+          final dur = (route['duration'] as num?)?.round();
+
+          if (mounted && points.isNotEmpty) {
+            setState(() {
+              _roadRoutePoints = points;
+              _roadDistanceMeters = dist;
+              _roadDurationSeconds = dur;
+            });
+            debugPrint('🛣️ OSRM Road Route loaded: ${points.length} road coordinates, $dist m');
+            return;
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('⚠️ Error fetching OSRM road route: $e');
+    }
+
+    // Fallback if offline/failed
+    if (mounted && _roadRoutePoints.isEmpty) {
+      setState(() {
+        _roadRoutePoints = [_userLocation!, _taskLocation!];
+      });
+    }
   }
 
   Future<void> _initializeMap() async {
@@ -289,6 +376,7 @@ class GoogleMapSampleState extends State<GoogleMapSample>
         GoogleMapSample.currentPosition = lastPosition;
         _userLocation = LatLng(lastPosition.latitude, lastPosition.longitude);
         _updateUserMarker();
+        _fetchRoadRoute();
         if (_mapReady) {
           _animatedMove(_userLocation!, 16.0);
         }
@@ -334,6 +422,10 @@ class GoogleMapSampleState extends State<GoogleMapSample>
             );
           }
         });
+
+        if (_userLocation != null) {
+          _fetchRoadRoute();
+        }
       }
     }
   }
@@ -580,7 +672,10 @@ class GoogleMapSampleState extends State<GoogleMapSample>
   void _fitBothLocations() {
     if (_userLocation == null || _taskLocation == null || !_mapReady) return;
 
-    final bounds = LatLngBounds.fromPoints([_userLocation!, _taskLocation!]);
+    final pointsToFit = _roadRoutePoints.isNotEmpty
+        ? _roadRoutePoints
+        : [_userLocation!, _taskLocation!];
+    final bounds = LatLngBounds.fromPoints(pointsToFit);
 
     // Hitung center dan geser sedikit ke atas (north) agar pas di area pandang atas bottom panel
     final centerLat = (bounds.northEast.latitude + bounds.southWest.latitude) / 2;
@@ -733,6 +828,7 @@ class GoogleMapSampleState extends State<GoogleMapSample>
       _userLocation = LatLng(position.latitude, position.longitude);
 
       _updateUserMarker();
+      _fetchRoadRoute();
       setState(() { _isLoading = false; });
 
       // Set MapsProvider ready immediately after getting position

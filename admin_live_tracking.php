@@ -786,6 +786,20 @@
                                         opacity: isSelected ? 0.9 : 0.4
                                     }).addTo(map);
                                     routePolylines.push(line);
+
+                                    // If focused, load real road routing geometry from OSRM
+                                    if (isSelected) {
+                                        fetch(`https://router.project-osrm.org/route/v1/driving/${tLon},${tLat};${cLon},${cLat}?overview=full&geometries=geojson`)
+                                            .then(r => r.json())
+                                            .then(res => {
+                                                if (res.code === 'Ok' && res.routes && res.routes.length > 0) {
+                                                    const roadCoords = res.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+                                                    line.setLatLngs(roadCoords);
+                                                    line.setStyle({ dashArray: null, weight: 4.5, opacity: 0.95 });
+                                                }
+                                            })
+                                            .catch(() => {});
+                                    }
                                 }
                             }
                         });
