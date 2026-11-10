@@ -516,7 +516,7 @@ $avatarImgPath = file_exists(__DIR__ . '/assets/img/avatar-admin.png')
             if ($role == 'Super Admin' || $role == 'Admin') {
                 // Category: Operasional
                 if ($showDashboard || $showTambahKegiatan || $showWaitingList || $showLiveTracking) {
-                    $isOperasionalActive = ($pageNow == "Dashboard" && !$isSalesDir) || ($pageNow == "Kegiatan Baru" && !$isSalesDir) || ($pageNow == "Waiting List" && !$isSalesDir);
+                    $isOperasionalActive = ($pageNow == "Dashboard" && !$isSalesDir) || ($pageNow == "Live Tracking" && !$isSalesDir) || ($pageNow == "Kegiatan Baru" && !$isSalesDir) || ($pageNow == "Waiting List" && !$isSalesDir);
                     $operasionalCollapse = $isOperasionalActive ? 'show' : '';
                     $operasionalAria = $isOperasionalActive ? 'true' : 'false';
                     $operasionalLinkClass = $isOperasionalActive ? '' : 'collapsed';
@@ -531,7 +531,7 @@ $avatarImgPath = file_exists(__DIR__ . '/assets/img/avatar-admin.png')
                             <ul class="nav flex-column sidebar-subnav">
                                 <?php
                                 if ($showDashboard) renderSubNavItem(($pageNow == "Dashboard" && !$isSalesDir), $rootPrefix . "index-sa.php", "fa-solid fa-chart-pie", "Dashboard");
-                                if ($showLiveTracking) renderSubNavItem(false, "/admin_live_tracking.php", "fa-solid fa-map-location-dot", "Live Tracking Teknisi");
+                                if ($showLiveTracking) renderSubNavItem(($pageNow == "Live Tracking" && !$isSalesDir), $rootPrefix . "live-tracking.php", "fa-solid fa-map-location-dot", "Live Tracking Teknisi");
                                 if ($showTambahKegiatan) renderSubNavItem(($pageNow == "Kegiatan Baru" && !$isSalesDir), $rootPrefix . "kegiatan-baru.php", "fa-solid fa-file-circle-plus", "Tambah Kegiatan");
                                 if ($showWaitingList) renderSubNavItem(($pageNow == "Waiting List" && !$isSalesDir), $rootPrefix . "waiting-list.php", "fa-solid fa-hourglass-half", "Waiting List");
                                 ?>
