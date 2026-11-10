@@ -566,6 +566,7 @@
         let teknisiMarkers = {};
         let routePolylines = [];
         let selectedKegiatanKode = null;
+        let hasInitialFit = false;
 
         // Icons
         function createCustomerIcon() {
@@ -827,9 +828,10 @@
                 });
             });
 
-            // Initial fit bounds if never selected
-            if (!selectedKegiatanKode && boundsList.length > 0) {
+            // Initial fit bounds only ONCE on first load so user pan & zoom are not interrupted by auto-refresh
+            if (!hasInitialFit && !selectedKegiatanKode && boundsList.length > 0) {
                 map.fitBounds(boundsList, { padding: [50, 50], maxZoom: 14 });
+                hasInitialFit = true;
             }
         }
 
