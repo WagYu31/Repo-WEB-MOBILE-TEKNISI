@@ -9,6 +9,7 @@ import '../../service/model/profile/ProfileTeknisi.dart';
 import '../../service/provider/Auth/AuthProvider.dart';
 import '../../service/provider/Profile/ProfileProvider.dart';
 import '../../service/provider/preferences/PreferencesIDProvider.dart';
+import '../../service/tracking/LiveTrackingService.dart';
 import '../Auth/LoginPage.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -28,10 +29,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   static const Color _textSecondary = Color(0xFF64748B);
 
   Future<ProfileTeknisiResponse>? _profileFuture;
+  bool _isLocationAlways = false;
 
   @override
   void initState() {
     super.initState();
+    _checkLocationAlwaysStatus();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final token = context.read<PreferencesIDProvider>().isUserRole;
@@ -39,6 +42,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _profileFuture = context.read<ProfileProvider>().getUser(token);
       });
     });
+  }
+
+  Future<void> _checkLocationAlwaysStatus() async {
+    final isAlways = await LiveTrackingService().isLocationAlwaysGranted();
+    if (mounted) {
+      setState(() {
+        _isLocationAlways = isAlways;
+      });
+    }
   }
 
   Future<void> _openWhatsAppAdmin() async {
@@ -616,6 +628,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: Column(
         children: [
           _buildMenuItem(
+            icon: Icons.my_location_rounded,
+            gradientColors: _isLocationAlways
+                ? const [Color(0xFF0D9488), Color(0xFF0F766E)]
+                : const [Color(0xFFFF6B2B), Color(0xFFFF4800)],
+            title: 'Izin Lokasi Latar Belakang',
+            subtitle: _isLocationAlways
+                ? 'Sepanjang Waktu (Aktif & Siap)'
+                : 'Belum "Sepanjang Waktu" (Ketuk untuk Ubah)',
+            trailing: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+              decoration: BoxDecoration(
+                color: _isLocationAlways ? const Color(0xFFDCFCE7) : const Color(0xFFFFEDD5),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                _isLocationAlways ? 'Aktif' : 'Perlu Diubah',
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: _isLocationAlways ? const Color(0xFF16A34A) : const Color(0xFFEA580C),
+                ),
+              ),
+            ),
+            onTap: () async {
+              await LiveTrackingService().promptLocationAlways(context);
+              await _checkLocationAlwaysStatus();
+            },
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 18),
+            child: Divider(height: 1, color: Colors.grey.withValues(alpha: 0.12)),
+          ),
+          _buildMenuItem(
             icon: Iconsax.receipt_text,
             gradientColors: const [Color(0xFF6366F1), Color(0xFF4F46E5)],
             title: 'Ajukan Reimbursement',
@@ -662,6 +708,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required String title,
     required String subtitle,
     required VoidCallback onTap,
+    Widget? trailing,
   }) {
     return InkWell(
       onTap: onTap,
@@ -715,6 +762,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ],
               ),
             ),
+            if (trailing != null) ...[
+              trailing,
+              const SizedBox(width: 8),
+            ],
             Container(
               padding: const EdgeInsets.all(7),
               decoration: BoxDecoration(

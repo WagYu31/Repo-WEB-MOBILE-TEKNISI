@@ -25,24 +25,27 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> {
 
   Future<bool> checkLocationPermission() async {
-    // Periksa status izin lokasi
+    // 1. Periksa status izin lokasi dasar
     b.PermissionStatus status = await b.Permission.location.status;
 
-    if (status.isGranted) {
-      // Izin lokasi sudah diberikan
-      return true;
-    } else if (status.isDenied) {
-      // Izin lokasi ditolak, minta izin
+    if (status.isDenied) {
       status = await b.Permission.location.request();
-      return status.isGranted;
     } else if (status.isPermanentlyDenied) {
-      // Izin lokasi ditolak secara permanen, arahkan ke pengaturan
       b.openAppSettings();
       return false;
     }
 
-    // Izin lokasi tidak diberikan
-    return false;
+    if (!status.isGranted) {
+      return false;
+    }
+
+    // 2. Minta izin lokasi "Sepanjang Waktu" (Allow all the time)
+    b.PermissionStatus alwaysStatus = await b.Permission.locationAlways.status;
+    if (!alwaysStatus.isGranted) {
+      await b.Permission.locationAlways.request();
+    }
+
+    return true;
   }
 
   Future<bool> checkLocationService() async {

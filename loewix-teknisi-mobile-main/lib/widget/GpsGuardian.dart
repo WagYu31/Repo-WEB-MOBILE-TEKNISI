@@ -16,6 +16,8 @@ class GpsGuardian extends StatefulWidget {
 class _GpsGuardianState extends State<GpsGuardian> with WidgetsBindingObserver {
   bool _isGpsDisabled = false;
   bool _isPermissionDenied = false;
+  bool _isLocationAlwaysDenied = false;
+  bool _bypassLocationAlways = false;
   StreamSubscription<ServiceStatus>? _serviceStatusSubscription;
   Timer? _pollingTimer;
 
@@ -63,11 +65,13 @@ class _GpsGuardianState extends State<GpsGuardian> with WidgetsBindingObserver {
     try {
       final isEnabled = await Geolocator.isLocationServiceEnabled();
       final permStatus = await Permission.location.status;
+      final alwaysStatus = await Permission.locationAlways.status;
 
       if (!mounted) return;
       setState(() {
         _isGpsDisabled = !isEnabled;
         _isPermissionDenied = permStatus.isDenied || permStatus.isPermanentlyDenied;
+        _isLocationAlwaysDenied = permStatus.isGranted && !alwaysStatus.isGranted;
       });
     } catch (_) {}
   }
@@ -92,6 +96,44 @@ class _GpsGuardianState extends State<GpsGuardian> with WidgetsBindingObserver {
       await openAppSettings();
     }
     _checkGpsStatus();
+  }
+
+  Future<void> _requestLocationAlways() async {
+    try {
+      final status = await Permission.locationAlways.request();
+      if (!status.isGranted) {
+        await openAppSettings();
+      }
+    } catch (_) {
+      await openAppSettings();
+    }
+    await _checkGpsStatus();
+  }
+
+  void _bypassLocationAlwaysTemporarily() {
+    setState(() {
+      _bypassLocationAlways = true;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: Colors.white, size: 20),
+            SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'Perhatian: GPS mati jika layar HP terkunci sampai izin "Sepanjang Waktu" aktif.',
+                style: TextStyle(fontFamily: 'Poppins', fontSize: 12),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: const Color(0xFFD97706),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        duration: const Duration(seconds: 4),
+      ),
+    );
   }
 
   @override
@@ -199,8 +241,197 @@ class _GpsGuardianState extends State<GpsGuardian> with WidgetsBindingObserver {
                 ),
               ),
             ),
+          )
+        else if (_isLocationAlwaysDenied && !_bypassLocationAlways)
+          // Blocker for "Allow All The Time" (Sepanjang Waktu)
+          Positioned.fill(
+            child: PopScope(
+              canPop: false,
+              child: Material(
+                color: const Color(0xFF0F172A),
+                child: SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 26),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // Icon glowing
+                        Container(
+                          width: 88,
+                          height: 88,
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFFFF6B2B), Color(0xFFFF4800)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFFFF5B22).withValues(alpha: 0.35),
+                                blurRadius: 20,
+                                offset: const Offset(0, 6),
+                              ),
+                            ],
+                          ),
+                          child: const Center(
+                            child: Icon(
+                              Icons.all_inclusive_rounded,
+                              size: 46,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 22),
+                        const Text(
+                          'Izin "Sepanjang Waktu" Wajib',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Agar pelacakan posisi dan rute tugas Anda tetap berjalan saat layar HP dikunci, mati, atau HP disimpan di kantong.',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 13,
+                            color: Colors.white.withValues(alpha: 0.8),
+                            height: 1.5,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 20),
+
+                        // Guidance box
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF1E293B),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: const Color(0xFF334155)),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Row(
+                                children: [
+                                  Icon(Icons.touch_app_rounded, color: Color(0xFF38BDF8), size: 18),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'Langkah Pengaturan:',
+                                    style: TextStyle(
+                                      fontFamily: 'Poppins',
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: Color(0xFF38BDF8),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+                              _buildStepText('1', 'Ketuk tombol "Atur Sepanjang Waktu" di bawah'),
+                              _buildStepText('2', 'Buka menu "Izin" ➔ pilih "Lokasi"'),
+                              _buildStepText('3', 'Pilih opsi: "Izinkan sepanjang waktu"'),
+                              _buildStepText('4', '(Disarankan) Baterai: Pilih "Tanpa Batasan"'),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Primary Button
+                        SizedBox(
+                          width: double.infinity,
+                          height: 50,
+                          child: ElevatedButton.icon(
+                            onPressed: _requestLocationAlways,
+                            icon: const Icon(Icons.settings_suggest_rounded, size: 20),
+                            label: const Text(
+                              'Atur "Sepanjang Waktu" Sekarang',
+                              style: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFFF5B22),
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+
+                        // Secondary bypass for testing
+                        TextButton(
+                          onPressed: _bypassLocationAlwaysTemporarily,
+                          child: Text(
+                            'Lewati Sementara (Mode Terbatas)',
+                            style: TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 12.5,
+                              color: Colors.white.withValues(alpha: 0.55),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ),
       ],
+    );
+  }
+
+  Widget _buildStepText(String step, String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 18,
+            height: 18,
+            margin: const EdgeInsets.only(top: 2, right: 8),
+            decoration: const BoxDecoration(
+              color: Color(0xFF0284C7),
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Text(
+                step,
+                style: const TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 11.5,
+                color: Colors.white.withValues(alpha: 0.85),
+                height: 1.4,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

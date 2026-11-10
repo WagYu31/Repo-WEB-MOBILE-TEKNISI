@@ -24,12 +24,15 @@ class HomePageAdmin extends StatefulWidget {
   State<HomePageAdmin> createState() => _HomePageAdminState();
 }
 
-class _HomePageAdminState extends State<HomePageAdmin> {
+class _HomePageAdminState extends State<HomePageAdmin> with WidgetsBindingObserver {
   int _currentIndex = 0;
+  bool _isLocationAlwaysGranted = true;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _checkLocationAlwaysStatus();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final idProvider = Provider.of<PreferencesIDProvider>(context, listen: false);
       await idProvider.getUserRolePreferences();
@@ -38,6 +41,28 @@ class _HomePageAdminState extends State<HomePageAdmin> {
         LiveTrackingService().startTracking(teknisiId);
       }
     });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _checkLocationAlwaysStatus();
+    }
+  }
+
+  Future<void> _checkLocationAlwaysStatus() async {
+    final isAlways = await LiveTrackingService().isLocationAlwaysGranted();
+    if (mounted && _isLocationAlwaysGranted != isAlways) {
+      setState(() {
+        _isLocationAlwaysGranted = isAlways;
+      });
+    }
   }
 
   void _onItemTapped(int index) {
@@ -578,6 +603,82 @@ class _HomePageAdminState extends State<HomePageAdmin> {
     );
   }
 
+  Widget _buildLocationAlwaysWarningBanner() {
+    return SafeArea(
+      bottom: false,
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(14, 8, 14, 4),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFFBEB),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: const Color(0xFFFDE68A), width: 1.2),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.amber.withValues(alpha: 0.12),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: InkWell(
+          onTap: () async {
+            await LiveTrackingService().promptLocationAlways(context);
+            _checkLocationAlwaysStatus();
+          },
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(7),
+                decoration: const BoxDecoration(
+                  color: Color(0xFFFEF3C7),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.warning_amber_rounded,
+                  color: Color(0xFFD97706),
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Izin Belum "Sepanjang Waktu"',
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.w700,
+                        fontSize: 12.5,
+                        color: Color(0xFF92400E),
+                      ),
+                    ),
+                    SizedBox(height: 2),
+                    Text(
+                      'Ketuk untuk ubah agar GPS tidak mati saat layar terkunci.',
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.w500,
+                        fontSize: 11,
+                        color: Color(0xFFB45309),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(
+                Icons.arrow_forward_ios_rounded,
+                color: Color(0xFFD97706),
+                size: 13,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return GpsGuardian(
@@ -599,7 +700,12 @@ class _HomePageAdminState extends State<HomePageAdmin> {
             currentIndex: _currentIndex,
             onItemTapped: _onItemTapped,
           ),
-          body: _screens[_currentIndex],
+          body: Column(
+            children: [
+              if (!_isLocationAlwaysGranted) _buildLocationAlwaysWarningBanner(),
+              Expanded(child: _screens[_currentIndex]),
+            ],
+          ),
           bottomNavigationBar: _buildBottomBar(),
         ),
       ),

@@ -1,11 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:location/location.dart' as loc;
 import 'package:permission_handler/permission_handler.dart' hide ServiceStatus;
+import '../../widget/LocationAlwaysSheet.dart';
 
 class LiveTrackingService {
   static final LiveTrackingService _instance = LiveTrackingService._internal();
@@ -63,6 +64,35 @@ class LiveTrackingService {
     debugPrint('🛑 LiveTrackingService: Stopped.');
   }
 
+  /// Check whether "Allow all the time" permission is granted
+  Future<bool> isLocationAlwaysGranted() async {
+    try {
+      final status = await Permission.locationAlways.status;
+      return status.isGranted;
+    } catch (e) {
+      debugPrint('⚠️ LiveTrackingService isLocationAlwaysGranted error: $e');
+      return false;
+    }
+  }
+
+  /// Request "Allow all the time" permission, opening settings if needed
+  Future<bool> requestLocationAlways() async {
+    try {
+      final status = await Permission.locationAlways.request();
+      if (status.isGranted) return true;
+      await openAppSettings();
+      return await isLocationAlwaysGranted();
+    } catch (e) {
+      debugPrint('⚠️ LiveTrackingService requestLocationAlways error: $e');
+      return false;
+    }
+  }
+
+  /// Show education bottom sheet to guide user to select "Sepanjang Waktu"
+  Future<bool> promptLocationAlways(BuildContext context) async {
+    return await LocationAlwaysSheet.show(context);
+  }
+
   Future<void> _ensureLocationReady() async {
     try {
       final locPlugin = loc.Location();
@@ -77,7 +107,10 @@ class LiveTrackingService {
       }
       if (permission.isGranted) {
         // Request background permission if supported
-        await Permission.locationAlways.request();
+        final alwaysStatus = await Permission.locationAlways.status;
+        if (!alwaysStatus.isGranted) {
+          await Permission.locationAlways.request();
+        }
       }
     } catch (e) {
       debugPrint('⚠️ LiveTrackingService ready check error: $e');
