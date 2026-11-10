@@ -5,6 +5,22 @@ include "get-user-data.php";
 $pageNow = "Task";
 $currentPage = "Task";
 
+// Auto-ensure no_so column in database is VARCHAR(100) to prevent truncation of long SO numbers
+$checkNoSoCol = mysqli_query($conn, "SHOW COLUMNS FROM `kegiatan` LIKE 'no_so'");
+if ($checkNoSoCol && mysqli_num_rows($checkNoSoCol) > 0) {
+    $rCol = mysqli_fetch_assoc($checkNoSoCol);
+    if (!empty($rCol['Type']) && strpos(strtolower($rCol['Type']), 'varchar(100)') === false) {
+        mysqli_query($conn, "ALTER TABLE `kegiatan` MODIFY COLUMN `no_so` VARCHAR(100) NULL DEFAULT NULL COMMENT 'Nomor Sales Order (SO)'");
+    }
+}
+$checkNoSoProg = mysqli_query($conn, "SHOW COLUMNS FROM `progress_kegiatan` LIKE 'no_so'");
+if ($checkNoSoProg && mysqli_num_rows($checkNoSoProg) > 0) {
+    $rColProg = mysqli_fetch_assoc($checkNoSoProg);
+    if (!empty($rColProg['Type']) && strpos(strtolower($rColProg['Type']), 'varchar(100)') === false) {
+        mysqli_query($conn, "ALTER TABLE `progress_kegiatan` MODIFY COLUMN `no_so` VARCHAR(100) NULL DEFAULT NULL COMMENT 'Nomor Sales Order (SO)'");
+    }
+}
+
 function shortenTechnicianName($fullName) {
     if (empty($fullName)) return '-';
     $muhammadVariants = ['Muhammad', 'Mohammed', 'Mohammad', 'Muhammed', 'Mohamed', 'Mohamad', 'Muhamad', 'Muhamed', 'Mohamud', 'Mohummad', 'Mohummed'];
@@ -645,8 +661,8 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
 
         /* Column widths - 100% Balanced Grid */
         .col-jadwal { width: 13%; min-width: 125px; }
-        .col-customer { width: 31%; min-width: 230px; }
-        .col-so { width: 9%; min-width: 85px; }
+        .col-customer { width: 26%; min-width: 210px; }
+        .col-so { width: 14%; min-width: 170px; }
         .col-invoice { width: 14%; min-width: 120px; }
         .col-teknisi { width: 17%; min-width: 130px; }
         .col-request { width: 8%; min-width: 55px; }
@@ -767,22 +783,19 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
         .so-badge-btn {
             display: inline-flex;
             align-items: center;
-            gap: 3px;
-            font-size: 10px;
+            gap: 4px;
+            font-size: 10.5px;
             font-weight: 700;
             color: #166534;
             background: #f0fdf4;
             border: 1px solid #bbf7d0;
-            padding: 2px 6px;
+            padding: 3px 8px;
             border-radius: 6px;
             letter-spacing: 0.02em;
             font-family: var(--font-mono);
             cursor: pointer;
             transition: all 0.2s ease;
-            max-width: 100%;
             white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
             line-height: 1.2;
         }
         .so-badge-btn:hover {
@@ -1243,9 +1256,9 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
                                 </td>
 
                                 <!-- No. SO -->
-                                <td class="col-so" id="cell_so_<?= $kodeTransaksi ?>">
+                                <td class="col-so text-nowrap" id="cell_so_<?= $kodeTransaksi ?>">
                                     <?php if (!empty($latest_kegiatan['no_so'])) : ?>
-                                        <button type="button" class="so-badge-btn" onclick="openInputSO('<?= $kodeTransaksi ?>', '<?= htmlspecialchars($latest_kegiatan['no_so'], ENT_QUOTES) ?>', '<?= htmlspecialchars($latest_kegiatan['nama_customer'], ENT_QUOTES) ?>')" title="Klik untuk edit No. SO">
+                                        <button type="button" class="so-badge-btn" onclick="openInputSO('<?= $kodeTransaksi ?>', '<?= htmlspecialchars($latest_kegiatan['no_so'], ENT_QUOTES) ?>', '<?= htmlspecialchars($latest_kegiatan['nama_customer'], ENT_QUOTES) ?>')" title="No. SO: <?= htmlspecialchars($latest_kegiatan['no_so'], ENT_QUOTES) ?> (Klik untuk edit)">
                                             <i class="fa-solid fa-receipt text-success"></i>
                                             <span class="so-txt"><?= htmlspecialchars($latest_kegiatan['no_so']) ?></span>
                                             <i class="fa-solid fa-pen ms-1 opacity-50" style="font-size: 7.5px;"></i>
@@ -1416,7 +1429,7 @@ if (isset($_GET['export_txt']) && $_GET['export_txt'] == '1' && !empty($groupedD
                     if (cell) {
                         if (noSO) {
                             cell.innerHTML = `
-                                <button type="button" class="so-badge-btn" onclick="openInputSO('${kode}', '${escapeHtml(noSO)}', '')" title="Klik untuk edit No. SO">
+                                <button type="button" class="so-badge-btn" onclick="openInputSO('${kode}', '${escapeHtml(noSO)}', '')" title="No. SO: ${escapeHtml(noSO)} (Klik untuk edit)">
                                     <i class="fa-solid fa-receipt text-success"></i>
                                     <span class="so-txt">${escapeHtml(noSO)}</span>
                                     <i class="fa-solid fa-pen ms-1 opacity-50" style="font-size: 7.5px;"></i>
