@@ -4,6 +4,22 @@ include "session.php";
 include "get-user-data.php";
 $pageNow = "Data Customer";
 
+// Auto-ensure no_so column in database is VARCHAR(100) to prevent truncation of long SO numbers
+$checkNoSoCol = mysqli_query($conn, "SHOW COLUMNS FROM `kegiatan` LIKE 'no_so'");
+if ($checkNoSoCol && mysqli_num_rows($checkNoSoCol) > 0) {
+    $rCol = mysqli_fetch_assoc($checkNoSoCol);
+    if (!empty($rCol['Type']) && strpos(strtolower($rCol['Type']), 'varchar(100)') === false) {
+        mysqli_query($conn, "ALTER TABLE `kegiatan` MODIFY COLUMN `no_so` VARCHAR(100) NULL DEFAULT NULL COMMENT 'Nomor Sales Order (SO)'");
+    }
+}
+$checkNoSoProg = mysqli_query($conn, "SHOW COLUMNS FROM `progress_kegiatan` LIKE 'no_so'");
+if ($checkNoSoProg && mysqli_num_rows($checkNoSoProg) > 0) {
+    $rColProg = mysqli_fetch_assoc($checkNoSoProg);
+    if (!empty($rColProg['Type']) && strpos(strtolower($rColProg['Type']), 'varchar(100)') === false) {
+        mysqli_query($conn, "ALTER TABLE `progress_kegiatan` MODIFY COLUMN `no_so` VARCHAR(100) NULL DEFAULT NULL COMMENT 'Nomor Sales Order (SO)'");
+    }
+}
+
 $customer_id = $_GET["id_cust"] ?? 0;
 if (!filter_var($customer_id, FILTER_VALIDATE_INT) || $customer_id <= 0) {
     die("ID Customer tidak valid.");
@@ -13,6 +29,7 @@ $sql = "SELECT
             k.id AS kegiatan_id, k.kode AS kegiatan_kode, k.kegiatan AS jenis_kegiatan, 
             k.jadwal AS jadwal_kegiatan, k.keterangan AS keterangan_kegiatan, k.lunas,
             k.invoice AS kegiatan_invoice, k.paid AS kegiatan_paid, k.catatan_admin,
+            COALESCE(NULLIF(k.no_so, ''), pk_so.no_so) AS no_so,
             c.nama AS customer_name,
             (SELECT no_invoice FROM pendapatan_kegiatan WHERE kode = k.kode LIMIT 1) as no_invoice,
             (SELECT nominal_invoice FROM pendapatan_kegiatan WHERE kode = k.kode LIMIT 1) as nominal_invoice,
@@ -26,6 +43,12 @@ $sql = "SELECT
             WHERE deleted_at IS NULL 
             GROUP BY customer_id, kode
         ) latest ON k.id = latest.max_id AND k.customer_id = latest.customer_id
+        LEFT JOIN (
+            SELECT kode, MAX(no_so) AS no_so
+            FROM progress_kegiatan
+            WHERE no_so IS NOT NULL AND no_so != ''
+            GROUP BY kode
+        ) pk_so ON k.kode = pk_so.kode
         LEFT JOIN customer c ON k.customer_id = c.id
         LEFT JOIN (
             SELECT p1.* FROM pelaksanaan_kegiatan p1
@@ -60,6 +83,7 @@ while ($row = $result->fetch_assoc()) {
                 'nominal_invoice' => $row['nominal_invoice'], 'lunas' => $row['lunas'],
                 'invoice' => $row['kegiatan_invoice'], 'paid' => $row['kegiatan_paid'],
                 'catatan_admin' => $row['catatan_admin'],
+                'no_so' => $row['no_so'],
                 'id' => $row['kegiatan_id']
             ], 'pelaksanaan' => []
         ];
@@ -78,6 +102,52 @@ $stmt->close();
     <title>Riwayat Pelanggan - <?= htmlspecialchars($customerName) ?></title>
     <?php include "head.php"; ?>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+        .so-badge-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #166534;
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            padding: 3px 8px;
+            border-radius: 6px;
+            letter-spacing: 0.02em;
+            font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            line-height: 1.2;
+        }
+        .so-badge-btn:hover {
+            background: #dcfce7;
+            border-color: #86efac;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(22, 101, 52, 0.12);
+        }
+        .btn-so-add {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 10.5px;
+            font-weight: 600;
+            color: #64748b;
+            background: #f8fafc;
+            border: 1px dashed #cbd5e1;
+            padding: 3px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            line-height: 1.2;
+        }
+        .btn-so-add:hover {
+            background: #f1f5f9;
+            color: #0f172a;
+            border-color: #94a3b8;
+        }
+    </style>
 </head>
 <body class="g-sidenav-show bg-gray-200">
     <?php include "cek-menu.php"; ?>
@@ -90,7 +160,7 @@ $stmt->close();
                         <div class="card-body">
                             <div class="row align-items-center">
                                 <div class="col-md-6"><h5 class="mb-1 text-uppercase">Riwayat Kegiatan</h5><p class="text-sm mb-md-0"><strong><?= htmlspecialchars($customerName) ?></strong></p></div>
-                                <div class="col-md-6"><div class="input-group"><span class="input-group-text text-body"><i class="fas fa-search me-2" aria-hidden="true"></i></span><input type="text" id="searchInput" class="form-control p-2 border" placeholder="Cari kegiatan, teknisi, atau catatan..."></div></div>
+                                <div class="col-md-6"><div class="input-group"><span class="input-group-text text-body"><i class="fas fa-search me-2" aria-hidden="true"></i></span><input type="text" id="searchInput" class="form-control p-2 border" placeholder="Cari kegiatan, no. SO, teknisi, atau catatan..."></div></div>
                             </div>
                         </div>
                     </div>
@@ -101,7 +171,19 @@ $stmt->close();
                             <?php foreach ($grouped_activities as $kode => $activity): ?>
                                 <div class="card mb-4 activity-card">
                                     <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                                        <div><h6 class="mb-0 text-dark text-capitalize"><i class="fa-solid fa-bolt text-primary me-2"></i><?= htmlspecialchars($activity['info']['jenis']) ?></h6><span class="text-xs text-muted"><?= date("d M Y", strtotime($activity['info']['jadwal'])) ?> (<?= htmlspecialchars($kode) ?>)</span></div>
+                                        <div>
+                                            <h6 class="mb-0 text-dark text-capitalize d-flex align-items-center flex-wrap gap-2">
+                                                <span><i class="fa-solid fa-bolt text-primary me-2"></i><?= htmlspecialchars($activity['info']['jenis']) ?></span>
+                                                <span id="header_so_<?= htmlspecialchars($kode) ?>">
+                                                    <?php if (!empty($activity['info']['no_so'])): ?>
+                                                        <span class="badge" style="background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;font-family:monospace;font-size:11px;font-weight:700;letter-spacing:0.02em;padding:3px 8px;">
+                                                            <i class="fa-solid fa-receipt me-1"></i><?= htmlspecialchars($activity['info']['no_so']) ?>
+                                                        </span>
+                                                    <?php endif; ?>
+                                                </span>
+                                            </h6>
+                                            <span class="text-xs text-muted"><?= date("d M Y", strtotime($activity['info']['jadwal'])) ?> (<?= htmlspecialchars($kode) ?>)</span>
+                                        </div>
                                         <a href="view-kegiatan.php?kode_transaksi=<?= htmlspecialchars($kode) ?>" target="_blank" class="btn btn-sm btn-outline-info mb-0">Lihat Detail Kegiatan</a>
                                     </div>
                                     <div class="card-body">
@@ -110,6 +192,23 @@ $stmt->close();
                                                 <h6 class="font-weight-bolder">Ringkasan</h6><p class="text-sm text-muted"><?= !empty($activity['info']['keterangan']) ? nl2br(htmlspecialchars($activity['info']['keterangan'])) : 'Tidak ada keterangan umum.' ?></p>
                                                 <hr class="horizontal dark my-2">
                                                 <h6 class="font-weight-bolder">Informasi Keuangan</h6>
+                                                
+                                                <p class="text-sm mb-1 d-flex align-items-center flex-wrap">
+                                                    <strong class="me-1">No. SO:</strong>
+                                                    <span id="wrap_so_<?= htmlspecialchars($kode) ?>">
+                                                        <?php if (!empty($activity['info']['no_so'])): ?>
+                                                            <button type="button" class="so-badge-btn" onclick="openInputSO('<?= htmlspecialchars($kode) ?>', '<?= htmlspecialchars($activity['info']['no_so'], ENT_QUOTES) ?>', '<?= htmlspecialchars($customerName, ENT_QUOTES) ?>')" title="Klik untuk edit No. SO">
+                                                                <i class="fa-solid fa-receipt text-success me-1"></i>
+                                                                <span class="so-txt" id="txt_so_<?= htmlspecialchars($kode) ?>"><?= htmlspecialchars($activity['info']['no_so']) ?></span>
+                                                                <i class="fa-solid fa-pen ms-1 opacity-50" style="font-size: 8px;"></i>
+                                                            </button>
+                                                        <?php else: ?>
+                                                            <button type="button" class="btn-so-add" onclick="openInputSO('<?= htmlspecialchars($kode) ?>', '', '<?= htmlspecialchars($customerName, ENT_QUOTES) ?>')" title="Input Nomor SO">
+                                                                <i class="fa-solid fa-plus"></i> Input SO
+                                                            </button>
+                                                        <?php endif; ?>
+                                                    </span>
+                                                </p>
                                                 <?php if(!empty($activity['info']['no_invoice'])): ?>
                                                     <p class="text-sm mb-1"><strong>No. Invoice:</strong> <?= htmlspecialchars($activity['info']['no_invoice']) ?></p>
                                                     <p class="text-sm mb-1"><strong>Nominal:</strong> <span class="font-weight-bold text-success">Rp <?= number_format($activity['info']['nominal_invoice'], 0, ',', '.') ?></span></p>
@@ -187,12 +286,146 @@ $stmt->close();
                     </div>
                 </div>
             </div>
+
+            <!-- Modal Input / Edit No SO -->
+            <div class="modal fade" id="modalInputSO" tabindex="-1" aria-labelledby="modalInputSOLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
+                    <div class="modal-content" style="border-radius: 20px; border: 1px solid #e2e8f0; box-shadow: 0 10px 30px rgba(0,0,0,0.1); overflow: hidden;">
+                        <div class="modal-header pb-0 border-0 pt-4 px-4 d-flex align-items-center justify-content-between">
+                            <div>
+                                <h6 class="modal-title fw-bold text-dark mb-0" id="modalInputSOLabel">
+                                    <i class="fa-solid fa-receipt text-success me-2"></i>Nomor SO (Sales Order)
+                                </h6>
+                                <small class="text-secondary text-xxs" id="modalSOCustName"></small>
+                            </div>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <form id="formInputSO" onsubmit="submitSOForm(event)">
+                            <div class="modal-body px-4 py-3">
+                                <input type="hidden" id="soKodeInput" name="kode">
+                                
+                                <div class="mb-2">
+                                    <label class="form-label fw-bold text-xs text-secondary text-uppercase mb-1">Nomor Sales Order (SO)</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-end-0 rounded-start-3"><i class="fa-solid fa-hashtag text-muted"></i></span>
+                                        <input type="text" class="form-control rounded-end-3" id="soNumberInput" name="no_so" placeholder="Contoh: 2608.SOL.06406" autocomplete="off" style="font-family: monospace; font-size: 13px; font-weight: 700;">
+                                    </div>
+                                    <div class="form-text text-xxs text-muted mt-1">Kosongkan jika ingin menghapus nomor SO.</div>
+                                </div>
+                            </div>
+                            <div class="modal-footer border-0 pt-0 px-4 pb-4 gap-2">
+                                <button type="button" class="btn btn-sm btn-light rounded-3 fw-bold px-3 py-2 text-xs" data-bs-dismiss="modal">Batal</button>
+                                <button type="submit" class="btn btn-sm btn-primary rounded-3 fw-bold px-4 py-2 text-xs shadow-sm" id="btnSaveSO">
+                                    <i class="fa-solid fa-check me-1"></i> Simpan
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
             <?php include "footer.php"; ?>
         </div>
     </main>
     <?php include "js-include.php"; ?>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    function openInputSO(kode, currentSO, custName) {
+        document.getElementById('soKodeInput').value = kode;
+        document.getElementById('soNumberInput').value = currentSO || '';
+        document.getElementById('modalSOCustName').textContent = custName ? 'Customer: ' + custName + ' (#' + kode + ')' : '#' + kode;
+        
+        const modalEl = document.getElementById('modalInputSO');
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modal.show();
+        
+        setTimeout(() => {
+            const input = document.getElementById('soNumberInput');
+            input.focus();
+            input.select();
+        }, 400);
+    }
+
+    function submitSOForm(e) {
+        e.preventDefault();
+        const kode = document.getElementById('soKodeInput').value;
+        const noSO = document.getElementById('soNumberInput').value.trim();
+        const btn = document.getElementById('btnSaveSO');
+        const originalHtml = btn.innerHTML;
+        
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Menyimpan...';
+        
+        const formData = new FormData();
+        formData.append('kode', kode);
+        formData.append('no_so', noSO);
+        
+        fetch('ajax-update-so.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(r => r.json())
+        .then(res => {
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+            
+            if (res.status === 'success') {
+                const wrap = document.getElementById('wrap_so_' + kode);
+                if (wrap) {
+                    if (noSO) {
+                        wrap.innerHTML = `
+                            <button type="button" class="so-badge-btn" onclick="openInputSO('${kode}', '${escapeHtml(noSO)}', '')" title="Klik untuk edit No. SO">
+                                <i class="fa-solid fa-receipt text-success me-1"></i>
+                                <span class="so-txt" id="txt_so_${kode}">${escapeHtml(noSO)}</span>
+                                <i class="fa-solid fa-pen ms-1 opacity-50" style="font-size: 8px;"></i>
+                            </button>
+                        `;
+                    } else {
+                        wrap.innerHTML = `
+                            <button type="button" class="btn-so-add" onclick="openInputSO('${kode}', '', '')" title="Input Nomor SO">
+                                <i class="fa-solid fa-plus"></i> Input SO
+                            </button>
+                        `;
+                    }
+                }
+
+                const headerWrap = document.getElementById('header_so_' + kode);
+                if (headerWrap) {
+                    if (noSO) {
+                        headerWrap.innerHTML = `
+                            <span class="badge" style="background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;font-family:monospace;font-size:11px;font-weight:700;letter-spacing:0.02em;padding:3px 8px;">
+                                <i class="fa-solid fa-receipt me-1"></i>${escapeHtml(noSO)}
+                            </span>
+                        `;
+                    } else {
+                        headerWrap.innerHTML = '';
+                    }
+                }
+                
+                const modalEl = document.getElementById('modalInputSO');
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+            } else {
+                alert(res.message || 'Terjadi kesalahan');
+            }
+        })
+        .catch(err => {
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+            alert('Gagal menghubungi server: ' + err.message);
+        });
+    }
+
     $(document).ready(function() {
         $('#searchInput').on('keyup', function() {
             let searchTerm = $(this).val().toLowerCase();
