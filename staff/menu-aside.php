@@ -58,16 +58,15 @@ function renderSubNavItem($isActive, $url, $icon, $text) {
         background-color: #111827 !important;
     }
 
-    /* Top Profile Card Banner (Deep Teal - Image 2 Style) */
+    /* Top Profile Card Banner - Unified Seamless Dark */
     #sidenav-main .sidebar-top-card {
-        background: linear-gradient(180deg, #0e3742 0%, #11414e 55%, #13333d 100%) !important;
-        padding: 18px 16px 16px !important;
+        background: transparent !important;
+        padding: 1.25rem 1rem 1rem !important;
         border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
         flex-shrink: 0 !important;
         text-align: center !important;
         position: relative !important;
-        border-top-left-radius: 0.75rem !important;
-        border-top-right-radius: 0.75rem !important;
+        width: 100% !important;
     }
     #sidenav-main .sidebar-brand-area {
         display: flex !important;
@@ -76,9 +75,9 @@ function renderSubNavItem($isActive, $url, $icon, $text) {
         margin-bottom: 12px !important;
     }
     #sidenav-main .sidebar-brand-img {
-        max-height: 1.85rem !important;
+        max-height: 2rem !important;
         width: auto !important;
-        filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.4));
+        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
     }
     #sidenav-main .sidebar-profile-box {
         display: flex !important;
@@ -87,9 +86,9 @@ function renderSubNavItem($isActive, $url, $icon, $text) {
     }
     #sidenav-main .sidebar-avatar-wrapper {
         position: relative !important;
-        width: 72px !important;
-        height: 72px !important;
-        margin: 0 auto 10px !important;
+        width: 68px !important;
+        height: 68px !important;
+        margin: 0 auto 8px !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
@@ -98,20 +97,19 @@ function renderSubNavItem($isActive, $url, $icon, $text) {
         position: absolute !important;
         inset: 0 !important;
         border-radius: 50% !important;
-        border: 2.5px solid transparent !important;
-        border-top-color: #ffffff !important;
-        border-right-color: #38bdf8 !important;
-        border-bottom-color: #38bdf8 !important;
-        filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.4));
+        border: 2px solid rgba(255, 255, 255, 0.12) !important;
+        border-top-color: #3b82f6 !important;
+        border-right-color: #60a5fa !important;
+        filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.4)) !important;
     }
     #sidenav-main .sidebar-avatar-circle {
-        width: 62px !important;
-        height: 62px !important;
+        width: 58px !important;
+        height: 58px !important;
         border-radius: 50% !important;
         overflow: hidden !important;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35) !important;
-        border: 2px solid #0e3742 !important;
-        background: #1e3a47 !important;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45) !important;
+        border: 2px solid #1e293b !important;
+        background: #1e293b !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
@@ -131,19 +129,32 @@ function renderSubNavItem($isActive, $url, $icon, $text) {
     #sidenav-main .sidebar-user-name {
         color: #ffffff !important;
         font-weight: 700 !important;
-        font-size: 0.95rem !important;
-        letter-spacing: 0.3px !important;
-        line-height: 1.25 !important;
-        margin-bottom: 2px !important;
+        font-size: 0.92rem !important;
+        letter-spacing: 0.25px !important;
+        line-height: 1.3 !important;
+        margin-top: 2px !important;
+        margin-bottom: 3px !important;
         white-space: nowrap !important;
         overflow: hidden !important;
         text-overflow: ellipsis !important;
         max-width: 215px !important;
     }
+    #sidenav-main .sidebar-user-role-badge {
+        display: inline-block !important;
+        padding: 2px 9px !important;
+        border-radius: 12px !important;
+        font-size: 0.65rem !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.5px !important;
+        text-transform: uppercase !important;
+        background: rgba(59, 130, 246, 0.15) !important;
+        color: #60a5fa !important;
+        border: 1px solid rgba(59, 130, 246, 0.3) !important;
+        margin-bottom: 3px !important;
+    }
     #sidenav-main .sidebar-user-email {
-        color: #a5f3fc !important;
+        color: #9ca3af !important;
         font-size: 0.72rem !important;
-        opacity: 0.8 !important;
         letter-spacing: 0.2px !important;
         white-space: nowrap !important;
         overflow: hidden !important;
@@ -404,6 +415,7 @@ $avatarImgPath = file_exists(__DIR__ . '/assets/img/avatar-admin.png')
                 </div>
             </div>
             <div class="sidebar-user-name" title="<?php echo htmlspecialchars($sidebarUserName); ?>"><?php echo htmlspecialchars($sidebarUserName); ?></div>
+            <div class="sidebar-user-role-badge"><?php echo htmlspecialchars($sidebarUserRole); ?></div>
             <div class="sidebar-user-email" title="<?php echo htmlspecialchars($sidebarUserEmail); ?>"><?php echo htmlspecialchars($sidebarUserEmail); ?></div>
         </div>
     </div>
