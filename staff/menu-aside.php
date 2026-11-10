@@ -18,9 +18,9 @@ function renderSubNavItem($isActive, $url, $icon, $text) {
     $activeClass = $isActive ? 'active' : '';
     echo '
     <li class="nav-item" style="list-style: none;">
-        <a class="nav-link ' . $activeClass . '" href="' . $url . '" style="padding: 0.5rem 0.75rem 0.5rem 0.85rem !important; font-size: 0.825rem !important; margin-bottom: 1px !important;">
-            <i class="nav-icon fa-fw ' . $icon . '" style="font-size: 0.8rem !important; margin-right: 0.6rem !important;"></i>
-            <span style="font-size: 0.825rem !important; font-weight: 500;">' . htmlspecialchars($text) . '</span>
+        <a class="nav-link subnav-link ' . $activeClass . '" href="' . $url . '">
+            <i class="nav-icon fa-fw ' . $icon . '"></i>
+            <span>' . htmlspecialchars($text) . '</span>
         </a>
     </li>';
 }
@@ -166,7 +166,8 @@ function renderSubNavItem($isActive, $url, $icon, $text) {
 
     /* Nav list */
     #sidenav-main .navbar-nav {
-        padding: 0.5rem 0.75rem !important;
+        padding: 0.5rem 0 0.5rem 0 !important;
+        width: 100% !important;
     }
 
     /* Nav items */
@@ -174,21 +175,22 @@ function renderSubNavItem($isActive, $url, $icon, $text) {
         margin: 0 !important;
         margin-bottom: 2px !important;
         width: 100% !important;
+        position: relative !important;
     }
 
-    /* Nav links — the most critical override */
+    /* Base nav links (Inactive state) */
     #sidenav-main .nav-link {
         display: flex !important;
         align-items: center !important;
-        padding: 0.6rem 0.75rem !important;
-        margin: 0 !important;
-        border-radius: 0.375rem !important;
+        padding: 0.55rem 0.85rem !important;
+        margin: 1px 12px 1px 10px !important;
+        border-radius: 8px !important;
         color: #D1D5DB !important; /* Lighter gray for better contrast */
         background: transparent !important;
         box-shadow: none !important;
         white-space: nowrap !important;
         text-overflow: ellipsis !important;
-        transition: background 0.15s ease, color 0.15s ease !important;
+        transition: all 0.15s ease !important;
         position: relative !important;
         font-weight: 500 !important; /* Emphasized weight */
     }
@@ -196,24 +198,110 @@ function renderSubNavItem($isActive, $url, $icon, $text) {
         background: #1F2937 !important;
         color: #FFFFFF !important;
     }
-    #sidenav-main .nav-link.active {
-        background: rgba(59, 130, 246, 0.18) !important; /* Slightly more visible background */
+
+    /* Sub-menu container inside collapse */
+    #sidenav-main .sidebar-subnav {
+        margin: 2px 0 4px 0 !important;
+        padding: 0 !important;
+        list-style: none !important;
+        width: 100% !important;
+    }
+
+    /* Inactive sub-menu link */
+    #sidenav-main .sidebar-subnav .nav-link {
+        padding: 0.48rem 0.85rem 0.48rem 2rem !important;
+        font-size: 0.825rem !important;
+        color: #9CA3AF !important;
+        margin: 1px 12px 1px 10px !important;
+        border-radius: 8px !important;
+    }
+    #sidenav-main .sidebar-subnav .nav-link:hover {
         color: #FFFFFF !important;
-        font-weight: 700 !important; /* Bold active state */
+        background: #1F2937 !important;
     }
-    #sidenav-main .nav-link.active::before {
-        content: "";
-        position: absolute;
-        left: 0;
-        top: 15%;
-        height: 70%;
-        width: 3px;
-        background: #3B82F6;
-        border-radius: 0 3px 3px 0;
+    #sidenav-main .sidebar-subnav .nav-link .nav-icon {
+        font-size: 0.8rem !important;
+        margin-right: 0.65rem !important;
+        color: inherit !important;
     }
+
+    /* ========================================================
+       ACTIVE TAB: Inverted Curved Notch Tab (Gambar 2 Signature Style)
+       ======================================================== */
+    #sidenav-main .nav-link.active,
+    #sidenav-main .sidebar-subnav .nav-link.active,
+    #sidenav-main .sidenav-footer .nav-link.active {
+        background: #f0f2f5 !important; /* Matches main page background */
+        color: #111827 !important;
+        font-weight: 700 !important;
+        border-radius: 26px 0 0 26px !important;
+        margin-left: 10px !important;
+        margin-right: 0 !important;
+        padding: 0.58rem 0.85rem 0.58rem 1.15rem !important;
+        position: relative !important;
+        z-index: 10 !important;
+        box-shadow: none !important;
+    }
+    #sidenav-main .sidebar-subnav .nav-link.active {
+        padding-left: 1.85rem !important;
+    }
+    #sidenav-main .nav-link.active:hover {
+        background: #f0f2f5 !important;
+        color: #111827 !important;
+    }
+
+    /* Active Icon & Typography */
+    #sidenav-main .nav-link.active .nav-icon,
+    #sidenav-main .nav-link.active > i,
+    #sidenav-main .sidebar-subnav .nav-link.active .nav-icon,
+    #sidenav-main .sidebar-subnav .nav-link.active > i {
+        color: #0d9488 !important; /* Deep teal/cyan accent from Gambar 2 */
+        font-size: 0.95rem !important;
+    }
+    #sidenav-main .sidebar-subnav .nav-link.active .nav-icon {
+        font-size: 0.88rem !important;
+    }
+    #sidenav-main .nav-link.active p,
+    #sidenav-main .nav-link.active span,
+    #sidenav-main .sidebar-subnav .nav-link.active p,
+    #sidenav-main .sidebar-subnav .nav-link.active span {
+        color: #111827 !important;
+        font-weight: 700 !important;
+    }
+
+    /* Top-Right Inverted Curve Scoop */
+    #sidenav-main .nav-link.active::before,
+    #sidenav-main .sidebar-subnav .nav-link.active::before,
+    #sidenav-main .sidenav-footer .nav-link.active::before {
+        content: "" !important;
+        position: absolute !important;
+        top: -16px !important;
+        right: 0 !important;
+        width: 16px !important;
+        height: 16px !important;
+        background: radial-gradient(circle 16px at 0 0, transparent 15.5px, #f0f2f5 16px) !important;
+        pointer-events: none !important;
+        z-index: 10 !important;
+    }
+
+    /* Bottom-Right Inverted Curve Scoop */
+    #sidenav-main .nav-link.active::after,
+    #sidenav-main .sidebar-subnav .nav-link.active::after,
+    #sidenav-main .sidenav-footer .nav-link.active::after {
+        content: "" !important;
+        position: absolute !important;
+        bottom: -16px !important;
+        right: 0 !important;
+        width: 16px !important;
+        height: 16px !important;
+        background: radial-gradient(circle 16px at 0 16px, transparent 15.5px, #f0f2f5 16px) !important;
+        pointer-events: none !important;
+        z-index: 10 !important;
+    }
+
     /* Kill framework gradient backgrounds on active */
     #sidenav-main .nav-link.active[class*="bg-gradient"] {
-        background: rgba(59, 130, 246, 0.18) !important;
+        background: #f0f2f5 !important;
     }
 
     /* Icon */
@@ -223,7 +311,7 @@ function renderSubNavItem($isActive, $url, $icon, $text) {
         min-width: 1.25rem !important;
         text-align: center !important;
         margin-right: 0.625rem !important;
-        font-size: 0.9rem !important; /* Increased slightly */
+        font-size: 0.9rem !important;
         color: inherit !important;
         line-height: 1.5 !important;
     }
@@ -232,7 +320,7 @@ function renderSubNavItem($isActive, $url, $icon, $text) {
     #sidenav-main .nav-link p,
     #sidenav-main .nav-link span {
         margin: 0 !important;
-        font-size: 0.875rem !important; /* Emphasized text size */
+        font-size: 0.875rem !important;
         color: inherit !important;
         white-space: nowrap !important;
         overflow: hidden !important;
@@ -243,9 +331,9 @@ function renderSubNavItem($isActive, $url, $icon, $text) {
     /* Section headers */
     #sidenav-main .nav-header {
         padding: 1.1rem 0.75rem 0.45rem !important;
-        font-size: 0.725rem !important; /* Emphasized font size */
-        font-weight: 700 !important; /* Bold headers */
-        color: #9CA3AF !important; /* More readable header color */
+        font-size: 0.725rem !important;
+        font-weight: 700 !important;
+        color: #9CA3AF !important;
         text-transform: uppercase !important;
         letter-spacing: 0.8px !important;
         background: transparent !important;
@@ -254,8 +342,8 @@ function renderSubNavItem($isActive, $url, $icon, $text) {
 
     /* Footer */
     #sidenav-main .sidenav-footer {
-        padding: 0.75rem !important;
-        border-top: 1px solid #374151 !important;
+        padding: 0.65rem 0 !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
         margin-top: auto !important;
         background: transparent !important;
         flex-shrink: 0 !important;
@@ -263,16 +351,15 @@ function renderSubNavItem($isActive, $url, $icon, $text) {
     #sidenav-main .sidenav-footer .nav-link {
         display: flex !important;
         align-items: center !important;
-        padding: 0.5rem 0.75rem !important;
-        margin: 0 !important;
-        margin-bottom: 2px !important;
-        border-radius: 0.375rem !important;
-        color: #D1D5DB !important; /* Lighter color */
+        padding: 0.5rem 0.85rem !important;
+        margin: 1px 12px 1px 10px !important;
+        border-radius: 8px !important;
+        color: #D1D5DB !important;
         background: transparent !important;
         box-shadow: none !important;
         text-decoration: none !important;
         white-space: nowrap !important;
-        transition: background 0.15s ease, color 0.15s ease !important;
+        transition: all 0.15s ease !important;
         font-weight: 500 !important;
     }
     #sidenav-main .sidenav-footer .nav-link:hover {
@@ -291,7 +378,7 @@ function renderSubNavItem($isActive, $url, $icon, $text) {
     #sidenav-main .sidenav-footer .nav-link p,
     #sidenav-main .sidenav-footer .nav-link span {
         margin: 0 !important;
-        font-size: 0.875rem !important; /* Emphasized size */
+        font-size: 0.875rem !important;
         color: inherit !important;
         display: inline !important;
         opacity: 1 !important;
@@ -324,19 +411,6 @@ function renderSubNavItem($isActive, $url, $icon, $text) {
     #sidenav-main .nav-link[data-bs-toggle="collapse"]::after {
         display: none !important;
         content: none !important;
-    }
-    
-    /* Sub-menu items styling */
-    #sidenav-main .nav-item .collapse .nav-link.active::before {
-        display: none !important;
-    }
-    #sidenav-main .nav-item .collapse .nav-link.active {
-        background: rgba(59, 130, 246, 0.1) !important;
-        color: #60a5fa !important;
-        font-weight: 700 !important;
-    }
-    #sidenav-main .nav-item .collapse .nav-link.active .nav-icon {
-        color: #60a5fa !important;
     }
 </style>
 <?php
@@ -454,7 +528,7 @@ $avatarImgPath = file_exists(__DIR__ . '/assets/img/avatar-admin.png')
                             <i class="collapse-chevron fa-solid fa-chevron-right ms-auto"></i>
                         </a>
                         <div class="collapse <?php echo $operasionalCollapse; ?>" id="collapseOperasional">
-                            <ul class="nav flex-column ms-3 ps-2" style="border-left: 1.5px solid #374151; margin-left: 18px; padding-left: 8px;">
+                            <ul class="nav flex-column sidebar-subnav">
                                 <?php
                                 if ($showDashboard) renderSubNavItem(($pageNow == "Dashboard" && !$isSalesDir), $rootPrefix . "index-sa.php", "fa-solid fa-chart-pie", "Dashboard");
                                 if ($showLiveTracking) renderSubNavItem(false, "/admin_live_tracking.php", "fa-solid fa-map-location-dot", "Live Tracking Teknisi");
@@ -481,7 +555,7 @@ $avatarImgPath = file_exists(__DIR__ . '/assets/img/avatar-admin.png')
                             <i class="collapse-chevron fa-solid fa-chevron-right ms-auto"></i>
                         </a>
                         <div class="collapse <?php echo $laporanCollapse; ?>" id="collapseLaporan">
-                            <ul class="nav flex-column ms-3 ps-2" style="border-left: 1.5px solid #374151; margin-left: 18px; padding-left: 8px;">
+                            <ul class="nav flex-column sidebar-subnav">
                                 <?php
                                 if ($showKegiatanTeknisi) renderSubNavItem(($pageNow == "Task" && !$isSalesDir), $rootPrefix . "task.php", "fa-solid fa-person-digging", "Kegiatan Teknisi");
                                 if ($showLaporanKegiatan) renderSubNavItem(($pageNow == "Laporan" && !$isSalesDir), $rootPrefix . "lap-kegiatan.php", "fa-solid fa-file-invoice", "Laporan Kegiatan");
@@ -509,7 +583,7 @@ $avatarImgPath = file_exists(__DIR__ . '/assets/img/avatar-admin.png')
                             <i class="collapse-chevron fa-solid fa-chevron-right ms-auto"></i>
                         </a>
                         <div class="collapse <?php echo $asetCollapse; ?>" id="collapseAset">
-                            <ul class="nav flex-column ms-3 ps-2" style="border-left: 1.5px solid #374151; margin-left: 18px; padding-left: 8px;">
+                            <ul class="nav flex-column sidebar-subnav">
                                 <?php
                                 if ($showStokBarang) renderSubNavItem(($pageNow == "Inventory" && !$isSalesDir), $rootPrefix . "inventory.php", "fa-solid fa-box", "Stok Barang");
                                 if ($showPeminjaman) renderSubNavItem(($pageNow == "Peminjaman" && !$isSalesDir), $rootPrefix . "peminjaman.php", "fa-solid fa-right-left", "Peminjaman");
@@ -535,7 +609,7 @@ $avatarImgPath = file_exists(__DIR__ . '/assets/img/avatar-admin.png')
                             <i class="collapse-chevron fa-solid fa-chevron-right ms-auto"></i>
                         </a>
                         <div class="collapse <?php echo $masterCollapse; ?>" id="collapseMaster">
-                            <ul class="nav flex-column ms-3 ps-2" style="border-left: 1.5px solid #374151; margin-left: 18px; padding-left: 8px;">
+                            <ul class="nav flex-column sidebar-subnav">
                                 <?php
                                 if ($showTeknisi) renderSubNavItem(($pageNow == "Data Teknisi" && !$isSalesDir), $rootPrefix . "data-teknisi.php", "fa-solid fa-users-gear", "Teknisi");
                                 if ($showCustomer) renderSubNavItem(($pageNow == "Data Customer" && !$isSalesDir), $rootPrefix . "customer.php", "fa-solid fa-users", "Customer");
@@ -560,7 +634,7 @@ $avatarImgPath = file_exists(__DIR__ . '/assets/img/avatar-admin.png')
                             <i class="collapse-chevron fa-solid fa-chevron-right ms-auto"></i>
                         </a>
                         <div class="collapse <?php echo $salesCollapse; ?>" id="collapseSales">
-                            <ul class="nav flex-column ms-3 ps-2" style="border-left: 1.5px solid #374151; margin-left: 18px; padding-left: 8px;">
+                            <ul class="nav flex-column sidebar-subnav">
                                 <?php
                                 if ($showDashboardSales) renderSubNavItem(($pageNow == "Dashboard Sales" || ($pageNow == "Dashboard" && $isSalesDir)), $salesPrefix . "index-sa.php", "fa-solid fa-gauge-high", "Dashboard Sales");
                                 if ($showJadwalKunjungan) renderSubNavItem(($pageNow == "Kegiatan Baru" && $isSalesDir), $salesPrefix . "kegiatan-baru.php", "fa-solid fa-map-location-dot", "Jadwal Kunjungan");
@@ -590,7 +664,7 @@ $avatarImgPath = file_exists(__DIR__ . '/assets/img/avatar-admin.png')
                             <i class="collapse-chevron fa-solid fa-chevron-right ms-auto"></i>
                         </a>
                         <div class="collapse <?php echo $salesStaffCollapse; ?>" id="collapseSalesStaff">
-                            <ul class="nav flex-column ms-3 ps-2" style="border-left: 1.5px solid #374151; margin-left: 18px; padding-left: 8px;">
+                            <ul class="nav flex-column sidebar-subnav">
                                 <?php
                                 if ($showDashboardSales) renderSubNavItem(($pageNow == "Dashboard Sales" || ($pageNow == "Dashboard" && $isSalesDir)), $salesPrefix . "index-sa.php", "fa-solid fa-gauge-high", "Dashboard");
                                 if ($showKegiatanSaya) renderSubNavItem(($pageNow == "Kegiatan Saya" && $isSalesDir), $salesPrefix . "sales/index.php", "fa-solid fa-user-check", "Kegiatan Saya");
@@ -620,7 +694,7 @@ $avatarImgPath = file_exists(__DIR__ . '/assets/img/avatar-admin.png')
                             <i class="collapse-chevron fa-solid fa-chevron-right ms-auto"></i>
                         </a>
                         <div class="collapse <?php echo $teknisiStaffCollapse; ?>" id="collapseTeknisiStaff">
-                            <ul class="nav flex-column ms-3 ps-2" style="border-left: 1.5px solid #374151; margin-left: 18px; padding-left: 8px;">
+                            <ul class="nav flex-column sidebar-subnav">
                                 <?php
                                 if ($showDashboardTeknisi) renderSubNavItem(($pageNow == "Dashboard Teknisi" && !$isSalesDir), $rootPrefix . "index-sales.php", "fa-solid fa-chart-pie", "Dashboard Teknisi");
                                 if ($showBuatRequest) renderSubNavItem(($pageNow == "Kegiatan Baru" && !$isSalesDir), $rootPrefix . "kegiatan-baru.php", "fa-solid fa-bell-concierge", "Buat Request");
@@ -637,16 +711,16 @@ $avatarImgPath = file_exists(__DIR__ . '/assets/img/avatar-admin.png')
     
     <div class="sidenav-footer">
         <?php if ($role == 'Super Admin') : ?>
-            <a class="nav-link" href="<?php echo $rootPrefix; ?>kelola-akses.php">
+            <a class="nav-link <?php echo ($pageNow == "Kelola Akses Menu") ? 'active' : ''; ?>" href="<?php echo $rootPrefix; ?>kelola-akses.php">
                  <i class="nav-icon fa-fw fa-solid fa-user-shield"></i>
                  <p>Kelola Akses Menu</p>
             </a>
         <?php endif; ?>
-        <a class="nav-link" href="<?php echo $rootPrefix; ?>data-admin.php">
+        <a class="nav-link <?php echo ($pageNow == "Data Administrator") ? 'active' : ''; ?>" href="<?php echo $rootPrefix; ?>data-admin.php">
              <i class="nav-icon fa-fw fa-solid fa-user"></i>
              <p>Data Admin</p>
         </a>
-        <a class="nav-link" href="<?php echo $rootPrefix; ?>change_password.php">
+        <a class="nav-link <?php echo ($pageNow == "Ganti Password") ? 'active' : ''; ?>" href="<?php echo $rootPrefix; ?>change_password.php">
              <i class="nav-icon fa-fw fa-solid fa-key"></i>
              <p>Ganti Password</p>
         </a>
