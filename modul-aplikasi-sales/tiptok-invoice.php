@@ -17,6 +17,12 @@ if ($chkSC && $chkSC->num_rows > 0) {
     $hasSalesCustomer = true;
 }
 
+// Auto-ensure no_so column in tiptok_kunjungan
+$chkColSo = @$conn->query("SHOW COLUMNS FROM `tiptok_kunjungan` LIKE 'no_so'");
+if ($chkColSo && $chkColSo->num_rows == 0) {
+    @$conn->query("ALTER TABLE `tiptok_kunjungan` ADD COLUMN `no_so` VARCHAR(100) NULL AFTER `no_inv`");
+}
+
 // Initial counts for PHP preload
 $whereSales = ($role === 'Sales') ? " AND (p.id_sales = '$idSesi' OR k.id_sales = '$idSesi') " : "";
 $qInitStats = $conn->query("SELECT 
@@ -149,51 +155,70 @@ if ($qDealersPreload) {
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
 
     <style>
+        /* ═════════════════════════════════════════════════════════
+           MINIMALIST EDITORIAL & WARM MONOCHROME DESIGN SYSTEM
+           Refined, quiet luxury UI with muted spot pastels
+           ═════════════════════════════════════════════════════════ */
         :root {
             --font-main: 'Plus Jakarta Sans', sans-serif;
-            --font-heading: 'Outfit', sans-serif;
-            --primary-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            --accent-blue: #2563eb;
-            --accent-emerald: #059669;
-            --accent-amber: #d97706;
-            --accent-rose: #e11d48;
-            --card-radius: 16px;
+            --font-heading: 'Plus Jakarta Sans', sans-serif;
+            --card-radius: 12px;
+            --bg-canvas: #f8fafc;
+            --surface-card: #ffffff;
+            --border-subtle: #e2e8f0;
+            --border-hover: #cbd5e1;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+
+            /* Muted Spot Pastels (Quiet Luxury) */
+            --pastel-green-bg: #edf3ec;
+            --pastel-green-text: #2d5a27;
+            --pastel-green-border: #d1e7dd;
+
+            --pastel-red-bg: #fdebec;
+            --pastel-red-text: #8f2d2a;
+            --pastel-red-border: #f8d7da;
+
+            --pastel-amber-bg: #fdf6e2;
+            --pastel-amber-text: #855d00;
+            --pastel-amber-border: #ffebaa;
+
+            --pastel-blue-bg: #e1f3fe;
+            --pastel-blue-text: #1e5c8a;
+            --pastel-blue-border: #bee5eb;
+
+            --pastel-slate-bg: #f1f5f9;
+            --pastel-slate-text: #475569;
+            --pastel-slate-border: #e2e8f0;
         }
 
         body {
-            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
-            color: #0f172a;
+            font-family: var(--font-main);
+            background: var(--bg-canvas);
+            color: var(--text-primary);
+            letter-spacing: -0.01em;
             min-height: 100vh;
         }
 
         /* Hero Banner */
         .hero-banner-invoice {
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            background: #0f172a;
             border-radius: var(--card-radius);
-            padding: 26px 30px;
+            padding: 24px 28px;
             color: #ffffff;
-            box-shadow: 0 12px 30px -10px rgba(15, 23, 42, 0.4);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
             position: relative;
-            overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            margin-bottom: 24px;
+            border: 1px solid #1e293b;
+            margin-bottom: 20px;
         }
         .hero-banner-invoice::before {
-            content: '';
-            position: absolute;
-            top: -60px;
-            right: -60px;
-            width: 240px;
-            height: 240px;
-            background: radial-gradient(circle, rgba(14, 165, 233, 0.25) 0%, rgba(14, 165, 233, 0) 70%);
-            border-radius: 50%;
-            pointer-events: none;
+            display: none !important;
         }
 
         .hero-title {
             font-family: var(--font-heading);
-            font-size: 26px;
+            font-size: 24px;
             font-weight: 800;
             letter-spacing: -0.02em;
             margin-bottom: 4px;
@@ -204,93 +229,104 @@ if ($qDealersPreload) {
             font-size: 13.5px;
             color: #94a3b8;
             margin-bottom: 0;
-            font-weight: 500;
+            font-weight: 400;
+            max-width: 650px;
+            line-height: 1.5;
         }
 
-        /* Metric Bento Cards */
+        /* Metric Bento Cards (Warm Minimalist) */
         .metric-card-inv {
-            background: #ffffff;
+            background: #ffffff !important;
             border-radius: var(--card-radius);
-            padding: 20px 22px;
-            border: 1.5px solid #e2e8f0;
-            box-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.04);
-            transition: all 0.2s ease;
+            padding: 18px 20px;
+            border: 1px solid #e2e8f0 !important;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
             position: relative;
-            overflow: hidden;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             height: 100%;
         }
         .metric-card-inv:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 22px -5px rgba(0, 0, 0, 0.08);
+            border-color: #cbd5e1 !important;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
         }
 
         .metric-card-inv .metric-icon-box {
-            width: 44px;
-            height: 44px;
-            border-radius: 12px;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
-            margin-bottom: 12px;
+            font-size: 15px;
+            margin-bottom: 10px;
+            background: #f8fafc !important;
+            color: #475569 !important;
+            border: 1px solid #e2e8f0;
+            box-shadow: none !important;
         }
 
         .metric-card-inv .metric-value {
             font-family: var(--font-heading);
-            font-size: 26px;
-            font-weight: 900;
-            line-height: 1.1;
+            font-size: 24px;
+            font-weight: 800;
+            line-height: 1.15;
             margin-bottom: 2px;
+            color: #0f172a !important;
+            letter-spacing: -0.02em;
         }
         .metric-card-inv .metric-label {
-            font-size: 12.5px;
+            font-size: 11.5px;
             font-weight: 700;
             color: #64748b;
             text-transform: uppercase;
             letter-spacing: 0.04em;
         }
 
-        .theme-blue .metric-icon-box { background: rgba(37, 99, 235, 0.12); color: #2563eb; }
-        .theme-blue .metric-value { color: #1e40af; }
+        .theme-blue .metric-icon-box,
+        .theme-amber .metric-icon-box,
+        .theme-emerald .metric-icon-box,
+        .theme-purple .metric-icon-box {
+            background: #f8fafc !important;
+            color: #475569 !important;
+        }
 
-        .theme-amber .metric-icon-box { background: rgba(217, 119, 6, 0.12); color: #d97706; }
-        .theme-amber .metric-value { color: #b45309; }
-
-        .theme-emerald .metric-icon-box { background: rgba(5, 150, 105, 0.12); color: #059669; }
-        .theme-emerald .metric-value { color: #047857; }
-
-        .theme-purple .metric-icon-box { background: rgba(147, 51, 234, 0.12); color: #9333ea; }
-        .theme-purple .metric-value { color: #7e22ce; }
+        .theme-blue .metric-value,
+        .theme-amber .metric-value,
+        .theme-emerald .metric-value,
+        .theme-purple .metric-value {
+            color: #0f172a !important;
+        }
 
         /* Filter Controls */
         .filter-panel-card {
             background: #ffffff;
             border-radius: var(--card-radius);
-            padding: 18px 24px;
-            border: 1.5px solid #e2e8f0;
-            box-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.03);
-            margin-bottom: 20px;
+            padding: 16px 20px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+            margin-bottom: 18px;
         }
 
         .segment-filter-group {
             display: inline-flex;
-            background: #f1f5f9;
+            background: #ffffff;
             padding: 4px;
-            border-radius: 12px;
+            border-radius: 10px;
             gap: 4px;
             border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
         }
 
         .segment-btn {
-            border: none;
+            border: 1px solid transparent;
             background: transparent;
             padding: 7px 14px;
-            border-radius: 8px;
-            font-size: 12.5px;
-            font-weight: 800;
+            border-radius: 7px;
+            font-size: 13px;
+            font-weight: 600;
             color: #64748b;
             cursor: pointer;
             transition: all 0.15s ease;
@@ -300,12 +336,17 @@ if ($qDealersPreload) {
             white-space: nowrap !important;
         }
         .segment-btn:hover {
+            background: #f8fafc;
             color: #0f172a;
         }
         .segment-btn.active {
-            background: #ffffff;
-            color: #0f172a;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            background: #0f172a !important;
+            color: #ffffff !important;
+            border-color: #0f172a !important;
+            box-shadow: none !important;
+        }
+        .segment-btn.active i {
+            color: #ffffff !important;
         }
 
         /* Search input */
@@ -318,40 +359,43 @@ if ($qDealersPreload) {
             top: 50%;
             transform: translateY(-50%);
             color: #94a3b8;
-            font-size: 14px;
+            font-size: 13.5px;
+            pointer-events: none;
         }
         .search-input-box input {
             padding-left: 38px;
-            border-radius: 12px;
-            border: 2px solid #cbd5e1;
+            border-radius: 9px;
+            border: 1px solid #e2e8f0;
             font-size: 13.5px;
-            font-weight: 600;
+            font-weight: 500;
             color: #0f172a;
-            height: 42px;
+            height: 40px;
+            transition: all 0.15s ease;
+            box-shadow: none;
         }
         .search-input-box input:focus {
-            border-color: var(--accent-blue);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+            border-color: #0f172a;
+            box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.06);
             outline: none;
         }
 
         /* Batch Action Floating Bar */
         .batch-action-bar {
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            border-radius: 14px;
+            background: #0f172a;
+            border-radius: 12px;
             padding: 12px 20px;
             color: #ffffff;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.3);
+            box-shadow: 0 4px 15px -3px rgba(15, 23, 42, 0.15);
             margin-bottom: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            animation: slideDown 0.2s ease-out;
+            border: 1px solid #1e293b;
+            animation: slideDown 0.15s ease-out;
         }
 
         @keyframes slideDown {
-            from { opacity: 0; transform: translateY(-8px); }
+            from { opacity: 0; transform: translateY(-6px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
@@ -359,8 +403,8 @@ if ($qDealersPreload) {
         .data-card-inv {
             background: #ffffff;
             border-radius: var(--card-radius);
-            border: 1.5px solid #e2e8f0;
-            box-shadow: 0 6px 20px -4px rgba(0, 0, 0, 0.04);
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
             overflow: hidden;
         }
 
@@ -371,14 +415,14 @@ if ($qDealersPreload) {
             border-spacing: 0;
         }
         .table-invoice thead th {
-            background: #f8fafc;
-            color: #475569;
+            background: #0f172a;
+            color: #ffffff;
             font-size: 11.5px;
-            font-weight: 800;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
-            padding: 14px 16px;
-            border-bottom: 2px solid #e2e8f0;
+            letter-spacing: 0.04em;
+            padding: 13px 16px;
+            border-bottom: 1px solid #1e293b;
             white-space: nowrap;
         }
         .table-invoice tbody td {
@@ -386,7 +430,7 @@ if ($qDealersPreload) {
             vertical-align: top !important;
             border-bottom: 1px solid #f1f5f9;
             font-size: 13px;
-            color: #1e293b;
+            color: #0f172a;
         }
         .table-invoice tbody tr:hover td {
             background-color: #f8fafc;
@@ -394,26 +438,39 @@ if ($qDealersPreload) {
 
         /* Badges */
         .badge-pending-inv {
-            background: #fef3c7;
-            color: #b45309;
-            border: 1.5px solid #fde68a;
-            padding: 4px 8px;
-            border-radius: 7px;
+            background: var(--pastel-amber-bg);
+            color: var(--pastel-amber-text);
+            border: 1px solid var(--pastel-amber-border);
+            padding: 2px 7px;
+            border-radius: 5px;
             font-size: 11px;
-            font-weight: 800;
+            font-weight: 600;
             display: inline-flex;
             align-items: center;
             gap: 4px;
             white-space: nowrap !important;
         }
         .badge-verified-inv {
-            background: #ecfdf5;
-            color: #047857;
-            border: 1.5px solid #a7f3d0;
-            padding: 4px 8px;
-            border-radius: 7px;
-            font-size: 11.5px;
-            font-weight: 800;
+            background: var(--pastel-green-bg);
+            color: var(--pastel-green-text);
+            border: 1px solid var(--pastel-green-border);
+            padding: 2px 7px;
+            border-radius: 5px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap !important;
+        }
+        .badge-so-inv {
+            background: var(--pastel-slate-bg);
+            color: var(--pastel-slate-text);
+            border: 1px solid var(--pastel-slate-border);
+            padding: 2px 7px;
+            border-radius: 5px;
+            font-size: 11px;
+            font-weight: 600;
             display: inline-flex;
             align-items: center;
             gap: 4px;
@@ -422,298 +479,297 @@ if ($qDealersPreload) {
 
         /* Buttons */
         .btn-brand-primary {
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            color: #ffffff;
-            border: none;
-            border-radius: 10px;
+            background: #0f172a;
+            color: #ffffff !important;
+            border: 1px solid #0f172a;
+            border-radius: 8px;
             padding: 8px 16px;
             font-size: 13px;
-            font-weight: 800;
+            font-weight: 600;
             display: inline-flex;
             align-items: center;
             gap: 6px;
             transition: all 0.15s ease;
-            box-shadow: 0 2px 6px rgba(15, 23, 42, 0.15);
+            box-shadow: none;
             text-decoration: none;
+            cursor: pointer;
         }
         .btn-brand-primary:hover {
-            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-            color: #ffffff;
-            transform: translateY(-1px);
+            background: #334155;
+            border-color: #334155;
+            color: #ffffff !important;
         }
 
         .btn-brand-amber {
-            background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
-            color: #ffffff;
-            border: none;
-            border-radius: 8px;
-            padding: 6px 12px;
-            font-size: 12px;
-            font-weight: 800;
+            background: #0f172a;
+            color: #ffffff !important;
+            border: 1px solid #0f172a;
+            border-radius: 6px;
+            padding: 4px 10px;
+            font-size: 11.5px;
+            font-weight: 600;
             display: inline-flex;
             align-items: center;
-            gap: 5px;
+            gap: 4px;
             cursor: pointer;
             transition: all 0.15s;
             white-space: nowrap !important;
+            box-shadow: none;
         }
         .btn-brand-amber:hover {
-            background: linear-gradient(135deg, #b45309 0%, #92400e 100%);
-            color: #ffffff;
+            background: #334155;
+            border-color: #334155;
+            color: #ffffff !important;
         }
 
         .btn-brand-secondary {
             background: #ffffff;
-            color: #334155;
-            border: 1.5px solid #cbd5e1;
-            border-radius: 8px;
-            padding: 6px 12px;
-            font-size: 12px;
-            font-weight: 800;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 4px 10px;
+            font-size: 11.5px;
+            font-weight: 600;
             display: inline-flex;
             align-items: center;
-            gap: 5px;
+            gap: 4px;
             cursor: pointer;
             transition: all 0.15s;
         }
         .btn-brand-secondary:hover {
-            background: #f1f5f9;
+            background: #f8fafc;
             color: #0f172a;
+            border-color: #cbd5e1;
         }
 
         /* Form Inputs in Modal */
         .form-label-taste {
-            font-size: 12.5px;
-            font-weight: 800;
+            font-size: 11px;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: #1e293b;
-            margin-bottom: 6px;
+            letter-spacing: 0.04em;
+            color: #475569;
+            margin-bottom: 5px;
             display: block;
         }
         .form-control-taste {
-            border: 2px solid #cbd5e1;
-            border-radius: 12px;
-            padding: 9px 14px;
-            font-size: 14px;
-            font-weight: 600;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 13px;
+            font-weight: 500;
             color: #0f172a;
             transition: border-color 0.15s, box-shadow 0.15s;
             background-color: #ffffff;
         }
         .form-control-taste:focus {
-            border-color: var(--accent-blue);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
+            border-color: #0f172a;
+            box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.06);
             outline: none;
         }
 
         /* ------------------------------------------------------------- */
-        /* CLEAN MODERN SALES PILL CHIPS (taste-skill aligned)           */
+        /* CLEAN MODERN SALES PILL CHIPS                                 */
         /* ------------------------------------------------------------- */
         .sales-chips-bar {
             display: flex;
             align-items: center;
             gap: 8px;
             overflow-x: auto;
-            padding: 4px 2px 14px 2px;
-            margin-bottom: 12px;
+            padding: 4px 2px 12px 2px;
+            margin-bottom: 10px;
             scrollbar-width: thin;
         }
         .sales-chip-btn {
             background: #ffffff;
-            border: 1.5px solid #e2e8f0;
-            border-radius: 30px;
-            padding: 6px 14px;
-            font-size: 13px;
-            font-weight: 700;
-            color: #334155;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            padding: 5px 12px;
+            font-size: 12.5px;
+            font-weight: 600;
+            color: #475569;
             cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: all 0.15s ease;
             display: inline-flex;
             align-items: center;
-            gap: 7px;
+            gap: 6px;
             white-space: nowrap;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+            box-shadow: none;
         }
         .sales-chip-btn:hover {
             border-color: #cbd5e1;
             background: #f8fafc;
-            transform: translateY(-1px);
+            color: #0f172a;
         }
         .sales-chip-btn.active {
             background: #0f172a;
             color: #ffffff;
             border-color: #0f172a;
-            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);
+            box-shadow: none;
         }
         .sales-chip-btn .chip-count {
             background: #f1f5f9;
             color: #475569;
             font-size: 11px;
-            font-weight: 800;
-            padding: 2px 7px;
-            border-radius: 12px;
-            transition: all 0.2s;
+            font-weight: 700;
+            padding: 1px 6px;
+            border-radius: 10px;
+            transition: all 0.15s;
         }
         .sales-chip-btn.active .chip-count {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.18);
             color: #ffffff;
         }
 
         /* ------------------------------------------------------------- */
-        /* ELEGANT 3D SALES PODIUM (LEADERBOARD VIEW)                    */
+        /* MINIMALIST SALES PODIUM (LEADERBOARD VIEW)                    */
         /* ------------------------------------------------------------- */
         .podium-container {
             max-width: 1000px;
-            margin: 0 auto 30px auto;
+            margin: 0 auto 24px auto;
             display: flex;
             align-items: flex-end;
             justify-content: center;
-            gap: 20px;
+            gap: 16px;
             flex-wrap: wrap;
         }
         .podium-card {
             background: #ffffff;
-            border-radius: 20px;
-            padding: 24px 20px;
-            border: 1.5px solid #e2e8f0;
-            box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08);
+            border-radius: 12px;
+            padding: 22px 18px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
             text-align: center;
             position: relative;
             flex: 1;
-            min-width: 260px;
-            max-width: 320px;
-            transition: all 0.25s ease;
+            min-width: 250px;
+            max-width: 310px;
+            transition: border-color 0.15s ease;
         }
         .podium-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 16px 32px -8px rgba(15, 23, 42, 0.15);
+            border-color: #cbd5e1;
         }
         .podium-card.rank-1 {
             order: 2;
-            padding-top: 32px;
-            padding-bottom: 30px;
-            border-color: #fde68a;
-            background: linear-gradient(180deg, #fffbeb 0%, #ffffff 40%);
-            box-shadow: 0 15px 35px -8px rgba(217, 119, 6, 0.2);
-            transform: scale(1.04);
+            padding-top: 26px;
+            padding-bottom: 24px;
+            border: 1.5px solid #0f172a;
             z-index: 2;
-        }
-        .podium-card.rank-1:hover {
-            transform: scale(1.04) translateY(-4px);
         }
         .podium-card.rank-2 {
             order: 1;
-            border-color: #e2e8f0;
-            background: linear-gradient(180deg, #f8fafc 0%, #ffffff 40%);
+            border: 1px solid #e2e8f0;
         }
         .podium-card.rank-3 {
             order: 3;
-            border-color: #ffedd5;
-            background: linear-gradient(180deg, #fff7ed 0%, #ffffff 40%);
+            border: 1px solid #e2e8f0;
         }
 
         .podium-avatar {
-            width: 58px;
-            height: 58px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
-            margin: 0 auto 12px auto;
+            margin: 0 auto 10px auto;
             display: flex;
             align-items: center;
             justify-content: center;
             font-family: var(--font-heading);
-            font-size: 20px;
+            font-size: 17px;
             font-weight: 800;
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.12);
-            border: 3px solid #ffffff;
+            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+            color: #0f172a;
         }
         .podium-card.rank-1 .podium-avatar {
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            background: #0f172a;
             color: #ffffff;
-            width: 68px;
-            height: 68px;
-            font-size: 24px;
+            border-color: #0f172a;
+            width: 56px;
+            height: 56px;
+            font-size: 19px;
         }
         .podium-card.rank-2 .podium-avatar {
-            background: linear-gradient(135deg, #64748b 0%, #475569 100%);
-            color: #ffffff;
+            background: #f1f5f9;
+            color: #475569;
         }
         .podium-card.rank-3 .podium-avatar {
-            background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
-            color: #ffffff;
+            background: #f8fafc;
+            color: #475569;
         }
 
         .podium-rank-badge {
             position: absolute;
-            top: -14px;
+            top: -12px;
             left: 50%;
             transform: translateX(-50%);
-            padding: 4px 14px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 800;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+            padding: 3px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         }
         .podium-card.rank-1 .podium-rank-badge {
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            background: #0f172a;
             color: #ffffff;
         }
         .podium-card.rank-2 .podium-rank-badge {
-            background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
-            color: #ffffff;
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #e2e8f0;
         }
         .podium-card.rank-3 .podium-rank-badge {
-            background: linear-gradient(135deg, #fb923c 0%, #c2410c 100%);
-            color: #ffffff;
+            background: #f8fafc;
+            color: #475569;
+            border: 1px solid #e2e8f0;
         }
 
         /* Top Page Navigation View Switcher */
         .page-view-nav {
             display: inline-flex;
-            background: rgba(255, 255, 255, 0.12);
-            backdrop-filter: blur(8px);
-            padding: 4px;
-            border-radius: 12px;
-            gap: 4px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.08);
+            padding: 3px;
+            border-radius: 9px;
+            gap: 3px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
         }
         .page-view-nav-btn {
             border: none;
             background: transparent;
-            padding: 8px 18px;
-            border-radius: 9px;
+            padding: 7px 15px;
+            border-radius: 7px;
             font-size: 13px;
-            font-weight: 800;
+            font-weight: 600;
             color: #cbd5e1;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.15s ease;
             display: inline-flex;
             align-items: center;
-            gap: 7px;
+            gap: 6px;
         }
         .page-view-nav-btn:hover {
             color: #ffffff;
-            background: rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.06);
         }
         .page-view-nav-btn.active {
             background: #ffffff;
             color: #0f172a;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         }
 
         /* Progress Bar */
         .podium-progress {
             background: #e2e8f0;
-            border-radius: 10px;
-            height: 7px;
+            border-radius: 6px;
+            height: 6px;
             overflow: hidden;
-            margin-top: 8px;
+            margin-top: 6px;
         }
         .podium-progress-bar {
-            background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+            background: #0f172a;
             height: 100%;
-            border-radius: 10px;
-            transition: width 0.6s ease;
+            border-radius: 6px;
+            transition: width 0.4s ease;
         }
     </style>
 </head>
@@ -732,10 +788,10 @@ if ($qDealersPreload) {
                 <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
                     <div>
                         <div class="d-flex align-items-center gap-2 mb-2">
-                            <span class="badge" style="background: rgba(14, 165, 233, 0.2); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 20px;">
+                            <span class="badge" style="background: rgba(255, 255, 255, 0.08); color: #94a3b8; border: 1px solid rgba(255, 255, 255, 0.12); font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px;">
                                 <i class="fa-solid fa-receipt me-1"></i> MODUL FAKTUR KHUSUS
                             </span>
-                            <span class="badge" style="background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 20px;">
+                            <span class="badge" style="background: rgba(255, 255, 255, 0.08); color: #94a3b8; border: 1px solid rgba(255, 255, 255, 0.12); font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px;">
                                 Program TIP TOK
                             </span>
                         </div>
@@ -753,14 +809,17 @@ if ($qDealersPreload) {
                                 <i class="fa-solid fa-file-invoice"></i> Daftar Faktur
                             </button>
                             <button type="button" class="page-view-nav-btn" id="btnNavLeaderboard" onclick="switchMainView('leaderboard')">
-                                <i class="fa-solid fa-trophy text-warning"></i> Leaderboard Sales
+                                <i class="fa-solid fa-trophy"></i> Leaderboard Sales
                             </button>
                         </div>
                         <div class="d-flex align-items-center gap-2">
-                            <a href="tiptok.php" class="btn btn-outline-light mb-0 font-weight-bold" style="border-radius: 10px; padding: 9px 16px; font-size: 13px;">
+                            <a href="tiptok.php" class="btn btn-outline-light mb-0 font-weight-bold" style="border-radius: 8px; padding: 8px 16px; font-size: 13px; border-color: rgba(255, 255, 255, 0.2);">
                                 <i class="fa-solid fa-box-archive me-1.5"></i> Penitipan Stok
                             </a>
-                            <button type="button" class="btn btn-primary mb-0 font-weight-bold" style="border-radius: 10px; padding: 9px 16px; font-size: 13px;" onclick="loadInvoicesData()">
+                            <a href="../sales_orders.php" class="btn btn-outline-light mb-0 font-weight-bold" style="border-radius: 8px; padding: 8px 16px; font-size: 13px; border-color: rgba(255, 255, 255, 0.2);">
+                                <i class="fa-solid fa-clipboard-list me-1.5"></i> No. SO
+                            </a>
+                            <button type="button" class="btn mb-0 font-weight-bold" style="background: #ffffff; color: #0f172a; border-radius: 8px; padding: 8px 16px; font-size: 13px; box-shadow: none;" onclick="loadInvoicesData()">
                                 <i class="fa-solid fa-rotate me-1.5"></i> Refresh
                             </button>
                         </div>
@@ -791,7 +850,7 @@ if ($qDealersPreload) {
                                 <div class="metric-value" id="statPendingUnit"><?php echo number_format($statPendingUnit); ?> Unit</div>
                                 <div class="metric-label">Belum Ada No. Invoice</div>
                             </div>
-                            <div class="text-xs font-weight-bold mt-2" style="color: #b45309;" id="statPendingTrxText"><?php echo $statPendingTrx; ?> transaksi menunggu invoice</div>
+                            <div class="text-xs text-muted font-weight-bold mt-2" id="statPendingTrxText"><?php echo $statPendingTrx; ?> transaksi menunggu invoice</div>
                         </div>
                     </div>
                     <div class="col-xl-3 col-sm-6">
@@ -801,7 +860,7 @@ if ($qDealersPreload) {
                                 <div class="metric-value" id="statInvoicedUnit"><?php echo number_format($statInvoicedUnit); ?> Unit</div>
                                 <div class="metric-label">Sudah Ber-Invoice</div>
                             </div>
-                            <div class="text-xs text-success font-weight-bold mt-2">Faktur tercatat &amp; siap klaim</div>
+                            <div class="text-xs text-muted font-weight-bold mt-2">Faktur tercatat &amp; siap klaim</div>
                         </div>
                     </div>
                     <div class="col-xl-3 col-sm-6">
@@ -838,19 +897,19 @@ if ($qDealersPreload) {
                                 <i class="fa-solid fa-list"></i> Semua Penjualan
                             </button>
                             <button type="button" class="segment-btn" id="btnFilterPending" onclick="setFilterStatus('pending', this)">
-                                <i class="fa-solid fa-triangle-exclamation text-warning"></i> Belum Invoice 
-                                <span class="badge bg-warning text-dark px-1.5 py-0.5" id="badgePendingCount" style="font-size: 10.5px;"><?php echo $statPendingTrx; ?></span>
+                                <i class="fa-solid fa-triangle-exclamation"></i> Belum Invoice 
+                                <span class="badge px-1.5 py-0.5" id="badgePendingCount" style="background: var(--pastel-amber-bg); color: var(--pastel-amber-text); border: 1px solid var(--pastel-amber-border); font-size: 10.5px; font-weight: 700; border-radius: 10px;"><?php echo $statPendingTrx; ?></span>
                             </button>
                             <button type="button" class="segment-btn" id="btnFilterInvoiced" onclick="setFilterStatus('invoiced', this)">
-                                <i class="fa-solid fa-circle-check text-success"></i> Sudah Ber-Invoice
+                                <i class="fa-solid fa-circle-check"></i> Sudah Ber-Invoice
                             </button>
                         </div>
                         <div class="d-flex align-items-center gap-2 flex-grow-1 justify-content-sm-end" style="min-width: 280px;">
                             <div class="search-input-box" style="width: 280px; max-width: 100%;">
                                 <i class="fa-solid fa-magnifying-glass"></i>
-                                <input type="text" id="searchInput" class="form-control" placeholder="Cari toko, barang, invoice..." oninput="handleSearchInput()">
+                                <input type="text" id="searchInput" class="form-control" placeholder="Cari toko, barang, invoice, SO..." oninput="handleSearchInput()">
                             </div>
-                            <button type="button" class="btn btn-outline-secondary mb-0 px-3 font-weight-bold" style="border-radius: 12px; height: 42px; white-space: nowrap;" onclick="toggleAdvancedFilters()">
+                            <button type="button" class="btn mb-0 px-3 font-weight-bold" style="border: 1px solid #e2e8f0; border-radius: 8px; height: 38px; white-space: nowrap; color: #475569; background: #ffffff; font-size: 12.5px; box-shadow: none;" onclick="toggleAdvancedFilters()">
                                 <i class="fa-solid fa-filter me-1"></i> Filter Lanjutan
                             </button>
                         </div>
@@ -897,7 +956,7 @@ if ($qDealersPreload) {
                 <!-- 4. BATCH ACTION BAR (Shown when checkboxes are checked) -->
                 <div id="batchActionBar" class="batch-action-bar d-none">
                     <div class="d-flex align-items-center gap-3">
-                        <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(14, 165, 233, 0.2); color: #38bdf8; display: flex; align-items: center; justify-content: center; font-size: 16px;">
+                        <div style="width: 36px; height: 36px; border-radius: 8px; background: #0f172a; color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 15px;">
                             <i class="fa-solid fa-check-double"></i>
                         </div>
                         <div>
@@ -906,13 +965,13 @@ if ($qDealersPreload) {
                         </div>
                     </div>
                     <div class="d-flex align-items-center gap-2">
-                        <button type="button" class="btn btn-sm btn-outline-light mb-0 font-weight-bold" onclick="unselectAllCheckboxes()">
+                        <button type="button" class="btn btn-sm mb-0 font-weight-bold" style="background: transparent; color: #64748b; border: 1px solid #cbd5e1; border-radius: 6px;" onclick="unselectAllCheckboxes()">
                             Batal
                         </button>
-                        <button type="button" class="btn btn-sm btn-outline-danger mb-0 font-weight-bold px-3" onclick="batalkanPenjualanBatch()">
+                        <button type="button" class="btn btn-sm mb-0 font-weight-bold px-3" style="background: var(--pastel-red-bg); color: var(--pastel-red-text); border: 1px solid var(--pastel-red-border); border-radius: 6px;" onclick="batalkanPenjualanBatch()">
                             <i class="fa-solid fa-rotate-left me-1.5"></i> Batalkan Penjualan Terpilih
                         </button>
-                        <button type="button" class="btn btn-sm btn-success mb-0 font-weight-bold px-3" onclick="openBatchInvoiceModal()">
+                        <button type="button" class="btn btn-sm mb-0 font-weight-bold px-3" style="background: #0f172a; color: #ffffff; border-radius: 6px;" onclick="openBatchInvoiceModal()">
                             <i class="fa-solid fa-file-pen me-1.5"></i> Input No. Invoice Kolektif
                         </button>
                     </div>
@@ -931,7 +990,7 @@ if ($qDealersPreload) {
                                     <th style="width: 20%;">PRODUK &amp; TERJUAL</th>
                                     <th style="width: 13%; text-align: right;">REWARD INSENTIF</th>
                                     <th style="width: 17%;">TGL &amp; KODE AUDIT</th>
-                                    <th style="width: 28%; text-align: right;">STATUS &amp; NO. INVOICE</th>
+                                    <th style="width: 28%; text-align: right;">STATUS, INVOICE &amp; SO</th>
                                 </tr>
                             </thead>
                             <tbody id="invoicesTableBody">
@@ -954,7 +1013,7 @@ if ($qDealersPreload) {
                 <!-- Podium Top Performers -->
                 <div class="text-center mb-4">
                     <h4 class="font-weight-bold text-dark mb-1" style="font-family: var(--font-heading);">
-                        🏆 Leaderboard &amp; Performa Sales TIP TOK
+                        Leaderboard &amp; Performa Sales TIP TOK
                     </h4>
                     <p class="text-sm text-muted mb-0">
                         Peringkat performa sales berdasarkan unit faktur terbit, omset konsinyasi, dan target klaim insentif.
@@ -964,7 +1023,7 @@ if ($qDealersPreload) {
                 <!-- 3D Podium Container -->
                 <div class="podium-container" id="podiumCardsContainer">
                     <div class="text-center py-4 w-100">
-                        <div class="spinner-border spinner-border-sm text-primary mb-2"></div>
+                        <div class="spinner-border spinner-border-sm text-dark mb-2"></div>
                         <div class="text-xs text-muted font-weight-bold">Menyiapkan podium sales...</div>
                     </div>
                 </div>
@@ -973,10 +1032,10 @@ if ($qDealersPreload) {
                 <div class="data-card-inv mt-4">
                     <div class="p-3 border-bottom d-flex align-items-center justify-content-between bg-light flex-wrap gap-2">
                         <div>
-                            <h6 class="font-weight-bold text-dark mb-0"><i class="fa-solid fa-list-ol text-primary me-1.5"></i> Tabel Peringkat Lengkap Seluruh Sales</h6>
+                            <h6 class="font-weight-bold text-dark mb-0"><i class="fa-solid fa-list-ol text-secondary me-1.5"></i> Tabel Peringkat Lengkap Seluruh Sales</h6>
                             <span class="text-xs text-muted font-weight-bold">Diurutkan otomatis: Unit Ber-Invoice &gt; Total Terjual &gt; Total Insentif</span>
                         </div>
-                        <span class="badge text-white px-3 py-1.5" style="background: #0f172a; border-radius: 20px; font-size: 11.5px; font-weight: 800;">
+                        <span class="badge text-white px-2.5 py-1" style="background: #0f172a; border-radius: 6px; font-size: 11px; font-weight: 700;">
                             Target Klaim: Min. 50 Unit
                         </span>
                     </div>
@@ -1015,14 +1074,14 @@ if ($qDealersPreload) {
     <!-- ========================================================================= -->
     <div class="modal fade" id="modalSingleInvoice" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content" style="border-radius: 20px; border:none; box-shadow: 0 25px 50px -12px rgba(15,23,42,0.35); overflow: hidden;">
-                <div class="modal-header" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #ffffff; padding: 20px 24px;">
+            <div class="modal-content" style="border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); overflow: hidden;">
+                <div class="modal-header" style="background: #0f172a; color: #ffffff; padding: 18px 24px;">
                     <div class="d-flex align-items-center gap-3">
-                        <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(56, 189, 248, 0.15); border: 1.5px solid rgba(56, 189, 248, 0.35); display: flex; align-items: center; justify-content: center; color: #38bdf8; font-size: 19px;">
+                        <div style="width: 40px; height: 40px; border-radius: 8px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 17px;">
                             <i class="fa-solid fa-file-invoice"></i>
                         </div>
                         <div>
-                            <h5 class="modal-title font-weight-bold text-white mb-0" id="singleModalTitle">Input No. Invoice</h5>
+                            <h5 class="modal-title font-weight-bold text-white mb-0" id="singleModalTitle" style="font-size: 16px;">Input No. Invoice</h5>
                             <div class="text-xs mt-0.5" style="color: #94a3b8;" id="singleModalSubtitle">Tetapkan nomor faktur penjualan TIP TOK</div>
                         </div>
                     </div>
@@ -1031,48 +1090,78 @@ if ($qDealersPreload) {
                 
                 <form id="formSingleInvoice" onsubmit="submitSingleInvoice(event)">
                     <input type="hidden" name="id_kunjungan" id="singleIdKunjungan">
+                    <input type="hidden" name="id_kunjungan_list" id="singleIdKunjunganList">
                     <div class="modal-body p-4 bg-white">
                         
                         <!-- Info Card Ringkasan Transaksi -->
-                        <div class="p-3 mb-4 rounded-3" style="background: #f8fafc; border: 1.5px solid #e2e8f0;">
+                        <div class="p-3 mb-4 rounded-3" style="background: #f8fafc; border: 1px solid #e2e8f0;">
                             <div class="d-flex justify-content-between align-items-center mb-1">
                                 <span class="font-weight-bold text-dark fs-6" id="singlePrevNamaToko">-</span>
-                                <span class="badge text-white px-2.5 py-1" style="background: #0f172a; border-radius: 20px; font-size: 11px; font-weight: 800;" id="singlePrevQty">0 Unit</span>
+                                <span class="badge text-white px-2.5 py-1" style="background: #0f172a; border-radius: 6px; font-size: 11px; font-weight: 700;" id="singlePrevQty">0 Unit</span>
                             </div>
                             <div class="text-xs text-secondary font-weight-bold" id="singlePrevNamaBarang">-</div>
-                            <div class="d-flex align-items-center justify-content-between p-2 rounded-2 mt-2" style="background: #ecfdf5; border: 1px solid #a7f3d0;">
-                                <span class="text-xs text-success font-weight-bold"><i class="fa-solid fa-coins me-1"></i> Subtotal Reward Insentif:</span>
-                                <span class="text-xs font-weight-bold text-success fs-6" id="singlePrevInsentif">Rp 0</span>
+                            <div class="d-flex align-items-center justify-content-between p-2 rounded-2 mt-2" style="background: #ffffff; border: 1px solid #e2e8f0;">
+                                <span class="text-xs text-muted font-weight-bold"><i class="fa-solid fa-coins me-1"></i> Subtotal Reward Insentif:</span>
+                                <span class="text-xs font-weight-bold text-dark fs-6" id="singlePrevInsentif">Rp 0</span>
+                            </div>
+                        </div>
+
+                        <!-- Alert Banner: Pilihan Pecah SO Jika Customer Beli Beda Waktu -->
+                        <div id="singleSplitHint" class="p-2.5 mb-3 rounded-2 d-none" style="background: #f0fdf4; border: 1px solid #bbf7d0;">
+                            <div class="d-flex align-items-center justify-content-between gap-2">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div style="width: 28px; height: 28px; border-radius: 6px; background: #dcfce7; color: #166534; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0;">
+                                        <i class="fa-solid fa-scissors"></i>
+                                    </div>
+                                    <div>
+                                        <div class="font-weight-bold text-dark" style="font-size: 12px; line-height: 1.2;">Beli Beda Waktu (Pagi &amp; Sore)?</div>
+                                        <div class="text-xs text-muted mt-0.5" style="font-size: 10.5px;">Pecah transaksi jika butuh no. SO/Invoice terpisah.</div>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-sm mb-0 px-2.5 py-1" style="background: #16a34a; color: #ffffff; border-radius: 6px; font-weight: 700; font-size: 11px; white-space: nowrap;" onclick="triggerPecahFromModal()">
+                                    <i class="fa-solid fa-scissors me-1"></i> Pecah SO
+                                </button>
                             </div>
                         </div>
 
                         <!-- Form Input Groups (Clean & Modern) -->
                         <div class="mb-3">
-                            <label class="form-label font-weight-bold text-dark text-xs text-uppercase mb-1.5 d-flex align-items-center gap-1.5">
-                                <i class="fa-solid fa-receipt text-primary"></i> NOMOR INVOICE / FAKTUR <span class="text-danger">*</span>
+                            <label class="form-label font-weight-bold text-dark text-xs text-uppercase mb-1.5 d-flex align-items-center justify-content-between">
+                                <span class="d-flex align-items-center gap-1.5">
+                                    <i class="fa-solid fa-clipboard-list text-secondary"></i> NOMOR SO (SALES ORDER)
+                                </span>
+                                <span class="badge bg-light text-secondary border font-monospace" style="font-size: 10px;">Bisa diisi SO / INV</span>
                             </label>
-                            <input type="text" name="no_inv" id="singleInputNoInv" class="form-control form-control-lg font-monospace fs-6 font-weight-bold" placeholder="Contoh: INV/2026/09/001" style="border: 1.5px solid #cbd5e1; border-radius: 12px; padding: 10px 14px; background: #ffffff;" required>
-                            <div class="form-text text-xs text-muted mt-1">Masukkan nomor faktur resmi yang diterbitkan untuk toko ini.</div>
+                            <input type="text" name="no_so" id="singleInputNoSo" class="form-control form-control-taste font-monospace font-weight-bold" placeholder="Contoh: SO/2026/09/001">
+                            <div class="form-text text-xs text-muted mt-1">Nomor Sales Order (SO) dari sistem kantor / ERP.</div>
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label font-weight-bold text-dark text-xs text-uppercase mb-1.5 d-flex align-items-center gap-1.5">
-                                <i class="fa-regular fa-calendar-days text-primary"></i> TANGGAL INVOICE / FAKTUR <span class="text-danger">*</span>
+                                <i class="fa-solid fa-receipt text-secondary"></i> NOMOR INVOICE / FAKTUR
                             </label>
-                            <input type="date" name="tgl_invoice" id="singleInputTglInv" class="form-control font-weight-bold" style="border: 1.5px solid #cbd5e1; border-radius: 12px; padding: 10px 14px; background: #ffffff;" value="<?php echo date('Y-m-d'); ?>" required>
+                            <input type="text" name="no_inv" id="singleInputNoInv" class="form-control form-control-taste font-monospace font-weight-bold" placeholder="Contoh: INV/2026/09/001">
+                            <div class="form-text text-xs text-muted mt-1">Nomor faktur / invoice resmi yang diterbitkan untuk toko ini.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label font-weight-bold text-dark text-xs text-uppercase mb-1.5 d-flex align-items-center gap-1.5">
+                                <i class="fa-regular fa-calendar-days text-secondary"></i> TANGGAL TRANSAKSI / FAKTUR <span class="text-danger">*</span>
+                            </label>
+                            <input type="date" name="tgl_invoice" id="singleInputTglInv" class="form-control form-control-taste font-weight-bold" value="<?php echo date('Y-m-d'); ?>" required>
                         </div>
 
                         <div class="mb-1">
                             <label class="form-label font-weight-bold text-dark text-xs text-uppercase mb-1.5 d-flex align-items-center gap-1.5">
-                                <i class="fa-regular fa-note-sticky text-secondary"></i> CATATAN INVOICE (OPSIONAL)
+                                <i class="fa-regular fa-note-sticky text-secondary"></i> CATATAN INVOICE / SO (OPSIONAL)
                             </label>
-                            <textarea name="catatan_invoice" id="singleInputCatatan" class="form-control" rows="2" placeholder="Catatan nomor faktur / referensi..." style="border: 1.5px solid #cbd5e1; border-radius: 12px; padding: 10px 14px; background: #ffffff;"></textarea>
+                            <textarea name="catatan_invoice" id="singleInputCatatan" class="form-control form-control-taste" rows="2" placeholder="Catatan nomor faktur / referensi..."></textarea>
                         </div>
                     </div>
                     <div class="modal-footer p-3 bg-white border-top d-flex justify-content-end gap-2">
-                        <button type="button" class="btn btn-light px-4 font-weight-bold" style="border-radius: 10px; border: 1.5px solid #e2e8f0; color: #475569;" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" id="btnSaveSingleInvoice" class="btn btn-dark px-4 font-weight-bold" style="border-radius: 10px; background: #0f172a; color: white;">
-                            <i class="fa-solid fa-check me-1"></i> Simpan Invoice
+                        <button type="button" class="btn btn-light px-4 font-weight-bold mb-0" style="border-radius: 8px; border: 1px solid #e2e8f0; color: #475569;" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" id="btnSaveSingleInvoice" class="btn btn-dark px-4 font-weight-bold mb-0" style="border-radius: 8px; background: #0f172a; color: white;">
+                            <i class="fa-solid fa-check me-1"></i> Simpan Data
                         </button>
                     </div>
                 </form>
@@ -1081,19 +1170,19 @@ if ($qDealersPreload) {
     </div>
 
     <!-- ========================================================================= -->
-    <!-- MODAL 2: INPUT BATCH / KOLEKTIF NO. INVOICE                               -->
+    <!-- MODAL 2: INPUT BATCH / KOLEKTIF NO. INVOICE & SO                          -->
     <!-- ========================================================================= -->
     <div class="modal fade" id="modalBatchInvoice" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content" style="border-radius: 20px; border:none; box-shadow: 0 25px 50px -12px rgba(15,23,42,0.35); overflow: hidden;">
-                <div class="modal-header" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #ffffff; padding: 20px 24px;">
+            <div class="modal-content" style="border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); overflow: hidden;">
+                <div class="modal-header" style="background: #0f172a; color: #ffffff; padding: 18px 24px;">
                     <div class="d-flex align-items-center gap-3">
-                        <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(16, 185, 129, 0.15); border: 1.5px solid rgba(16, 185, 129, 0.35); display: flex; align-items: center; justify-content: center; color: #34d399; font-size: 19px;">
+                        <div style="width: 40px; height: 40px; border-radius: 8px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); display: flex; align-items: center; justify-content: center; color: #ffffff; font-size: 17px;">
                             <i class="fa-solid fa-layer-group"></i>
                         </div>
                         <div>
-                            <h5 class="modal-title font-weight-bold text-white mb-0">Input No. Invoice Kolektif</h5>
-                            <div class="text-xs mt-0.5" style="color: #94a3b8;">Tetapkan satu No. Invoice ke beberapa transaksi sekaligus</div>
+                            <h5 class="modal-title font-weight-bold text-white mb-0" style="font-size: 16px;">Input No. Invoice &amp; SO Kolektif</h5>
+                            <div class="text-xs mt-0.5" style="color: #94a3b8;">Tetapkan No. Invoice dan/atau No. SO ke beberapa transaksi sekaligus</div>
                         </div>
                     </div>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -1101,32 +1190,43 @@ if ($qDealersPreload) {
                 
                 <form id="formBatchInvoice" onsubmit="submitBatchInvoice(event)">
                     <div class="modal-body p-4 bg-white">
-                        <div class="p-3 mb-4 rounded-3" style="background: #f8fafc; border: 1.5px solid #e2e8f0;">
+                        <div class="p-3 mb-4 rounded-3" style="background: #f8fafc; border: 1px solid #e2e8f0;">
                             <div class="d-flex justify-content-between align-items-center">
                                 <span class="fw-bold text-dark fs-6" id="batchModalSelectedCount">0 Transaksi Terpilih</span>
-                                <span class="badge text-white px-2.5 py-1" style="background: #059669; border-radius: 20px; font-size: 11px; font-weight: 800;" id="batchModalTotalUnit">0 Unit</span>
+                                <span class="badge text-white px-2.5 py-1" style="background: #0f172a; border-radius: 6px; font-size: 11px; font-weight: 700;" id="batchModalTotalUnit">0 Unit</span>
                             </div>
                             <div class="text-xs text-muted mt-1.5" id="batchModalDealerSummary">-</div>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label font-weight-bold text-dark text-xs text-uppercase mb-1.5 d-flex align-items-center gap-1.5">
-                                <i class="fa-solid fa-receipt text-primary"></i> NOMOR INVOICE KOLEKTIF <span class="text-danger">*</span>
+                            <label class="form-label font-weight-bold text-dark text-xs text-uppercase mb-1.5 d-flex align-items-center justify-content-between">
+                                <span class="d-flex align-items-center gap-1.5">
+                                    <i class="fa-solid fa-clipboard-list text-secondary"></i> NOMOR SO KOLEKTIF
+                                </span>
+                                <span class="badge bg-light text-secondary border font-monospace" style="font-size: 10px;">Bisa diisi SO / INV</span>
                             </label>
-                            <input type="text" name="no_inv" id="batchInputNoInv" class="form-control form-control-lg font-monospace fs-6 font-weight-bold" placeholder="Contoh: INV/2026/09/001" style="border: 1.5px solid #cbd5e1; border-radius: 12px; padding: 10px 14px; background: #ffffff;" required>
-                            <div class="form-text text-xs text-muted mt-1">Nomor ini akan disimpan ke semua item yang Anda centang.</div>
+                            <input type="text" name="no_so" id="batchInputNoSo" class="form-control form-control-taste font-monospace font-weight-bold" placeholder="Contoh: SO/2026/09/001">
+                            <div class="form-text text-xs text-muted mt-1">Nomor SO yang akan disimpan ke semua item yang Anda centang.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label font-weight-bold text-dark text-xs text-uppercase mb-1.5 d-flex align-items-center gap-1.5">
+                                <i class="fa-solid fa-receipt text-secondary"></i> NOMOR INVOICE KOLEKTIF
+                            </label>
+                            <input type="text" name="no_inv" id="batchInputNoInv" class="form-control form-control-taste font-monospace font-weight-bold" placeholder="Contoh: INV/2026/09/001">
+                            <div class="form-text text-xs text-muted mt-1">Nomor Invoice yang akan disimpan ke semua item yang Anda centang.</div>
                         </div>
 
                         <div class="mb-1">
                             <label class="form-label font-weight-bold text-dark text-xs text-uppercase mb-1.5 d-flex align-items-center gap-1.5">
-                                <i class="fa-regular fa-calendar-days text-primary"></i> TANGGAL INVOICE / FAKTUR <span class="text-danger">*</span>
+                                <i class="fa-regular fa-calendar-days text-secondary"></i> TANGGAL TRANSAKSI / FAKTUR <span class="text-danger">*</span>
                             </label>
-                            <input type="date" name="tgl_invoice" id="batchInputTglInv" class="form-control font-weight-bold" style="border: 1.5px solid #cbd5e1; border-radius: 12px; padding: 10px 14px; background: #ffffff;" value="<?php echo date('Y-m-d'); ?>" required>
+                            <input type="date" name="tgl_invoice" id="batchInputTglInv" class="form-control form-control-taste font-weight-bold" value="<?php echo date('Y-m-d'); ?>" required>
                         </div>
                     </div>
                     <div class="modal-footer p-3 bg-white border-top d-flex justify-content-end gap-2">
-                        <button type="button" class="btn btn-light px-4 font-weight-bold" style="border-radius: 10px; border: 1.5px solid #e2e8f0; color: #475569;" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" id="btnSaveBatchInvoice" class="btn btn-dark px-4 font-weight-bold" style="border-radius: 10px; background: #0f172a; color: white;">
+                        <button type="button" class="btn btn-light px-4 font-weight-bold mb-0" style="border-radius: 8px; border: 1px solid #e2e8f0; color: #475569;" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" id="btnSaveBatchInvoice" class="btn btn-dark px-4 font-weight-bold mb-0" style="border-radius: 8px; background: #0f172a; color: white;">
                             <i class="fa-solid fa-check me-1"></i> Terapkan ke Semua Item
                         </button>
                     </div>
@@ -1147,7 +1247,8 @@ if ($qDealersPreload) {
         let currentSalesFilter = 0;
         let currentSalesName = '';
         let currentMainView = 'invoices'; // 'invoices' | 'leaderboard'
-        let selectedTrxIds = new Set();
+        let selectedGroupIds = new Set();
+        let selectedTrxIds = selectedGroupIds; // backward compatibility alias
         let searchTimeout = null;
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -1345,13 +1446,13 @@ if ($qDealersPreload) {
             if (leaderboard && leaderboard.length > 0) {
                 leaderboard.forEach(s => {
                     const isSelected = (currentSalesFilter == s.id_sales && s.id_sales > 0) || (currentSalesName === s.nama_sales && currentSalesName !== '');
-                    const medal = s.rank === 1 ? '🥇 ' : (s.rank === 2 ? '🥈 ' : (s.rank === 3 ? '🥉 ' : ''));
+                    const rankPill = (s.rank && s.rank <= 3) ? `#${s.rank} ` : '';
                     const displayUnit = (s.total_terjual !== undefined && s.total_terjual > 0) ? s.total_terjual : (s.invoiced_unit || 0);
                     const invSub = s.count_invoices > 0 ? ` / ${s.count_invoices} INV` : '';
                     
                     html += `
                         <button type="button" class="sales-chip-btn ${isSelected ? 'active' : ''}" onclick="selectSalesFilter(${s.id_sales}, '${escapeHtml(s.nama_sales)}')">
-                            <span>${medal}<strong>${escapeHtml(s.nama_sales)}</strong></span>
+                            <span><strong>${rankPill}${escapeHtml(s.nama_sales)}</strong></span>
                             <span class="chip-count">${displayUnit} Unit${invSub}</span>
                         </button>
                     `;
@@ -1363,7 +1464,7 @@ if ($qDealersPreload) {
             const countText = document.getElementById('salesChipsCountText');
             if (countText) {
                 if (currentSalesName) {
-                    countText.innerHTML = `Filter aktif: <strong class="text-primary">${escapeHtml(currentSalesName)}</strong>`;
+                    countText.innerHTML = `Filter aktif: <strong>${escapeHtml(currentSalesName)}</strong>`;
                 } else {
                     countText.textContent = `Menampilkan seluruh ${leaderboard ? leaderboard.length : 0} sales`;
                 }
@@ -1425,7 +1526,7 @@ if ($qDealersPreload) {
             top3.forEach(s => {
                 const rank = s.rank;
                 const rankClass = rank === 1 ? 'rank-1' : (rank === 2 ? 'rank-2' : 'rank-3');
-                const rankTitle = rank === 1 ? '🥇 JUARA 1' : (rank === 2 ? '🥈 JUARA 2' : '🥉 JUARA 3');
+                const rankTitle = `JUARA ${rank}`;
                 const initials = s.nama_sales ? s.nama_sales.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase() : 'SL';
 
                 html += `
@@ -1440,27 +1541,27 @@ if ($qDealersPreload) {
                             ${escapeHtml(s.nama_sales)}
                         </h5>
                         <div class="text-xs text-muted font-weight-bold mt-0.5 mb-3">
-                            <i class="fa-solid fa-store text-primary me-1"></i> ${s.total_toko} Toko Mitra Aktif
+                            <i class="fa-solid fa-store me-1"></i> ${s.total_toko} Toko Mitra Aktif
                         </div>
 
                         <!-- Highlights Box -->
-                        <div class="p-2.5 rounded-3 mb-3 text-start" style="background: #f8fafc; border: 1.5px solid #e2e8f0;">
+                        <div class="p-2.5 rounded-3 mb-3 text-start" style="background: #f8fafc; border: 1px solid #e2e8f0;">
                             <div class="d-flex justify-content-between align-items-center mb-1.5">
                                 <span class="text-xs font-weight-bold text-secondary">Faktur Terbit:</span>
-                                <span class="badge text-white px-2 py-0.5" style="background: #047857; font-size: 11px; font-weight: 800; border-radius: 6px;">
+                                <span class="badge-verified-inv" style="font-size: 11px; padding: 2px 7px;">
                                     <i class="fa-solid fa-file-invoice me-1"></i> ${s.invoiced_unit} Unit (${s.count_invoices} INV)
                                 </span>
                             </div>
                             <div class="d-flex justify-content-between align-items-center">
                                 <span class="text-xs font-weight-bold text-secondary">Total Terjual:</span>
-                                <span class="badge bg-light text-dark px-2 py-0.5" style="font-size: 11px; font-weight: 800; border: 1px solid #cbd5e1; border-radius: 6px;">
+                                <span class="badge px-2 py-0.5" style="background: #ffffff; color: #0f172a; font-size: 11px; font-weight: 700; border: 1px solid #e2e8f0; border-radius: 4px;">
                                     ${s.total_terjual} Unit Fisik
                                 </span>
                             </div>
                             ${s.pending_unit > 0 ? `
                                 <div class="d-flex justify-content-between align-items-center mt-1.5 pt-1.5 border-top">
-                                    <span class="text-xs font-weight-bold" style="color: #b45309;">Belum Invoice:</span>
-                                    <span class="badge bg-warning text-dark px-2 py-0.5" style="font-size: 10.5px; font-weight: 800; border-radius: 6px;">
+                                    <span class="text-xs font-weight-bold text-muted">Belum Invoice:</span>
+                                    <span class="badge-pending-inv" style="font-size: 10.5px; padding: 2px 6px;">
                                         ${s.pending_unit} Unit (${s.count_pending_trx} Trx)
                                     </span>
                                 </div>
@@ -1477,7 +1578,7 @@ if ($qDealersPreload) {
                                 <div class="podium-progress-bar" style="width: ${s.claim_progress}%;"></div>
                             </div>
                             <div class="text-xs text-muted mt-1">
-                                ${s.units_needed > 0 ? `Kurang <strong class="text-danger">${s.units_needed} Unit</strong> lagi` : '<strong class="text-success"><i class="fa-solid fa-circle-check"></i> Siap Klaim!</strong>'}
+                                ${s.units_needed > 0 ? `Kurang <strong class="text-dark">${s.units_needed} Unit</strong> lagi` : '<strong style="color: var(--pastel-green-text);"><i class="fa-solid fa-circle-check"></i> Siap Klaim!</strong>'}
                             </div>
                         </div>
 
@@ -1485,11 +1586,11 @@ if ($qDealersPreload) {
                         <div class="pt-2.5 border-top d-flex align-items-center justify-content-between">
                             <div class="text-start">
                                 <div class="text-xs text-muted font-weight-bold">Estimasi Reward:</div>
-                                <div style="font-family: var(--font-heading); font-size: 16px; font-weight: 900; color: #047857;">
+                                <div style="font-family: var(--font-heading); font-size: 16px; font-weight: 800; color: #0f172a;">
                                     Rp ${new Intl.NumberFormat('id-ID').format(s.total_insentif)}
                                 </div>
                             </div>
-                            <button type="button" class="btn btn-sm btn-dark mb-0 font-weight-bold px-3" style="border-radius: 9px; font-size: 11.5px; background: #0f172a;" onclick="filterAndSwitchToInvoices(${s.id_sales}, '${escapeHtml(s.nama_sales)}')">
+                            <button type="button" class="btn btn-sm mb-0 font-weight-bold px-3" style="border-radius: 6px; font-size: 11.5px; background: #0f172a; color: #ffffff;" onclick="filterAndSwitchToInvoices(${s.id_sales}, '${escapeHtml(s.nama_sales)}')">
                                 Faktur <i class="fa-solid fa-arrow-right ms-1"></i>
                             </button>
                         </div>
@@ -1522,31 +1623,31 @@ if ($qDealersPreload) {
 
             let html = '';
             leaderboard.forEach(s => {
-                const medalText = s.rank === 1 ? '🥇 #1' : (s.rank === 2 ? '🥈 #2' : (s.rank === 3 ? '🥉 #3' : `#${s.rank}`));
-                const badgeColor = s.rank === 1 ? 'background: #fef3c7; color: #b45309; border: 1.5px solid #fde68a;' : (s.rank === 2 ? 'background: #f1f5f9; color: #475569; border: 1.5px solid #cbd5e1;' : (s.rank === 3 ? 'background: #ffedd5; color: #c2410c; border: 1.5px solid #fed7aa;' : 'background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0;'));
+                const medalText = `#${s.rank}`;
+                const badgeColor = s.rank === 1 ? 'background: #0f172a; color: #ffffff;' : (s.rank === 2 ? 'background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0;' : (s.rank === 3 ? 'background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0;' : 'background: #f8fafc; color: #94a3b8; border: 1px solid #e2e8f0;'));
                 const initials = s.nama_sales ? s.nama_sales.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase() : 'SL';
 
                 html += `
                     <tr>
                         <td class="text-center">
-                            <span class="badge px-2.5 py-1.5 font-weight-bold" style="${badgeColor} font-size: 12px; border-radius: 10px;">
+                            <span class="badge px-2.5 py-1 font-weight-bold" style="${badgeColor} font-size: 11.5px; border-radius: 6px;">
                                 ${medalText}
                             </span>
                         </td>
                         <td>
                             <div class="d-flex align-items-center gap-2.5">
-                                <div style="width: 36px; height: 36px; border-radius: 50%; background: #0f172a; color: #ffffff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px;">
+                                <div style="width: 34px; height: 34px; border-radius: 50%; background: #0f172a; color: #ffffff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px;">
                                     ${escapeHtml(initials)}
                                 </div>
                                 <div>
-                                    <div class="font-weight-bold text-dark" style="font-size: 14px;">${escapeHtml(s.nama_sales)}</div>
+                                    <div class="font-weight-bold text-dark" style="font-size: 13.5px;">${escapeHtml(s.nama_sales)}</div>
                                     <div class="text-xs text-muted font-weight-bold">Sales Canvas TIP TOK</div>
                                 </div>
                             </div>
                         </td>
                         <td class="text-center">
-                            <span class="badge bg-light text-dark px-2.5 py-1" style="font-size: 12px; font-weight: 800; border: 1px solid #cbd5e1; border-radius: 8px;">
-                                <i class="fa-solid fa-store text-primary me-1"></i> ${s.total_toko} Toko
+                            <span class="badge px-2.5 py-1" style="background: #f8fafc; color: #475569; font-size: 11.5px; font-weight: 600; border: 1px solid #e2e8f0; border-radius: 6px;">
+                                <i class="fa-solid fa-store me-1 text-muted"></i> ${s.total_toko} Toko
                             </span>
                         </td>
                         <td>
@@ -1558,7 +1659,7 @@ if ($qDealersPreload) {
                                 <div class="podium-progress-bar" style="width: ${s.claim_progress}%;"></div>
                             </div>
                             <div class="text-xs text-muted">
-                                ${s.units_needed > 0 ? `Kurang <span class="text-danger font-weight-bold">${s.units_needed} Unit</span> untuk klaim` : '<span class="text-success font-weight-bold"><i class="fa-solid fa-circle-check"></i> Memenuhi Syarat Klaim!</span>'}
+                                ${s.units_needed > 0 ? `Kurang <span class="font-weight-bold text-dark">${s.units_needed} Unit</span> untuk klaim` : '<span class="font-weight-bold" style="color: var(--pastel-green-text);"><i class="fa-solid fa-circle-check"></i> Memenuhi Syarat Klaim!</span>'}
                             </div>
                         </td>
                         <td>
@@ -1574,10 +1675,10 @@ if ($qDealersPreload) {
                             </div>
                         </td>
                         <td class="text-end">
-                            <div style="font-family: var(--font-heading); font-size: 15px; font-weight: 800; color: #047857;">
+                            <div style="font-family: var(--font-heading); font-size: 14.5px; font-weight: 800; color: #0f172a;">
                                 Rp ${new Intl.NumberFormat('id-ID').format(s.total_insentif)}
                             </div>
-                            <button type="button" class="btn btn-sm btn-outline-primary py-1 px-2.5 font-weight-bold mt-1 mb-0" style="border-radius: 8px; font-size: 11px;" onclick="filterAndSwitchToInvoices(${s.id_sales}, '${escapeHtml(s.nama_sales)}')">
+                            <button type="button" class="btn btn-sm mb-0 font-weight-bold py-1 px-2.5 mt-1" style="border: 1px solid #e2e8f0; border-radius: 6px; font-size: 11px; background: #ffffff; color: #0f172a;" onclick="filterAndSwitchToInvoices(${s.id_sales}, '${escapeHtml(s.nama_sales)}')">
                                 <i class="fa-solid fa-magnifying-glass me-1"></i> Lihat Faktur
                             </button>
                         </td>
@@ -1589,13 +1690,14 @@ if ($qDealersPreload) {
         }
 
         // =========================================================================
-        // INVOICES DATA TABLE (INVOICES VIEW)
+        // =========================================================================
+        // INVOICES DATA TABLE (INVOICES VIEW) - GROUPED PER INVOICE
         // =========================================================================
         function renderInvoicesTable(items) {
             const tbody = document.getElementById('invoicesTableBody');
             if (!tbody) return;
 
-            selectedTrxIds.clear();
+            selectedGroupIds.clear();
             updateBatchActionBar();
 
             const checkAll = document.getElementById('checkAllItems');
@@ -1618,41 +1720,58 @@ if ($qDealersPreload) {
 
             let html = '';
             items.forEach(it => {
-                const isPending = (!it.no_inv || it.no_inv.trim() === '');
-                const qty = parseInt(it.qty_terjual_kunjungan) || 0;
-                const insUnit = parseFloat(it.insentif_per_unit) || 0;
-                const subtotalIns = parseFloat(it.insentif_didapat) || (qty * insUnit);
-                const isClaimed = (it.id_claim && parseInt(it.id_claim) > 0);
+                const isPending = (!it.no_inv || it.no_inv.trim() === '') && (!it.no_so || it.no_so.trim() === '');
+                const isClaimed = it.is_claimed;
+                const totalQty = parseInt(it.total_qty) || 0;
+                const totalIns = parseFloat(it.total_insentif) || 0;
+                const productCount = it.items ? it.items.length : 1;
 
                 const statusPill = isPending ? `
                     <div class="d-flex align-items-center justify-content-end gap-1.5 flex-nowrap">
-                        <span class="badge-pending-inv" style="font-size: 11px; padding: 4px 8px; white-space: nowrap;">
+                        <span class="badge-pending-inv" style="font-size: 11px; padding: 3px 8px; white-space: nowrap;">
                             <i class="fa-solid fa-clock"></i> Belum Diinput
                         </span>
-                        <button type="button" class="btn btn-sm btn-outline-danger py-1 px-2 mb-0" style="border-radius: 7px; font-weight: 700; font-size: 11px; height: 28px; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px;" title="Batalkan Penjualan & Kembalikan Stok ke Toko" onclick="batalkanPenjualanSingle(${it.id_kunjungan}, '${escapeHtml(it.kode_kunjungan || '')}', ${qty}, '${escapeHtml(it.nama_barang || '')}')">
+                        ${it.split_group ? `
+                            <button type="button" class="btn btn-sm mb-0" style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; border-radius: 6px; font-weight: 700; font-size: 10.5px; height: 28px; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; padding: 0 7px;" title="Gabungkan kembali dengan transaksi pasangannya" onclick="gabungTransaksiPrompt('${it.group_id}')">
+                                <i class="fa-solid fa-link"></i> Gabung
+                            </button>
+                        ` : ''}
+                        <button type="button" class="btn btn-sm mb-0" style="background: var(--pastel-red-bg); color: var(--pastel-red-text); border: 1px solid var(--pastel-red-border); border-radius: 6px; font-weight: 600; font-size: 11px; height: 28px; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; padding: 0 8px;" title="Batalkan Seluruh Penjualan Toko Ini &amp; Kembalikan Stok" onclick="batalkanPenjualanGroup('${it.group_id}')">
                             <i class="fa-solid fa-trash-can"></i> Batal
                         </button>
-                        <button type="button" class="btn-brand-amber" style="height: 28px; font-size: 11.5px; padding: 0 10px; border-radius: 7px; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px;" onclick="openSingleInvoiceModal(${it.id_kunjungan})">
-                            <i class="fa-solid fa-plus"></i> Input Invoice
+                        ${(totalQty > 1 || productCount > 1) ? `
+                            <button type="button" class="btn btn-sm mb-0" style="background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; border-radius: 6px; font-weight: 700; font-size: 11px; height: 28px; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; padding: 0 8px;" title="Pisahkan nomor SO / Invoice (misal beli pagi &amp; sore)" onclick="pecahTransaksiPrompt('${it.group_id}')">
+                                <i class="fa-solid fa-scissors"></i> Pecah SO
+                            </button>
+                        ` : ''}
+                        <button type="button" class="btn-brand-amber" onclick="openSingleInvoiceModal('${it.group_id}')">
+                            <i class="fa-solid fa-plus"></i> Input SO / Inv
                         </button>
                     </div>
                 ` : `
                     <div class="d-flex align-items-center justify-content-end gap-2 flex-nowrap">
-                        <div class="text-end">
-                            <span class="badge-verified-inv" style="font-size: 11.5px; padding: 4px 8px; white-space: nowrap;">
-                                <i class="fa-solid fa-file-invoice"></i> ${escapeHtml(it.no_inv)}
-                            </span>
-                            ${it.tgl_invoice ? `<div class="text-xs text-muted font-weight-bold mt-0.5"><i class="fa-regular fa-calendar me-1"></i> ${escapeHtml(it.tgl_invoice)}</div>` : ''}
+                        <div class="text-end d-flex flex-column align-items-end gap-1">
+                            ${it.no_so ? `
+                                <span class="badge-so-inv" style="font-size: 11px; padding: 3px 8px; white-space: nowrap;">
+                                    <i class="fa-solid fa-clipboard-list"></i> SO: ${escapeHtml(it.no_so)}
+                                </span>
+                            ` : ''}
+                            ${it.no_inv ? `
+                                <span class="badge-verified-inv" style="font-size: 11px; padding: 3px 8px; white-space: nowrap;">
+                                    <i class="fa-solid fa-file-invoice"></i> INV: ${escapeHtml(it.no_inv)}
+                                </span>
+                            ` : ''}
+                            ${it.tgl_invoice ? `<div class="text-xs text-muted font-weight-bold" style="font-size: 10.5px;"><i class="fa-regular fa-calendar me-1"></i> ${escapeHtml(it.tgl_invoice)}</div>` : ''}
                         </div>
                         <div class="d-inline-flex align-items-center gap-1 flex-nowrap">
-                            <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 mb-0" style="border-radius: 6px; height: 28px;" title="Edit No. Invoice" onclick="openSingleInvoiceModal(${it.id_kunjungan})">
+                            <button type="button" class="btn btn-sm mb-0" style="border: 1px solid #e2e8f0; border-radius: 6px; height: 28px; background: #ffffff; color: #475569; padding: 0 8px;" title="Edit No. SO / Invoice" onclick="openSingleInvoiceModal('${it.group_id}')">
                                 <i class="fa-solid fa-pen" style="font-size: 11px;"></i>
                             </button>
                             ${!isClaimed ? `
-                                <button type="button" class="btn btn-sm btn-outline-warning py-1 px-2 mb-0" style="border-radius: 6px; height: 28px;" title="Reset No. Invoice (Jadikan Belum Diinput)" onclick="hapusInvoiceSingle(${it.id_kunjungan}, '${escapeHtml(it.no_inv)}')">
+                                <button type="button" class="btn btn-sm mb-0" style="border: 1px solid var(--pastel-amber-border); background: var(--pastel-amber-bg); color: var(--pastel-amber-text); border-radius: 6px; height: 28px; padding: 0 8px;" title="Reset No. SO &amp; Invoice (Jadikan Belum Diinput)" onclick="hapusInvoiceGroup('${it.group_id}')">
                                     <i class="fa-solid fa-eraser" style="font-size: 11px;"></i>
                                 </button>
-                                <button type="button" class="btn btn-sm btn-outline-danger py-1 px-2 mb-0" style="border-radius: 6px; height: 28px;" title="Batalkan Penjualan & Kembalikan Stok ke Toko" onclick="batalkanPenjualanSingle(${it.id_kunjungan}, '${escapeHtml(it.kode_kunjungan || '')}', ${qty}, '${escapeHtml(it.nama_barang || '')}')">
+                                <button type="button" class="btn btn-sm mb-0" style="border: 1px solid var(--pastel-red-border); background: var(--pastel-red-bg); color: var(--pastel-red-text); border-radius: 6px; height: 28px; padding: 0 8px;" title="Batalkan Seluruh Penjualan &amp; Kembalikan Stok ke Toko" onclick="batalkanPenjualanGroup('${it.group_id}')">
                                     <i class="fa-solid fa-trash-can" style="font-size: 11px;"></i>
                                 </button>
                             ` : `
@@ -1662,43 +1781,93 @@ if ($qDealersPreload) {
                     </div>
                 `;
 
+                // Products list formatting
+                let productsHtml = '';
+                const isSplit = Boolean(it.split_group || (it.items && it.items.some(p => p.split_group)));
+                if (!it.items || it.items.length <= 1) {
+                    const singleItem = (it.items && it.items.length > 0) ? it.items[0] : it;
+                    const itemQty = singleItem.qty_terjual_kunjungan || totalQty;
+                    const insUnit = singleItem.insentif_per_unit || 0;
+                    productsHtml = `
+                        <div class="d-flex align-items-center gap-1.5 flex-wrap">
+                            <span class="font-weight-bold text-dark" style="font-size: 13px; line-height: 1.3;">${escapeHtml(singleItem.nama_barang || '-')}</span>
+                            ${isSplit ? `<span class="badge" style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px;"><i class="fa-solid fa-scissors me-1"></i>Pecahan SO</span>` : ''}
+                        </div>
+                        <div class="d-flex align-items-center gap-1.5 mt-1">
+                            <span class="badge px-2 py-0.5" style="background: var(--pastel-red-bg); color: var(--pastel-red-text); border: 1px solid var(--pastel-red-border); font-size: 11px; font-weight: 700; border-radius: 4px;">
+                                Laku: ${itemQty} Unit
+                            </span>
+                            <span class="text-xs text-muted font-weight-bold">(@ Rp ${new Intl.NumberFormat('id-ID').format(insUnit)})</span>
+                        </div>
+                    `;
+                } else {
+                    productsHtml = `
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span class="badge px-2 py-0.5" style="background: #0f172a; color: #ffffff; font-size: 11px; font-weight: 700; border-radius: 4px;">
+                                Total: ${totalQty} Unit
+                            </span>
+                            <span class="text-xs text-muted font-weight-bold">(${productCount} Macam Barang)</span>
+                        </div>
+                        <div class="d-flex flex-column gap-1.5">
+                            ${it.items.map(p => `
+                                <div class="d-flex align-items-center justify-content-between p-1.5 rounded" style="background: #f8fafc; border: 1px solid #f1f5f9; font-size: 12px;">
+                                    <div class="d-flex align-items-center gap-1.5 text-truncate me-2" style="max-width: 230px;">
+                                        <i class="fa-solid fa-box text-secondary" style="font-size: 10px;"></i>
+                                        <span class="font-weight-bold text-dark text-truncate" title="${escapeHtml(p.nama_barang)}">${escapeHtml(p.nama_barang)}</span>
+                                    </div>
+                                    <div class="d-inline-flex align-items-center gap-1 flex-shrink-0">
+                                        <span class="badge px-1.5 py-0.5" style="background: var(--pastel-red-bg); color: var(--pastel-red-text); border: 1px solid var(--pastel-red-border); font-size: 10.5px; font-weight: 700; border-radius: 4px;">
+                                            ${p.qty_terjual_kunjungan} Unit
+                                        </span>
+                                        ${!isClaimed ? `
+                                            <button type="button" class="btn btn-link text-muted p-0 ms-1" style="font-size: 11px; line-height: 1;" title="Batalkan item ini saja &amp; kembalikan stok" onclick="batalkanPenjualanSingle(${p.id_kunjungan}, '${escapeHtml(p.kode_kunjungan || '')}', ${p.qty_terjual_kunjungan}, '${escapeHtml(p.nama_barang || '')}')">
+                                                <i class="fa-solid fa-xmark text-danger opacity-75"></i>
+                                            </button>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                }
+
+                const kodeDisplay = (it.kode_kunjungan_list && it.kode_kunjungan_list.length > 1)
+                    ? `${escapeHtml(it.kode_kunjungan_list[0])} s/d ${escapeHtml(it.kode_kunjungan_list[it.kode_kunjungan_list.length - 1])}`
+                    : escapeHtml((it.kode_kunjungan_list && it.kode_kunjungan_list[0]) || (it.kode_kunjungan || '-'));
+
                 html += `
-                    <tr id="rowTrx_${it.id_kunjungan}">
-                        <td class="text-center" style="vertical-align: top; padding-top: 13px;">
-                            <input type="checkbox" class="form-check-input row-checkbox" value="${it.id_kunjungan}" style="cursor: pointer;" onchange="onRowCheckboxChange(this, ${it.id_kunjungan})">
+                    <tr id="rowTrx_${it.group_id}">
+                        <td class="text-center" style="vertical-align: top; padding-top: 14px;">
+                            <input type="checkbox" class="form-check-input row-checkbox" value="${it.group_id}" style="cursor: pointer;" onchange="onRowCheckboxChange(this, '${it.group_id}')">
                         </td>
-                        <td style="vertical-align: top; padding-top: 13px;">
+                        <td style="vertical-align: top; padding-top: 14px;">
                             <div class="font-weight-bold text-dark" style="font-size: 13.5px; line-height: 1.3;">${escapeHtml(it.nama_toko || 'Toko Mitra')}</div>
-                            <div class="d-flex align-items-center gap-1.5 mt-1">
-                                ${it.kategori_toko ? `<span class="badge bg-light text-secondary px-1.5 py-0.5" style="font-size: 10px; border: 1px solid #cbd5e1; border-radius: 4px;">${escapeHtml(it.kategori_toko)}</span>` : ''}
+                            <div class="d-flex align-items-center gap-1.5 mt-1.5">
+                                ${it.kategori_toko ? `<span class="badge px-1.5 py-0.5" style="background: #f1f5f9; color: #475569; font-size: 10px; border: 1px solid #e2e8f0; border-radius: 4px;">${escapeHtml(it.kategori_toko)}</span>` : ''}
                                 <span class="text-xs text-muted font-weight-bold">${escapeHtml(it.kota_toko || '')}</span>
                             </div>
                         </td>
-                        <td style="vertical-align: top; padding-top: 13px;">
-                            <div class="font-weight-bold text-dark" style="font-size: 13px; line-height: 1.3;">${escapeHtml(it.nama_barang)}</div>
-                            <div class="d-flex align-items-center gap-1.5 mt-1">
-                                <span class="badge bg-danger text-white px-2 py-0.5" style="font-size: 11px; font-weight: 800; border-radius: 5px;">
-                                    Laku: ${qty} Unit
-                                </span>
-                                <span class="text-xs text-muted font-weight-bold">(@ Rp ${new Intl.NumberFormat('id-ID').format(insUnit)})</span>
-                            </div>
+                        <td style="vertical-align: top; padding-top: 14px;">
+                            ${productsHtml}
                         </td>
-                        <td class="text-end" style="vertical-align: top; padding-top: 13px;">
-                            <div style="font-family: var(--font-heading); font-size: 15px; font-weight: 800; color: #047857; line-height: 1.2;">
-                                Rp ${new Intl.NumberFormat('id-ID').format(subtotalIns)}
+                        <td class="text-end" style="vertical-align: top; padding-top: 14px;">
+                            <div style="font-family: var(--font-heading); font-size: 14.5px; font-weight: 800; color: #0f172a; line-height: 1.2;">
+                                Rp ${new Intl.NumberFormat('id-ID').format(totalIns)}
                             </div>
-                            <div class="text-xs text-muted font-weight-bold mt-0.5">Estimasi Reward</div>
+                            <div class="text-xs text-muted font-weight-bold mt-0.5">Estimasi Reward (${totalQty} Unit)</div>
                         </td>
-                        <td style="vertical-align: top; padding-top: 13px;">
-                            <div class="font-weight-bold text-dark" style="font-size: 12.5px; white-space: nowrap;"><i class="fa-regular fa-calendar-check text-primary me-1"></i> ${escapeHtml(it.tgl_kunjungan)}</div>
-                            <div class="font-monospace text-xs text-secondary font-weight-bold mt-0.5" style="white-space: nowrap; max-width: 165px; overflow: hidden; text-overflow: ellipsis;" title="${escapeHtml(it.kode_kunjungan)}">${escapeHtml(it.kode_kunjungan)}</div>
+                        <td style="vertical-align: top; padding-top: 14px;">
+                            <div class="font-weight-bold text-dark" style="font-size: 12.5px; white-space: nowrap;"><i class="fa-regular fa-calendar-check text-secondary me-1"></i> ${escapeHtml(it.tgl_kunjungan)}</div>
+                            <div class="font-monospace text-xs text-secondary font-weight-bold mt-0.5" style="white-space: nowrap; max-width: 175px; overflow: hidden; text-overflow: ellipsis;" title="${escapeHtml((it.kode_kunjungan_list || []).join(', '))}">
+                                ${kodeDisplay}
+                            </div>
                             <div class="mt-1">
-                                <span class="badge" style="background: rgba(37,99,235,0.08); color: #1d4ed8; border: 1px solid rgba(37,99,235,0.2); font-size: 10.5px; padding: 2px 7px; border-radius: 5px; font-weight: 700; white-space: nowrap;">
+                                <span class="badge" style="background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; font-size: 10.5px; padding: 2px 7px; border-radius: 4px; font-weight: 600; white-space: nowrap;">
                                     <i class="fa-solid fa-user-tie me-1"></i> ${escapeHtml(it.nama_sales || 'Sales')}
                                 </span>
                             </div>
                         </td>
-                        <td>
+                        <td style="vertical-align: top; padding-top: 14px;">
                             ${statusPill}
                         </td>
                     </tr>
@@ -1707,11 +1876,11 @@ if ($qDealersPreload) {
             tbody.innerHTML = html;
         }
 
-        function onRowCheckboxChange(cb, id) {
+        function onRowCheckboxChange(cb, gid) {
             if (cb.checked) {
-                selectedTrxIds.add(id);
+                selectedGroupIds.add(gid);
             } else {
-                selectedTrxIds.delete(id);
+                selectedGroupIds.delete(gid);
             }
             updateBatchActionBar();
         }
@@ -1720,15 +1889,15 @@ if ($qDealersPreload) {
             const checkboxes = document.querySelectorAll('.row-checkbox');
             checkboxes.forEach(cb => {
                 cb.checked = master.checked;
-                const id = parseInt(cb.value);
-                if (master.checked) selectedTrxIds.add(id);
-                else selectedTrxIds.delete(id);
+                const gid = cb.value;
+                if (master.checked) selectedGroupIds.add(gid);
+                else selectedGroupIds.delete(gid);
             });
             updateBatchActionBar();
         }
 
         function unselectAllCheckboxes() {
-            selectedTrxIds.clear();
+            selectedGroupIds.clear();
             document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = false);
             const checkAll = document.getElementById('checkAllItems');
             if (checkAll) checkAll.checked = false;
@@ -1738,23 +1907,23 @@ if ($qDealersPreload) {
         function updateBatchActionBar() {
             const bar = document.getElementById('batchActionBar');
             if (!bar) return;
-            const count = selectedTrxIds.size;
+            const count = selectedGroupIds.size;
             if (count > 0) {
                 bar.classList.remove('d-none');
                 
                 let sumUnit = 0;
                 let sumIns = 0;
-                selectedTrxIds.forEach(id => {
-                    const it = invoicesData.find(x => x.id_kunjungan == id);
+                selectedGroupIds.forEach(gid => {
+                    const it = invoicesData.find(x => x.group_id === gid);
                     if (it) {
-                        sumUnit += (parseInt(it.qty_terjual_kunjungan) || 0);
-                        sumIns += (parseFloat(it.insentif_didapat) || 0);
+                        sumUnit += (parseInt(it.total_qty) || 0);
+                        sumIns += (parseFloat(it.total_insentif) || 0);
                     }
                 });
 
                 const textEl = document.getElementById('batchSelectedText');
                 const subEl = document.getElementById('batchSubtotalInfo');
-                if (textEl) textEl.textContent = `${count} Transaksi Penjualan Terpilih`;
+                if (textEl) textEl.textContent = `${count} Faktur Penjualan Terpilih`;
                 if (subEl) subEl.textContent = `Total Fisik: ${sumUnit} Unit | Total Estimasi Insentif: Rp ${new Intl.NumberFormat('id-ID').format(sumIns)}`;
             } else {
                 bar.classList.add('d-none');
@@ -1762,31 +1931,80 @@ if ($qDealersPreload) {
         }
 
         // =========================================================================
-        // MODAL SINGLE INVOICE
+        // MODAL SINGLE / GROUP INVOICE & SO
         // =========================================================================
-        function openSingleInvoiceModal(idKunjungan) {
-            const it = invoicesData.find(x => x.id_kunjungan == idKunjungan);
+        let activeModalGroupId = null;
+        function openSingleInvoiceModal(groupId) {
+            const it = invoicesData.find(x => x.group_id === groupId || (x.kunjungan_ids && x.kunjungan_ids.includes(parseInt(groupId))));
             if (!it) return;
+            activeModalGroupId = it.group_id;
 
-            document.getElementById('singleIdKunjungan').value = idKunjungan;
+            const kunjIds = it.kunjungan_ids || [it.id_kunjungan];
+            document.getElementById('singleIdKunjungan').value = kunjIds[0] || 0;
+            document.getElementById('singleIdKunjunganList').value = kunjIds.join(',');
             document.getElementById('singlePrevNamaToko').textContent = it.nama_toko || 'Toko Mitra';
-            document.getElementById('singlePrevNamaBarang').textContent = it.nama_barang || '-';
-            document.getElementById('singlePrevQty').textContent = `Terjual: ${it.qty_terjual_kunjungan} Unit`;
-            document.getElementById('singlePrevInsentif').textContent = `Subtotal Reward: Rp ${new Intl.NumberFormat('id-ID').format(it.insentif_didapat || 0)}`;
+            document.getElementById('singlePrevQty').textContent = `${it.total_qty || it.qty_terjual_kunjungan} Unit`;
 
+            if (it.items && it.items.length > 1) {
+                const itemDetailsHtml = it.items.map(p => 
+                    `<div class="d-flex justify-content-between align-items-center py-1 border-bottom" style="font-size: 11.5px;">
+                        <span class="text-truncate me-2 text-dark font-weight-bold" title="${escapeHtml(p.nama_barang)}">• ${escapeHtml(p.nama_barang)}</span>
+                        <span class="badge text-white px-2 py-0.5" style="background: #334155; font-size: 10.5px;">${p.qty_terjual_kunjungan} Unit</span>
+                    </div>`
+                ).join('');
+                document.getElementById('singlePrevNamaBarang').innerHTML = itemDetailsHtml;
+            } else {
+                const singleName = (it.items && it.items[0]) ? it.items[0].nama_barang : (it.nama_barang || '-');
+                document.getElementById('singlePrevNamaBarang').textContent = singleName;
+            }
+
+            document.getElementById('singlePrevInsentif').textContent = `Rp ${new Intl.NumberFormat('id-ID').format(it.total_insentif || it.insentif_didapat || 0)}`;
+
+            document.getElementById('singleInputNoSo').value = it.no_so || '';
             document.getElementById('singleInputNoInv').value = it.no_inv || '';
             document.getElementById('singleInputTglInv').value = it.tgl_invoice || '<?php echo date('Y-m-d'); ?>';
             document.getElementById('singleInputCatatan').value = it.catatan_kunjungan || '';
 
-            const isEdit = (it.no_inv && it.no_inv.trim() !== '');
-            document.getElementById('singleModalTitle').textContent = isEdit ? 'Edit No. Invoice' : 'Input No. Invoice';
-            document.getElementById('singleModalSubtitle').textContent = isEdit ? 'Perbarui nomor faktur penjualan yang telah diinput' : 'Tetapkan nomor faktur penjualan TIP TOK';
+            const isEdit = (it.no_inv && it.no_inv.trim() !== '') || (it.no_so && it.no_so.trim() !== '');
+            document.getElementById('singleModalTitle').textContent = isEdit ? 'Edit No. SO / Invoice' : 'Input No. SO / Invoice';
+            document.getElementById('singleModalSubtitle').textContent = isEdit 
+                ? `Perbarui nomor SO atau faktur penjualan untuk toko ini` 
+                : `Tetapkan nomor SO atau faktur penjualan untuk seluruh barang pada transaksi ini`;
+
+            // Tampilkan banner opsi pecah SO jika belum ada invoice dan total unit > 1 atau item > 1
+            const isPending = (!it.no_inv || it.no_inv.trim() === '') && (!it.no_so || it.no_so.trim() === '');
+            const canSplit = isPending && ((parseInt(it.total_qty) || 0) > 1 || (it.items && it.items.length > 1));
+            const splitHint = document.getElementById('singleSplitHint');
+            if (splitHint) {
+                if (canSplit) {
+                    splitHint.classList.remove('d-none');
+                } else {
+                    splitHint.classList.add('d-none');
+                }
+            }
 
             showModalSafe('modalSingleInvoice');
         }
 
+        function triggerPecahFromModal() {
+            const gId = activeModalGroupId;
+            hideModalSafe('modalSingleInvoice');
+            if (gId) {
+                setTimeout(() => {
+                    pecahTransaksiPrompt(gId);
+                }, 350);
+            }
+        }
+
         function submitSingleInvoice(e) {
             e.preventDefault();
+            const noSo = document.getElementById('singleInputNoSo').value.trim();
+            const noInv = document.getElementById('singleInputNoInv').value.trim();
+            if (!noSo && !noInv) {
+                Swal.fire({ icon: 'warning', title: 'Perhatian', text: 'Harap isi Nomor SO atau Nomor Invoice (minimal salah satu).' });
+                return;
+            }
+
             const form = document.getElementById('formSingleInvoice');
             const formData = new FormData(form);
             formData.append('action', 'simpan_invoice_item');
@@ -1802,14 +2020,14 @@ if ($qDealersPreload) {
                 .then(res => {
                     if (btn) {
                         btn.disabled = false;
-                        btn.innerHTML = '<i class="fa-solid fa-check me-1"></i> Simpan Invoice';
+                        btn.innerHTML = '<i class="fa-solid fa-check me-1"></i> Simpan Data';
                     }
                     if (res && res.status === 'success') {
                         hideModalSafe('modalSingleInvoice');
                         Swal.fire({
                             icon: 'success',
                             title: 'Tersimpan!',
-                            text: res.message || 'Nomor Invoice berhasil disimpan.',
+                            text: res.message || 'Data SO / Invoice berhasil disimpan.',
                             timer: 1600,
                             showConfirmButton: false
                         });
@@ -1822,7 +2040,7 @@ if ($qDealersPreload) {
                     console.error(err);
                     if (btn) {
                         btn.disabled = false;
-                        btn.innerHTML = '<i class="fa-solid fa-check me-1"></i> Simpan Invoice';
+                        btn.innerHTML = '<i class="fa-solid fa-check me-1"></i> Simpan Data';
                     }
                     Swal.fire({ icon: 'error', title: 'Error', text: 'Terjadi kesalahan jaringan.' });
                 });
@@ -1832,25 +2050,28 @@ if ($qDealersPreload) {
         // MODAL BATCH INVOICE
         // =========================================================================
         function openBatchInvoiceModal() {
-            const count = selectedTrxIds.size;
+            const count = selectedGroupIds.size;
             if (count === 0) {
-                Swal.fire({ icon: 'warning', title: 'Pilih Transaksi', text: 'Centang minimal satu transaksi untuk mengisi No. Invoice.' });
+                Swal.fire({ icon: 'warning', title: 'Pilih Transaksi', text: 'Centang minimal satu faktur penjualan untuk mengisi No. SO / Invoice kolektif.' });
                 return;
             }
 
             let sumUnit = 0;
             let tokoSet = new Set();
-            selectedTrxIds.forEach(id => {
-                const it = invoicesData.find(x => x.id_kunjungan == id);
+            let allKunjunganIds = [];
+            selectedGroupIds.forEach(gid => {
+                const it = invoicesData.find(x => x.group_id === gid);
                 if (it) {
-                    sumUnit += (parseInt(it.qty_terjual_kunjungan) || 0);
+                    sumUnit += (parseInt(it.total_qty) || 0);
                     if (it.nama_toko) tokoSet.add(it.nama_toko);
+                    if (it.kunjungan_ids) allKunjunganIds.push(...it.kunjungan_ids);
                 }
             });
 
-            document.getElementById('batchModalSelectedCount').textContent = `${count} Transaksi Terpilih`;
+            document.getElementById('batchModalSelectedCount').textContent = `${count} Faktur Terpilih`;
             document.getElementById('batchModalTotalUnit').textContent = `${sumUnit} Unit Terjual`;
             document.getElementById('batchModalDealerSummary').textContent = `Toko: ${Array.from(tokoSet).join(', ') || '-'}`;
+            document.getElementById('batchInputNoSo').value = '';
             document.getElementById('batchInputNoInv').value = '';
             document.getElementById('batchInputTglInv').value = '<?php echo date('Y-m-d'); ?>';
 
@@ -1859,19 +2080,34 @@ if ($qDealersPreload) {
 
         function submitBatchInvoice(e) {
             e.preventDefault();
+            const noSo = document.getElementById('batchInputNoSo').value.trim();
             const noInv = document.getElementById('batchInputNoInv').value.trim();
             const tglInv = document.getElementById('batchInputTglInv').value;
 
-            if (!noInv) {
-                Swal.fire({ icon: 'warning', title: 'Wajib Diisi', text: 'Silakan isi Nomor Invoice kolektif.' });
+            if (!noSo && !noInv) {
+                Swal.fire({ icon: 'warning', title: 'Wajib Diisi', text: 'Silakan isi Nomor SO atau Nomor Invoice kolektif (minimal salah satu).' });
+                return;
+            }
+
+            let allKunjunganIds = [];
+            selectedGroupIds.forEach(gid => {
+                const it = invoicesData.find(x => x.group_id === gid);
+                if (it && it.kunjungan_ids) {
+                    allKunjunganIds.push(...it.kunjungan_ids);
+                }
+            });
+
+            if (allKunjunganIds.length === 0) {
+                Swal.fire({ icon: 'warning', title: 'Perhatian', text: 'Tidak ada item transaksi yang dipilih.' });
                 return;
             }
 
             const formData = new FormData();
             formData.append('action', 'simpan_batch_invoice');
+            formData.append('no_so', noSo);
             formData.append('no_inv', noInv);
             formData.append('tgl_invoice', tglInv);
-            formData.append('id_kunjungan_list', Array.from(selectedTrxIds).join(','));
+            formData.append('id_kunjungan_list', allKunjunganIds.join(','));
 
             const btn = document.getElementById('btnSaveBatchInvoice');
             if (btn) {
@@ -1891,7 +2127,7 @@ if ($qDealersPreload) {
                         Swal.fire({
                             icon: 'success',
                             title: 'Sukses!',
-                            text: res.message || 'No. Invoice kolektif berhasil diterapkan.',
+                            text: res.message || 'Data SO / Invoice kolektif berhasil diterapkan.',
                             timer: 1800,
                             showConfirmButton: false
                         });
@@ -1911,23 +2147,29 @@ if ($qDealersPreload) {
         }
 
         // =========================================================================
-        // HAPUS / RESET NO. INVOICE
+        // HAPUS / RESET NO. SO & INVOICE GROUP
         // =========================================================================
-        function hapusInvoiceSingle(idKunjungan, currentNoInv) {
+        function hapusInvoiceGroup(groupId) {
+            const it = invoicesData.find(x => x.group_id === groupId);
+            if (!it) return;
+
+            const ref = it.no_inv ? `INV: ${it.no_inv}` : (it.no_so ? `SO: ${it.no_so}` : 'Faktur');
+            const kunjIds = it.kunjungan_ids || [it.id_kunjungan];
+
             Swal.fire({
-                title: 'Reset No. Invoice?',
-                html: `Apakah Anda yakin ingin menghapus nomor faktur <strong>${escapeHtml(currentNoInv)}</strong> dari transaksi ini?`,
+                title: 'Reset No. SO / Invoice?',
+                html: `Apakah Anda yakin ingin menghapus data <strong>${escapeHtml(ref)}</strong> dari transaksi toko <strong>${escapeHtml(it.nama_toko)}</strong>?<br><small class="text-muted">Nomor faktur &amp; SO untuk seluruh ${it.items ? it.items.length : 1} barang (${it.total_qty} unit) pada transaksi ini akan dikosongkan.</small>`,
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#ef4444',
                 cancelButtonColor: '#64748b',
-                confirmButtonText: '<i class="fa-solid fa-trash-can me-1"></i> Ya, Reset Invoice',
+                confirmButtonText: '<i class="fa-solid fa-eraser me-1"></i> Ya, Reset',
                 cancelButtonText: 'Batal'
             }).then((result) => {
                 if (result.isConfirmed) {
                     const formData = new FormData();
                     formData.append('action', 'hapus_invoice_item');
-                    formData.append('id_kunjungan', idKunjungan);
+                    formData.append('id_kunjungan_list', kunjIds.join(','));
 
                     fetch('tiptok-ajax.php', { method: 'POST', body: formData })
                         .then(r => r.json())
@@ -1936,13 +2178,13 @@ if ($qDealersPreload) {
                                 Swal.fire({
                                     icon: 'success',
                                     title: 'Direset!',
-                                    text: res.message || 'No. Invoice berhasil direset.',
+                                    text: res.message || 'Data SO / Invoice berhasil direset.',
                                     timer: 1400,
                                     showConfirmButton: false
                                 });
                                 loadInvoicesData();
                             } else {
-                                Swal.fire({ icon: 'error', title: 'Gagal', text: (res && res.message) ? res.message : 'Gagal mereset invoice.' });
+                                Swal.fire({ icon: 'error', title: 'Gagal', text: (res && res.message) ? res.message : 'Gagal mereset data.' });
                             }
                         })
                         .catch(err => {
@@ -1954,35 +2196,41 @@ if ($qDealersPreload) {
         }
 
         // =========================================================================
-        // BATALKAN PENJUALAN SINGLE (KEMBALIKAN STOK KE TOKO)
+        // BATALKAN PENJUALAN GROUP (KEMBALIKAN SELURUH STOK TOKO PADA KUNJUNGAN INI)
         // =========================================================================
-        function batalkanPenjualanSingle(idKunjungan, kodeKunjungan, qty, namaBarang) {
+        function batalkanPenjualanGroup(groupId) {
+            const it = invoicesData.find(x => x.group_id === groupId);
+            if (!it) return;
+
+            const kunjIds = it.kunjungan_ids || [it.id_kunjungan];
+            const itemCount = it.items ? it.items.length : 1;
+
             Swal.fire({
-                title: 'Batalkan Penjualan?',
-                html: `Apakah transaksi audit <strong>${escapeHtml(kodeKunjungan || '')}</strong> batal terjual?<br><br>
+                title: 'Batalkan Penjualan Toko Ini?',
+                html: `Apakah transaksi audit pada toko <strong>${escapeHtml(it.nama_toko)}</strong> tanggal <strong>${escapeHtml(it.tgl_kunjungan)}</strong> batal terjual?<br><br>
                        <div class="p-3 bg-light rounded text-start border" style="font-size: 13px;">
                            <div class="text-danger fw-bold mb-1"><i class="fa-solid fa-triangle-exclamation me-1"></i> Dampak Pembatalan:</div>
-                           • Stok <strong>${qty} unit</strong> (${escapeHtml(namaBarang)}) akan <strong>otomatis dikembalikan ke toko mitra</strong>.<br>
-                           • Laporan terjual dan estimasi insentif pada audit ini akan dihapus dari sistem.
+                           • Seluruh stok sebanyak <strong>${it.total_qty} unit</strong> (${itemCount} jenis barang) akan <strong>otomatis dikembalikan ke toko mitra</strong>.<br>
+                           • Laporan terjual dan estimasi reward (Rp ${new Intl.NumberFormat('id-ID').format(it.total_insentif)}) akan dihapus dari sistem.
                        </div>`,
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#ef4444',
                 cancelButtonColor: '#64748b',
-                confirmButtonText: '<i class="fa-solid fa-rotate-left me-1"></i> Ya, Batalkan Penjualan',
+                confirmButtonText: '<i class="fa-solid fa-rotate-left me-1"></i> Ya, Batalkan Semua',
                 cancelButtonText: 'Kembali'
             }).then((result) => {
                 if (result.isConfirmed) {
                     Swal.fire({
                         title: 'Memproses...',
-                        text: 'Mengembalikan stok dan membatalkan penjualan...',
+                        text: 'Mengembalikan stok dan membatalkan transaksi...',
                         allowOutsideClick: false,
                         didOpen: () => Swal.showLoading()
                     });
 
                     const formData = new FormData();
                     formData.append('action', 'batalkan_penjualan_kunjungan');
-                    formData.append('id_kunjungan', idKunjungan);
+                    formData.append('id_kunjungan_list', kunjIds.join(','));
 
                     fetch('tiptok-ajax.php', { method: 'POST', body: formData })
                         .then(r => r.json())
@@ -2009,15 +2257,78 @@ if ($qDealersPreload) {
         }
 
         // =========================================================================
-        // BATALKAN PENJUALAN BATCH (KOLEKTIF)
+        // BATALKAN PENJUALAN SINGLE ITEM (KEMBALIKAN STOK 1 ITEM KE TOKO)
+        // =========================================================================
+        function batalkanPenjualanSingle(idKunjungan, kodeKunjungan, qty, namaBarang) {
+            Swal.fire({
+                title: 'Batalkan Penjualan Item?',
+                html: `Apakah barang <strong>${escapeHtml(namaBarang)}</strong> batal terjual?<br><br>
+                       <div class="p-3 bg-light rounded text-start border" style="font-size: 13px;">
+                           <div class="text-danger fw-bold mb-1"><i class="fa-solid fa-triangle-exclamation me-1"></i> Dampak Pembatalan:</div>
+                           • Stok <strong>${qty} unit</strong> (${escapeHtml(namaBarang)}) akan <strong>otomatis dikembalikan ke toko mitra</strong>.<br>
+                           • Laporan terjual dan estimasi insentif pada item ini akan dihapus dari sistem.
+                       </div>`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: '<i class="fa-solid fa-rotate-left me-1"></i> Ya, Batalkan Item',
+                cancelButtonText: 'Kembali'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Memproses...',
+                        text: 'Mengembalikan stok dan membatalkan item...',
+                        allowOutsideClick: false,
+                        didOpen: () => Swal.showLoading()
+                    });
+
+                    const formData = new FormData();
+                    formData.append('action', 'batalkan_penjualan_kunjungan');
+                    formData.append('id_kunjungan', idKunjungan);
+
+                    fetch('tiptok-ajax.php', { method: 'POST', body: formData })
+                        .then(r => r.json())
+                        .then(res => {
+                            if (res && res.status === 'success') {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Item Dibatalkan!',
+                                    text: res.message || 'Stok berhasil dikembalikan ke toko.',
+                                    timer: 1600,
+                                    showConfirmButton: false
+                                });
+                                loadInvoicesData();
+                            } else {
+                                Swal.fire({ icon: 'error', title: 'Gagal Membatalkan', html: (res && res.message) ? res.message : 'Gagal membatalkan transaksi.' });
+                            }
+                        })
+                        .catch(err => {
+                            console.error(err);
+                            Swal.fire({ icon: 'error', title: 'Error Jaringan', text: 'Terjadi kesalahan koneksi server.' });
+                        });
+                }
+            });
+        }
+
+        // =========================================================================
+        // BATALKAN PENJUALAN BATCH (KOLEKTIF FAKTUR TERPILIH)
         // =========================================================================
         function batalkanPenjualanBatch() {
-            if (selectedTrxIds.size === 0) return;
-            const ids = Array.from(selectedTrxIds);
+            if (selectedGroupIds.size === 0) return;
+            let allKunjunganIds = [];
+            selectedGroupIds.forEach(gid => {
+                const it = invoicesData.find(x => x.group_id === gid);
+                if (it && it.kunjungan_ids) {
+                    allKunjunganIds.push(...it.kunjungan_ids);
+                }
+            });
+
+            if (allKunjunganIds.length === 0) return;
 
             Swal.fire({
                 title: 'Batalkan Penjualan Terpilih?',
-                html: `Apakah Anda yakin ingin membatalkan <strong>${ids.length} transaksi</strong> penjualan yang dipilih?<br><br>
+                html: `Apakah Anda yakin ingin membatalkan <strong>${selectedGroupIds.size} faktur transaksi</strong> (${allKunjunganIds.length} item barang) yang dipilih?<br><br>
                        <div class="p-3 bg-light rounded text-start border" style="font-size: 13px;">
                            <div class="text-danger fw-bold mb-1"><i class="fa-solid fa-triangle-exclamation me-1"></i> Perhatian:</div>
                            Seluruh unit barang yang batal terjual pada transaksi terpilih akan <strong>otomatis dikembalikan ke stok toko mitra</strong> masing-masing.
@@ -2032,36 +2343,329 @@ if ($qDealersPreload) {
                 if (result.isConfirmed) {
                     Swal.fire({
                         title: 'Memproses...',
-                        text: 'Mengembalikan stok dan membatalkan penjualan terpilih...',
+                        text: 'Mengembalikan stok dan membatalkan transaksi terpilih...',
                         allowOutsideClick: false,
                         didOpen: () => Swal.showLoading()
                     });
 
-                    // Execute serial or parallel deletions
-                    const promises = ids.map(id => {
-                        const fd = new FormData();
-                        fd.append('action', 'batalkan_penjualan_kunjungan');
-                        fd.append('id_kunjungan', id);
-                        return fetch('tiptok-ajax.php', { method: 'POST', body: fd }).then(r => r.json());
-                    });
+                    const fd = new FormData();
+                    fd.append('action', 'batalkan_penjualan_kunjungan');
+                    fd.append('id_kunjungan_list', allKunjunganIds.join(','));
 
-                    Promise.all(promises)
-                        .then(results => {
-                            const successCount = results.filter(r => r && r.status === 'success').length;
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Selesai!',
-                                text: `${successCount} transaksi penjualan berhasil dibatalkan dan stok telah dipulihkan.`,
-                                timer: 1800,
-                                showConfirmButton: false
-                            });
-                            selectedTrxIds.clear();
-                            loadInvoicesData();
+                    fetch('tiptok-ajax.php', { method: 'POST', body: fd })
+                        .then(r => r.json())
+                        .then(res => {
+                            if (res && res.status === 'success') {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Selesai!',
+                                    text: res.message || 'Transaksi penjualan berhasil dibatalkan dan stok telah dipulihkan.',
+                                    timer: 1800,
+                                    showConfirmButton: false
+                                });
+                                selectedGroupIds.clear();
+                                loadInvoicesData();
+                            } else {
+                                Swal.fire({ icon: 'error', title: 'Gagal', text: (res && res.message) ? res.message : 'Sebagian proses gagal.' });
+                                loadInvoicesData();
+                            }
                         })
                         .catch(err => {
                             console.error(err);
-                            Swal.fire({ icon: 'error', title: 'Error', text: 'Sebagian proses gagal dijalankan.' });
+                            Swal.fire({ icon: 'error', title: 'Error', text: 'Terjadi kesalahan jaringan.' });
                             loadInvoicesData();
+                        });
+                }
+            });
+        }
+
+        // =========================================================================
+        // PECAH TRANSAKSI SO & INVOICE (UNTUK PEMBELIAN DI WAKTU BERBEDA / BEDA SO)
+        // =========================================================================
+        function pecahTransaksiPrompt(groupId) {
+            const it = invoicesData.find(x => x.group_id === groupId);
+            if (!it) {
+                Swal.fire({ icon: 'error', title: 'Data Tidak Ditemukan', text: 'Data transaksi tidak ditemukan.' });
+                return;
+            }
+
+            const items = it.items || [];
+            const namaToko = it.nama_toko || 'Toko Mitra';
+            const totalQty = parseInt(it.total_qty) || 0;
+
+            // Jika hanya 1 macam barang
+            if (items.length <= 1) {
+                const singleItem = (items.length > 0) ? items[0] : it;
+                const totalUnit = parseInt(singleItem.qty_terjual_kunjungan || totalQty || 0);
+                const namaBarang = singleItem.nama_barang || 'Barang TIP TOK';
+                const idKunjungan = singleItem.id_kunjungan || (it.kunjungan_ids ? it.kunjungan_ids[0] : 0);
+
+                if (totalUnit <= 1) {
+                    Swal.fire({ 
+                        icon: 'info', 
+                        title: 'Tidak Dapat Dipecah', 
+                        text: 'Jumlah barang pada transaksi ini hanya 1 unit, tidak dapat dipecah lagi.' 
+                    });
+                    return;
+                }
+
+                const maxPecah = totalUnit - 1;
+
+                Swal.fire({
+                    title: '<div class="d-flex align-items-center justify-content-center gap-2" style="font-size: 18px; color: #0f172a;"><i class="fa-solid fa-scissors text-success"></i> Pecah Transaksi SO &amp; Invoice</div>',
+                    html: `
+                        <div class="text-start" style="font-size: 13px;">
+                            <div class="p-3 mb-3 rounded-3" style="background: #f8fafc; border: 1px solid #e2e8f0;">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="font-weight-bold text-dark fs-6">${escapeHtml(namaToko)}</span>
+                                    <span class="badge bg-dark text-white px-2 py-0.5" style="font-size: 11px;">Total Laku: ${totalUnit} Unit</span>
+                                </div>
+                                <div class="text-secondary font-weight-bold" style="font-size: 12px;">${escapeHtml(namaBarang)}</div>
+                            </div>
+
+                            <div class="p-2.5 mb-3 rounded-2" style="background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; font-size: 12px; line-height: 1.4;">
+                                <i class="fa-solid fa-circle-info me-1"></i> <strong>Pemisahan Nomor SO / Invoice:</strong><br>
+                                Gunakan fitur ini jika customer beli di waktu berbeda (misal: <strong>1 unit pagi</strong> dan <strong>1 unit sore</strong>). Transaksi akan dipecah menjadi 2 baris terpisah agar masing-masing dapat diinput nomor SO/Invoice berbeda.
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label font-weight-bold text-dark text-xs text-uppercase mb-1">
+                                    Jumlah Unit yang Dipisah ke SO Baru:
+                                </label>
+                                <div class="d-flex align-items-center gap-2">
+                                    <input type="number" id="inputQtyPecah" class="form-control form-control-taste text-center font-weight-bold" style="font-size: 17px; width: 110px;" min="1" max="${maxPecah}" value="1">
+                                    <span class="text-xs text-muted font-weight-bold">Unit (Maksimal: ${maxPecah} Unit)</span>
+                                </div>
+                                <div class="text-xs text-secondary mt-1.5 p-2 rounded" style="background: #f1f5f9; border: 1px solid #e2e8f0;">
+                                    • Transaksi 1 (Tetap): <strong id="lblSisaPecah" class="text-primary">${totalUnit - 1}</strong> Unit<br>
+                                    • Transaksi 2 (Baru): <strong id="lblBaruPecah" class="text-success">1</strong> Unit
+                                </div>
+                            </div>
+
+                            <div class="mb-1">
+                                <label class="form-label font-weight-bold text-dark text-xs text-uppercase mb-1">
+                                    Catatan / Keterangan (Opsional):
+                                </label>
+                                <input type="text" id="inputCatatanPecah" class="form-control form-control-taste" placeholder="Contoh: Beli sore hari / beda SO">
+                            </div>
+                        </div>
+                    `,
+                    showCancelButton: true,
+                    confirmButtonText: '<i class="fa-solid fa-scissors me-1"></i> Ya, Pecah Transaksi',
+                    cancelButtonText: 'Batal',
+                    confirmButtonColor: '#16a34a',
+                    cancelButtonColor: '#94a3b8',
+                    didOpen: () => {
+                        const inp = document.getElementById('inputQtyPecah');
+                        const lblSisa = document.getElementById('lblSisaPecah');
+                        const lblBaru = document.getElementById('lblBaruPecah');
+                        if (inp) {
+                            inp.addEventListener('input', () => {
+                                let v = parseInt(inp.value) || 1;
+                                if (v < 1) v = 1;
+                                if (v > maxPecah) v = maxPecah;
+                                inp.value = v;
+                                if (lblSisa) lblSisa.textContent = (totalUnit - v);
+                                if (lblBaru) lblBaru.textContent = v;
+                            });
+                        }
+                    },
+                    preConfirm: () => {
+                        const qtyVal = parseInt(document.getElementById('inputQtyPecah').value) || 1;
+                        const catatanVal = document.getElementById('inputCatatanPecah').value.trim();
+                        if (qtyVal < 1 || qtyVal > maxPecah) {
+                            Swal.showValidationMessage(`Jumlah unit yang dipisah harus antara 1 dan ${maxPecah}`);
+                            return false;
+                        }
+                        return { qty: qtyVal, catatan: catatanVal, id_kunjungan: idKunjungan };
+                    }
+                }).then(result => {
+                    if (result.isConfirmed && result.value) {
+                        doPecahTransaksi(result.value.id_kunjungan, result.value.qty, result.value.catatan);
+                    }
+                });
+            } else {
+                // Multi items dalam 1 transaksi
+                let itemsListHtml = items.map((p, idx) => `
+                    <div class="form-check p-2.5 mb-2 rounded border" style="background: #ffffff; cursor: pointer;">
+                        <input class="form-check-input ms-0 me-2 radio-item-pecah" type="radio" name="itemPecahRadio" id="itemPecah_${p.id_kunjungan}" value="${p.id_kunjungan}" data-qty="${p.qty_terjual_kunjungan}" data-name="${escapeHtml(p.nama_barang)}" ${idx === 0 ? 'checked' : ''} style="cursor: pointer;">
+                        <label class="form-check-label w-100 font-weight-bold text-dark" for="itemPecah_${p.id_kunjungan}" style="cursor: pointer; font-size: 12.5px;">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span>${escapeHtml(p.nama_barang)}</span>
+                                <span class="badge bg-secondary text-white">${p.qty_terjual_kunjungan} Unit</span>
+                            </div>
+                        </label>
+                    </div>
+                `).join('');
+
+                Swal.fire({
+                    title: '<div class="d-flex align-items-center justify-content-center gap-2" style="font-size: 18px; color: #0f172a;"><i class="fa-solid fa-scissors text-success"></i> Pecah Transaksi Multi-Barang</div>',
+                    html: `
+                        <div class="text-start" style="font-size: 13px;">
+                            <div class="p-3 mb-3 rounded-3" style="background: #f8fafc; border: 1px solid #e2e8f0;">
+                                <div class="font-weight-bold text-dark fs-6">${escapeHtml(namaToko)}</div>
+                                <div class="text-muted font-weight-bold text-xs">${totalQty} Unit (${items.length} Macam Barang)</div>
+                            </div>
+
+                            <div class="p-2.5 mb-3 rounded-2" style="background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; font-size: 12px;">
+                                <i class="fa-solid fa-circle-info me-1"></i> Pilih barang yang ingin dipisahkan ke nomor SO / faktur berbeda:
+                            </div>
+
+                            <div class="mb-3">
+                                ${itemsListHtml}
+                            </div>
+
+                            <div id="wrapQtyPecahMulti" class="mb-3">
+                                <label class="form-label font-weight-bold text-dark text-xs text-uppercase mb-1">
+                                    Jumlah Unit yang Dipisahkan:
+                                </label>
+                                <input type="number" id="inputQtyPecahMulti" class="form-control form-control-taste text-center font-weight-bold" style="font-size: 16px; width: 110px;" min="1" value="1">
+                                <div class="text-xs text-muted mt-1" id="lblMaxMulti">Unit yang dipisah</div>
+                            </div>
+
+                            <div class="mb-1">
+                                <label class="form-label font-weight-bold text-dark text-xs text-uppercase mb-1">Catatan (Opsional):</label>
+                                <input type="text" id="inputCatatanPecahMulti" class="form-control form-control-taste" placeholder="Contoh: Beli sore hari">
+                            </div>
+                        </div>
+                    `,
+                    showCancelButton: true,
+                    confirmButtonText: '<i class="fa-solid fa-scissors me-1"></i> Pisahkan Transaksi Ini',
+                    cancelButtonText: 'Batal',
+                    confirmButtonColor: '#16a34a',
+                    cancelButtonColor: '#94a3b8',
+                    didOpen: () => {
+                        const radios = document.querySelectorAll('.radio-item-pecah');
+                        const inpQty = document.getElementById('inputQtyPecahMulti');
+                        const lblMax = document.getElementById('lblMaxMulti');
+
+                        function updateMultiInputs() {
+                            const checked = document.querySelector('.radio-item-pecah:checked');
+                            if (!checked) return;
+                            const curQty = parseInt(checked.dataset.qty) || 1;
+                            if (curQty > 1) {
+                                inpQty.max = curQty - 1;
+                                inpQty.value = 1;
+                                lblMax.textContent = `Bisa dipisah antara 1 s/d ${curQty - 1} Unit`;
+                            } else {
+                                inpQty.max = 1;
+                                inpQty.value = 1;
+                                lblMax.textContent = `Pisahkan item ini (1 Unit) ke baris SO terpisah`;
+                            }
+                        }
+                        radios.forEach(r => r.addEventListener('change', updateMultiInputs));
+                        updateMultiInputs();
+                    },
+                    preConfirm: () => {
+                        const checked = document.querySelector('.radio-item-pecah:checked');
+                        if (!checked) {
+                            Swal.showValidationMessage('Pilih salah satu barang yang ingin dipisah.');
+                            return false;
+                        }
+                        const idKunj = parseInt(checked.value);
+                        const qtyVal = parseInt(document.getElementById('inputQtyPecahMulti').value) || 1;
+                        const catVal = document.getElementById('inputCatatanPecahMulti').value.trim();
+
+                        return { id_kunjungan: idKunj, qty: qtyVal, catatan: catVal };
+                    }
+                }).then(result => {
+                    if (result.isConfirmed && result.value) {
+                        doPecahTransaksi(result.value.id_kunjungan, result.value.qty, result.value.catatan);
+                    }
+                });
+            }
+        }
+
+        function doPecahTransaksi(idKunjungan, qty, catatan) {
+            Swal.fire({
+                title: 'Memproses Pecah Transaksi...',
+                html: '<div class="text-xs text-muted mt-1">Membuat transaksi terpisah untuk nomor SO baru...</div>',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+
+            const fd = new FormData();
+            fd.append('action', 'pecah_transaksi_tiptok');
+            fd.append('id_kunjungan', idKunjungan);
+            fd.append('qty_pecah', qty);
+            fd.append('catatan_pecah', catatan || '');
+
+            fetch('tiptok-ajax.php', { method: 'POST', body: fd })
+                .then(r => r.json())
+                .then(res => {
+                    if (res && res.status === 'success') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Transaksi Berhasil Dipecah!',
+                            text: res.message || 'Transaksi telah terbagi menjadi 2 baris terpisah.',
+                            confirmButtonText: '<i class="fa-solid fa-check me-1"></i> Siap, Input SO Sekarang',
+                            confirmButtonColor: '#0f172a'
+                        }).then(() => {
+                            loadInvoicesData();
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal Memecah Transaksi',
+                            text: (res && res.message) ? res.message : 'Terjadi kesalahan sistem.'
+                        });
+                    }
+                })
+                .catch(err => {
+                    Swal.fire({ icon: 'error', title: 'Error Jaringan', text: err.message });
+                });
+        }
+
+        function gabungTransaksiPrompt(groupId) {
+            const it = invoicesData.find(x => x.group_id === groupId);
+            if (!it) return;
+
+            const kunjIds = it.kunjungan_ids || [it.id_kunjungan];
+            const idKunjungan = kunjIds[0] || 0;
+
+            Swal.fire({
+                title: '<div class="d-flex align-items-center justify-content-center gap-2" style="font-size: 17px; color: #0f172a;"><i class="fa-solid fa-link text-primary"></i> Gabungkan Kembali Transaksi?</div>',
+                text: 'Transaksi pecahan ini akan disatukan kembali dengan pasangannya menjadi 1 transaksi utuh.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: '<i class="fa-solid fa-check me-1"></i> Ya, Satukan Kembali',
+                cancelButtonText: 'Batal',
+                confirmButtonColor: '#2563eb',
+                cancelButtonColor: '#94a3b8'
+            }).then(result => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Menggabungkan...',
+                        allowOutsideClick: false,
+                        didOpen: () => Swal.showLoading()
+                    });
+
+                    const fd = new FormData();
+                    fd.append('action', 'gabung_transaksi_tiptok');
+                    fd.append('id_kunjungan', idKunjungan);
+
+                    fetch('tiptok-ajax.php', { method: 'POST', body: fd })
+                        .then(r => r.json())
+                        .then(res => {
+                            if (res && res.status === 'success') {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Berhasil Digabung!',
+                                    text: res.message || 'Transaksi telah disatukan kembali.',
+                                    timer: 1600,
+                                    showConfirmButton: false
+                                });
+                                loadInvoicesData();
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Gagal Menggabungkan',
+                                    text: (res && res.message) ? res.message : 'Terjadi kesalahan sistem.'
+                                });
+                            }
+                        })
+                        .catch(err => {
+                            Swal.fire({ icon: 'error', title: 'Error Jaringan', text: err.message });
                         });
                 }
             });

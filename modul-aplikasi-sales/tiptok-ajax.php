@@ -120,6 +120,10 @@ $chkColClaimSo = @mysqli_query($conn, "SHOW COLUMNS FROM `tiptok_claim_detail` L
 if ($chkColClaimSo && mysqli_num_rows($chkColClaimSo) == 0) {
     @mysqli_query($conn, "ALTER TABLE `tiptok_claim_detail` ADD COLUMN `no_so` VARCHAR(100) NULL AFTER `no_inv`");
 }
+$chkColSplit = @mysqli_query($conn, "SHOW COLUMNS FROM `tiptok_kunjungan` LIKE 'split_group'");
+if ($chkColSplit && mysqli_num_rows($chkColSplit) == 0) {
+    @mysqli_query($conn, "ALTER TABLE `tiptok_kunjungan` ADD COLUMN `split_group` VARCHAR(50) NULL AFTER `no_so`");
+}
 
 $idUser = $_SESSION['id'];
 $namaUser = $_SESSION['nama'] ?? ($nmUser ?? 'Sales');
@@ -1259,28 +1263,92 @@ if ($action === 'hapus_penitipan') {
     }
     $master = $qCheck->fetch_assoc();
 
-    if ($jabatanUser === 'Sales' && $master['id_sales'] != $idUser) {
+    $userRole = strtolower(trim($_SESSION['role'] ?? $jabatanUser ?? ''));
+    $isSuperAdminOrAdmin = in_array($userRole, ['superadmin', 'admin', 'adminsales', 'manager']);
+
+    if (!$isSuperAdminOrAdmin && strtolower($jabatanUser) === 'sales' && $master['id_sales'] != $idUser) {
         echo json_encode(['status' => 'error', 'message' => 'Anda hanya dapat menghapus data penitipan milik Anda sendiri.']);
         exit;
     }
 
-    // Cek apakah ada kunjungan yang sudah masuk klaim
-    $qClaimed = $conn->query("SELECT COUNT(*) as total FROM tiptok_kunjungan WHERE id_penitipan = $id_penitipan AND id_claim IS NOT NULL");
-    $claimedCount = $qClaimed ? ($qClaimed->fetch_assoc()['total'] ?? 0) : 0;
-    if ($claimedCount > 0) {
-        echo json_encode(['status' => 'error', 'message' => 'Penitipan ini tidak dapat dihapus karena sebagian penjualan sudah masuk ke dalam proses klaim insentif.']);
+    // Cek apakah ada klaim yang sudah dicairkan (status cair)
+    $qPaid = $conn->query("SELECT c.kode_claim FROM tiptok_claim c 
+                           JOIN tiptok_claim_detail d ON d.id_claim = c.id 
+                           WHERE d.id_penitipan = $id_penitipan AND c.status_claim = 'cair' LIMIT 1");
+    if ($qPaid && $qPaid->num_rows > 0 && !$isSuperAdminOrAdmin) {
+        $paidRow = $qPaid->fetch_assoc();
+        echo json_encode([
+            'status' => 'error', 
+            'message' => "Penitipan ini memiliki klaim insentif yang sudah dicairkan [{$paidRow['kode_claim']}]. Hubungi Superadmin jika perlu menghapus data ini."
+        ]);
         exit;
     }
 
     $conn->begin_transaction();
     try {
+        // Ambil daftar klaim yang terhubung untuk di-update / dihapus jika kosong
+        $affectedClaims = [];
+        $qCl = $conn->query("SELECT DISTINCT id_claim FROM tiptok_kunjungan WHERE id_penitipan = $id_penitipan AND id_claim IS NOT NULL");
+        if ($qCl) {
+            while ($rc = $qCl->fetch_assoc()) {
+                if (!empty($rc['id_claim'])) $affectedClaims[] = intval($rc['id_claim']);
+            }
+        }
+        $qCl2 = $conn->query("SELECT DISTINCT id_claim FROM tiptok_claim_detail WHERE id_penitipan = $id_penitipan");
+        if ($qCl2) {
+            while ($rc = $qCl2->fetch_assoc()) {
+                if (!empty($rc['id_claim'])) $affectedClaims[] = intval($rc['id_claim']);
+            }
+        }
+        $affectedClaims = array_unique(array_filter($affectedClaims));
+
+        // 1. Hapus claim detail terkait penitipan ini
         $conn->query("DELETE FROM tiptok_claim_detail WHERE id_penitipan = $id_penitipan");
+
+        // 2. Periksa setiap klaim yang terpengaruh
+        foreach ($affectedClaims as $clId) {
+            $qCount = $conn->query("SELECT COUNT(*) as rem FROM tiptok_claim_detail WHERE id_claim = $clId");
+            $remCount = $qCount ? intval($qCount->fetch_assoc()['rem'] ?? 0) : 0;
+            if ($remCount === 0) {
+                // Hapus klaim jika seluruh itemnya sudah tidak ada
+                $conn->query("DELETE FROM tiptok_claim WHERE id = $clId");
+            } else {
+                // Rekalkulasi total klaim yang tersisa
+                $qRecalc = $conn->query("SELECT SUM(qty_terjual) as tot_u, SUM(subtotal_insentif) as tot_ins FROM tiptok_claim_detail WHERE id_claim = $clId");
+                if ($qRecalc && $rRec = $qRecalc->fetch_assoc()) {
+                    $totU = intval($rRec['tot_u'] ?? 0);
+                    $totIns = floatval($rRec['tot_ins'] ?? 0);
+                    $conn->query("UPDATE tiptok_claim SET total_unit_terjual = $totU, total_nominal_insentif = $totIns WHERE id = $clId");
+                }
+            }
+        }
+
+        // Hapus juga klaim yang id_penitipan langsung mengarah ke penitipan ini jika ada
+        $conn->query("DELETE FROM tiptok_claim WHERE id_penitipan = $id_penitipan");
+
+        // 3. Hapus foto kunjungan jika ada
+        $qFotos = $conn->query("SELECT foto_kunjungan FROM tiptok_kunjungan WHERE id_penitipan = $id_penitipan AND foto_kunjungan IS NOT NULL AND foto_kunjungan != ''");
+        if ($qFotos) {
+            while ($rf = $qFotos->fetch_assoc()) {
+                @unlink(__DIR__ . '/../uploads/tiptok/' . $rf['foto_kunjungan']);
+            }
+        }
+
+        // 4. Hapus log kunjungan & histori invoice
         $conn->query("DELETE FROM tiptok_kunjungan WHERE id_penitipan = $id_penitipan");
+
+        // 5. Hapus barang-barang titipan
         $conn->query("DELETE FROM tiptok_items WHERE id_penitipan = $id_penitipan");
+
+        // 6. Hapus master penitipan
         $conn->query("DELETE FROM tiptok_penitipan WHERE id = $id_penitipan");
+
         $conn->commit();
 
-        echo json_encode(['status' => 'success', 'message' => "Data penitipan [{$master['kode_titip']}] berhasil dihapus secara permanen."]);
+        echo json_encode([
+            'status' => 'success', 
+            'message' => "Data penitipan [{$master['kode_titip']}] beserta riwayat penjualan & invoice terkait berhasil dihapus secara bersih."
+        ]);
     } catch (Exception $e) {
         $conn->rollback();
         echo json_encode(['status' => 'error', 'message' => 'Gagal menghapus data: ' . $e->getMessage()]);
@@ -1369,6 +1437,7 @@ if ($action === 'get_tiptok_invoices') {
                    k.kode_kunjungan, k.tgl_kunjungan, k.stok_sebelumnya, k.stok_sisa, 
                    k.qty_terjual_kunjungan, k.no_inv, k.no_so, k.tgl_invoice, k.insentif_didapat, 
                    k.catatan_kunjungan, k.foto_kunjungan, k.id_claim, k.created_at,
+                   k.split_group,
                    i.nama_barang, i.tipe_barang, i.insentif_per_unit,
                    p.kode_titip, p.tgl_titip, p.id_customer,
                    $custField AS nama_toko,
@@ -1402,12 +1471,17 @@ if ($action === 'get_tiptok_invoices') {
             $totalNominalInsentif += floatval($r['insentif_didapat']);
             $items[] = $r;
 
-            // Grouping key: Same Customer + Same Date + (Same Invoice/SO or Pending)
+            // Grouping key: Same Customer + Same Date + (Same Invoice/SO or Split Group or Pending)
             $invKey = '';
             if (!empty(trim($r['no_inv'] ?? ''))) {
                 $invKey = 'INV_' . trim($r['no_inv']);
             } elseif (!empty(trim($r['no_so'] ?? ''))) {
                 $invKey = 'SO_' . trim($r['no_so']);
+            } elseif (!empty(trim($r['split_group'] ?? ''))) {
+                // Transaksi yang dipecah memiliki grup tersendiri agar dapat diinput SO/INV terpisah
+                $invKey = 'PENDING_' . trim($r['split_group']);
+            } elseif (preg_match('/-[A-Z0-9]+$/', $r['kode_kunjungan'] ?? '') && !preg_match('/-\d{4}$/', $r['kode_kunjungan'] ?? '')) {
+                $invKey = 'PENDING_' . trim($r['kode_kunjungan']);
             } else {
                 $invKey = 'PENDING';
             }
@@ -1428,6 +1502,7 @@ if ($action === 'get_tiptok_invoices') {
                     'no_so' => $r['no_so'] ?? '',
                     'tgl_invoice' => $r['tgl_invoice'] ?? '',
                     'catatan_kunjungan' => $r['catatan_kunjungan'] ?? '',
+                    'split_group' => $r['split_group'] ?? '',
                     'total_qty' => 0,
                     'total_insentif' => 0.0,
                     'is_claimed' => false,
@@ -1447,6 +1522,9 @@ if ($action === 'get_tiptok_invoices') {
             }
             if (!empty($r['kode_kunjungan']) && !in_array($r['kode_kunjungan'], $groupedMap[$groupKey]['kode_kunjungan_list'])) {
                 $groupedMap[$groupKey]['kode_kunjungan_list'][] = $r['kode_kunjungan'];
+            }
+            if (!empty($r['split_group']) && empty($groupedMap[$groupKey]['split_group'])) {
+                $groupedMap[$groupKey]['split_group'] = $r['split_group'];
             }
 
             // Sync invoice / so / date to group if any item has it
@@ -1476,6 +1554,7 @@ if ($action === 'get_tiptok_invoices') {
                 'kode_titip' => $r['kode_titip'] ?? '',
                 'no_inv' => $r['no_inv'] ?? '',
                 'no_so' => $r['no_so'] ?? '',
+                'split_group' => $r['split_group'] ?? '',
                 'id_claim' => intval($r['id_claim'] ?? 0)
             ];
         }
@@ -1839,6 +1918,217 @@ if ($action === 'batalkan_penjualan_kunjungan') {
     echo json_encode([
         'status' => 'success',
         'message' => "Penjualan berhasil dibatalkan. Total stok sebanyak $totalQtyRestored unit otomatis dikembalikan ke toko mitra."
+    ]);
+    exit;
+}
+
+// -------------------------------------------------------------
+// 22. PECAH TRANSAKSI PENJUALAN AUDIT / SO (BEDA WAKTU BELI / INVOICE)
+// -------------------------------------------------------------
+if ($action === 'pecah_transaksi_tiptok') {
+    $id_kunjungan = intval($_POST['id_kunjungan'] ?? 0);
+    $qty_pecah = intval($_POST['qty_pecah'] ?? 1);
+    $catatan_pecah = trim($_POST['catatan_pecah'] ?? '');
+
+    if ($id_kunjungan <= 0) {
+        echo json_encode(['status' => 'error', 'message' => 'ID transaksi kunjungan tidak valid.']);
+        exit;
+    }
+
+    $qKunj = $conn->query("SELECT * FROM tiptok_kunjungan WHERE id = $id_kunjungan LIMIT 1");
+    if (!$qKunj || $qKunj->num_rows === 0) {
+        echo json_encode(['status' => 'error', 'message' => 'Data transaksi kunjungan tidak ditemukan.']);
+        exit;
+    }
+
+    $kunj = $qKunj->fetch_assoc();
+
+    // Validasi klaim
+    if (!empty($kunj['id_claim']) && intval($kunj['id_claim']) > 0) {
+        echo json_encode(['status' => 'error', 'message' => 'Transaksi tidak dapat dipecah karena sudah masuk klaim insentif terkunci.']);
+        exit;
+    }
+
+    $currentQty = intval($kunj['qty_terjual_kunjungan']);
+    if ($currentQty <= 1) {
+        echo json_encode(['status' => 'error', 'message' => 'Jumlah barang hanya 1 unit, tidak dapat dipecah lagi.']);
+        exit;
+    }
+
+    if ($qty_pecah < 1 || $qty_pecah >= $currentQty) {
+        echo json_encode(['status' => 'error', 'message' => "Jumlah unit pecah harus antara 1 dan " . ($currentQty - 1) . " unit."]);
+        exit;
+    }
+
+    $sisaQty = $currentQty - $qty_pecah;
+    $insentifTotal = floatval($kunj['insentif_didapat']);
+    $insentifPerUnit = ($currentQty > 0) ? ($insentifTotal / $currentQty) : 0.0;
+
+    $insentifSisa = $sisaQty * $insentifPerUnit;
+    $insentifPecah = $qty_pecah * $insentifPerUnit;
+
+    $baseKode = $kunj['kode_kunjungan'];
+    $cleanBaseKode = preg_replace('/-[A-Z0-9]+$/', '', $baseKode);
+    if (empty($cleanBaseKode)) $cleanBaseKode = $baseKode;
+
+    $kodeOrig = $cleanBaseKode . '-A';
+    $kodeBaru = $cleanBaseKode . '-B';
+
+    // Cari kode baru unik agar tidak bentrok
+    $suffixChar = 'B';
+    while (true) {
+        $kodeTest = $cleanBaseKode . '-' . $suffixChar;
+        $qCheck = $conn->query("SELECT id FROM tiptok_kunjungan WHERE kode_kunjungan = '$kodeTest' LIMIT 1");
+        if (!$qCheck || $qCheck->num_rows === 0) {
+            $kodeBaru = $kodeTest;
+            break;
+        }
+        $suffixChar = chr(ord($suffixChar) + 1);
+        if ($suffixChar > 'Z') {
+            $kodeBaru = $cleanBaseKode . '-' . time();
+            break;
+        }
+    }
+
+    $splitGroupOrig = 'SPLIT_' . $id_kunjungan . '_A';
+    $splitGroupNew = 'SPLIT_' . $id_kunjungan . '_' . $suffixChar;
+
+    $catatanOrig = trim(($kunj['catatan_kunjungan'] ?? '') . ' [Pecahan Bagian 1: ' . $sisaQty . ' Unit]');
+    $catatanNew = trim((!empty($catatan_pecah) ? $catatan_pecah : 'Pecahan Transaksi SO/Inv Baru') . " ($qty_pecah Unit)");
+
+    // 1. Update transaksi original
+    $stmtUpOrig = $conn->prepare("UPDATE tiptok_kunjungan SET kode_kunjungan = ?, qty_terjual_kunjungan = ?, insentif_didapat = ?, split_group = ?, catatan_kunjungan = ? WHERE id = ?");
+    $stmtUpOrig->bind_param("sidssi", $kodeOrig, $sisaQty, $insentifSisa, $splitGroupOrig, $catatanOrig, $id_kunjungan);
+    $resUp = $stmtUpOrig->execute();
+    $stmtUpOrig->close();
+
+    if (!$resUp) {
+        echo json_encode(['status' => 'error', 'message' => 'Gagal memperbarui transaksi awal: ' . $conn->error]);
+        exit;
+    }
+
+    // 2. Insert transaksi hasil pecahan baru
+    $id_penitipan = intval($kunj['id_penitipan']);
+    $id_item = intval($kunj['id_item']);
+    $id_sales = !empty($kunj['id_sales']) ? intval($kunj['id_sales']) : 0;
+    $nama_sales = $kunj['nama_sales'] ?? '';
+    $tgl_kunjungan = $kunj['tgl_kunjungan'];
+    $stok_sebelumnya = intval($kunj['stok_sebelumnya']);
+    $stok_sisa = intval($kunj['stok_sisa']);
+    $foto_kunjungan = $kunj['foto_kunjungan'] ?? '';
+
+    $stmtInsert = $conn->prepare("INSERT INTO tiptok_kunjungan (
+        kode_kunjungan, id_penitipan, id_item, id_sales, nama_sales, 
+        tgl_kunjungan, stok_sebelumnya, stok_sisa, qty_terjual_kunjungan, 
+        no_inv, no_so, tgl_invoice, insentif_didapat, split_group, catatan_kunjungan, foto_kunjungan, created_at
+    ) VALUES (
+        ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL, NULL, ?, ?, ?, ?, NOW()
+    )");
+    $stmtInsert->bind_param(
+        "siiissiiidsss",
+        $kodeBaru, $id_penitipan, $id_item, $id_sales, $nama_sales,
+        $tgl_kunjungan, $stok_sebelumnya, $stok_sisa, $qty_pecah,
+        $insentifPecah, $splitGroupNew, $catatanNew, $foto_kunjungan
+    );
+    $resIns = $stmtInsert->execute();
+    $newId = $stmtInsert->insert_id;
+    $stmtInsert->close();
+
+    if ($resIns) {
+        echo json_encode([
+            'status' => 'success',
+            'message' => "Transaksi berhasil dipecah menjadi 2 nomor SO/Invoice terpisah:\n• Transaksi 1 ($kodeOrig): $sisaQty Unit\n• Transaksi 2 ($kodeBaru): $qty_pecah Unit\nSilakan input No. SO / Invoice masing-masing.",
+            'orig_id' => $id_kunjungan,
+            'orig_kode' => $kodeOrig,
+            'orig_qty' => $sisaQty,
+            'new_id' => $newId,
+            'new_kode' => $kodeBaru,
+            'new_qty' => $qty_pecah
+        ]);
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'Gagal membuat baris transaksi pecahan: ' . $conn->error]);
+    }
+    exit;
+}
+
+// -------------------------------------------------------------
+// 23. GABUNGKAN KEMBALI TRANSAKSI PECAHAN (JIKA BELUM BER-INVOICE)
+// -------------------------------------------------------------
+if ($action === 'gabung_transaksi_tiptok') {
+    $id_kunjungan = intval($_POST['id_kunjungan'] ?? 0);
+
+    if ($id_kunjungan <= 0) {
+        echo json_encode(['status' => 'error', 'message' => 'ID transaksi kunjungan tidak valid.']);
+        exit;
+    }
+
+    $qTarget = $conn->query("SELECT * FROM tiptok_kunjungan WHERE id = $id_kunjungan LIMIT 1");
+    if (!$qTarget || $qTarget->num_rows === 0) {
+        echo json_encode(['status' => 'error', 'message' => 'Transaksi tidak ditemukan.']);
+        exit;
+    }
+
+    $row = $qTarget->fetch_assoc();
+    $splitGroup = $row['split_group'] ?? '';
+
+    if (empty($splitGroup) || strpos($splitGroup, 'SPLIT_') !== 0) {
+        echo json_encode(['status' => 'error', 'message' => 'Transaksi ini bukan merupakan transaksi pecahan.']);
+        exit;
+    }
+
+    // Ambil prefix grup (misal: SPLIT_55)
+    $parts = explode('_', $splitGroup);
+    if (count($parts) < 2) {
+        echo json_encode(['status' => 'error', 'message' => 'Format grup pecahan tidak valid.']);
+        exit;
+    }
+    $parentGroupPrefix = $parts[0] . '_' . $parts[1]; // contoh SPLIT_55
+
+    // Cari seluruh saudara pecahan yang belum ber-invoice dan belum klaim
+    $qSiblings = $conn->query("SELECT * FROM tiptok_kunjungan WHERE split_group LIKE '{$parentGroupPrefix}_%' AND (no_inv IS NULL OR no_inv = '') AND (no_so IS NULL OR no_so = '') AND (id_claim IS NULL OR id_claim = 0) ORDER BY id ASC");
+    if (!$qSiblings || $qSiblings->num_rows < 2) {
+        echo json_encode(['status' => 'error', 'message' => 'Tidak ditemukan transaksi pecahan pasangan yang dapat digabungkan (mungkin sudah ber-invoice atau terkunci klaim).']);
+        exit;
+    }
+
+    $records = [];
+    $totalQtyCombined = 0;
+    $totalInsCombined = 0.0;
+    while ($s = $qSiblings->fetch_assoc()) {
+        $records[] = $s;
+        $totalQtyCombined += intval($s['qty_terjual_kunjungan']);
+        $totalInsCombined += floatval($s['insentif_didapat']);
+    }
+
+    $primaryRec = $records[0];
+    $primaryId = intval($primaryRec['id']);
+    $primaryKode = preg_replace('/-[A-Z0-9]+$/', '', $primaryRec['kode_kunjungan']);
+
+    // Hapus sibling lainnya
+    $deleteIds = [];
+    for ($i = 1; $i < count($records); $i++) {
+        $deleteIds[] = intval($records[$i]['id']);
+    }
+    if (!empty($deleteIds)) {
+        $delStr = implode(',', $deleteIds);
+        $conn->query("DELETE FROM tiptok_kunjungan WHERE id IN ($delStr)");
+    }
+
+    // Bersihkan catatan dari tag pecahan
+    $cleanCatatan = preg_replace('/\[Pecahan[^\]]*\]/', '', $primaryRec['catatan_kunjungan'] ?? '');
+    $cleanCatatan = trim($cleanCatatan);
+
+    // Update primary record
+    $stmtUp = $conn->prepare("UPDATE tiptok_kunjungan SET kode_kunjungan = ?, qty_terjual_kunjungan = ?, insentif_didapat = ?, split_group = NULL, catatan_kunjungan = ? WHERE id = ?");
+    $stmtUp->bind_param("sidsi", $primaryKode, $totalQtyCombined, $totalInsCombined, $cleanCatatan, $primaryId);
+    $stmtUp->execute();
+    $stmtUp->close();
+
+    echo json_encode([
+        'status' => 'success',
+        'message' => "Transaksi berhasil digabungkan kembali menjadi 1 transaksi utuh ($totalQtyCombined Unit).",
+        'id_kunjungan' => $primaryId,
+        'total_qty' => $totalQtyCombined
     ]);
     exit;
 }
