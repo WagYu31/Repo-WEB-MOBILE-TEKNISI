@@ -374,7 +374,10 @@ foreach ($tab_meta as $k => $m) {
             <!-- Aksi -->
             <div class="keg-cell keg-actions">
               <?php if ($kegStatus === 'waiting'): ?>
-              <button type="button" class="btn-action" title="Setujui Reschedule" style="background:#e8f5e9; color:#2e7d32; border:1.5px solid #a5d6a7; cursor:pointer;" onclick="confirmApprove(<?php echo $row['id']; ?>, '<?php echo addslashes(htmlspecialchars($row['nama_customer'] ?? '')); ?>')">
+              <button type="button" class="btn-action btn-approve" title="Setujui Reschedule"
+                      data-id="<?php echo $row['id']; ?>"
+                      data-customer="<?php echo htmlspecialchars($row['nama_customer'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+                      onclick="confirmApprove(this)">
                 <span class="material-symbols-outlined">check_circle</span>
               </button>
               <?php endif; ?>
@@ -382,14 +385,21 @@ foreach ($tab_meta as $k => $m) {
                 <span class="material-symbols-outlined">visibility</span>
               </a>
               <?php if ($kegStatus !== 'selesai'): ?>
-              <button type="button" class="btn-action" title="Jadwalkan Ulang" style="background:#eff6ff; color:#2563eb; border:1.5px solid #bfdbfe; cursor:pointer;" onclick="openRescheduleModal(<?php echo $row['id']; ?>, '<?php echo addslashes(htmlspecialchars($row['nama_customer'] ?? '')); ?>', '<?php echo date('Y-m-d\TH:i', strtotime($row['jadwal'])); ?>')">
+              <button type="button" class="btn-action btn-resched" title="Jadwalkan Ulang"
+                      data-id="<?php echo $row['id']; ?>"
+                      data-customer="<?php echo htmlspecialchars($row['nama_customer'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+                      data-jadwal="<?php echo date('Y-m-d\TH:i', strtotime($row['jadwal'])); ?>"
+                      onclick="openRescheduleModal(this)">
                 <span class="material-symbols-outlined">event_repeat</span>
               </button>
               <?php endif; ?>
               <a href="edit_kegiatan.php?id=<?php echo $row['id']; ?>" class="btn-action btn-edit" title="Edit Jadwal">
                 <span class="material-symbols-outlined">edit</span>
               </a>
-              <button type="button" class="btn-action btn-delete" title="Hapus" onclick="confirmDelete(<?php echo $row['id']; ?>, '<?php echo addslashes(htmlspecialchars($row['nama_customer'] ?? '')); ?>')">
+              <button type="button" class="btn-action btn-delete" title="Hapus"
+                      data-id="<?php echo $row['id']; ?>"
+                      data-customer="<?php echo htmlspecialchars($row['nama_customer'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+                      onclick="confirmDelete(this)">
                 <span class="material-symbols-outlined">delete</span>
               </button>
             </div>
@@ -625,9 +635,14 @@ foreach ($tab_meta as $k => $m) {
   border: 1px solid transparent;
 }
 .btn-action:hover { transform: scale(1.08); }
-.btn-action .material-symbols-outlined { font-size: 18px; }
+.btn-action .material-symbols-outlined { font-size: 18px; pointer-events: none; }
+.btn-action * { pointer-events: none; }
 .btn-view { background: #eff6ff; color: #2563eb; border-color: #dbeafe; }
 .btn-view:hover { background: #2563eb; color: #fff; }
+.btn-resched { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; cursor: pointer; }
+.btn-resched:hover { background: #2563eb; color: #fff; }
+.btn-approve { background: #e8f5e9; color: #2e7d32; border-color: #a5d6a7; cursor: pointer; }
+.btn-approve:hover { background: #2e7d32; color: #fff; }
 .btn-edit { background: #ecfdf5; color: #059669; border-color: #d1fae5; }
 .btn-edit:hover { background: #059669; color: #fff; }
 .btn-delete { background: #fef2f2; color: #dc2626; border-color: #fecaca; cursor: pointer; }
@@ -974,8 +989,13 @@ textarea.resched-input {
 <script>
 let deleteId = null;
 
-function confirmDelete(id, customerName) {
-  deleteId = id;
+function confirmDelete(idOrElem, customerName) {
+  if (idOrElem && typeof idOrElem === 'object') {
+    deleteId = idOrElem.getAttribute('data-id') || idOrElem.dataset.id;
+    customerName = idOrElem.getAttribute('data-customer') || idOrElem.dataset.customer;
+  } else {
+    deleteId = idOrElem;
+  }
   document.getElementById('deleteCustomerName').textContent = customerName || 'customer ini';
   document.getElementById('deleteModal').classList.add('active');
 }
@@ -1022,8 +1042,13 @@ function executeDelete() {
 
 let approveId = null;
 
-function confirmApprove(id, customerName) {
-  approveId = id;
+function confirmApprove(idOrElem, customerName) {
+  if (idOrElem && typeof idOrElem === 'object') {
+    approveId = idOrElem.getAttribute('data-id') || idOrElem.dataset.id;
+    customerName = idOrElem.getAttribute('data-customer') || idOrElem.dataset.customer;
+  } else {
+    approveId = idOrElem;
+  }
   document.getElementById('approveCustomerName').textContent = customerName || 'customer ini';
   document.getElementById('approveModal').classList.add('active');
 }
@@ -1053,10 +1078,19 @@ function executeApprove() {
 <script>
 let reschedId = null;
 
-function openRescheduleModal(id, customerName, currentDate) {
-  reschedId = id;
+function openRescheduleModal(idOrElem, customerName, currentDate) {
+  if (idOrElem && typeof idOrElem === 'object') {
+    reschedId = idOrElem.getAttribute('data-id') || idOrElem.dataset.id;
+    customerName = idOrElem.getAttribute('data-customer') || idOrElem.dataset.customer;
+    currentDate = idOrElem.getAttribute('data-jadwal') || idOrElem.dataset.jadwal;
+  } else {
+    reschedId = idOrElem;
+  }
   document.getElementById('reschedCustomerBadge').textContent = '\ud83d\udccd ' + (customerName || 'Customer');
-  const dt = new Date(currentDate);
+  let dt = currentDate ? new Date(currentDate) : new Date();
+  if (isNaN(dt.getTime())) {
+    dt = new Date();
+  }
   dt.setDate(dt.getDate() + 1);
   const y = dt.getFullYear();
   const m = String(dt.getMonth() + 1).padStart(2, '0');
