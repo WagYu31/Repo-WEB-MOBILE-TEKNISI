@@ -104,6 +104,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final prefsProvider = Provider.of<PreferencesIDProvider>(context, listen: false);
 
+    await LiveTrackingService().stopTracking();
     authProvider.logout();
     prefsProvider.deleteRole();
 

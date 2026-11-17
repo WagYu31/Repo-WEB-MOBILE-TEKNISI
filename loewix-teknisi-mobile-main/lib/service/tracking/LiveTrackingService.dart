@@ -1,20 +1,28 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:location/location.dart' as loc;
 import 'package:permission_handler/permission_handler.dart' hide ServiceStatus;
+import 'package:workmanager/workmanager.dart';
 import '../../widget/LocationAlwaysSheet.dart';
+import '../notification/NotificationService.dart';
 
 class LiveTrackingService {
   static final LiveTrackingService _instance = LiveTrackingService._internal();
   factory LiveTrackingService() => _instance;
   LiveTrackingService._internal();
 
-  static const String _updateUrl = 'https://jadwal.id-giti.com/update_teknisi_location.php';
-  
+  static const MethodChannel _nativeChannel = MethodChannel('com.loewix.teknisi/live_tracking');
+  static const String updateUrl = 'https://jadwal.id-giti.com/update_teknisi_location.php';
+
+  // Jam operasional pemantauan wajib: 06:00 s/d 20:00 WIB
+  static const int workStartHourWib = 6;
+  static const int workEndHourWib = 20;
+
   String? _teknisiId;
   StreamSubscription<Position>? _positionSubscription;
   Timer? _heartbeatTimer;
@@ -23,36 +31,69 @@ class LiveTrackingService {
 
   bool get isTracking => _isTracking;
 
-  /// Start live location tracking automatically
+  /// Cek apakah waktu saat ini berada di jam kerja 06:00 - 20:00 WIB (UTC+7)
+  static bool isWithinWorkingHoursWib() {
+    final wibNow = DateTime.now().toUtc().add(const Duration(hours: 7));
+    return wibNow.hour >= workStartHourWib && wibNow.hour < workEndHourWib;
+  }
+
+  /// Start live location tracking automatically (aktif penuh 06:00 - 20:00 WIB & tahan swipe-close)
   Future<void> startTracking(String teknisiId) async {
-    if (teknisiId.isEmpty) return;
+    if (teknisiId.isEmpty || teknisiId == 'no role') return;
     _teknisiId = teknisiId;
 
-    if (_isTracking) {
-      debugPrint('📍 LiveTrackingService: Already tracking for teknisi $teknisiId');
+    // 1. Pastikan GPS & izin lokasi siap
+    await _ensureLocationReady();
+
+    // 2. Di Android: jalankan Native Foreground Service (tetap hidup walau app di-swipe close)
+    if (Platform.isAndroid) {
+      try {
+        await _nativeChannel.invokeMethod('startTracking', {'teknisiId': teknisiId});
+      } catch (e) {
+        debugPrint('⚠️ Native startTracking error: $e');
+      }
+
+      // Daftarkan WorkManager 15-menit sebagai jaring pengaman tambahan di jam 06:00 - 20:00 WIB
+      try {
+        await Workmanager().initialize(callbackDispatcher, isInDebugMode: false);
+        await Workmanager().registerPeriodicTask(
+          'liveTrackingWatchdog',
+          'liveTrackingWatchdog',
+          inputData: {'teknisiId': teknisiId},
+          frequency: const Duration(minutes: 15),
+          constraints: Constraints(networkType: NetworkType.connected),
+          existingWorkPolicy: ExistingWorkPolicy.keep,
+        );
+      } catch (_) {}
+
+      _isTracking = true;
+
+      // Kirim 1 titik segar langsung saat aplikasi dibuka di jam kerja agar pin langsung Oranye
+      if (isWithinWorkingHoursWib()) {
+        unawaited(_captureAndSendCurrentPosition());
+      }
       return;
     }
 
-    debugPrint('🚀 LiveTrackingService: Starting auto-tracking for teknisi $teknisiId...');
+    // Fallback non-Android (iOS)
+    if (_isTracking) return;
     _isTracking = true;
-
-    // 1. Ensure permissions & GPS enabled
-    await _ensureLocationReady();
-
-    // 2. Start ongoing persistent notification (Anti-Kill on Android)
-    await _startForegroundNotification();
-
-    // 3. Immediately send first position
-    await _captureAndSendCurrentPosition();
-
-    // 4. Stream position changes (every ~15 meters)
+    if (isWithinWorkingHoursWib()) {
+      await _captureAndSendCurrentPosition();
+    }
     _startPositionStream();
-
-    // 5. Heartbeat timer (every 25 seconds for stationary updates)
     _startHeartbeatTimer();
   }
 
-  /// Stop tracking (e.g. on logout)
+  /// Sync ulang service native (dipanggil setelah izin lokasi / baterai baru diberikan)
+  Future<void> refreshNativeServiceIfNeeded() async {
+    if (!Platform.isAndroid || _teknisiId == null || _teknisiId!.isEmpty) return;
+    try {
+      await _nativeChannel.invokeMethod('startTracking', {'teknisiId': _teknisiId});
+    } catch (_) {}
+  }
+
+  /// Stop tracking (hanya dipanggil saat Logout)
   Future<void> stopTracking() async {
     _isTracking = false;
     _teknisiId = null;
@@ -60,8 +101,15 @@ class LiveTrackingService {
     _positionSubscription = null;
     _heartbeatTimer?.cancel();
     _heartbeatTimer = null;
-    await _cancelNotification();
-    debugPrint('🛑 LiveTrackingService: Stopped.');
+
+    if (Platform.isAndroid) {
+      try {
+        await _nativeChannel.invokeMethod('stopTracking');
+      } catch (_) {}
+      try {
+        await Workmanager().cancelByUniqueName('liveTrackingWatchdog');
+      } catch (_) {}
+    }
   }
 
   /// Check whether "Allow all the time" permission is granted
@@ -73,6 +121,34 @@ class LiveTrackingService {
       debugPrint('⚠️ LiveTrackingService isLocationAlwaysGranted error: $e');
       return false;
     }
+  }
+
+  /// Check whether battery optimization is unrestricted ("Tanpa Batasan")
+  Future<bool> isIgnoringBatteryOptimizations() async {
+    if (!Platform.isAndroid) return true;
+    try {
+      final res = await _nativeChannel.invokeMethod<bool>('isIgnoringBatteryOptimizations');
+      return res ?? false;
+    } catch (_) {
+      try {
+        return await Permission.ignoreBatteryOptimizations.isGranted;
+      } catch (_) {
+        return true;
+      }
+    }
+  }
+
+  /// Tampilkan dialog 1-klik resmi Android untuk menonaktifkan pembatasan baterai
+  Future<bool> requestIgnoreBatteryOptimizations() async {
+    if (!Platform.isAndroid) return true;
+    try {
+      await _nativeChannel.invokeMethod('requestIgnoreBatteryOptimizations');
+    } catch (_) {
+      try {
+        await Permission.ignoreBatteryOptimizations.request();
+      } catch (_) {}
+    }
+    return await isIgnoringBatteryOptimizations();
   }
 
   /// Request "Allow all the time" permission, opening settings if needed
@@ -107,7 +183,6 @@ class LiveTrackingService {
         permission = await Permission.location.request();
       }
       if (permission.isGranted) {
-        // Request background permission if supported
         final alwaysStatus = await Permission.locationAlways.status;
         if (!alwaysStatus.isGranted) {
           await Permission.locationAlways.request();
@@ -123,14 +198,16 @@ class LiveTrackingService {
 
     const locationSettings = LocationSettings(
       accuracy: LocationAccuracy.high,
-      distanceFilter: 15, // update every 15 meters
+      distanceFilter: 15,
     );
 
     _positionSubscription = Geolocator.getPositionStream(
       locationSettings: locationSettings,
     ).listen(
       (Position position) {
-        _sendPositionToServer(position);
+        if (isWithinWorkingHoursWib()) {
+          _sendPositionToServer(position);
+        }
       },
       onError: (error) {
         debugPrint('⚠️ LiveTrackingService position stream error: $error');
@@ -140,21 +217,23 @@ class LiveTrackingService {
 
   void _startHeartbeatTimer() {
     _heartbeatTimer?.cancel();
-    // Send heartbeat every 25 seconds so server knows technician is online even if stationary
     _heartbeatTimer = Timer.periodic(const Duration(seconds: 25), (_) async {
-      if (!_isTracking) return;
+      if (!_isTracking || !isWithinWorkingHoursWib()) return;
       await _captureAndSendCurrentPosition();
     });
   }
 
   Future<void> _captureAndSendCurrentPosition() async {
+    if (!isWithinWorkingHoursWib()) return;
     try {
-      Position? position = await Geolocator.getLastKnownPosition();
-      if (position == null) {
+      Position? position;
+      try {
         position = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.medium,
+          desiredAccuracy: LocationAccuracy.high,
           timeLimit: const Duration(seconds: 8),
         );
+      } catch (_) {
+        position = await Geolocator.getLastKnownPosition();
       }
       if (position != null) {
         await _sendPositionToServer(position);
@@ -165,9 +244,8 @@ class LiveTrackingService {
   }
 
   Future<void> _sendPositionToServer(Position position) async {
-    if (_teknisiId == null || _teknisiId!.isEmpty) return;
+    if (_teknisiId == null || _teknisiId!.isEmpty || !isWithinWorkingHoursWib()) return;
 
-    // Avoid duplicate rapid sends if location hasn't changed at all
     if (_lastSentPosition != null) {
       final distance = Geolocator.distanceBetween(
         _lastSentPosition!.latitude,
@@ -175,7 +253,6 @@ class LiveTrackingService {
         position.latitude,
         position.longitude,
       );
-      // If moved less than 5m and less than 15s since last send, skip
       if (distance < 5 && DateTime.now().difference(_lastSentPosition!.timestamp).inSeconds < 15) {
         return;
       }
@@ -189,60 +266,18 @@ class LiveTrackingService {
         'latitude': position.latitude.toString(),
         'longitude': position.longitude.toString(),
         'accuracy': position.accuracy.toString(),
-        'speed': (position.speed * 3.6).toStringAsFixed(1), // m/s to km/h
+        'speed': (position.speed * 3.6).toStringAsFixed(1),
         'heading': position.heading.toString(),
         'is_mock': position.isMocked ? 1 : 0,
       };
 
-      final response = await http.post(
-        Uri.parse(_updateUrl),
+      await http.post(
+        Uri.parse(updateUrl),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(payload),
       ).timeout(const Duration(seconds: 10));
-
-      if (response.statusCode >= 200 && response.statusCode < 300) {
-        debugPrint('📍 LiveTracking: Sent pos (${position.latitude}, ${position.longitude}) for #$_teknisiId');
-      } else {
-        debugPrint('⚠️ LiveTracking: Server response ${response.statusCode}');
-      }
     } catch (e) {
       debugPrint('⚠️ LiveTracking: Send error $e');
     }
   }
-
-  /// Persistent Notification so Android never kills the background service
-  Future<void> _startForegroundNotification() async {
-    try {
-      final plugin = FlutterLocalNotificationsPlugin();
-
-      const androidDetails = AndroidNotificationDetails(
-        'loewix_live_tracking',
-        'Live Tracking Lokasi',
-        channelDescription: 'Memantau posisi live teknisi untuk operasional lapangan',
-        importance: Importance.low,
-        priority: Priority.low,
-        ongoing: true, // Cannot be dismissed by user
-        autoCancel: false,
-        showWhen: true,
-        icon: '@mipmap/ic_launcher',
-      );
-
-      await plugin.show(
-        888, // Unique notification ID for tracking
-        'Loewix: Pelacakan Lokasi Aktif',
-        'GPS aktif memantau koordinasi tugas lapangan.',
-        const NotificationDetails(android: androidDetails),
-      );
-    } catch (e) {
-      debugPrint('⚠️ LiveTracking: Notification error $e');
-    }
-  }
-
-  Future<void> _cancelNotification() async {
-    try {
-      final plugin = FlutterLocalNotificationsPlugin();
-      await plugin.cancel(888);
-    } catch (_) {}
-  }
 }
-

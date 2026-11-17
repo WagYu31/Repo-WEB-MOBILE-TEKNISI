@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:workmanager/workmanager.dart';
@@ -14,9 +15,52 @@ void callbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
     if (task == 'checkPendingReports') {
       await _checkAndNotify(inputData);
+    } else if (task == 'liveTrackingWatchdog') {
+      await _sendWatchdogLocationIfWorkingHours(inputData);
     }
     return true;
   });
+}
+
+Future<void> _sendWatchdogLocationIfWorkingHours(Map<String, dynamic>? inputData) async {
+  try {
+    final wibNow = DateTime.now().toUtc().add(const Duration(hours: 7));
+    if (wibNow.hour < 6 || wibNow.hour >= 20) return;
+
+    String? teknisiId = inputData?['teknisiId']?.toString();
+    if (teknisiId == null || teknisiId.isEmpty || teknisiId == 'no role') {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('USER_TOKEN');
+      if (token == null || token.isEmpty || token == 'no token') return;
+      teknisiId = prefs.getString('USER_ID');
+    }
+    if (teknisiId == null || teknisiId.isEmpty || teknisiId == 'no role') return;
+
+    Position? pos;
+    try {
+      pos = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+        timeLimit: const Duration(seconds: 10),
+      );
+    } catch (_) {
+      pos = await Geolocator.getLastKnownPosition();
+    }
+    if (pos == null) return;
+
+    await http.post(
+      Uri.parse('https://jadwal.id-giti.com/update_teknisi_location.php'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'teknisi_id': teknisiId,
+        'latitude': pos.latitude.toString(),
+        'longitude': pos.longitude.toString(),
+        'accuracy': pos.accuracy.toString(),
+        'speed': (pos.speed * 3.6).toStringAsFixed(1),
+        'heading': pos.heading.toString(),
+        'is_mock': pos.isMocked ? 1 : 0,
+      }),
+    ).timeout(const Duration(seconds: 10));
+  } catch (_) {}
 }
 
 Future<void> _checkAndNotify(Map<String, dynamic>? inputData) async {

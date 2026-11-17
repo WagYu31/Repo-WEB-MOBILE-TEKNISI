@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:location/location.dart' as loc;
 import 'package:permission_handler/permission_handler.dart' hide ServiceStatus;
+import '../service/tracking/LiveTrackingService.dart';
 
 class GpsGuardian extends StatefulWidget {
   final Widget child;
@@ -17,6 +18,8 @@ class _GpsGuardianState extends State<GpsGuardian> with WidgetsBindingObserver {
   bool _isGpsDisabled = false;
   bool _isPermissionDenied = false;
   bool _isLocationAlwaysDenied = false;
+  bool _isBatteryRestricted = false;
+  bool _wasBlocked = false;
   StreamSubscription<ServiceStatus>? _serviceStatusSubscription;
   Timer? _pollingTimer;
 
@@ -65,14 +68,32 @@ class _GpsGuardianState extends State<GpsGuardian> with WidgetsBindingObserver {
       final isEnabled = await Geolocator.isLocationServiceEnabled();
       final permStatus = await Permission.location.status;
       final alwaysStatus = await Permission.locationAlways.status;
+      final ignoringBattery = await LiveTrackingService().isIgnoringBatteryOptimizations();
 
       if (!mounted) return;
+      final nowGpsDisabled = !isEnabled;
+      final nowPermDenied = permStatus.isDenied || permStatus.isPermanentlyDenied;
+      final nowAlwaysDenied = permStatus.isGranted && !alwaysStatus.isGranted;
+      final nowBatteryRestricted = permStatus.isGranted && alwaysStatus.isGranted && !ignoringBattery;
+      final nowBlocked = nowGpsDisabled || nowPermDenied || nowAlwaysDenied || nowBatteryRestricted;
+
+      if (_wasBlocked && !nowBlocked) {
+        unawaited(LiveTrackingService().refreshNativeServiceIfNeeded());
+      }
+      _wasBlocked = nowBlocked;
+
       setState(() {
-        _isGpsDisabled = !isEnabled;
-        _isPermissionDenied = permStatus.isDenied || permStatus.isPermanentlyDenied;
-        _isLocationAlwaysDenied = permStatus.isGranted && !alwaysStatus.isGranted;
+        _isGpsDisabled = nowGpsDisabled;
+        _isPermissionDenied = nowPermDenied;
+        _isLocationAlwaysDenied = nowAlwaysDenied;
+        _isBatteryRestricted = nowBatteryRestricted;
       });
     } catch (_) {}
+  }
+
+  Future<void> _requestBatteryUnrestricted() async {
+    await LiveTrackingService().requestIgnoreBatteryOptimizations();
+    await _checkGpsStatus();
   }
 
   Future<void> _requestEnableGps() async {
@@ -328,6 +349,99 @@ class _GpsGuardianState extends State<GpsGuardian> with WidgetsBindingObserver {
                             icon: const Icon(Icons.settings_suggest_rounded, size: 20),
                             label: const Text(
                               'Buka Setelan HP Sekarang',
+                              style: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontSize: 14.5,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFFF5B22),
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          )
+        else if (_isBatteryRestricted)
+          Positioned.fill(
+            child: PopScope(
+              canPop: false,
+              child: Material(
+                color: const Color(0xFF0F172A),
+                child: SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 26),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: 88,
+                          height: 88,
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF0284C7), Color(0xFF0EA5E9)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFF0EA5E9).withValues(alpha: 0.35),
+                                blurRadius: 20,
+                                offset: const Offset(0, 6),
+                              ),
+                            ],
+                          ),
+                          child: const Center(
+                            child: Icon(
+                              Icons.battery_saver_rounded,
+                              size: 44,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 22),
+                        const Text(
+                          'Aktifkan Mode Anti-Mati\nJam Kerja (06:00 – 20:00)',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                            height: 1.3,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          'Agar lokasi tidak terputus otomatis oleh penghemat baterai HP selama jam kerja (06:00 – 20:00 WIB), ketuk tombol di bawah lalu pilih "Izinkan".',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 13,
+                            color: Colors.white.withValues(alpha: 0.8),
+                            height: 1.5,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 28),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 52,
+                          child: ElevatedButton.icon(
+                            onPressed: _requestBatteryUnrestricted,
+                            icon: const Icon(Icons.bolt_rounded, size: 22),
+                            label: const Text(
+                              'Izinkan Jalan di Latar Belakang',
                               style: TextStyle(
                                 fontFamily: 'Poppins',
                                 fontSize: 14.5,

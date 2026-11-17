@@ -155,6 +155,9 @@ try {
     $kegiatanList = [];
     $totalOnlineTeknisi = 0;
     $countedOnlineTeknisi = [];
+    $countedGpsMatiTeknisi = [];
+    $nowHourWib = (int)date('G');
+    $isJamKerja = ($currentDate === date('Y-m-d') && $nowHourWib >= 6 && $nowHourWib < 20);
 
     foreach ($groupedKegiatan as $kodeTransaksi => $groupRows) {
         usort($groupRows, fn($a, $b) => $b['id'] - $a['id']);
@@ -187,10 +190,16 @@ try {
             $isOnline = $live['is_online'] ?? false;
             $lastSeenSec = $live['last_seen_seconds'] ?? null;
             $speed = $live['speed'] ?? 0;
+            $battery = $live['battery'] ?? null;
+            $isSelesaiKerja = (stripos($statusKerja, 'selesai') !== false);
+            $gpsMatiJamKerja = ($isJamKerja && !$isOnline && !$isSelesaiKerja);
 
             if ($isOnline && !isset($countedOnlineTeknisi[$tekId])) {
                 $totalOnlineTeknisi++;
                 $countedOnlineTeknisi[$tekId] = true;
+            }
+            if ($gpsMatiJamKerja && !isset($countedGpsMatiTeknisi[$tekId])) {
+                $countedGpsMatiTeknisi[$tekId] = true;
             }
 
             // Distance to customer
@@ -200,19 +209,21 @@ try {
             }
 
             $assignedTeknisi[] = [
-                'teknisi_id'        => $tekId,
-                'nama'              => $tek['nama_teknisi'],
-                'telp'              => $tek['no_hp'],
-                'is_ketua'          => (int)$tek['is_ketua'],
-                'status_kerja'      => $statusKerja,
-                'waktu_mulai'       => $waktuMulai,
-                'waktu_selesai'     => $waktuSelesai,
-                'live_latitude'     => $liveLat,
-                'live_longitude'    => $liveLon,
-                'speed'             => $speed,
-                'is_online'         => $isOnline,
-                'last_seen_seconds' => $lastSeenSec,
-                'jarak_ke_lokasi_km'=> $distToCust,
+                'teknisi_id'         => $tekId,
+                'nama'               => $tek['nama_teknisi'],
+                'telp'               => $tek['no_hp'],
+                'is_ketua'           => (int)$tek['is_ketua'],
+                'status_kerja'       => $statusKerja,
+                'waktu_mulai'        => $waktuMulai,
+                'waktu_selesai'      => $waktuSelesai,
+                'live_latitude'      => $liveLat,
+                'live_longitude'     => $liveLon,
+                'speed'              => $speed,
+                'battery'            => $battery,
+                'is_online'          => $isOnline,
+                'gps_mati_jam_kerja' => $gpsMatiJamKerja,
+                'last_seen_seconds'  => $lastSeenSec,
+                'jarak_ke_lokasi_km' => $distToCust,
             ];
         }
 
@@ -239,9 +250,11 @@ try {
         'status' => true,
         'tanggal' => $currentDate,
         'summary' => [
-            'total_kegiatan'         => count($kegiatanList),
-            'total_teknisi_terjadwal'=> count($allTeknisiIds),
-            'teknisi_online'         => $totalOnlineTeknisi,
+            'total_kegiatan'          => count($kegiatanList),
+            'total_teknisi_terjadwal' => count($allTeknisiIds),
+            'teknisi_online'          => $totalOnlineTeknisi,
+            'teknisi_gps_mati'        => count($countedGpsMatiTeknisi),
+            'jam_kerja_aktif'         => $isJamKerja,
         ],
         'data' => $kegiatanList,
     ]);

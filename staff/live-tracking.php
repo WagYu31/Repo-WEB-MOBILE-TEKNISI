@@ -270,6 +270,16 @@ $todayStr = date("Y-m-d");
         border-color: var(--lt-orange);
         color: #ffffff;
     }
+    .type-pill.pill-alert {
+        border-color: #fecdd3;
+        color: #be123c;
+        background: #fff1f2;
+    }
+    .type-pill.pill-alert[aria-pressed="true"] {
+        background: #e11d48;
+        border-color: #e11d48;
+        color: #ffffff;
+    }
 
     /* ─── Scrollable Activity List (Standard Scrollbar + Fallback) ─── */
     .tracking-cards-list {
@@ -526,6 +536,19 @@ $todayStr = date("Y-m-d");
         border-radius: 12px;
         white-space: nowrap;
     }
+    .gps-pill-alert {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        background: #fff1f2;
+        border: 1px solid #fecdd3;
+        color: #be123c;
+        font-size: 10px;
+        font-weight: 700;
+        padding: 2px 7px;
+        border-radius: 12px;
+        white-space: nowrap;
+    }
     .dot-online {
         width: 6px;
         height: 6px;
@@ -536,6 +559,12 @@ $todayStr = date("Y-m-d");
         width: 6px;
         height: 6px;
         background: #94a3b8;
+        border-radius: 50%;
+    }
+    .dot-alert {
+        width: 6px;
+        height: 6px;
+        background: #e11d48;
         border-radius: 50%;
     }
 
@@ -909,7 +938,7 @@ $todayStr = date("Y-m-d");
               </div>
               <div>
                 <h1 class="mb-0 fw-bold" style="font-size: 14px; color: #ffffff; line-height: 1.25;">Live Tracking Teknisi</h1>
-                <div style="font-size: 11px; color: #94a3b8;">Pantau lokasi & rute kunjungan lapangan</div>
+                <div style="font-size: 11px; color: #94a3b8;">Jam pantau wajib: 06:00 – 20:00 WIB</div>
               </div>
             </div>
             <div class="live-pill" title="Data diperbarui otomatis setiap 5 detik">
@@ -940,6 +969,7 @@ $todayStr = date("Y-m-d");
           <div class="tracking-type-pills" role="group" aria-label="Filter kegiatan">
             <button type="button" class="type-pill" data-type="all" aria-pressed="true" onclick="filterType('all', this)">Semua (<span id="countAll">0</span>)</button>
             <button type="button" class="type-pill pill-online" data-type="online" aria-pressed="false" onclick="filterType('online', this)"><i class="fa-solid fa-satellite-dish" aria-hidden="true"></i> GPS Online (<span id="countOnlineCard">0</span>)</button>
+            <button type="button" class="type-pill pill-alert" id="pillGpsMati" data-type="gps_mati" aria-pressed="false" hidden onclick="filterType('gps_mati', this)"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> GPS Mati (<span id="countGpsMati">0</span>)</button>
             <button type="button" class="type-pill" data-type="berjalan" aria-pressed="false" onclick="filterType('berjalan', this)">Dikerjakan (<span id="countBerjalan">0</span>)</button>
             <button type="button" class="type-pill" data-type="pasang" aria-pressed="false" onclick="filterType('pasang', this)">Pasang (<span id="countPasang">0</span>)</button>
             <button type="button" class="type-pill" data-type="service" aria-pressed="false" onclick="filterType('service', this)">Service (<span id="countService">0</span>)</button>
@@ -1200,6 +1230,9 @@ $todayStr = date("Y-m-d");
       if (activeTypeFilter === 'online') {
         return (k.teknisi_list || []).some(t => t.is_online);
       }
+      if (activeTypeFilter === 'gps_mati') {
+        return (k.teknisi_list || []).some(t => t.gps_mati_jam_kerja);
+      }
       if (activeTypeFilter === 'berjalan') {
         return (k.teknisi_list || []).some(t => {
           const s = (t.status_kerja || '').toLowerCase();
@@ -1228,6 +1261,12 @@ $todayStr = date("Y-m-d");
 
       document.getElementById('countAll').textContent = kegiatanData.length;
       document.getElementById('countOnlineCard').textContent = kegiatanData.filter(k => (k.teknisi_list || []).some(t => t.is_online)).length;
+      const gpsMatiCards = kegiatanData.filter(k => (k.teknisi_list || []).some(t => t.gps_mati_jam_kerja)).length;
+      document.getElementById('countGpsMati').textContent = gpsMatiCards;
+      const pillGpsMati = document.getElementById('pillGpsMati');
+      if (pillGpsMati) {
+        pillGpsMati.hidden = (gpsMatiCards === 0 && activeTypeFilter !== 'gps_mati');
+      }
       document.getElementById('countBerjalan').textContent = kegiatanData.filter(k => (k.teknisi_list || []).some(t => /berjalan|dikerjakan/i.test(t.status_kerja || ''))).length;
       document.getElementById('countPasang').textContent = kegiatanData.filter(k => (k.kegiatan || '').toLowerCase().includes('pasang')).length;
       document.getElementById('countService').textContent = kegiatanData.filter(k => (k.kegiatan || '').toLowerCase().includes('service')).length;
@@ -1264,24 +1303,30 @@ $todayStr = date("Y-m-d");
                 ? `${t.jarak_ke_lokasi_km} km`
                 : '';
 
+              const batTxt = t.battery ? ` • 🔋${escHtml(String(t.battery))}%` : '';
               const gpsBadge = t.is_online
-                ? `<span class="gps-pill-online" title="GPS aktif real-time"><span class="dot-online"></span>${Math.round(parseFloat(t.speed || 0))} km/j${distText ? ' • ' + distText : ''}</span>`
-                : `<span class="gps-pill-offline" title="Waktu sejak sinyal GPS terakhir dikirim"><span class="dot-offline"></span>${escHtml(formatLastSeen(t.last_seen_seconds))}</span>`;
+                ? `<span class="gps-pill-online" title="GPS aktif real-time"><span class="dot-online" aria-hidden="true"></span>${Math.round(parseFloat(t.speed || 0))} km/j${distText ? ' • ' + distText : ''}${batTxt}</span>`
+                : (t.gps_mati_jam_kerja
+                  ? `<span class="gps-pill-alert" title="GPS tidak aktif di jam kerja (06:00-20:00 WIB)"><span class="dot-alert" aria-hidden="true"></span>GPS Mati • ${escHtml(formatLastSeen(t.last_seen_seconds))}</span>`
+                  : `<span class="gps-pill-offline" title="Waktu sejak sinyal GPS terakhir dikirim"><span class="dot-offline" aria-hidden="true"></span>${escHtml(formatLastSeen(t.last_seen_seconds))}</span>`);
 
               const tekPhone = String(t.telp || '').replace(/[^0-9]/g, '').replace(/^0/, '');
+              const waQuery = t.gps_mati_jam_kerja
+                ? `?text=${encodeURIComponent('Halo ' + (t.nama || '') + ', mohon pastikan GPS & aplikasi Teknisi Loewix tetap aktif selama jam kerja (06:00–20:00 WIB).')}`
+                : '';
               const hasLivePin = Boolean(t.live_latitude && t.live_longitude);
 
               return `
                 <div class="tek-row">
                   <button type="button" class="btn-tek-jump" onclick="focusTeknisi(${ parseInt(t.teknisi_id, 10) }, '${safeKodeJs}')" title="${hasLivePin ? 'Klik untuk lihat posisi ' + escHtml(t.nama) + ' di peta' : 'Teknisi belum mengirim titik GPS'}">
-                    <i class="fa-solid fa-motorcycle" style="color: ${t.is_online ? '#ff5b22' : '#94a3b8'}; font-size: 11.5px;" aria-hidden="true"></i>
+                    <i class="fa-solid fa-motorcycle" style="color: ${t.is_online ? '#ff5b22' : (t.gps_mati_jam_kerja ? '#e11d48' : '#94a3b8')}; font-size: 11.5px;" aria-hidden="true"></i>
                     <span class="tek-name">${escHtml(t.nama)}</span>
                     ${t.is_ketua ? '<span class="badge-ketua">Ketua</span>' : ''}
                     <span class="badge-status-work ${statusClass}">${escHtml(t.status_kerja)}</span>
                   </button>
                   <div style="display:flex; align-items:center; gap:5px;">
                     ${gpsBadge}
-                    ${tekPhone ? `<a href="https://wa.me/62${tekPhone}" target="_blank" rel="noopener" class="btn-wa-mini" aria-label="WhatsApp ${escHtml(t.nama)}"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i></a>` : ''}
+                    ${tekPhone ? `<a href="https://wa.me/62${tekPhone}${waQuery}" target="_blank" rel="noopener" class="btn-wa-mini" aria-label="WhatsApp ${escHtml(t.nama)}"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i></a>` : ''}
                   </div>
                 </div>`;
             }).join('')
@@ -1438,8 +1483,10 @@ $todayStr = date("Y-m-d");
               </div>
               <div style="margin-bottom:6px;">
                 ${tek.is_online
-                  ? `<span class="gps-pill-online"><span class="dot-online"></span>Online • ${Math.round(parseFloat(tek.speed || 0))} km/jam</span>`
-                  : `<span class="gps-pill-offline"><span class="dot-offline"></span>Aktif ${escHtml(formatLastSeen(tek.last_seen_seconds))}</span>`
+                  ? `<span class="gps-pill-online"><span class="dot-online" aria-hidden="true"></span>Online • ${Math.round(parseFloat(tek.speed || 0))} km/jam${tek.battery ? ' • 🔋' + escHtml(String(tek.battery)) + '%' : ''}</span>`
+                  : (tek.gps_mati_jam_kerja
+                    ? `<span class="gps-pill-alert"><span class="dot-alert" aria-hidden="true"></span>GPS Mati • ${escHtml(formatLastSeen(tek.last_seen_seconds))}</span>`
+                    : `<span class="gps-pill-offline"><span class="dot-offline" aria-hidden="true"></span>Aktif ${escHtml(formatLastSeen(tek.last_seen_seconds))}</span>`)
                 }
               </div>
               <div style="font-size:11.5px; color:#475569; line-height:1.45;">

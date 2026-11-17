@@ -23,11 +23,11 @@ header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
 // KONFIGURASI VERSI - UBAH DI SINI UNTUK FORCE UPDATE
 // ═══════════════════════════════════════════════
 $response = [
-    'min_version'     => '4.0.35',   // Versi minimum yang dibolehkan
-    'latest_version'  => '4.0.35',   // Versi terbaru yang tersedia
-    'update_url'      => 'https://jadwal.id-giti.com/staff/download/teknisi-v4.0.35.apk?v=' . time(), // URL download APK (bypassing CDN cache)
-    'update_message'  => 'Versi terbaru (v4.0.35) tersedia! Fitur baru Input Dokumen BAST & pembaruan tampilan Peminjaman Barang.',
-    'force_message'   => 'Versi aplikasi Anda perlu diperbarui (v4.0.35). Silakan update ke versi terbaru untuk fitur Input BAST & perbaikan aplikasi.',
+    'min_version'     => '4.0.36',   // Versi minimum yang dibolehkan
+    'latest_version'  => '4.0.36',   // Versi terbaru yang tersedia
+    'update_url'      => 'https://jadwal.id-giti.com/staff/download/teknisi-v4.0.36.apk?v=' . time(), // URL download APK (bypassing CDN cache)
+    'update_message'  => 'Versi terbaru (v4.0.36) tersedia! Pembaruan Live Tracking Jam Kerja (06:00–20:00 WIB) & Dokumen BAST.',
+    'force_message'   => 'Versi aplikasi Anda perlu diperbarui (v4.0.36) agar pelacakan operasional jam kerja (06:00–20:00 WIB) & fitur BAST berjalan optimal.',
 ];
 
 echo json_encode($response);
