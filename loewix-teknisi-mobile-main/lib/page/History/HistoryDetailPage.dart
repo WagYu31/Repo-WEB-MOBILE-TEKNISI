@@ -5,6 +5,7 @@ import '../../service/api/ApiLink.dart';
 import '../../service/model/task/TaskAllResponse.dart';
 import '../../service/provider/preferences/PreferencesIDProvider.dart';
 import '../Task/ReportDonePage.dart';
+import '../Task/InputBastPage.dart';
 
 class HistoryDetailPage extends StatelessWidget {
   static const routeName = '/history_detail';
@@ -54,6 +55,10 @@ class HistoryDetailPage extends StatelessWidget {
                 children: [
                   // Status Card
                   _buildStatusCard(),
+                  if (data.status.toLowerCase() != 'dibatalkan') ...[
+                    const SizedBox(height: 14),
+                    _buildBastActionCard(context, teknisiId ?? 0),
+                  ],
                   const SizedBox(height: 16),
                   // Customer Info
                   _buildCustomerCard(),
@@ -163,6 +168,94 @@ class HistoryDetailPage extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildBastActionCard(BuildContext context, int teknisiId) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFFED7AA)),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFFF5B22).withValues(alpha: 0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => InputBastPage(
+                  kode: data.kode,
+                  kegiatanId: data.id,
+                  customerId: data.customerId,
+                  namaCustomer: data.dataCustomer.nama,
+                  teknisiId: teknisiId,
+                ),
+              ),
+            );
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+            child: Row(
+              children: [
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFF5B22).withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.fact_check_rounded,
+                    color: Color(0xFFFF5B22),
+                    size: 22,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Input / Edit Dokumen BAST',
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF11141A),
+                        ),
+                      ),
+                      SizedBox(height: 1),
+                      Text(
+                        'Foto display CCTV & titik kamera (bisa diisi di rumah)',
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 11.5,
+                          color: Color(0xFF64748B),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 14,
+                  color: Color(0xFFFF5B22),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

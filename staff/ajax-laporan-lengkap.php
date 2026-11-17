@@ -262,7 +262,7 @@ if (!empty($all_rows)) {
         </div>
         <div>
             <?php
-            $sql_cnt = "SELECT COUNT(DISTINCT teknisi_id) as tot FROM pelaksanaan_kegiatan WHERE kode = ? AND waktu_mulai IS NOT NULL";
+            $sql_cnt = "SELECT COUNT(DISTINCT teknisi_id) as tot FROM pelaksanaan_kegiatan WHERE kode = ? AND waktu_mulai IS NOT NULL AND deleted_at IS NULL";
             $stmt_cnt = $conn->prepare($sql_cnt);
             $stmt_cnt->bind_param("s", $kode);
             $stmt_cnt->execute();
@@ -270,13 +270,26 @@ if (!empty($all_rows)) {
             $stmt_cnt->close();
 
             $sql_tek = "SELECT t.id, t.nama AS nama_teknisi,
-                        (SELECT SUM(pendapatan) FROM pendapatan_kegiatan WHERE kode = ? AND teknisi_id = t.id) as total_pendapatan
-                        FROM team_kegiatan tk
-                        JOIN teknisi t ON tk.teknisi_id = t.id
-                        JOIN kegiatan k ON tk.kegiatan_id = k.id
-                        WHERE k.kode = ? AND t.deleted_at IS NULL GROUP BY t.id";
+                        (SELECT SUM(pendapatan) FROM pendapatan_kegiatan WHERE kode = ? AND teknisi_id = t.id AND deleted_at IS NULL) as total_pendapatan
+                        FROM (
+                            SELECT tk.teknisi_id
+                            FROM team_kegiatan tk
+                            JOIN kegiatan k ON tk.kegiatan_id = k.id
+                            JOIN teknisi t0 ON tk.teknisi_id = t0.id
+                            WHERE k.kode = ? AND k.deleted_at IS NULL AND tk.deleted_at IS NULL AND t0.deleted_at IS NULL
+                            UNION
+                            SELECT pk.teknisi_id
+                            FROM pelaksanaan_kegiatan pk
+                            WHERE pk.kode = ? AND pk.deleted_at IS NULL
+                            UNION
+                            SELECT pd.teknisi_id
+                            FROM pendapatan_kegiatan pd
+                            WHERE pd.kode = ? AND pd.deleted_at IS NULL
+                        ) all_tek
+                        JOIN teknisi t ON t.id = all_tek.teknisi_id
+                        ORDER BY t.nama ASC";
             $stmt_tek = $conn->prepare($sql_tek);
-            $stmt_tek->bind_param("ss", $kode, $kode);
+            $stmt_tek->bind_param("ssss", $kode, $kode, $kode, $kode);
             $stmt_tek->execute();
             $res_tek = $stmt_tek->get_result();
 

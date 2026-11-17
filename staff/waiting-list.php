@@ -358,14 +358,30 @@ $pageNow = "Waiting List";
                             <input type="time" class="form-control border p-2" id="jam" required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label" style="font-size:13px;font-weight:600;">Pilih Teknisi</label>
-                            <div id="technician-list" class="border p-2 rounded" style="max-height:200px;overflow-y:auto;">
+                            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;flex-wrap:wrap;">
+                                <label class="form-label mb-0" style="font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;">
+                                    Pilih Teknisi
+                                    <span id="tekSelectedBadgeWL" style="display:none;background:#eef2ff;color:#4f46e5;border:1px solid #c7d2fe;font-size:10px;font-weight:700;padding:1px 8px;border-radius:12px;">0 Terpilih</span>
+                                </label>
+                                <div style="display:flex;gap:4px;" id="tekQuickFilterGroupWL">
+                                    <button type="button" class="tek-qfilter-wl active" data-mode="all" onclick="setTekQuickFilterWL('all', this)" style="border:1px solid #6366f1;background:#eef2ff;color:#4f46e5;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:12px;cursor:pointer;">Semua</button>
+                                    <button type="button" class="tek-qfilter-wl" data-mode="free" onclick="setTekQuickFilterWL('free', this)" style="border:1px solid #e2e8f0;background:#fff;color:#64748b;font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:12px;cursor:pointer;">Kosong</button>
+                                    <button type="button" class="tek-qfilter-wl" data-mode="selected" onclick="setTekQuickFilterWL('selected', this)" style="border:1px solid #e2e8f0;background:#fff;color:#64748b;font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:12px;cursor:pointer;">Terpilih</button>
+                                </div>
+                            </div>
+                            <div style="position:relative;margin-bottom:8px;">
+                                <input type="text" id="searchTeknisiWL" autocomplete="off" class="form-control border" placeholder="Cari nama teknisi..." oninput="filterTeknisiWL()" style="padding:7px 30px 7px 12px;font-size:12.5px;border-radius:8px;">
+                                <button type="button" id="clearSearchTeknisiWL" onclick="clearTeknisiSearchWL()" style="display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);border:none;background:transparent;color:#94a3b8;font-size:14px;cursor:pointer;">&times;</button>
+                            </div>
+                            <div id="technician-list" class="border p-2 rounded" style="max-height:240px;overflow-y:auto;">
                                 <?php
                                 $st = mysqli_query($conn, "SELECT id, nama FROM teknisi WHERE deleted_at IS NULL ORDER BY nama ASC");
                                 while ($rt = mysqli_fetch_assoc($st)) {
-                                    echo "<div class='form-check' style='display:flex;align-items:center;gap:6px;padding:6px 4px;'>
+                                    $safeNamaWL = htmlspecialchars(strtolower($rt['nama']), ENT_QUOTES);
+                                    $dispNamaWL = htmlspecialchars($rt['nama']);
+                                    echo "<div class='form-check tek-wl-item' data-nama='{$safeNamaWL}' data-tek-id='{$rt['id']}' style='display:flex;align-items:center;gap:6px;padding:6px 4px;'>
                                             <input class='form-check-input tek-check' type='checkbox' value='{$rt['id']}' id='tk{$rt['id']}' onchange='updateKetuaRadiosWL()'>
-                                            <label class='form-check-label' for='tk{$rt['id']}' style='flex:1;'>{$rt['nama']}</label>
+                                            <label class='form-check-label' for='tk{$rt['id']}' style='flex:1;cursor:pointer;'>{$dispNamaWL}</label>
                                             <label class='ketua-radio-wl' id='ketua-wl-{$rt['id']}' style='display:none;align-items:center;gap:3px;cursor:pointer;padding:2px 6px;border-radius:10px;background:#fef3c7;border:1px solid #fde68a;font-size:10px;font-weight:700;color:#92400e;white-space:nowrap;' onclick='event.stopPropagation()'>
                                               <input type='radio' name='ketua_id_wl' value='{$rt['id']}' class='ketua-radio-wl-input' style='width:11px;height:11px;accent-color:#f59e0b;'> 👑 Ketua
                                             </label>
@@ -373,6 +389,7 @@ $pageNow = "Waiting List";
                                           </div>";
                                 }
                                 ?>
+                                <div id="tekWLNoResult" style="display:none;text-align:center;padding:14px 8px;color:#94a3b8;font-size:12px;">Teknisi tidak ditemukan</div>
                             </div>
                         </div>
                     </form>
@@ -463,6 +480,11 @@ $pageNow = "Waiting List";
             $(document).on('click', '.jadwalkan-btn', function(e) {
                 e.preventDefault();
                 $('#modalKegiatanId').val($(this).data('id'));
+                $('.tek-check').prop('checked', false);
+                updateKetuaRadiosWL();
+                $('#searchTeknisiWL').val('');
+                const allBtnWL = document.querySelector('#tekQuickFilterGroupWL .tek-qfilter-wl[data-mode="all"]');
+                if (allBtnWL) setTekQuickFilterWL('all', allBtnWL);
                 const tglFull = $(this).data('tgl');
                 if(tglFull && tglFull !== '0000-00-00 00:00:00') {
                     const parts = tglFull.split(' ');
@@ -470,6 +492,7 @@ $pageNow = "Waiting List";
                 }
                 fetchSchedules(); modalJadwal.show();
             });
+            $('#tanggal').on('change', fetchSchedules);
             $(document).on('click', '.edit-loc-btn', function(e) {
                 e.preventDefault();
                 $('#locKegId').val($(this).data('id')); $('#locCustId').val($(this).data('cust'));
@@ -503,8 +526,69 @@ $pageNow = "Waiting List";
             });
         });
 
+        let currentTekQuickModeWL = 'all';
+
+        function filterTeknisiWL() {
+            const input = document.getElementById('searchTeknisiWL');
+            const clearBtn = document.getElementById('clearSearchTeknisiWL');
+            const q = (input ? input.value : '').toLowerCase().trim();
+            if (clearBtn) clearBtn.style.display = q.length > 0 ? 'block' : 'none';
+
+            let visibleCount = 0;
+            document.querySelectorAll('#technician-list .tek-wl-item').forEach(item => {
+                const nama = item.getAttribute('data-nama') || '';
+                const tekId = item.getAttribute('data-tek-id');
+                const cb = item.querySelector('.tek-check');
+                const isChecked = cb && cb.checked;
+                const infoEl = document.getElementById('info-tk-' + tekId);
+                const isBusy = infoEl && infoEl.innerHTML.trim() !== '';
+
+                const matchName = q === '' || nama.indexOf(q) !== -1;
+                let matchMode = true;
+                if (currentTekQuickModeWL === 'free') matchMode = !isBusy;
+                else if (currentTekQuickModeWL === 'selected') matchMode = isChecked;
+
+                if (matchName && matchMode) {
+                    item.style.display = 'flex';
+                    visibleCount++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            const noRes = document.getElementById('tekWLNoResult');
+            if (noRes) noRes.style.display = visibleCount === 0 ? 'block' : 'none';
+        }
+
+        function setTekQuickFilterWL(mode, btnEl) {
+            currentTekQuickModeWL = mode;
+            document.querySelectorAll('#tekQuickFilterGroupWL .tek-qfilter-wl').forEach(b => {
+                const active = b === btnEl;
+                b.style.borderColor = active ? '#6366f1' : '#e2e8f0';
+                b.style.background = active ? '#eef2ff' : '#fff';
+                b.style.color = active ? '#4f46e5' : '#64748b';
+                b.style.fontWeight = active ? '700' : '600';
+            });
+            filterTeknisiWL();
+        }
+
+        function clearTeknisiSearchWL() {
+            const input = document.getElementById('searchTeknisiWL');
+            if (input) {
+                input.value = '';
+                input.focus();
+            }
+            filterTeknisiWL();
+        }
+
         function updateKetuaRadiosWL() {
             const checked = $('.tek-check:checked');
+            const prevKetua = $('input[name="ketua_id_wl"]:checked').val();
+            const badge = document.getElementById('tekSelectedBadgeWL');
+            if (badge) {
+                badge.textContent = checked.length + ' Terpilih';
+                badge.style.display = checked.length > 0 ? 'inline-block' : 'none';
+            }
             $('.ketua-radio-wl').hide();
             $('.ketua-radio-wl-input').prop('checked', false);
             checked.each(function() {
@@ -512,7 +596,10 @@ $pageNow = "Waiting List";
             });
             if (checked.length === 1) {
                 $('#ketua-wl-' + checked[0].value).find('.ketua-radio-wl-input').prop('checked', true);
+            } else if (prevKetua && $('#tk' + prevKetua).is(':checked')) {
+                $('#ketua-wl-' + prevKetua).find('.ketua-radio-wl-input').prop('checked', true);
             }
+            if (currentTekQuickModeWL === 'selected') filterTeknisiWL();
         }
 
         function fetchSchedules() {
@@ -520,6 +607,7 @@ $pageNow = "Waiting List";
             $.getJSON('cek_jadwal_teknisi.php?tanggal=' + tgl, function(data) {
                 $('[id^="info-tk-"]').html('');
                 for(let id in data) { $(`#info-tk-${id}`).html(data[id].map(i => `${i.customer} (${i.waktu})`).join(', ')); }
+                filterTeknisiWL();
             });
         }
 

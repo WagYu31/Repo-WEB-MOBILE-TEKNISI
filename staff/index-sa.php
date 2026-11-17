@@ -1267,7 +1267,7 @@ if (isset($_GET['export'])) {
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" style="opacity:0.7;"></button>
               </div>
-              <div class="modal-body" style="padding:20px 24px;max-height:60vh;overflow-y:auto;">
+              <div class="modal-body" style="padding:20px 24px;">
                 <form id="jadwalkanForm">
                   <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
                     <div>
@@ -1280,12 +1280,30 @@ if (isset($_GET['export'])) {
                     </div>
                   </div>
                   <div>
-                    <label style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;display:block;">Pilih Teknisi</label>
-                    <div id="technician-list-container">
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+                      <label style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin:0;display:flex;align-items:center;gap:6px;">
+                        Pilih Teknisi
+                        <span id="tekSelectedBadge" style="display:none;background:#eef2ff;color:#4f46e5;border:1px solid #c7d2fe;font-size:10px;font-weight:700;padding:1px 8px;border-radius:12px;text-transform:none;letter-spacing:0;">0 Terpilih</span>
+                      </label>
+                      <div style="display:flex;gap:4px;" id="tekQuickFilterGroup">
+                        <button type="button" class="tek-qfilter active" data-mode="all" onclick="setTekQuickFilter('all', this)" style="border:1px solid #6366f1;background:#eef2ff;color:#4f46e5;font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:12px;cursor:pointer;">Semua</button>
+                        <button type="button" class="tek-qfilter" data-mode="free" onclick="setTekQuickFilter('free', this)" style="border:1px solid #e2e8f0;background:#fff;color:#64748b;font-size:10.5px;font-weight:600;padding:3px 9px;border-radius:12px;cursor:pointer;">Kosong</button>
+                        <button type="button" class="tek-qfilter" data-mode="selected" onclick="setTekQuickFilter('selected', this)" style="border:1px solid #e2e8f0;background:#fff;color:#64748b;font-size:10.5px;font-weight:600;padding:3px 9px;border-radius:12px;cursor:pointer;">Terpilih</button>
+                      </div>
+                    </div>
+                    <div style="position:relative;margin-bottom:10px;">
+                      <i class="material-icons" style="position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:17px;color:#94a3b8;pointer-events:none;">search</i>
+                      <input type="text" id="searchTeknisiModal" autocomplete="off" placeholder="Cari nama teknisi..." oninput="filterTeknisiModal()" style="width:100%;border:1.5px solid #e2e8f0;border-radius:10px;padding:8px 32px 8px 35px;font-size:12.5px;font-weight:500;color:#1e293b;background:#f8fafc;outline:none;transition:border-color 0.15s, background 0.15s;" onfocus="this.style.borderColor='#6366f1';this.style.background='#fff'" onblur="this.style.borderColor='#e2e8f0';this.style.background='#f8fafc'">
+                      <button type="button" id="clearSearchTeknisiBtn" onclick="clearTeknisiSearch()" style="display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);border:none;background:transparent;color:#94a3b8;padding:2px;cursor:pointer;line-height:1;">
+                        <i class="material-icons" style="font-size:16px;">close</i>
+                      </button>
+                    </div>
+                    <div id="technician-list-container" style="max-height:38vh;overflow-y:auto;padding-right:2px;">
                       <?php
                       $res_tek = mysqli_query($conn, "SELECT id, nama FROM teknisi WHERE deleted_at IS NULL ORDER BY nama ASC");
                       while ($t = mysqli_fetch_assoc($res_tek)) {
-                        echo "<label for='tek".$t['id']."' style='display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1px solid #f1f5f9;border-radius:10px;margin-bottom:8px;cursor:pointer;transition:all 0.15s;background:#fff;' onmouseover=\"this.style.borderColor='#6366f1';this.style.background='#fafafe'\" onmouseout=\"this.style.borderColor='#f1f5f9';this.style.background='#fff'\">"; 
+                        $safeNamaLower = htmlspecialchars(strtolower($t['nama']), ENT_QUOTES);
+                        echo "<label class='tek-modal-item' data-nama='".$safeNamaLower."' data-tek-id='".$t['id']."' for='tek".$t['id']."' style='display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1px solid #f1f5f9;border-radius:10px;margin-bottom:8px;cursor:pointer;transition:all 0.15s;background:#fff;' onmouseover=\"this.style.borderColor='#6366f1';this.style.background='#fafafe'\" onmouseout=\"this.style.borderColor='#f1f5f9';this.style.background='#fff'\">"; 
                         echo "<input class='form-check-input teknisi-checkbox' type='checkbox' name='teknisi[]' value='".$t['id']."' id='tek".$t['id']."' onchange='updateKetuaRadios()' style='margin-top:2px;flex-shrink:0;width:16px;height:16px;border-radius:4px;border:1.5px solid #cbd5e1;'>"; 
                         echo "<div style='flex:1;min-width:0;'>";
                         echo "<div style='display:flex;align-items:center;justify-content:space-between;'>";
@@ -1298,6 +1316,10 @@ if (isset($_GET['export'])) {
                         echo "</div></label>";
                       }
                       ?>
+                      <div id="tekModalNoResult" style="display:none;text-align:center;padding:20px 12px;color:#94a3b8;font-size:12.5px;">
+                        <i class="material-icons" style="font-size:28px;color:#cbd5e1;display:block;margin-bottom:4px;">person_search</i>
+                        Teknisi tidak ditemukan
+                      </div>
                     </div>
                   </div>
                 </form>
@@ -1568,8 +1590,68 @@ if (isset($_GET['export'])) {
       });
     });
 
+    let currentTekQuickMode = 'all';
+
+    function filterTeknisiModal() {
+      const input = document.getElementById('searchTeknisiModal');
+      const clearBtn = document.getElementById('clearSearchTeknisiBtn');
+      const q = (input ? input.value : '').toLowerCase().trim();
+      if (clearBtn) clearBtn.style.display = q.length > 0 ? 'block' : 'none';
+
+      let visibleCount = 0;
+      document.querySelectorAll('#technician-list-container .tek-modal-item').forEach(item => {
+        const nama = item.getAttribute('data-nama') || '';
+        const tekId = item.getAttribute('data-tek-id');
+        const cb = item.querySelector('.teknisi-checkbox');
+        const isChecked = cb && cb.checked;
+        const jadwalEl = document.getElementById('jadwal-teknisi-' + tekId);
+        const isBusy = jadwalEl && jadwalEl.innerHTML.trim() !== '';
+
+        const matchName = q === '' || nama.indexOf(q) !== -1;
+        let matchMode = true;
+        if (currentTekQuickMode === 'free') matchMode = !isBusy;
+        else if (currentTekQuickMode === 'selected') matchMode = isChecked;
+
+        if (matchName && matchMode) {
+          item.style.display = 'flex';
+          visibleCount++;
+        } else {
+          item.style.display = 'none';
+        }
+      });
+
+      const noRes = document.getElementById('tekModalNoResult');
+      if (noRes) noRes.style.display = visibleCount === 0 ? 'block' : 'none';
+    }
+
+    function setTekQuickFilter(mode, btnEl) {
+      currentTekQuickMode = mode;
+      document.querySelectorAll('#tekQuickFilterGroup .tek-qfilter').forEach(b => {
+        const active = b === btnEl;
+        b.style.borderColor = active ? '#6366f1' : '#e2e8f0';
+        b.style.background = active ? '#eef2ff' : '#fff';
+        b.style.color = active ? '#4f46e5' : '#64748b';
+        b.style.fontWeight = active ? '700' : '600';
+      });
+      filterTeknisiModal();
+    }
+
+    function clearTeknisiSearch() {
+      const input = document.getElementById('searchTeknisiModal');
+      if (input) {
+        input.value = '';
+        input.focus();
+      }
+      filterTeknisiModal();
+    }
+
     $(document).on('click', '.jadwalkan-btn', function() {
       $('#jadwalkanForm').data('id', $(this).data('id'));
+      $('.teknisi-checkbox').prop('checked', false);
+      updateKetuaRadios();
+      $('#searchTeknisiModal').val('');
+      const allBtn = document.querySelector('#tekQuickFilterGroup .tek-qfilter[data-mode="all"]');
+      if (allBtn) setTekQuickFilter('all', allBtn);
       const tglReq = $(this).data('tgl-request');
       if(tglReq && tglReq != '0000-00-00 00:00:00') {
         const p = tglReq.split(' ');
@@ -1590,6 +1672,7 @@ if (isset($_GET['export'])) {
         const badges = data[id].map(i => `<span style="display:inline-block;background:#fef3c7;color:#92400e;font-size:10px;font-weight:600;padding:2px 8px;border-radius:4px;margin:2px 3px 2px 0;">${i.customer} | ${i.waktu}</span>`).join('');
         $(`#jadwal-teknisi-${id}`).html(badges);
       }
+      filterTeknisiModal();
     }
 
     $('#tanggal').change(checkJadwal);
@@ -1632,6 +1715,12 @@ if (isset($_GET['export'])) {
 
     function updateKetuaRadios() {
       const checked = $('.teknisi-checkbox:checked');
+      const prevKetua = $('input[name="ketua_id"]:checked').val();
+      const badge = document.getElementById('tekSelectedBadge');
+      if (badge) {
+        badge.textContent = checked.length + ' Terpilih';
+        badge.style.display = checked.length > 0 ? 'inline-block' : 'none';
+      }
       // Hide all ketua radios first
       $('.ketua-radio-wrap').hide();
       $('.ketua-radio').prop('checked', false);
@@ -1639,10 +1728,13 @@ if (isset($_GET['export'])) {
       checked.each(function() {
         $('#ketua-wrap-' + this.value).css('display', 'inline-flex');
       });
-      // Auto-select if only 1 checked
+      // Preserve previous ketua if still checked, or auto-select if only 1 checked
       if (checked.length === 1) {
         $('#ketua-wrap-' + checked[0].value).find('.ketua-radio').prop('checked', true);
+      } else if (prevKetua && $('#tek' + prevKetua).is(':checked')) {
+        $('#ketua-wrap-' + prevKetua).find('.ketua-radio').prop('checked', true);
       }
+      if (currentTekQuickMode === 'selected') filterTeknisiModal();
     }
 
     $(document).on('click', '.hapus-btn', function() {

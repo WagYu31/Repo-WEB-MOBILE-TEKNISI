@@ -513,18 +513,21 @@ for ($i = 0; $i < 12; $i++) {
 
                                                     <td class="technician-list pe-4">
                                                         <?php
-                                                         $sql_teknisi = "SELECT t.nama_teknisi, p.teknisi_id, p.kode,
-                                                                         (SELECT MIN(waktu_mulai) FROM pelaksanaan_kegiatan WHERE teknisi_id = p.teknisi_id AND kode = p.kode) AS waktu_mulai_pertama,
-                                                                         (SELECT MAX(waktu_selesai) FROM pelaksanaan_kegiatan WHERE teknisi_id = p.teknisi_id AND kode = p.kode) AS waktu_selesai_terakhir,
-                                                                         (SELECT pendapatan FROM pendapatan_kegiatan WHERE kode = p.kode AND teknisi_id = p.teknisi_id AND deleted_at IS NULL LIMIT 1) AS pendapatan
-                                                                     FROM pelaksanaan_kegiatan p JOIN team_kegiatan t ON t.teknisi_id = p.teknisi_id JOIN kegiatan k ON t.kegiatan_id = k.id
-                                                                     WHERE p.kode = ? AND k.customer_id = ? AND p.deleted_at IS NULL GROUP BY p.teknisi_id";
+                                                         $sql_teknisi = "SELECT p.id, t.nama AS nama_teknisi, p.teknisi_id, p.kode,
+                                                                         p.waktu_mulai, p.waktu_selesai,
+                                                                         (SELECT SUM(pk.pendapatan) FROM pendapatan_kegiatan pk WHERE pk.kegiatan_id = p.id AND pk.kode = p.kode AND pk.deleted_at IS NULL) AS pendapatan
+                                                                     FROM pelaksanaan_kegiatan p
+                                                                     JOIN teknisi t ON p.teknisi_id = t.id
+                                                                     WHERE p.kode = ? AND p.deleted_at IS NULL
+                                                                     ORDER BY t.nama ASC, p.waktu_mulai ASC";
                                                         $stmt_teknisi = $conn->prepare($sql_teknisi);
-                                                        $stmt_teknisi->bind_param("si", $kodeTransaksi, $idC);
+                                                        $stmt_teknisi->bind_param("s", $kodeTransaksi);
                                                         $stmt_teknisi->execute();
                                                         $result_teknisi = $stmt_teknisi->get_result();
                                                         if($result_teknisi->num_rows > 0) {
                                                             while($row_teknisi = $result_teknisi->fetch_assoc()) {
+                                                                $mulaiValid = !empty($row_teknisi['waktu_mulai']) && $row_teknisi['waktu_mulai'] !== '0000-00-00 00:00:00';
+                                                                $selesaiValid = !empty($row_teknisi['waktu_selesai']) && $row_teknisi['waktu_selesai'] !== '0000-00-00 00:00:00';
                                                         ?>
                                                          <div class="d-flex align-items-center w-100 py-2 technician-item">
                                                              <div class="text-sm font-weight-bold" style="flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
@@ -536,8 +539,8 @@ for ($i = 0; $i < 12; $i++) {
                                                                  <?php endif; ?>
                                                              </div>
                                                              <div class="text-end" style="width: 110px; flex-shrink: 0;">
-                                                                 <p class="text-xs text-dark mb-0">Mulai: <?= $row_teknisi['waktu_mulai_pertama'] ? date("d/m H:i", strtotime($row_teknisi['waktu_mulai_pertama'])) : '-'; ?></p>
-                                                                 <p class="text-xs text-dark mb-0">Selesai: <?= $row_teknisi['waktu_selesai_terakhir'] ? date("d/m H:i", strtotime($row_teknisi['waktu_selesai_terakhir'])) : '-'; ?></p>
+                                                                 <p class="text-xs text-dark mb-0">Mulai: <?= $mulaiValid ? date("d/m H:i", strtotime($row_teknisi['waktu_mulai'])) : '-'; ?></p>
+                                                                 <p class="text-xs text-dark mb-0">Selesai: <?= $selesaiValid ? date("d/m H:i", strtotime($row_teknisi['waktu_selesai'])) : '-'; ?></p>
                                                              </div>
                                                          </div><?php }
                                                         } else { echo "<p class='text-xs text-danger text-center mb-0'>Data teknisi tidak ditemukan.</p>"; }

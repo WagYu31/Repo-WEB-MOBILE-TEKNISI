@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:slide_to_act/slide_to_act.dart';
 import 'package:quickalert/quickalert.dart';
@@ -19,7 +20,9 @@ import '../../service/provider/Pelaksanaan/RescheduleProvider.dart';
 import '../../service/provider/preferences/PreferencesIDProvider.dart';
 import '../../utils/state.dart';
 import '../../widget/CoachMarkHelper.dart';
+import '../../service/api/ApiBast.dart';
 import 'ReportDonePage.dart';
+import 'InputBastPage.dart';
 import '../Invoice/DetailInvoicePage.dart';
 import 'LanjutNantiPage.dart';
 
@@ -47,6 +50,9 @@ class _TaskPageState extends State<TaskPage> {
   String? _cachedStatus;
   Color? _cachedStatusColor;
   IconData? _cachedStatusIcon;
+  bool _hasBast = false;
+  bool _wajibBast = false;
+  int _bastTitikCount = 0;
 
   // Coach Mark Keys
   final GlobalKey _keyMap = GlobalKey();
@@ -59,6 +65,8 @@ class _TaskPageState extends State<TaskPage> {
   final GlobalKey _keySheetSlider = GlobalKey();
   final GlobalKey _keySheetActions = GlobalKey();
   bool _sheetCoachShown = false;
+  bool _isBottomSheetOpen = false;
+  double _panelDragDy = 0.0;
 
   // Modern color scheme - consistent with app theme
   static const Color primaryColor = Color(0xFF2563EB);
@@ -67,9 +75,7 @@ class _TaskPageState extends State<TaskPage> {
   static const Color warningColor = Color(0xFFF59E0B);
   static const Color successColor = Color(0xFF10B981);
   static const Color surfaceColor = Color(0xFFF8FAFC);
-  static const Color cardColor = Colors.white;
   static const Color textPrimary = Color(0xFF1F2937);
-  static const Color textSecondary = Color(0xFF6B7280);
 
   @override
   void initState() {
@@ -96,8 +102,23 @@ class _TaskPageState extends State<TaskPage> {
     // Auto-refresh from API to get latest pelaksanaan data
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _refreshFromApi();
+      _loadBastStatus();
       _showTaskCoachMark();
     });
+  }
+
+  Future<void> _loadBastStatus() async {
+    try {
+      final res = await ApiBast().getDetail(data.kode, customerId: data.customerId);
+      if (!mounted) return;
+      final bast = res['bast'] as Map<String, dynamic>?;
+      final titik = res['titik_kamera'] as List? ?? const [];
+      setState(() {
+        _wajibBast = res['wajib_bast'] == true;
+        _hasBast = bast != null && (bast['foto_display_utama']?.toString().isNotEmpty ?? false);
+        _bastTitikCount = titik.length;
+      });
+    } catch (_) {}
   }
 
   Future<void> _refreshFromApi() async {
@@ -245,24 +266,26 @@ class _TaskPageState extends State<TaskPage> {
         },
         child: Container(
           width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 16),
+          padding: const EdgeInsets.symmetric(vertical: 15),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
-              colors: [Color(0xFF2563EB), Color(0xFF3B82F6)],
+              colors: [Color(0xFFFF5B22), Color(0xFFFF7A00)],
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
             ),
             borderRadius: BorderRadius.circular(16),
           ),
           child: const Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.edit_document, color: Colors.white, size: 22),
+              Icon(Icons.edit_document, color: Colors.white, size: 20),
               SizedBox(width: 10),
               Text(
                 'Lengkapi Laporan',
                 style: TextStyle(
                   fontFamily: 'Poppins',
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
+                  fontSize: 14.5,
+                  fontWeight: FontWeight.w700,
                   color: Colors.white,
                 ),
               ),
@@ -417,28 +440,53 @@ class _TaskPageState extends State<TaskPage> {
     }
   }
 
+  void _openSheetFromSwipe() {
+    if (_isBottomSheetOpen) return;
+    if (_panelDragDy != 0.0) {
+      setState(() => _panelDragDy = 0.0);
+    }
+    HapticFeedback.lightImpact();
+    _showBottomSheetActions();
+  }
+
+  String _formatJadwalLengkap(DateTime dt) {
+    const hari = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+    const bulan = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+    final hh = dt.hour.toString().padLeft(2, '0');
+    final mm = dt.minute.toString().padLeft(2, '0');
+    return '${hari[dt.weekday - 1]}, ${dt.day} ${bulan[dt.month - 1]} ${dt.year} • $hh:$mm WIB';
+  }
+
   void _showBottomSheetActions() {
-    final bottomPadding = MediaQuery.of(context).padding.bottom;
+    if (_isBottomSheetOpen) return;
+    _isBottomSheetOpen = true;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (sheetCtx) {
-        // Trigger coach mark after sheet animation
+        final safeBottom = MediaQuery.viewPaddingOf(sheetCtx).bottom;
         WidgetsBinding.instance.addPostFrameCallback((_) {
           Future.delayed(const Duration(milliseconds: 800), () {
-            if (!mounted || _sheetCoachShown || CoachMarkHelper.isActive) return;
+            if (!mounted || !sheetCtx.mounted || _sheetCoachShown || CoachMarkHelper.isActive) return;
             _sheetCoachShown = true;
             _showSheetCoachMark(sheetCtx);
           });
         });
         return Container(
-          decoration: const BoxDecoration(
-            color: cardColor,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.14),
+                blurRadius: 24,
+                offset: const Offset(0, -6),
+              ),
+            ],
           ),
           child: DraggableScrollableSheet(
-            initialChildSize: _shouldShowSlider() ? 0.75 : 0.65,
+            initialChildSize: _shouldShowSlider() ? 0.78 : 0.72,
             minChildSize: 0.5,
             maxChildSize: 0.95,
             expand: false,
@@ -446,23 +494,23 @@ class _TaskPageState extends State<TaskPage> {
               return SingleChildScrollView(
                 controller: scrollController,
                 child: Padding(
-                  padding: EdgeInsets.fromLTRB(24, 16, 24, 32 + bottomPadding),
+                  padding: EdgeInsets.fromLTRB(20, 10, 20, 24 + safeBottom),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildBottomSheetHeader(),
-                      const SizedBox(height: 24),
+                      _buildBottomSheetHeader(sheetCtx),
+                      const SizedBox(height: 16),
                       Container(key: _keySheetStatus, child: _buildTaskStatusCard()),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 14),
                       _buildTaskDetails(),
                       if (_shouldShowSlider()) ...[
-                        const SizedBox(height: 28),
+                        const SizedBox(height: 18),
                         Container(key: _keySheetSlider, child: _buildSlideAction()),
                       ] else ...[
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 14),
                         _buildStatusMessage(),
                       ],
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 18),
                       Container(key: _keySheetActions, child: _buildActionButtons()),
                     ],
                   ),
@@ -472,82 +520,75 @@ class _TaskPageState extends State<TaskPage> {
           ),
         );
       },
-    );
+    ).whenComplete(() {
+      _isBottomSheetOpen = false;
+    });
   }
 
   Widget _buildStatusMessage() {
+    final status = _pelaksanaanStatus;
     String message;
     Color messageColor;
     IconData messageIcon;
 
-    final idTeknisi = int.parse(
-      Provider.of<PreferencesIDProvider>(context, listen: false).isUserRole,
-    );
-
-    final filtered = data.pelaksanaan.where(
-      (a) => a.kegiatanId == data.id && a.teknisiId == idTeknisi,
-    );
-
-    String status = filtered.isNotEmpty ? filtered.first.status : 'tidak';
-
-    // Override: jika task di-reschedule, abaikan pelaksanaan lama
-    if (data.status.toLowerCase() == 'dijadwalkan' && (status == 'selesai' || status == 'menunggu laporan')) {
-      status = 'tidak';
-    }
-
     if (status == 'selesai') {
       message = 'Tugas telah selesai dikerjakan';
       messageColor = successColor;
-      messageIcon = Icons.check_circle_outline;
+      messageIcon = Icons.check_circle_rounded;
     } else if (status == 'menunggu laporan') {
-      message = 'Menunggu laporan dari teknisi';
+      message = _isKetua
+          ? 'Silakan kirim laporan kegiatan untuk menyelesaikan tugas'
+          : 'Menunggu Ketua Tim mengirim laporan kegiatan';
       messageColor = secondaryColor;
-      messageIcon = Icons.pending_outlined;
+      messageIcon = Icons.pending_actions_rounded;
     } else if (status == 'Lanjut Nanti') {
       message = 'Tugas dijadwalkan untuk dilanjutkan nanti';
       messageColor = warningColor;
-      messageIcon = Icons.pause_circle_outline;
+      messageIcon = Icons.pause_circle_rounded;
     } else if (status == 'dibatalkan') {
       message = 'Tugas telah dibatalkan';
       messageColor = errorColor;
-      messageIcon = Icons.cancel_outlined;
+      messageIcon = Icons.cancel_rounded;
     } else if (_isSchedulePassed() && !start) {
-      message = 'Jadwal tugas telah terlewat';
+      message = 'Jadwal kunjungan tugas ini telah terlewat';
       messageColor = errorColor;
-      messageIcon = Icons.warning_outlined;
-    } else if (status == 'tidak' || status == 'Dijadwalkan') {
-      message = 'Tugas belum dimulai';
-      messageColor = warningColor;
-      messageIcon = Icons.schedule_outlined;
+      messageIcon = Icons.warning_rounded;
     } else if (status == 'berjalan') {
-      message = 'Tugas sedang berjalan';
+      message = 'Tugas sedang berjalan di lokasi pelanggan';
       messageColor = successColor;
-      messageIcon = Icons.play_circle_outline;
+      messageIcon = Icons.play_circle_fill_rounded;
     } else {
-      message = 'Status: $status';
-      messageColor = textSecondary;
-      messageIcon = Icons.info_outline;
+      message = 'Tugas siap dimulai sesuai jadwal';
+      messageColor = warningColor;
+      messageIcon = Icons.schedule_rounded;
     }
 
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: messageColor.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: messageColor.withValues(alpha: 0.3)),
+        color: messageColor.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: messageColor.withValues(alpha: 0.25)),
       ),
       child: Row(
         children: [
-          Icon(messageIcon, color: messageColor, size: 28),
-          const SizedBox(width: 16),
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: messageColor.withValues(alpha: 0.14),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(messageIcon, color: messageColor, size: 18),
+          ),
+          const SizedBox(width: 10),
           Expanded(
             child: Text(
               message,
               style: TextStyle(
                 fontFamily: 'Poppins',
-                color: messageColor,
-                fontWeight: FontWeight.w500,
-                fontSize: 15,
+                color: const Color(0xFF0F172A),
+                fontWeight: FontWeight.w600,
+                fontSize: 12.5,
               ),
             ),
           ),
@@ -556,73 +597,111 @@ class _TaskPageState extends State<TaskPage> {
     );
   }
 
-  Widget _buildBottomSheetHeader() {
+  Widget _buildBottomSheetHeader(BuildContext sheetCtx) {
     return Column(
       children: [
         Center(
           child: Container(
-            width: 48,
+            width: 38,
             height: 4,
+            margin: const EdgeInsets.only(bottom: 14),
             decoration: BoxDecoration(
-              color: Colors.grey[300],
+              color: const Color(0xFFCBD5E1),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
         ),
-        const SizedBox(height: 20),
         Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(12),
+              width: 44,
+              height: 44,
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    primaryColor.withValues(alpha:0.2),
-                    primaryColor.withValues(alpha:0.1),
-                  ],
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFFF5B22), Color(0xFFFF8A00)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFFF5B22).withValues(alpha: 0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
               ),
-              child: const Icon(
-                Icons.assignment,
-                color: primaryColor,
-                size: 24,
+              child: const Center(
+                child: Icon(Icons.assignment_rounded, color: Colors.white, size: 22),
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  const Text(
                     'Detail Tugas',
-                    style: TextStyle(fontFamily: 'Poppins',
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: textPrimary,
+                    style: TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 16.5,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF0F172A),
                     ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: primaryColor.withValues(alpha:0.1),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      'ID: ${data.kode}',
-                      style: TextStyle(fontFamily: 'Poppins',
-                        fontSize: 12,
-                        color: primaryColor,
-                        fontWeight: FontWeight.w500,
+                  const SizedBox(height: 3),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 4,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF1F5F9),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          'ID: ${data.kode}',
+                          style: const TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 11,
+                            color: Color(0xFF0F172A),
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
                       ),
-                    ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFF5B22).withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          data.kegiatan,
+                          style: const TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 10.5,
+                            color: Color(0xFFFF5B22),
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
+              ),
+            ),
+            Material(
+              color: const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(12),
+              child: InkWell(
+                onTap: () => Navigator.of(sheetCtx).pop(),
+                borderRadius: BorderRadius.circular(12),
+                child: const Padding(
+                  padding: EdgeInsets.all(9),
+                  child: Icon(Icons.close_rounded, size: 18, color: Color(0xFF0F172A)),
+                ),
               ),
             ),
           ],
@@ -635,107 +714,286 @@ class _TaskPageState extends State<TaskPage> {
     final statusColor = _getStatusColor();
     final statusText = _getTaskStatus();
     final statusIcon = _getStatusIcon();
+    final jamWib =
+        '${data.jadwal.hour.toString().padLeft(2, '0')}:${data.jadwal.minute.toString().padLeft(2, '0')} WIB';
 
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            statusColor.withValues(alpha:0.15),
-            statusColor.withValues(alpha:0.05),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: statusColor.withValues(alpha:0.3)),
-        boxShadow: [
-          BoxShadow(
-            color: statusColor.withValues(alpha:0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
-      child: Row(
+      child: Column(
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: statusColor.withValues(alpha:0.2),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(statusIcon, color: statusColor, size: 24),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  statusText,
-                  style: TextStyle(fontFamily: 'Poppins',
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: statusColor,
-                  ),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: statusColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: statusColor.withValues(alpha: 0.25)),
                 ),
-                if (_isSchedulePassed() && !start)
-                  Text(
-                    'Jadwal: ${data.jadwal}',
-                    style: TextStyle(fontFamily: 'Poppins',
-                      fontSize: 12,
-                      color: statusColor.withValues(alpha:0.8),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(statusIcon, color: statusColor, size: 15),
+                    const SizedBox(width: 6),
+                    Text(
+                      statusText,
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w700,
+                        color: statusColor,
+                      ),
                     ),
-                  ),
-              ],
-            ),
+                  ],
+                ),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.access_time_rounded, size: 13, color: Color(0xFF64748B)),
+                    const SizedBox(width: 5),
+                    Text(
+                      jamWib,
+                      style: const TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF0F172A),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 12),
+            child: Divider(height: 1, color: Color(0xFFE2E8F0)),
+          ),
+          _buildProgressSteps(),
         ],
       ),
     );
   }
 
+  Widget _buildInfoRow({
+    required IconData icon,
+    required Color iconColor,
+    required String label,
+    required String value,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 34,
+          height: 34,
+          decoration: BoxDecoration(
+            color: iconColor.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Center(child: Icon(icon, color: iconColor, size: 17)),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: const TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF64748B),
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF0F172A),
+                  height: 1.4,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildTaskDetails() {
+    final alamatLengkap = data.dataCustomer.alamat.trim().isNotEmpty
+        ? data.dataCustomer.alamat.trim()
+        : 'Alamat sesuai jadwal';
+    final catatanText = (data.keterangan != null && data.keterangan.toString().trim().isNotEmpty)
+        ? data.keterangan.toString().trim()
+        : 'Tidak ada catatan khusus';
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Informasi Tugas',
-          style: TextStyle(fontFamily: 'Poppins',
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: textPrimary,
+        // Kartu Pelanggan & Kontak Cepat (Satu Konsep dengan Gambar 2)
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF8FAFC),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFFF5B22), Color(0xFFFF8A00)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFFF5B22).withValues(alpha: 0.28),
+                          blurRadius: 8,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: const Center(
+                      child: Icon(Icons.business_rounded, color: Colors.white, size: 22),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Pelanggan',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF64748B),
+                          ),
+                        ),
+                        Text(
+                          data.dataCustomer.nama,
+                          style: const TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF0F172A),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _buildQuickCircleButton(
+                        icon: Icons.chat_bubble_rounded,
+                        color: const Color(0xFF25D366),
+                        tooltip: 'Chat WhatsApp',
+                        onTap: () => _openWhatsAppChat(data.dataCustomer.telp),
+                      ),
+                      const SizedBox(width: 8),
+                      _buildQuickCircleButton(
+                        icon: Icons.phone_rounded,
+                        color: const Color(0xFF0284C7),
+                        tooltip: 'Telepon',
+                        onTap: () => _makePhoneCall(data.dataCustomer.telp),
+                      ),
+                      const SizedBox(width: 8),
+                      _buildQuickCircleButton(
+                        icon: Icons.navigation_rounded,
+                        color: const Color(0xFFFF5B22),
+                        tooltip: 'Navigasi Google Maps',
+                        onTap: _openGoogleMapsNavigation,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 12),
+                child: Divider(height: 1, color: Color(0xFFE2E8F0)),
+              ),
+              _buildInfoRow(
+                icon: Icons.location_on_rounded,
+                iconColor: const Color(0xFFFF5B22),
+                label: 'Alamat Kunjungan',
+                value: alamatLengkap,
+              ),
+            ],
           ),
         ),
         const SizedBox(height: 16),
-        _buildDetailCard(
-          Icons.person_outline,
-          'Customer',
-          data.dataCustomer.nama,
-          primaryColor,
+        const Text(
+          'Informasi Tugas',
+          style: TextStyle(
+            fontFamily: 'Poppins',
+            fontSize: 14.5,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF0F172A),
+          ),
         ),
-        _buildDetailCard(
-          Icons.location_on_outlined,
-          'Alamat',
-          data.dataCustomer.alamat?.toString() ?? 'Alamat tidak tersedia',
-          Colors.red[400]!,
-        ),
-        _buildDetailCard(
-          Icons.calendar_today_outlined,
-          'Jadwal',
-          data.jadwal.toString(),
-          _isSchedulePassed() ? errorColor : Colors.orange[400]!,
-        ),
-        _buildDetailCard(
-          Icons.note_outlined,
-          'Catatan',
-          (data.keterangan != null && data.keterangan.toString().trim().isNotEmpty) ? data.keterangan.toString() : 'Tidak ada catatan',
-          Colors.purple[400]!,
+        const SizedBox(height: 10),
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF8FAFC),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+          ),
+          child: Column(
+            children: [
+              _buildInfoRow(
+                icon: Icons.calendar_today_rounded,
+                iconColor: (_isSchedulePassed() && !start) ? errorColor : const Color(0xFFF59E0B),
+                label: 'Jadwal Kunjungan',
+                value: _formatJadwalLengkap(data.jadwal),
+              ),
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 12),
+                child: Divider(height: 1, color: Color(0xFFE2E8F0)),
+              ),
+              _buildInfoRow(
+                icon: Icons.sticky_note_2_rounded,
+                iconColor: const Color(0xFF7C3AED),
+                label: 'Catatan Pekerjaan',
+                value: catatanText,
+              ),
+            ],
+          ),
         ),
         _buildAdminNotesCard(),
-        if (data.dataTeknisi.length > 1) ...[
-          const SizedBox(height: 8),
+        if (data.dataTeknisi.isNotEmpty) ...[
+          const SizedBox(height: 12),
           _buildTeamMembersCard(),
         ],
       ],
@@ -926,17 +1184,11 @@ class _TaskPageState extends State<TaskPage> {
 
   Widget _buildTeamMembersCard() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: surfaceColor,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -944,116 +1196,168 @@ class _TaskPageState extends State<TaskPage> {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                width: 34,
+                height: 34,
                 decoration: BoxDecoration(
-                  color: primaryColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  color: const Color(0xFFFF5B22).withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(Icons.groups, color: primaryColor, size: 20),
+                child: const Center(
+                  child: Icon(Icons.groups_rounded, color: Color(0xFFFF5B22), size: 18),
+                ),
               ),
-              const SizedBox(width: 12),
-              Text('Tim Teknisi', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600, fontSize: 14, color: textSecondary)),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Text(
+                  'Tim Teknisi',
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13.5,
+                    color: Color(0xFF0F172A),
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                ),
+                child: Text(
+                  '${data.dataTeknisi.length} Orang',
+                  style: const TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF64748B),
+                  ),
+                ),
+              ),
             ],
           ),
-          const SizedBox(height: 12),
-          ...data.dataTeknisi.map((t) {
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 10),
+            child: Divider(height: 1, color: Color(0xFFE2E8F0)),
+          ),
+          ...List.generate(data.dataTeknisi.length, (i) {
+            final t = data.dataTeknisi[i];
             final isMe = t.teknisiId == _idTeknisi;
             final isLeader = t.isKetua == 1;
+            final initial = t.namaDataTeknisi.trim().isNotEmpty
+                ? t.namaDataTeknisi.trim()[0].toUpperCase()
+                : 'T';
             return Padding(
-              padding: const EdgeInsets.only(bottom: 6),
-              child: Row(
-                children: [
-                  if (isLeader)
+              padding: EdgeInsets.only(bottom: i < data.dataTeknisi.length - 1 ? 8 : 0),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: isMe
+                        ? const Color(0xFFFF5B22).withValues(alpha: 0.35)
+                        : const Color(0xFFE2E8F0),
+                  ),
+                ),
+                child: Row(
+                  children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      margin: const EdgeInsets.only(right: 8),
+                      width: 32,
+                      height: 32,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFEF3C7),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: const Color(0xFFFDE68A)),
+                        gradient: isLeader
+                            ? const LinearGradient(
+                                colors: [Color(0xFFFF5B22), Color(0xFFFF8A00)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              )
+                            : null,
+                        color: isLeader ? null : const Color(0xFFF1F5F9),
+                        shape: BoxShape.circle,
                       ),
-                      child: const Text('👑', style: TextStyle(fontSize: 12)),
-                    )
-                  else
-                    const SizedBox(width: 36),
-                  Expanded(
-                    child: Text(
-                      '${t.namaDataTeknisi}${isMe ? ' (Anda)' : ''}',
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 14,
-                        fontWeight: isMe ? FontWeight.w600 : FontWeight.w400,
-                        color: isMe ? primaryColor : textPrimary,
+                      child: Center(
+                        child: Text(
+                          initial,
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w700,
+                            color: isLeader ? Colors.white : const Color(0xFF475569),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                  if (isLeader)
-                    Text('Ketua', style: TextStyle(fontFamily: 'Poppins', fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFF92400E))),
-                ],
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              t.namaDataTeknisi,
+                              style: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontSize: 12.5,
+                                fontWeight: isMe ? FontWeight.w700 : FontWeight.w600,
+                                color: const Color(0xFF0F172A),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (isMe) ...[
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFF5B22).withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(5),
+                              ),
+                              child: const Text(
+                                'Anda',
+                                style: TextStyle(
+                                  fontFamily: 'Poppins',
+                                  fontSize: 9.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFFFF5B22),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    if (isLeader)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFF7ED),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: const Color(0xFFFED7AA)),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.workspace_premium_rounded, size: 12, color: Color(0xFFEA580C)),
+                            SizedBox(width: 3),
+                            Text(
+                              'Ketua',
+                              style: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFFEA580C),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
               ),
             );
           }),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDetailCard(
-    IconData icon,
-    String label,
-    String value,
-    Color iconColor,
-  ) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: surfaceColor,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha:0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: iconColor.withValues(alpha:0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(icon, color: iconColor, size: 20),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: TextStyle(fontFamily: 'Poppins',
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                    color: textSecondary,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  value,
-                  style: TextStyle(fontFamily: 'Poppins',
-                    fontSize: 15,
-                    color: textPrimary,
-                    height: 1.4,
-                  ),
-                ),
-              ],
-            ),
-          ),
         ],
       ),
     );
@@ -1069,17 +1373,16 @@ class _TaskPageState extends State<TaskPage> {
           );
         }
 
-
         final bool isLocationError = state.state == ResultState.error;
-
         final isWithinRadius = isLocationError ? false : _isWithinRadius();
+        final sliderColor = start ? const Color(0xFF10B981) : const Color(0xFFFF5B22);
 
         return Column(
           children: [
             if (isLocationError)
               Container(
-                margin: const EdgeInsets.only(bottom: 16),
-                padding: const EdgeInsets.all(16),
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: warningColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
@@ -1087,35 +1390,34 @@ class _TaskPageState extends State<TaskPage> {
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.location_off, color: warningColor, size: 24),
-                    const SizedBox(width: 12),
+                    Icon(Icons.location_off_rounded, color: warningColor, size: 20),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: Text(
                         state.message.isNotEmpty ? state.message : 'Lokasi tidak tersedia',
-                        style: TextStyle(fontFamily: 'Poppins', color: warningColor, fontWeight: FontWeight.w500, fontSize: 13),
+                        style: TextStyle(fontFamily: 'Poppins', color: warningColor, fontWeight: FontWeight.w600, fontSize: 12),
                       ),
                     ),
                   ],
                 ),
               ),
-            // Warning: pastikan customer ada sebelum mulai
             if (!start && !_needsReport)
               Container(
                 margin: const EdgeInsets.only(bottom: 12),
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFEF2F2),
+                  color: const Color(0xFFFFF7ED),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: errorColor.withValues(alpha: 0.3)),
+                  border: Border.all(color: const Color(0xFFFED7AA)),
                 ),
-                child: Row(
+                child: const Row(
                   children: [
-                    Icon(Icons.warning_amber_rounded, color: errorColor, size: 20),
-                    const SizedBox(width: 8),
+                    Icon(Icons.info_outline_rounded, color: Color(0xFFEA580C), size: 19),
+                    SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'Pastikan customer ada di lokasi. Jika tidak ada, gunakan tombol Batalkan di bawah.',
-                        style: TextStyle(fontFamily: 'Poppins', fontSize: 12, color: errorColor, fontWeight: FontWeight.w500),
+                        'Pastikan pelanggan ada di lokasi. Jika tidak ada, gunakan tombol Batalkan Tugas di bawah.',
+                        style: TextStyle(fontFamily: 'Poppins', fontSize: 11.5, color: Color(0xFF9A3412), fontWeight: FontWeight.w500),
                       ),
                     ),
                   ],
@@ -1126,41 +1428,42 @@ class _TaskPageState extends State<TaskPage> {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: (_needsReport ? const Color(0xFF2563EB) : start ? const Color(0xFFEA580C) : primaryColor).withValues(alpha:
-                      0.3,
-                    ),
-                    blurRadius: 12,
+                    color: (_needsReport ? const Color(0xFFFF5B22) : sliderColor).withValues(alpha: 0.32),
+                    blurRadius: 14,
                     offset: const Offset(0, 4),
                   ),
                 ],
               ),
               child: _needsReport
-                ? _buildLengkapiLaporanButton()
-                : SlideAction(
-                    outerColor: start ? const Color(0xFFEA580C) : primaryColor,
-                    elevation: 0,
-                    innerColor: Colors.white,
-                    borderRadius: 16,
-                    text: start ? 'Geser untuk Selesai' : 'Geser untuk Mulai',
-                    textStyle: TextStyle(fontFamily: 'Poppins',
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                  ? _buildLengkapiLaporanButton()
+                  : SlideAction(
+                      outerColor: sliderColor,
+                      elevation: 0,
+                      innerColor: Colors.white,
+                      borderRadius: 16,
+                      height: 56,
+                      sliderButtonIconSize: 18,
+                      sliderButtonIconPadding: 11,
+                      text: start ? 'Geser untuk Selesai' : 'Geser untuk Clock In',
+                      textStyle: const TextStyle(
+                        fontFamily: 'Poppins',
+                        color: Colors.white,
+                        fontSize: 14.5,
+                        fontWeight: FontWeight.w700,
+                      ),
+                      sliderButtonIcon: Icon(
+                        start ? Icons.check_rounded : Icons.arrow_forward_rounded,
+                        color: sliderColor,
+                        size: 20,
+                      ),
+                      onSubmit: () => _handleSlideAction(isWithinRadius),
                     ),
-                    sliderButtonIcon: Icon(
-                      start ? Icons.stop_rounded : Icons.play_arrow,
-                      color: start ? const Color(0xFFEA580C) : primaryColor,
-                      size: 24,
-                    ),
-                    onSubmit: () => _handleSlideAction(isWithinRadius),
-                  ),
             ),
-            // Tombol Lanjut Nanti besar (hanya saat tugas berjalan)
             if (start) ...[
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton.icon(
+                child: OutlinedButton.icon(
                   onPressed: () {
                     final position = GoogleMapSample.currentPosition;
                     if (position == null) return;
@@ -1175,57 +1478,24 @@ class _TaskPageState extends State<TaskPage> {
                       ],
                     );
                   },
-                  icon: const Icon(Icons.pause_circle_rounded, size: 22),
-                  label: const Text('Lanjut Nanti',
-                    style: TextStyle(fontFamily: 'Poppins', fontSize: 16, fontWeight: FontWeight.w600)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2563EB),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    elevation: 2,
+                  icon: const Icon(Icons.pause_circle_rounded, size: 19),
+                  label: const Text(
+                    'Lanjut Nanti',
+                    style: TextStyle(fontFamily: 'Poppins', fontSize: 13.5, fontWeight: FontWeight.w700),
                   ),
-                ),
-              ),
-              const SizedBox(height: 4),
-              Center(
-                child: Text(
-                  'Belum selesai? Klik tombol di atas',
-                  style: TextStyle(fontFamily: 'Poppins', fontSize: 12, color: Colors.grey[500], fontStyle: FontStyle.italic),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFF0F172A),
+                    backgroundColor: const Color(0xFFF8FAFC),
+                    side: const BorderSide(color: Color(0xFFE2E8F0)),
+                    padding: const EdgeInsets.symmetric(vertical: 13),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  ),
                 ),
               ),
             ],
           ],
         );
       },
-    );
-  }
-
-  Widget _buildRadiusWarning() {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: errorColor.withValues(alpha:0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: errorColor.withValues(alpha:0.3)),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.warning_amber_rounded, color: errorColor, size: 24),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              'Anda berada di luar radius yang ditentukan',
-              style: TextStyle(fontFamily: 'Poppins',
-                color: errorColor,
-                fontWeight: FontWeight.w500,
-                fontSize: 14,
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -1573,18 +1843,19 @@ class _TaskPageState extends State<TaskPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        const Text(
           'Aksi Lainnya',
-          style: TextStyle(fontFamily: 'Poppins',
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: textPrimary,
+          style: TextStyle(
+            fontFamily: 'Poppins',
+            fontSize: 14.5,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF0F172A),
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 10),
         Wrap(
-          spacing: 12,
-          runSpacing: 12,
+          spacing: 10,
+          runSpacing: 10,
           children: [
             if (status == 'menunggu laporan' && selisih < 2 && _isKetua)
               _buildPremiumActionCard(
@@ -1619,6 +1890,38 @@ class _TaskPageState extends State<TaskPage> {
                   );
                 },
               ),
+            if (status == 'menunggu laporan' ||
+                status == 'selesai' ||
+                history ||
+                data.status.toLowerCase() == 'menunggu laporan' ||
+                data.status.toLowerCase() == 'selesai')
+              _buildPremiumActionCard(
+                title: _hasBast
+                    ? 'Edit Dokumen BAST'
+                    : (_wajibBast ? 'Input BAST (Wajib)' : 'Input BAST'),
+                subtitle: _hasBast
+                    ? 'Tersimpan ($_bastTitikCount titik kamera) • Tap untuk edit'
+                    : 'Foto display CCTV & titik kamera (bisa diisi di rumah)',
+                icon: Icons.fact_check_rounded,
+                color: _hasBast ? successColor : const Color(0xFFFF5B22),
+                onTap: () async {
+                  final saved = await Navigator.push<bool>(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => InputBastPage(
+                        kode: data.kode,
+                        kegiatanId: data.id,
+                        customerId: data.customerId,
+                        namaCustomer: data.dataCustomer.nama,
+                        teknisiId: idTeknisi,
+                      ),
+                    ),
+                  );
+                  if (saved == true) {
+                    _loadBastStatus();
+                  }
+                },
+              ),
             if ((status == 'menunggu laporan' || status == 'selesai') &&
                 selisih < 2)
               _buildPremiumActionCard(
@@ -1636,60 +1939,21 @@ class _TaskPageState extends State<TaskPage> {
                   );
                 },
               ),
-            if (!history && data.status != 'dibatalkan') ...[
-              SizedBox(
-                width: double.infinity,
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: errorColor.withValues(alpha: 0.4), width: 1.5),
-                    color: errorColor.withValues(alpha: 0.05),
-                  ),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(14),
-                      onTap: () => _rescheduleOrCancel(false),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: errorColor.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Icon(Icons.cancel_rounded, color: errorColor, size: 22),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('Batalkan Tugas',
-                                    style: TextStyle(fontFamily: 'Poppins', fontSize: 14, fontWeight: FontWeight.w700, color: errorColor)),
-                                  Text('Customer tidak ada? Batalkan tugas ini',
-                                    style: TextStyle(fontFamily: 'Poppins', fontSize: 11, color: errorColor.withValues(alpha: 0.7))),
-                                ],
-                              ),
-                            ),
-                            Icon(Icons.arrow_forward_ios_rounded, color: errorColor.withValues(alpha: 0.5), size: 16),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
+            if (!history && data.status != 'dibatalkan')
+              _buildPremiumActionCard(
+                title: 'Batalkan Tugas',
+                subtitle: 'Pelanggan tidak ada di lokasi? Batalkan tugas ini',
+                icon: Icons.cancel_rounded,
+                color: errorColor,
+                onTap: () => _rescheduleOrCancel(false),
               ),
-            ],
-            
             if (history)
-              _buildActionButton(
-                'Lihat Invoice',
-                Icons.receipt_outlined,
-                successColor,
-                () => Navigator.push(
+              _buildPremiumActionCard(
+                title: 'Lihat Invoice',
+                subtitle: 'Buka rincian invoice kegiatan',
+                icon: Icons.receipt_outlined,
+                color: successColor,
+                onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (_) => DetailInvoicePage(invoiceId: data.kode),
@@ -1709,76 +1973,88 @@ class _TaskPageState extends State<TaskPage> {
     required Color color,
     required VoidCallback onTap,
   }) {
+    final isDestructive = color == errorColor;
     return SizedBox(
       width: double.infinity,
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: color.withValues(alpha: 0.3), width: 1.5),
-          color: color.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isDestructive
+                ? errorColor.withValues(alpha: 0.28)
+                : const Color(0xFFE2E8F0),
+          ),
+          color: isDestructive ? const Color(0xFFFEF2F2) : const Color(0xFFF8FAFC),
         ),
         child: Material(
           color: Colors.transparent,
           child: InkWell(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(16),
             onTap: onTap,
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
               child: Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    width: 38,
+                    height: 38,
                     decoration: BoxDecoration(
-                      color: color.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(10),
+                      color: color.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(11),
                     ),
-                    child: Icon(icon, color: color, size: 22),
+                    child: Center(child: Icon(icon, color: color, size: 20)),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(title,
-                          style: TextStyle(fontFamily: 'Poppins', fontSize: 14, fontWeight: FontWeight.w700, color: color)),
-                        Text(subtitle,
-                          style: TextStyle(fontFamily: 'Poppins', fontSize: 11, color: color.withValues(alpha: 0.7))),
+                        Text(
+                          title,
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w700,
+                            color: isDestructive ? errorColor : const Color(0xFF0F172A),
+                          ),
+                        ),
+                        const SizedBox(height: 1),
+                        Text(
+                          subtitle,
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 11,
+                            color: isDestructive
+                                ? errorColor.withValues(alpha: 0.78)
+                                : const Color(0xFF64748B),
+                          ),
+                        ),
                       ],
                     ),
                   ),
-                  Icon(Icons.arrow_forward_ios_rounded, color: color.withValues(alpha: 0.5), size: 16),
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: isDestructive
+                          ? errorColor.withValues(alpha: 0.1)
+                          : Colors.white,
+                      shape: BoxShape.circle,
+                      border: isDestructive
+                          ? null
+                          : Border.all(color: const Color(0xFFE2E8F0)),
+                    ),
+                    child: Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      color: isDestructive ? errorColor : const Color(0xFF64748B),
+                      size: 12,
+                    ),
+                  ),
                 ],
               ),
             ),
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildActionButton(
-    String label,
-    IconData icon,
-    Color color,
-    VoidCallback onPressed,
-  ) {
-    return ElevatedButton.icon(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: color.withValues(alpha:0.1),
-        foregroundColor: color,
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: color.withValues(alpha:0.3)),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      ),
-      icon: Icon(icon, size: 20),
-      label: Text(
-        label,
-        style: TextStyle(fontFamily: 'Poppins',fontWeight: FontWeight.w500, fontSize: 14),
-      ),
-      onPressed: onPressed,
     );
   }
 
@@ -2016,11 +2292,12 @@ class _TaskPageState extends State<TaskPage> {
 
   Widget _buildProgressSteps() {
     final status = data.status.toLowerCase();
+    final pelStatus = _pelaksanaanStatus.toLowerCase();
     int currentStep = 1; // 1: Menuju, 2: Tiba/ClockIn, 3: Pengerjaan, 4: Selesai
-    if (status == 'selesai') {
+    if (status == 'selesai' || pelStatus == 'selesai' || pelStatus == 'menunggu laporan') {
       currentStep = 4;
-    } else if (status == 'berjalan') {
-      currentStep = 1;
+    } else if (start || pelStatus == 'berjalan') {
+      currentStep = 3;
     }
 
     final steps = [
@@ -2100,38 +2377,84 @@ class _TaskPageState extends State<TaskPage> {
 
   Widget _buildBottomPanel() {
     final bottomPadding = MediaQuery.of(context).padding.bottom;
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.12),
-            blurRadius: 24,
-            offset: const Offset(0, -6),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(20, 10, 20, 16 + (bottomPadding > 0 ? 0 : 8)),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Grab Handle
-              Center(
-                child: Container(
-                  width: 38,
-                  height: 4,
-                  margin: const EdgeInsets.only(bottom: 12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFCBD5E1),
-                    borderRadius: BorderRadius.circular(2),
+    final pullLift = (-_panelDragDy * 0.3).clamp(0.0, 18.0);
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onVerticalDragStart: (_) {
+        _panelDragDy = 0.0;
+      },
+      onVerticalDragUpdate: (details) {
+        if (_isBottomSheetOpen) return;
+        final nextDy = (_panelDragDy + (details.primaryDelta ?? 0.0)).clamp(-80.0, 0.0);
+        if (nextDy <= -36.0) {
+          _openSheetFromSwipe();
+          return;
+        }
+        if ((nextDy - _panelDragDy).abs() > 0.5) {
+          setState(() => _panelDragDy = nextDy);
+        }
+      },
+      onVerticalDragEnd: (details) {
+        final vy = details.primaryVelocity ?? 0.0;
+        if (!_isBottomSheetOpen && (vy < -220.0 || _panelDragDy <= -20.0)) {
+          _openSheetFromSwipe();
+          return;
+        }
+        if (_panelDragDy != 0.0) {
+          setState(() => _panelDragDy = 0.0);
+        }
+      },
+      onVerticalDragCancel: () {
+        if (_panelDragDy != 0.0) {
+          setState(() => _panelDragDy = 0.0);
+        }
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.12),
+              blurRadius: 24,
+              offset: const Offset(0, -6),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(
+              20,
+              6,
+              20,
+              16 + (bottomPadding > 0 ? 0 : 8) + pullLift,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Grab Handle — tarik ke atas atau ketuk untuk membuka Detail Tugas
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: _openSheetFromSwipe,
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 4, bottom: 12),
+                      child: Center(
+                        child: Container(
+                          width: 38,
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFCBD5E1),
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-              ),
 
               // Live Status Header Row
               Row(
@@ -2353,6 +2676,7 @@ class _TaskPageState extends State<TaskPage> {
             ],
           ),
         ),
+      ),
       ),
     );
   }

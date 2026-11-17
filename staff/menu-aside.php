@@ -543,7 +543,7 @@ $avatarImgPath = file_exists(__DIR__ . '/assets/img/avatar-admin.png')
 
                 // Category: Laporan
                 if ($showKegiatanTeknisi || $showLaporanKegiatan || $showTargetTercapai || $showProgressKegiatan) {
-                    $isLaporanActive = ($pageNow == "Task" && !$isSalesDir) || ($pageNow == "Laporan" && !$isSalesDir) || ($pageNow == "Target Tercapai" && !$isSalesDir) || ($pageNow == "Progress Kegiatan" && !$isSalesDir);
+                    $isLaporanActive = ($pageNow == "Task" && !$isSalesDir) || ($pageNow == "Laporan" && !$isSalesDir) || ($pageNow == "BAST" && !$isSalesDir) || ($pageNow == "Target Tercapai" && !$isSalesDir) || ($pageNow == "Progress Kegiatan" && !$isSalesDir);
                     $laporanCollapse = $isLaporanActive ? 'show' : '';
                     $laporanAria = $isLaporanActive ? 'true' : 'false';
                     $laporanLinkClass = $isLaporanActive ? '' : 'collapsed';
@@ -559,6 +559,7 @@ $avatarImgPath = file_exists(__DIR__ . '/assets/img/avatar-admin.png')
                                 <?php
                                 if ($showKegiatanTeknisi) renderSubNavItem(($pageNow == "Task" && !$isSalesDir), $rootPrefix . "task.php", "fa-solid fa-person-digging", "Kegiatan Teknisi");
                                 if ($showLaporanKegiatan) renderSubNavItem(($pageNow == "Laporan" && !$isSalesDir), $rootPrefix . "lap-kegiatan.php", "fa-solid fa-file-invoice", "Laporan Kegiatan");
+                                if ($showLaporanKegiatan) renderSubNavItem(($pageNow == "BAST" && !$isSalesDir), $rootPrefix . "bast.php", "fa-solid fa-file-signature", "Dokumen BAST");
                                 if ($showTargetTercapai) renderSubNavItem(($pageNow == "Target Tercapai" && !$isSalesDir), $rootPrefix . "laporan.php", "fa-solid fa-hand-holding-dollar", "Target Tercapai Teknisi");
                                 if ($showProgressKegiatan) renderSubNavItem(($pageNow == "Progress Kegiatan" && !$isSalesDir), $rootPrefix . "lap-progress.php", "fa-solid fa-bars-progress", "Progress Kegiatan");
                                 if ($showLaporanKegiatan) renderSubNavItem(($pageNow == "Backup Data Teknisi" && !$isSalesDir), $rootPrefix . "restore_kegiatan.php", "fa-solid fa-database", "Backup Data Teknisi");

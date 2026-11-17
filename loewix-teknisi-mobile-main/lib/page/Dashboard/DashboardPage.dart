@@ -13,7 +13,9 @@ import '../../widget/CardTask.dart';
 import '../../widget/CoachMarkHelper.dart';
 import '../../service/notification/NotificationService.dart';
 import '../../service/provider/Profile/ProfileProvider.dart';
+import '../../service/api/ApiBast.dart';
 import '../Garansi/CekGaransiPage.dart';
+import '../Task/InputBastPage.dart';
 
 class DashboardPage extends StatefulWidget {
   final Function(int)? onNavigate;
@@ -54,6 +56,7 @@ class _DashboardPageState extends State<DashboardPage> {
   bool _isRefreshing = false;
   List<DataTask> _orderedTasks = [];
   List<int> _lastDataIds = [];
+  List<Map<String, dynamic>> _pendingBast = [];
 
   // Filter variables
   int _selectedBulan = DateTime.now().month;
@@ -119,6 +122,7 @@ class _DashboardPageState extends State<DashboardPage> {
             tahun: _selectedTahun,
             filterType: _filterType,
           );
+          _loadPendingBast(teknisiIdInt);
         }
       } catch (e) {
         debugPrint('🔔 Pencapaian load error: $e');
@@ -294,6 +298,7 @@ class _DashboardPageState extends State<DashboardPage> {
             filterType: _filterType,
           ),
         );
+        futures.add(_loadPendingBast(teknisiIdInt));
       }
       await Future.wait(futures);
     } else {
@@ -508,6 +513,13 @@ class _DashboardPageState extends State<DashboardPage> {
           SliverToBoxAdapter(
             child: _buildCleanStatsCard(),
           ),
+          if (_pendingBast.isNotEmpty)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
+                child: _buildPendingBastCard(),
+              ),
+            ),
           // Section Header: "Tugas Aktif"
           SliverToBoxAdapter(
             child: Padding(
@@ -1200,6 +1212,141 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
+  Future<void> _loadPendingBast(int teknisiId) async {
+    try {
+      final items = await ApiBast().getPendingForTeknisi(teknisiId);
+      if (mounted) {
+        setState(() => _pendingBast = items);
+      }
+    } catch (_) {}
+  }
+
+  Widget _buildPendingBastCard() {
+    final teknisiIdInt = int.tryParse(_teknisiId ?? '') ?? 0;
+    return Container(
+      padding: const EdgeInsets.all(15),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFFED7AA)),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFFF5B22).withValues(alpha: 0.08),
+            blurRadius: 14,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFF5B22).withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(11),
+                ),
+                child: const Icon(Iconsax.document_upload, color: Color(0xFFFF5B22), size: 18),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Menunggu Input BAST (${_pendingBast.length})',
+                      style: const TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF11141A),
+                      ),
+                    ),
+                    const Text(
+                      'Bisa dikerjakan di rumah • Tap untuk upload foto CCTV',
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 11,
+                        color: Color(0xFF64748B),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          ..._pendingBast.take(3).map((item) {
+            final kode = item['kode']?.toString() ?? '';
+            final namaCust = item['nama_customer']?.toString() ?? '-';
+            final kegId = int.tryParse(item['kegiatan_id']?.toString() ?? '0') ?? 0;
+            final custId = int.tryParse(item['customer_id']?.toString() ?? '0') ?? 0;
+            return Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(12),
+                onTap: () async {
+                  final saved = await Navigator.push<bool>(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => InputBastPage(
+                        kode: kode,
+                        kegiatanId: kegId,
+                        customerId: custId,
+                        namaCustomer: namaCust,
+                        teknisiId: teknisiIdInt,
+                      ),
+                    ),
+                  );
+                  if (saved == true && teknisiIdInt > 0) {
+                    _loadPendingBast(teknisiIdInt);
+                  }
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFF7ED),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          '#$kode • $namaCust',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF9A3412),
+                          ),
+                        ),
+                      ),
+                      const Text(
+                        'Input BAST',
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFFFF5B22),
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      const Icon(Icons.arrow_forward_ios_rounded, size: 11, color: Color(0xFFFF5B22)),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
   Widget _buildEmptyState(String message) {
     return RefreshIndicator(
       onRefresh: _onRefresh,
@@ -1213,6 +1360,10 @@ class _DashboardPageState extends State<DashboardPage> {
               padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
               child: Column(
                 children: [
+                  if (_pendingBast.isNotEmpty) ...[
+                    _buildPendingBastCard(),
+                    const SizedBox(height: 18),
+                  ],
                   // Motivational Card
                   _buildEmptyMotivationCard(),
                   const SizedBox(height: 24),

@@ -76,7 +76,7 @@ if ($result_main->num_rows > 0) {
         $kodeTransaksi = $row_main['kode_transaksi'];
         $is_manual_fee = is_numeric($row_main['paid']);
         
-        $sql_invoice = "SELECT no_invoice, nominal_invoice FROM pendapatan_kegiatan WHERE kode = ? LIMIT 1";
+        $sql_invoice = "SELECT no_invoice, nominal_invoice FROM pendapatan_kegiatan WHERE kode = ? AND deleted_at IS NULL LIMIT 1";
         $stmt_invoice = $conn->prepare($sql_invoice);
         $stmt_invoice->bind_param("s", $kodeTransaksi);
         $stmt_invoice->execute();
@@ -85,7 +85,7 @@ if ($result_main->num_rows > 0) {
 
         $sql_count_active = "SELECT COUNT(DISTINCT teknisi_id) as total_aktif 
                             FROM pelaksanaan_kegiatan 
-                            WHERE kode = ? AND waktu_mulai IS NOT NULL";
+                            WHERE kode = ? AND waktu_mulai IS NOT NULL AND deleted_at IS NULL";
         $stmt_count = $conn->prepare($sql_count_active);
         $stmt_count->bind_param("s", $kodeTransaksi);
         $stmt_count->execute();
@@ -94,13 +94,25 @@ if ($result_main->num_rows > 0) {
         $stmt_count->close();
 
         $sql_team = "SELECT t.id, t.nama AS nama_teknisi 
-                     FROM team_kegiatan tk 
-                     JOIN teknisi t ON tk.teknisi_id = t.id 
-                     JOIN kegiatan k ON tk.kegiatan_id = k.id 
-                     WHERE k.kode = ? 
-                     GROUP BY t.id";
+                     FROM (
+                         SELECT tk.teknisi_id
+                         FROM team_kegiatan tk
+                         JOIN kegiatan k ON tk.kegiatan_id = k.id
+                         JOIN teknisi t0 ON tk.teknisi_id = t0.id
+                         WHERE k.kode = ? AND k.deleted_at IS NULL AND tk.deleted_at IS NULL AND t0.deleted_at IS NULL
+                         UNION
+                         SELECT pk.teknisi_id
+                         FROM pelaksanaan_kegiatan pk
+                         WHERE pk.kode = ? AND pk.deleted_at IS NULL
+                         UNION
+                         SELECT pd.teknisi_id
+                         FROM pendapatan_kegiatan pd
+                         WHERE pd.kode = ? AND pd.deleted_at IS NULL
+                     ) all_tek
+                     JOIN teknisi t ON t.id = all_tek.teknisi_id
+                     ORDER BY t.nama ASC";
         $stmt_team = $conn->prepare($sql_team);
-        $stmt_team->bind_param("s", $kodeTransaksi);
+        $stmt_team->bind_param("sss", $kodeTransaksi, $kodeTransaksi, $kodeTransaksi);
         $stmt_team->execute();
         $res_team = $stmt_team->get_result();
 
@@ -110,7 +122,7 @@ if ($result_main->num_rows > 0) {
         while ($t = $res_team->fetch_assoc()) {
             $tid = $t['id'];
             
-            $sql_pendapatan = "SELECT SUM(pendapatan) as total FROM pendapatan_kegiatan WHERE kode = ? AND teknisi_id = ?";
+            $sql_pendapatan = "SELECT SUM(pendapatan) as total FROM pendapatan_kegiatan WHERE kode = ? AND teknisi_id = ? AND deleted_at IS NULL";
             $stmt_p = $conn->prepare($sql_pendapatan);
             $stmt_p->bind_param("si", $kodeTransaksi, $tid);
             $stmt_p->execute();

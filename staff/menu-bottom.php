@@ -118,6 +118,7 @@ $showBuatRequest = hasMenuAccess($conn, $idSesi, 'buat_request', ($role == 'Sale
                     <div class="menu-divider"></div>
                     <?php if ($showKegiatanTeknisi) { ?><a class="dropdown-item dropup-item-mobile" href="<?php echo $rootPrefix; ?>task.php"><i class="material-icons">engineering</i> Kegiatan Teknisi</a><?php } ?>
                     <?php if ($showLaporanKegiatan) { ?><a class="dropdown-item dropup-item-mobile" href="<?php echo $rootPrefix; ?>lap-kegiatan.php"><i class="material-icons">receipt_long</i> Laporan Kegiatan</a><?php } ?>
+                    <?php if ($showLaporanKegiatan) { ?><a class="dropdown-item dropup-item-mobile" href="<?php echo $rootPrefix; ?>bast.php"><i class="material-icons">description</i> Dokumen BAST</a><?php } ?>
                     <?php if ($showTargetTercapai && $role !== 'Admin') { ?>
                         <a class="dropdown-item dropup-item-mobile" href="<?php echo $rootPrefix; ?>laporan.php"><i class="material-icons">payments</i> Target Tercapai Teknisi</a>
                     <?php } ?>

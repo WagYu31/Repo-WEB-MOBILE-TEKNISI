@@ -1,13 +1,15 @@
 import 'dart:io';
-import 'dart:typed_data';
 
-import '../../service/provider/Pinjam/KembalikanPinjamProvider.dart';
-import '../../service/provider/Pinjam/PinjamGetProvider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:iconsax/iconsax.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:quickalert/quickalert.dart';
+
 import '../../service/model/pinjam/DetailPinjamGetModel.dart';
+import '../../service/provider/Pinjam/KembalikanPinjamProvider.dart';
+import '../../service/provider/Pinjam/PinjamGetProvider.dart';
 import '../../service/provider/preferences/PreferencesIDProvider.dart';
 
 class KembalikanPinjamanPage extends StatefulWidget {
@@ -21,11 +23,14 @@ class KembalikanPinjamanPage extends StatefulWidget {
 }
 
 class _KembalikanPinjamanPageState extends State<KembalikanPinjamanPage> {
-  // Modern color scheme
-  static const Color _primaryBlue = Color(0xFF2563EB);
-  static const Color _successGreen = Color(0xFF10B981);
-  static const Color _textPrimary = Color(0xFF1F2937);
-  static const Color _textSecondary = Color(0xFF6B7280);
+  // ─── Parclgo Inspired Palette (Matching Gambar 5) ───
+  static const Color _darkHeader = Color(0xFF11141B);
+  static const Color _darkSurface = Color(0xFF1E2330);
+  static const Color _primaryOrange = Color(0xFFFF5B22);
+  static const Color _bgCanvas = Color(0xFFF4F6F8);
+  static const Color _successGreen = Color(0xFF059669);
+  static const Color _textPrimary = Color(0xFF0F172A);
+  static const Color _textSecondary = Color(0xFF64748B);
 
   final _keteranganController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
@@ -82,35 +87,35 @@ class _KembalikanPinjamanPageState extends State<KembalikanPinjamanPage> {
         padding: const EdgeInsets.all(20),
         decoration: const BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 40,
-              height: 4,
-              margin: const EdgeInsets.only(bottom: 20),
+              width: 44,
+              height: 4.5,
+              margin: const EdgeInsets.only(bottom: 18),
               decoration: BoxDecoration(
-                color: const Color(0xFFE5E7EB),
-                borderRadius: BorderRadius.circular(2),
+                color: const Color(0xFFCBD5E1),
+                borderRadius: BorderRadius.circular(3),
               ),
             ),
             const Text(
-              'Pilih Sumber Gambar',
+              'Pilih Sumber Foto',
               style: TextStyle(
                 fontFamily: 'Poppins',
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
                 color: _textPrimary,
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 18),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 _buildImageSourceOption(
-                  icon: Icons.camera_alt_rounded,
+                  icon: Iconsax.camera,
                   label: 'Kamera',
                   onTap: () {
                     Navigator.pop(context);
@@ -118,7 +123,7 @@ class _KembalikanPinjamanPageState extends State<KembalikanPinjamanPage> {
                   },
                 ),
                 _buildImageSourceOption(
-                  icon: Icons.photo_library_rounded,
+                  icon: Iconsax.gallery,
                   label: 'Galeri',
                   onTap: () {
                     Navigator.pop(context);
@@ -141,25 +146,26 @@ class _KembalikanPinjamanPageState extends State<KembalikanPinjamanPage> {
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(18),
       child: Container(
-        width: 100,
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        width: 120,
+        padding: const EdgeInsets.symmetric(vertical: 18),
         decoration: BoxDecoration(
-          color: _primaryBlue.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(16),
+          color: const Color(0xFFFFF2EC),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: const Color(0xFFFED7AA)),
         ),
         child: Column(
           children: [
-            Icon(icon, size: 32, color: _primaryBlue),
+            Icon(icon, size: 30, color: _primaryOrange),
             const SizedBox(height: 8),
             Text(
               label,
               style: const TextStyle(
                 fontFamily: 'Poppins',
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: _primaryBlue,
+                fontSize: 13.5,
+                fontWeight: FontWeight.w600,
+                color: _primaryOrange,
               ),
             ),
           ],
@@ -170,62 +176,104 @@ class _KembalikanPinjamanPageState extends State<KembalikanPinjamanPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF9FAFB),
-      appBar: _buildAppBar(),
-      body: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Photo Section
-                    _buildPhotoSection(),
-                    const SizedBox(height: 16),
-                    // Description Section
-                    _buildDescriptionSection(),
-                    const SizedBox(height: 16),
-                    // Items List Section
-                    _buildItemsSection(),
-                  ],
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light,
+      child: Scaffold(
+        backgroundColor: _bgCanvas,
+        body: Column(
+          children: [
+            _buildParclgoHeader(),
+            Expanded(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildPhotoSection(),
+                      const SizedBox(height: 16),
+                      _buildDescriptionSection(),
+                      const SizedBox(height: 16),
+                      _buildItemsSection(),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-          // Submit Button
-          _buildBottomAction(),
-        ],
+            _buildBottomAction(),
+          ],
+        ),
       ),
     );
   }
 
-  PreferredSizeWidget _buildAppBar() {
-    return AppBar(
-      backgroundColor: Colors.white,
-      surfaceTintColor: Colors.transparent,
-      elevation: 0,
-      leading: IconButton(
-        icon: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF3F4F6),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: const Icon(Icons.arrow_back_ios_new, color: _textPrimary, size: 18),
+  Widget _buildParclgoHeader() {
+    final code = widget.data[0] as String;
+
+    return Container(
+      decoration: const BoxDecoration(
+        color: _darkHeader,
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(32),
+          bottomRight: Radius.circular(32),
         ),
-        onPressed: () => Navigator.pop(context),
       ),
-      title: const Text(
-        'Kembalikan Pinjaman',
-        style: TextStyle(
-          fontFamily: 'Poppins',
-          fontWeight: FontWeight.w600,
-          fontSize: 20,
-          color: _textPrimary,
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+          child: Row(
+            children: [
+              GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: _darkSurface,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.1),
+                    ),
+                  ),
+                  child: const Icon(
+                    Icons.arrow_back_ios_new_rounded,
+                    color: Colors.white,
+                    size: 18,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Kode Pinjam • $code',
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white.withValues(alpha: 0.65),
+                      ),
+                    ),
+                    const Text(
+                      'Kembalikan Barang',
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 19,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                        letterSpacing: -0.2,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -233,15 +281,16 @@ class _KembalikanPinjamanPageState extends State<KembalikanPinjamanPage> {
 
   Widget _buildPhotoSection() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: const Color(0xFFEDF1F5)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
@@ -251,12 +300,17 @@ class _KembalikanPinjamanPageState extends State<KembalikanPinjamanPage> {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                width: 42,
+                height: 42,
                 decoration: BoxDecoration(
-                  color: _primaryBlue.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  color: const Color(0xFFFFF2EC),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.camera_alt_rounded, color: _primaryBlue, size: 20),
+                child: const Icon(
+                  Iconsax.camera,
+                  color: _primaryOrange,
+                  size: 20,
+                ),
               ),
               const SizedBox(width: 12),
               const Expanded(
@@ -264,16 +318,16 @@ class _KembalikanPinjamanPageState extends State<KembalikanPinjamanPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Bukti Foto',
+                      'Bukti Foto Pengembalian',
                       style: TextStyle(
                         fontFamily: 'Poppins',
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
                         color: _textPrimary,
                       ),
                     ),
                     Text(
-                      'Ambil foto barang yang dikembalikan',
+                      'Ambil foto kondisi alat yang dikembalikan',
                       style: TextStyle(
                         fontFamily: 'Poppins',
                         fontSize: 12,
@@ -290,7 +344,7 @@ class _KembalikanPinjamanPageState extends State<KembalikanPinjamanPage> {
             Stack(
               children: [
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(14),
                   child: Image.file(
                     _imagePath!,
                     width: double.infinity,
@@ -314,7 +368,11 @@ class _KembalikanPinjamanPageState extends State<KembalikanPinjamanPage> {
                         color: Colors.black.withValues(alpha: 0.6),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Icon(Icons.close, color: Colors.white, size: 18),
+                      child: const Icon(
+                        Icons.close_rounded,
+                        color: Colors.white,
+                        size: 18,
+                      ),
                     ),
                   ),
                 ),
@@ -328,14 +386,17 @@ class _KembalikanPinjamanPageState extends State<KembalikanPinjamanPage> {
                 icon: const Icon(Icons.refresh_rounded, size: 18),
                 label: const Text(
                   'Ganti Foto',
-                  style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w500),
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: _primaryBlue,
-                  side: const BorderSide(color: _primaryBlue),
+                  foregroundColor: _primaryOrange,
+                  side: const BorderSide(color: _primaryOrange),
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
               ),
@@ -347,32 +408,35 @@ class _KembalikanPinjamanPageState extends State<KembalikanPinjamanPage> {
                 width: double.infinity,
                 height: 150,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF9FAFB),
-                  borderRadius: BorderRadius.circular(12),
+                  color: const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: const Color(0xFFE5E7EB),
-                    style: BorderStyle.solid,
-                    width: 2,
+                    color: const Color(0xFFE2E8F0),
+                    width: 1.5,
                   ),
                 ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(13),
                       decoration: BoxDecoration(
-                        color: _primaryBlue.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
+                        color: const Color(0xFFFFF2EC),
+                        borderRadius: BorderRadius.circular(14),
                       ),
-                      child: const Icon(Icons.add_a_photo_rounded, color: _primaryBlue, size: 28),
+                      child: const Icon(
+                        Iconsax.camera,
+                        color: _primaryOrange,
+                        size: 26,
+                      ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 10),
                     const Text(
-                      'Tap untuk menambah foto',
+                      'Tap untuk mengambil foto bukti',
                       style: TextStyle(
                         fontFamily: 'Poppins',
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
                         color: _textSecondary,
                       ),
                     ),
@@ -387,15 +451,16 @@ class _KembalikanPinjamanPageState extends State<KembalikanPinjamanPage> {
 
   Widget _buildDescriptionSection() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: const Color(0xFFEDF1F5)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
@@ -406,8 +471,8 @@ class _KembalikanPinjamanPageState extends State<KembalikanPinjamanPage> {
             'Keterangan',
             style: TextStyle(
               fontFamily: 'Poppins',
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
               color: _textPrimary,
             ),
           ),
@@ -417,29 +482,29 @@ class _KembalikanPinjamanPageState extends State<KembalikanPinjamanPage> {
             maxLines: 3,
             style: const TextStyle(
               fontFamily: 'Poppins',
-              fontSize: 14,
+              fontSize: 13.5,
               color: _textPrimary,
             ),
             decoration: InputDecoration(
-              hintText: 'Tambahkan keterangan pengembalian (opsional)',
+              hintText: 'Tambahkan catatan kondisi barang (opsional)',
               hintStyle: const TextStyle(
                 fontFamily: 'Poppins',
-                fontSize: 14,
-                color: _textSecondary,
+                fontSize: 13,
+                color: Color(0xFF94A3B8),
               ),
               filled: true,
-              fillColor: const Color(0xFFF9FAFB),
+              fillColor: const Color(0xFFF8FAFC),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+                borderRadius: BorderRadius.circular(14),
+                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
               ),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+                borderRadius: BorderRadius.circular(14),
+                borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: _primaryBlue, width: 2),
+                borderRadius: BorderRadius.circular(14),
+                borderSide: const BorderSide(color: _primaryOrange, width: 1.8),
               ),
               contentPadding: const EdgeInsets.all(14),
             ),
@@ -451,15 +516,16 @@ class _KembalikanPinjamanPageState extends State<KembalikanPinjamanPage> {
 
   Widget _buildItemsSection() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: const Color(0xFFEDF1F5)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
@@ -469,34 +535,34 @@ class _KembalikanPinjamanPageState extends State<KembalikanPinjamanPage> {
           Row(
             children: [
               const Text(
-                'Barang yang Dikembalikan',
+                'Barang Dikembalikan',
                 style: TextStyle(
                   fontFamily: 'Poppins',
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
                   color: _textPrimary,
                 ),
               ),
-              const Spacer(),
+              const SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
                 decoration: BoxDecoration(
-                  color: _primaryBlue.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  color: _darkHeader,
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
                   '${_barangList.length} Item',
                   style: const TextStyle(
                     fontFamily: 'Poppins',
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: _primaryBlue,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
           ..._barangList.map((barang) => _buildItemTile(barang)),
         ],
       ),
@@ -504,30 +570,33 @@ class _KembalikanPinjamanPageState extends State<KembalikanPinjamanPage> {
   }
 
   Widget _buildItemTile(Barang barang) {
+    final hasDesc =
+        barang.deskripsi.trim().isNotEmpty && barang.deskripsi.trim() != '-';
+
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(14),
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFFF9FAFB),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE5E7EB)),
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
       child: Row(
         children: [
           Container(
-            width: 44,
-            height: 44,
+            width: 42,
+            height: 42,
             decoration: BoxDecoration(
-              color: _successGreen.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(10),
+              color: const Color(0xFFECFDF5),
+              borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(
-              Icons.inventory_2_rounded,
+              Iconsax.box_tick,
               color: _successGreen,
-              size: 22,
+              size: 20,
             ),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -541,33 +610,36 @@ class _KembalikanPinjamanPageState extends State<KembalikanPinjamanPage> {
                     color: _textPrimary,
                   ),
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  barang.deskripsi,
-                  style: const TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 12,
-                    color: _textSecondary,
+                if (hasDesc) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    barang.deskripsi,
+                    style: const TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 11.5,
+                      color: _textSecondary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
+                ],
               ],
             ),
           ),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
             decoration: BoxDecoration(
-              color: _primaryBlue.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
+              color: const Color(0xFFFFF2EC),
+              borderRadius: BorderRadius.circular(9),
+              border: Border.all(color: const Color(0xFFFED7AA)),
             ),
             child: Text(
               'x${barang.qty}',
               style: const TextStyle(
                 fontFamily: 'Poppins',
-                fontSize: 13,
+                fontSize: 12.5,
                 fontWeight: FontWeight.w700,
-                color: _primaryBlue,
+                color: _primaryOrange,
               ),
             ),
           ),
@@ -581,46 +653,75 @@ class _KembalikanPinjamanPageState extends State<KembalikanPinjamanPage> {
     final isValid = _imagePath != null;
 
     return Container(
-      padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + bottomPadding),
+      padding: EdgeInsets.fromLTRB(20, 14, 20, 14 + bottomPadding),
       decoration: BoxDecoration(
         color: Colors.white,
+        border: const Border(top: BorderSide(color: Color(0xFFEDF1F5))),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 10,
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 16,
             offset: const Offset(0, -4),
           ),
         ],
       ),
-      child: SizedBox(
+      child: Container(
         width: double.infinity,
         height: 52,
-        child: ElevatedButton.icon(
-          onPressed: isValid && !_isSubmitting ? _sendReport : null,
-          icon: _isSubmitting
-              ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                  ),
+        decoration: BoxDecoration(
+          gradient: isValid
+              ? const LinearGradient(
+                  colors: [Color(0xFFFF5B22), Color(0xFFFF7A00)],
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
                 )
-              : const Icon(Icons.send_rounded, size: 20),
-          label: Text(
-            _isSubmitting ? 'Mengirim...' : 'Kirim Laporan',
-            style: const TextStyle(
-              fontFamily: 'Poppins',
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: isValid ? _primaryBlue : const Color(0xFFD1D5DB),
-            foregroundColor: Colors.white,
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
+              : null,
+          color: isValid ? null : const Color(0xFFE2E8F0),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: isValid
+              ? [
+                  BoxShadow(
+                    color: _primaryOrange.withValues(alpha: 0.32),
+                    blurRadius: 14,
+                    offset: const Offset(0, 5),
+                  ),
+                ]
+              : null,
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: isValid && !_isSubmitting ? _sendReport : null,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (_isSubmitting)
+                  const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  )
+                else
+                  Icon(
+                    Iconsax.send_1,
+                    size: 19,
+                    color: isValid ? Colors.white : const Color(0xFF94A3B8),
+                  ),
+                const SizedBox(width: 8),
+                Text(
+                  _isSubmitting ? 'Mengirim...' : 'Kirim Laporan',
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: isValid ? Colors.white : const Color(0xFF94A3B8),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -638,7 +739,6 @@ class _KembalikanPinjamanPageState extends State<KembalikanPinjamanPage> {
       return;
     }
 
-    // Show confirmation dialog
     QuickAlert.show(
       context: context,
       type: QuickAlertType.confirm,
@@ -646,9 +746,9 @@ class _KembalikanPinjamanPageState extends State<KembalikanPinjamanPage> {
       text: 'Apakah Anda yakin ingin mengembalikan barang-barang ini?',
       confirmBtnText: 'Ya, Kembalikan',
       cancelBtnText: 'Batal',
-      confirmBtnColor: _primaryBlue,
+      confirmBtnColor: _primaryOrange,
       onConfirmBtnTap: () async {
-        Navigator.pop(context); // Close confirm dialog
+        Navigator.pop(context);
         await _processReturn();
       },
     );
@@ -659,7 +759,6 @@ class _KembalikanPinjamanPageState extends State<KembalikanPinjamanPage> {
       _isSubmitting = true;
     });
 
-    // Show loading
     QuickAlert.show(
       context: context,
       type: QuickAlertType.loading,
@@ -667,9 +766,10 @@ class _KembalikanPinjamanPageState extends State<KembalikanPinjamanPage> {
       text: 'Mohon tunggu sebentar...',
     );
 
-    // Get providers before async gap
-    final kembalikanProvider = Provider.of<KembalikanPinjamProvider>(context, listen: false);
-    final pinjamGetProvider = Provider.of<PinjamGetProvider>(context, listen: false);
+    final kembalikanProvider =
+        Provider.of<KembalikanPinjamProvider>(context, listen: false);
+    final pinjamGetProvider =
+        Provider.of<PinjamGetProvider>(context, listen: false);
     final userId = context.read<PreferencesIDProvider>().isUserRole;
 
     try {
@@ -683,9 +783,8 @@ class _KembalikanPinjamanPageState extends State<KembalikanPinjamanPage> {
       );
 
       if (!mounted) return;
-      Navigator.pop(context); // Close loading dialog
+      Navigator.pop(context);
 
-      // Refresh data
       if (userId.isNotEmpty) {
         await pinjamGetProvider.getPinjam(userId);
       }
@@ -697,16 +796,16 @@ class _KembalikanPinjamanPageState extends State<KembalikanPinjamanPage> {
         type: QuickAlertType.success,
         title: 'Berhasil!',
         text: 'Laporan pengembalian berhasil dikirim.',
-        confirmBtnColor: _primaryBlue,
+        confirmBtnColor: _primaryOrange,
         onConfirmBtnTap: () {
-          Navigator.pop(context); // Close success dialog
-          Navigator.pop(context); // Back to detail page
-          Navigator.pop(context); // Back to list page
+          Navigator.pop(context);
+          Navigator.pop(context);
+          Navigator.pop(context);
         },
       );
     } catch (e) {
       if (!mounted) return;
-      Navigator.pop(context); // Close loading dialog
+      Navigator.pop(context);
 
       _showAlert(
         type: QuickAlertType.error,
@@ -732,7 +831,7 @@ class _KembalikanPinjamanPageState extends State<KembalikanPinjamanPage> {
       type: type,
       title: title,
       text: text,
-      confirmBtnColor: _primaryBlue,
+      confirmBtnColor: _primaryOrange,
     );
   }
 }

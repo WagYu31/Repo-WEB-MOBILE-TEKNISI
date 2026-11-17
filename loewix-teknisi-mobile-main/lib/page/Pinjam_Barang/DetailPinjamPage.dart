@@ -1,9 +1,11 @@
-import '../../page/Pinjam_Barang/KembalikanPinjamanPage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../../service/model/pinjam/DetailPinjamGetModel.dart';
+import '../../page/Pinjam_Barang/KembalikanPinjamanPage.dart';
 import '../../service/provider/Pinjam/DetailPinjamGetProvider.dart';
 import '../../utils/state.dart';
 
@@ -18,13 +20,16 @@ class DetailPinjamPage extends StatefulWidget {
 }
 
 class _DetailPinjamPageState extends State<DetailPinjamPage> {
-  // Modern color scheme
-  static const Color _primaryBlue = Color(0xFF2563EB);
-  static const Color _successGreen = Color(0xFF10B981);
-  static const Color _warningAmber = Color(0xFFF59E0B);
-  static const Color _errorRed = Color(0xFFEF4444);
-  static const Color _textPrimary = Color(0xFF1F2937);
-  static const Color _textSecondary = Color(0xFF6B7280);
+  // ─── Parclgo Inspired Palette (Matching Gambar 5) ───
+  static const Color _darkHeader = Color(0xFF11141B);
+  static const Color _darkSurface = Color(0xFF1E2330);
+  static const Color _primaryOrange = Color(0xFFFF5B22);
+  static const Color _bgCanvas = Color(0xFFF4F6F8);
+  static const Color _successGreen = Color(0xFF059669);
+  static const Color _warningAmber = Color(0xFFD97706);
+  static const Color _errorRed = Color(0xFFE11D48);
+  static const Color _textPrimary = Color(0xFF0F172A);
+  static const Color _textSecondary = Color(0xFF64748B);
 
   @override
   void initState() {
@@ -43,7 +48,7 @@ class _DetailPinjamPageState extends State<DetailPinjamPage> {
       case 'dipinjam':
         return _successGreen;
       case 'pengembalian':
-        return _primaryBlue;
+        return _primaryOrange;
       case 'selesai':
         return _successGreen;
       case 'ditolak':
@@ -53,20 +58,37 @@ class _DetailPinjamPageState extends State<DetailPinjamPage> {
     }
   }
 
+  Color _getStatusSoftBg(String status) {
+    switch (status.toLowerCase()) {
+      case 'diajukan':
+        return const Color(0xFFFFFBEB);
+      case 'dipinjam':
+        return const Color(0xFFECFDF5);
+      case 'pengembalian':
+        return const Color(0xFFFFF2EC);
+      case 'selesai':
+        return const Color(0xFFECFDF5);
+      case 'ditolak':
+        return const Color(0xFFFFF1F2);
+      default:
+        return const Color(0xFFF1F5F9);
+    }
+  }
+
   IconData _getStatusIcon(String status) {
     switch (status.toLowerCase()) {
       case 'diajukan':
-        return Icons.hourglass_top_rounded;
+        return Iconsax.timer_1;
       case 'dipinjam':
-        return Icons.inventory_rounded;
+        return Iconsax.box_tick;
       case 'pengembalian':
-        return Icons.assignment_return_rounded;
+        return Iconsax.refresh;
       case 'selesai':
-        return Icons.task_alt_rounded;
+        return Iconsax.tick_circle;
       case 'ditolak':
-        return Icons.block_rounded;
+        return Iconsax.close_circle;
       default:
-        return Icons.info_outline;
+        return Iconsax.info_circle;
     }
   }
 
@@ -96,7 +118,7 @@ class _DetailPinjamPageState extends State<DetailPinjamPage> {
       case 'pengembalian':
         return 'Proses Pengembalian';
       case 'selesai':
-        return 'Selesai';
+        return 'Dikembalikan';
       case 'ditolak':
         return 'Ditolak';
       default:
@@ -104,234 +126,236 @@ class _DetailPinjamPageState extends State<DetailPinjamPage> {
     }
   }
 
+  String _formatDateSafe(DateTime dt) {
+    try {
+      return DateFormat('dd MMMM yyyy', 'id_ID').format(dt);
+    } catch (_) {
+      const months = [
+        'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+      ];
+      return '${dt.day} ${months[dt.month - 1]} ${dt.year}';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF9FAFB),
-      appBar: _buildAppBar(),
-      body: Consumer<DetailPinjamGetProvider>(
-        builder: (context, state, _) {
-          if (state.state == ResultState.loading) {
-            return const Center(
-              child: CircularProgressIndicator(color: _primaryBlue),
-            );
-          } else if (state.state == ResultState.hasData) {
-            final data = state.response.data;
-            return _buildContent(data);
-          } else {
-            return _buildErrorState(state.message);
-          }
-        },
-      ),
-    );
-  }
-
-  PreferredSizeWidget _buildAppBar() {
-    return AppBar(
-      backgroundColor: Colors.white,
-      surfaceTintColor: Colors.transparent,
-      elevation: 0,
-      leading: IconButton(
-        icon: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF3F4F6),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: const Icon(Icons.arrow_back_ios_new, color: _textPrimary, size: 18),
-        ),
-        onPressed: () => Navigator.pop(context),
-      ),
-      title: const Text(
-        'Detail Peminjaman',
-        style: TextStyle(
-          fontFamily: 'Poppins',
-          fontWeight: FontWeight.w600,
-          fontSize: 20,
-          color: _textPrimary,
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light,
+      child: Scaffold(
+        backgroundColor: _bgCanvas,
+        body: Consumer<DetailPinjamGetProvider>(
+          builder: (context, state, _) {
+            if (state.state == ResultState.loading) {
+              return Column(
+                children: [
+                  _buildTopDarkBar(null),
+                  const Expanded(
+                    child: Center(
+                      child: CircularProgressIndicator(color: _primaryOrange),
+                    ),
+                  ),
+                ],
+              );
+            } else if (state.state == ResultState.hasData) {
+              final data = state.response.data;
+              return _buildContent(data);
+            } else {
+              return Column(
+                children: [
+                  _buildTopDarkBar(null),
+                  Expanded(child: _buildErrorState(state.message)),
+                ],
+              );
+            }
+          },
         ),
       ),
     );
   }
 
-  Widget _buildContent(dynamic data) {
-    final statusColor = _getStatusColor(data.status);
-    final isFinished = data.status.toLowerCase() == 'selesai' ||
-        data.status.toLowerCase() == 'ditolak';
-
-    return Column(
-      children: [
-        Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                // Status Card
-                _buildStatusCard(data, statusColor),
-                const SizedBox(height: 16),
-                // Info Card
-                _buildInfoCard(data),
-                const SizedBox(height: 16),
-                // Items Card
-                _buildItemsCard(data.barang),
-              ],
-            ),
-          ),
-        ),
-        // Bottom Action Button
-        if (!isFinished) _buildBottomAction(data),
-      ],
-    );
-  }
-
-  Widget _buildStatusCard(dynamic data, Color statusColor) {
+  Widget _buildTopDarkBar(dynamic data) {
     return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            statusColor,
-            statusColor.withValues(alpha: 0.85),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+      decoration: const BoxDecoration(
+        color: _darkHeader,
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(32),
+          bottomRight: Radius.circular(32),
         ),
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(20, 12, 20, data != null ? 24 : 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: _darkSurface,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.1),
+                        ),
+                      ),
+                      child: const Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        color: Colors.white,
+                        size: 18,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'ID Peminjaman • ${widget.code}',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white.withValues(alpha: 0.65),
+                          ),
+                        ),
+                        const Text(
+                          'Detail Peminjaman',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontSize: 19,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                            letterSpacing: -0.2,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              if (data != null) ...[
+                const SizedBox(height: 18),
+                _buildHeroStatusBanner(data),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeroStatusBanner(dynamic data) {
+    final statusColor = _getStatusColor(data.status);
+    final statusSoftBg = _getStatusSoftBg(data.status);
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: statusColor.withValues(alpha: 0.3),
+            color: Colors.black.withValues(alpha: 0.14),
             blurRadius: 16,
             offset: const Offset(0, 6),
           ),
         ],
       ),
-      child: Stack(
+      child: Column(
         children: [
-          // Background pattern
-          Positioned(
-            right: -20,
-            top: -20,
-            child: Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withValues(alpha: 0.1),
+          Row(
+            children: [
+              Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  color: statusSoftBg,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(
+                  _getStatusIcon(data.status),
+                  color: statusColor,
+                  size: 26,
+                ),
               ),
-            ),
-          ),
-          Positioned(
-            right: 30,
-            bottom: -30,
-            child: Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withValues(alpha: 0.08),
-              ),
-            ),
-          ),
-          // Content
-          Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Icon container with distinct styling
-                    Container(
-                      width: 64,
-                      height: 64,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.3),
-                          width: 2,
-                        ),
-                      ),
-                      child: Icon(
-                        _getStatusIcon(data.status),
-                        size: 32,
-                        color: Colors.white,
+                    Text(
+                      _getStatusLabel(data.status),
+                      style: const TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 15.5,
+                        fontWeight: FontWeight.w700,
+                        color: _textPrimary,
                       ),
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            _getStatusLabel(data.status),
-                            style: const TextStyle(
-                              fontFamily: 'Poppins',
-                              fontSize: 20,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            _getStatusDescription(data.status),
-                            style: TextStyle(
-                              fontFamily: 'Poppins',
-                              fontSize: 12,
-                              color: Colors.white.withValues(alpha: 0.85),
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
+                    const SizedBox(height: 2),
+                    Text(
+                      _getStatusDescription(data.status),
+                      style: const TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 12,
+                        color: _textSecondary,
                       ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
-                // Code section
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.2),
-                    ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.qr_code_2_rounded,
+                  size: 20,
+                  color: _primaryOrange,
+                ),
+                const SizedBox(width: 10),
+                const Text(
+                  'Kode Pinjam',
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: _textSecondary,
                   ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.qr_code_rounded,
-                        size: 20,
-                        color: Colors.white.withValues(alpha: 0.9),
-                      ),
-                      const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Kode Peminjaman',
-                            style: TextStyle(
-                              fontFamily: 'Poppins',
-                              fontSize: 11,
-                              color: Colors.white.withValues(alpha: 0.7),
-                            ),
-                          ),
-                          Text(
-                            data.code,
-                            style: const TextStyle(
-                              fontFamily: 'Poppins',
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                              letterSpacing: 2,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                ),
+                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: _darkHeader,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    data.code,
+                    style: const TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                      letterSpacing: 1.2,
+                    ),
                   ),
                 ),
               ],
@@ -342,17 +366,43 @@ class _DetailPinjamPageState extends State<DetailPinjamPage> {
     );
   }
 
+  Widget _buildContent(dynamic data) {
+    final statusLower = data.status.toLowerCase();
+    final canReturn = statusLower == 'dipinjam';
+
+    return Column(
+      children: [
+        _buildTopDarkBar(data),
+        Expanded(
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
+            child: Column(
+              children: [
+                _buildInfoCard(data),
+                const SizedBox(height: 16),
+                _buildItemsCard(data.barang),
+              ],
+            ),
+          ),
+        ),
+        if (canReturn) _buildBottomAction(data),
+      ],
+    );
+  }
+
   Widget _buildInfoCard(dynamic data) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: const Color(0xFFEDF1F5)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
@@ -363,22 +413,29 @@ class _DetailPinjamPageState extends State<DetailPinjamPage> {
             'Informasi Peminjaman',
             style: TextStyle(
               fontFamily: 'Poppins',
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
+              fontSize: 15.5,
+              fontWeight: FontWeight.w700,
               color: _textPrimary,
             ),
           ),
           const SizedBox(height: 16),
           _buildInfoRow(
-            icon: Icons.person_outline_rounded,
+            icon: Iconsax.user,
+            iconBg: const Color(0xFFFFF2EC),
+            iconColor: _primaryOrange,
             label: 'Nama Teknisi',
             value: data.teknisi.nama,
           ),
-          const Divider(height: 24),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 14),
+            child: Divider(height: 1, color: Color(0xFFF1F5F9)),
+          ),
           _buildInfoRow(
-            icon: Icons.calendar_today_rounded,
+            icon: Iconsax.calendar_1,
+            iconBg: const Color(0xFFF1F5F9),
+            iconColor: const Color(0xFF334155),
             label: 'Tanggal Pinjam',
-            value: DateFormat('dd MMMM yyyy', 'id_ID').format(data.tglPinjam),
+            value: _formatDateSafe(data.tglPinjam),
           ),
         ],
       ),
@@ -387,18 +444,21 @@ class _DetailPinjamPageState extends State<DetailPinjamPage> {
 
   Widget _buildInfoRow({
     required IconData icon,
+    required Color iconBg,
+    required Color iconColor,
     required String label,
     required String value,
   }) {
     return Row(
       children: [
         Container(
-          padding: const EdgeInsets.all(10),
+          width: 42,
+          height: 42,
           decoration: BoxDecoration(
-            color: _primaryBlue.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(10),
+            color: iconBg,
+            borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(icon, size: 20, color: _primaryBlue),
+          child: Icon(icon, size: 20, color: iconColor),
         ),
         const SizedBox(width: 14),
         Expanded(
@@ -409,7 +469,7 @@ class _DetailPinjamPageState extends State<DetailPinjamPage> {
                 label,
                 style: const TextStyle(
                   fontFamily: 'Poppins',
-                  fontSize: 12,
+                  fontSize: 11.5,
                   color: _textSecondary,
                 ),
               ),
@@ -418,8 +478,8 @@ class _DetailPinjamPageState extends State<DetailPinjamPage> {
                 value,
                 style: const TextStyle(
                   fontFamily: 'Poppins',
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
+                  fontSize: 14.5,
+                  fontWeight: FontWeight.w600,
                   color: _textPrimary,
                 ),
               ),
@@ -432,15 +492,16 @@ class _DetailPinjamPageState extends State<DetailPinjamPage> {
 
   Widget _buildItemsCard(List<Barang> barangList) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: const Color(0xFFEDF1F5)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
@@ -453,31 +514,31 @@ class _DetailPinjamPageState extends State<DetailPinjamPage> {
                 'Barang Dipinjam',
                 style: TextStyle(
                   fontFamily: 'Poppins',
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
+                  fontSize: 15.5,
+                  fontWeight: FontWeight.w700,
                   color: _textPrimary,
                 ),
               ),
-              const Spacer(),
+              const SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
                 decoration: BoxDecoration(
-                  color: _primaryBlue.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  color: _darkHeader,
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
                   '${barangList.length} Item',
                   style: const TextStyle(
                     fontFamily: 'Poppins',
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: _primaryBlue,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
           ...barangList.map((barang) => _buildItemTile(barang)),
         ],
       ),
@@ -485,30 +546,32 @@ class _DetailPinjamPageState extends State<DetailPinjamPage> {
   }
 
   Widget _buildItemTile(Barang barang) {
+    final hasDesc = barang.deskripsi.trim().isNotEmpty && barang.deskripsi.trim() != '-';
+
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(14),
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFFF9FAFB),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE5E7EB)),
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
       child: Row(
         children: [
           Container(
-            width: 44,
-            height: 44,
+            width: 42,
+            height: 42,
             decoration: BoxDecoration(
-              color: _primaryBlue.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(10),
+              color: const Color(0xFFFFF2EC),
+              borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(
-              Icons.inventory_2_rounded,
-              color: _primaryBlue,
-              size: 22,
+              Iconsax.box,
+              color: _primaryOrange,
+              size: 20,
             ),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -522,31 +585,34 @@ class _DetailPinjamPageState extends State<DetailPinjamPage> {
                     color: _textPrimary,
                   ),
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  barang.deskripsi,
-                  style: const TextStyle(
-                    fontFamily: 'Poppins',
-                    fontSize: 12,
-                    color: _textSecondary,
+                if (hasDesc) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    barang.deskripsi,
+                    style: const TextStyle(
+                      fontFamily: 'Poppins',
+                      fontSize: 11.5,
+                      color: _textSecondary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
+                ],
               ],
             ),
           ),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 5),
             decoration: BoxDecoration(
-              color: _successGreen.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
+              color: const Color(0xFFECFDF5),
+              borderRadius: BorderRadius.circular(9),
+              border: Border.all(color: const Color(0xFFA7F3D0)),
             ),
             child: Text(
               'x${barang.qty}',
               style: const TextStyle(
                 fontFamily: 'Poppins',
-                fontSize: 13,
+                fontSize: 12.5,
                 fontWeight: FontWeight.w700,
                 color: _successGreen,
               ),
@@ -561,43 +627,62 @@ class _DetailPinjamPageState extends State<DetailPinjamPage> {
     final bottomPadding = MediaQuery.of(context).padding.bottom;
 
     return Container(
-      padding: EdgeInsets.fromLTRB(16, 16, 16, 16 + bottomPadding),
+      padding: EdgeInsets.fromLTRB(20, 14, 20, 14 + bottomPadding),
       decoration: BoxDecoration(
         color: Colors.white,
+        border: const Border(top: BorderSide(color: Color(0xFFEDF1F5))),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 10,
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 16,
             offset: const Offset(0, -4),
           ),
         ],
       ),
-      child: SizedBox(
+      child: Container(
         width: double.infinity,
         height: 52,
-        child: ElevatedButton.icon(
-          onPressed: () {
-            Navigator.pushNamed(
-              context,
-              KembalikanPinjamanPage.routeName,
-              arguments: [widget.code, data.barang],
-            );
-          },
-          icon: const Icon(Icons.assignment_return_rounded, size: 20),
-          label: const Text(
-            'Kembalikan Barang',
-            style: TextStyle(
-              fontFamily: 'Poppins',
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFFFF5B22), Color(0xFFFF7A00)],
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
           ),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: _primaryBlue,
-            foregroundColor: Colors.white,
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: _primaryOrange.withValues(alpha: 0.32),
+              blurRadius: 14,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: () {
+              Navigator.pushNamed(
+                context,
+                KembalikanPinjamanPage.routeName,
+                arguments: [widget.code, data.barang],
+              );
+            },
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Iconsax.box_tick, color: Colors.white, size: 20),
+                SizedBox(width: 10),
+                Text(
+                  'Kembalikan Barang',
+                  style: TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -613,38 +698,38 @@ class _DetailPinjamPageState extends State<DetailPinjamPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: _errorRed.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(24),
+              padding: const EdgeInsets.all(22),
+              decoration: const BoxDecoration(
+                color: Color(0xFFFFF1F2),
+                shape: BoxShape.circle,
               ),
               child: const Icon(
                 Icons.error_outline_rounded,
-                size: 56,
+                size: 48,
                 color: _errorRed,
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 18),
             const Text(
               'Terjadi Kesalahan',
               style: TextStyle(
                 fontFamily: 'Poppins',
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
                 color: _textPrimary,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Text(
               message,
               style: const TextStyle(
                 fontFamily: 'Poppins',
-                fontSize: 14,
+                fontSize: 13,
                 color: _textSecondary,
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 22),
             ElevatedButton.icon(
               onPressed: () {
                 Provider.of<DetailPinjamGetProvider>(context, listen: false)
@@ -653,14 +738,18 @@ class _DetailPinjamPageState extends State<DetailPinjamPage> {
               icon: const Icon(Icons.refresh_rounded, size: 18),
               label: const Text(
                 'Coba Lagi',
-                style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600),
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: _primaryBlue,
+                backgroundColor: _primaryOrange,
                 foregroundColor: Colors.white,
+                elevation: 0,
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(14),
                 ),
               ),
             ),
