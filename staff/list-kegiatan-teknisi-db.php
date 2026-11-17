@@ -145,7 +145,7 @@ if (isset($idTeknis) && $idTeknis !== null && $conn) {
             ))), 0) AS total 
             FROM pendapatan_kegiatan pk 
             WHERE pk.teknisi_id = '" . mysqli_real_escape_string($conn, $idTeknis) . "' 
-              AND DATE_FORMAT(pk.tanggal, '%Y-%m') IN ($monthConditions) 
+              AND DATE_FORMAT(pk.tanggal, '%Y-%m') IN ($monthConditions) AND EXISTS (SELECT 1 FROM kegiatan k_act WHERE k_act.kode = pk.kode AND k_act.deleted_at IS NULL) 
               AND pk.deleted_at IS NULL";
             $resPend = mysqli_query($conn, $sqlPend);
             if ($resPend) {

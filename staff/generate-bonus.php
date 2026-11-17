@@ -35,7 +35,7 @@ while ($row = mysqli_fetch_assoc($result)) {
             pendapatan_kegiatan
         WHERE 
             teknisi_id = $idT
-            AND deleted_at IS NULL
+            AND deleted_at IS NULL AND EXISTS (SELECT 1 FROM kegiatan k_act WHERE k_act.kode = pendapatan_kegiatan.kode AND k_act.deleted_at IS NULL)
             AND DATE_FORMAT(tanggal, '%Y-%m') = '$current_date'
     ";
     $resultBns = mysqli_query($conn, $sqlBns);
@@ -47,7 +47,7 @@ while ($row = mysqli_fetch_assoc($result)) {
                     JOIN (
                         SELECT kode, paid
                         FROM kegiatan
-                        WHERE DATE_FORMAT(jadwal, '%Y-%m') = ? AND paid REGEXP '^[0-9]+$'
+                        WHERE DATE_FORMAT(jadwal, '%Y-%m') = ? AND paid REGEXP '^[0-9]+$' AND deleted_at IS NULL
                         GROUP BY kode
                         ) AS k ON pk.kode = k.kode
                     WHERE pk.teknisi_id = ? 

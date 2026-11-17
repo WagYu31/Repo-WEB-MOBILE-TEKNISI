@@ -88,7 +88,8 @@ $sql_pendapatan = "SELECT COALESCE(SUM(ROUND(pk.nominal_invoice / (
                 FROM pendapatan_kegiatan pk 
                 WHERE pk.teknisi_id = $teknisiId 
                 AND DATE_FORMAT(pk.tanggal, '%Y-%m') IN ($monthConditions) 
-                AND pk.deleted_at IS NULL";
+                AND pk.deleted_at IS NULL
+                AND EXISTS (SELECT 1 FROM kegiatan k_act WHERE k_act.kode = pk.kode AND k_act.deleted_at IS NULL)";
 $res_pendapatan = mysqli_query($conn, $sql_pendapatan);
 $totalPendapatan = floatval(mysqli_fetch_assoc($res_pendapatan)['total'] ?? 0);
 

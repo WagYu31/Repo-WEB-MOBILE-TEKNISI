@@ -60,6 +60,7 @@ $sql = "SELECT pk.kode,
         WHERE pk.teknisi_id = ? 
           AND DATE_FORMAT(pk.tanggal, '%Y-%m') = ? 
           AND pk.deleted_at IS NULL
+          AND EXISTS (SELECT 1 FROM kegiatan k_act WHERE k_act.kode = pk.kode AND k_act.deleted_at IS NULL)
         GROUP BY pk.kode
         ORDER BY pk.tanggal ASC";
 

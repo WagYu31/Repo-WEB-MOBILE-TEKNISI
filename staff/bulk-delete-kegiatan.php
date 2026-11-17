@@ -37,6 +37,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['kode_list'])) {
             mysqli_stmt_bind_param($stmt, "sss", $now, $now, $kodeTransaksi);
             if (mysqli_stmt_execute($stmt) && mysqli_stmt_affected_rows($stmt) > 0) {
                 $deleted_count++;
+                if ($stmt_pl = mysqli_prepare($conn, "UPDATE pelaksanaan_kegiatan SET deleted_at = ? WHERE kode = ? AND deleted_at IS NULL")) {
+                    mysqli_stmt_bind_param($stmt_pl, "ss", $now, $kodeTransaksi);
+                    mysqli_stmt_execute($stmt_pl);
+                    mysqli_stmt_close($stmt_pl);
+                }
+                if ($stmt_pk = mysqli_prepare($conn, "UPDATE pendapatan_kegiatan SET deleted_at = ? WHERE kode = ? AND deleted_at IS NULL")) {
+                    mysqli_stmt_bind_param($stmt_pk, "ss", $now, $kodeTransaksi);
+                    mysqli_stmt_execute($stmt_pk);
+                    mysqli_stmt_close($stmt_pk);
+                }
 
                 // Log
                 $jenis_aksi = "Bulk Delete";

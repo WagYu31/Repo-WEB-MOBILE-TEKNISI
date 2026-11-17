@@ -213,7 +213,7 @@ $role = $jabatan;
                                         ) counts ON pk.kode = counts.kode
                                         WHERE pk.teknisi_id IN ($placeholders) 
                                         AND DATE_FORMAT(pk.tanggal, '%Y-%m') IN ($ymCondition) 
-                                        AND pk.deleted_at IS NULL
+                                        AND pk.deleted_at IS NULL AND EXISTS (SELECT 1 FROM kegiatan k_act WHERE k_act.kode = pk.kode AND k_act.deleted_at IS NULL)
                                         GROUP BY pk.teknisi_id";
                                 $stmt = $conn->prepare($sql);
                                 $stmt->bind_param($types, ...$allTekIds);
@@ -268,7 +268,7 @@ $role = $jabatan;
                                         WHERE DATE_FORMAT(tanggal, '%Y-%m') IN ($ymCondition) AND deleted_at IS NULL
                                         GROUP BY kode
                                     ) counts ON pk.kode = counts.kode
-                                    WHERE DATE_FORMAT(pk.tanggal, '%Y-%m') IN ($ymCondition) AND pk.deleted_at IS NULL";
+                                    WHERE DATE_FORMAT(pk.tanggal, '%Y-%m') IN ($ymCondition) AND pk.deleted_at IS NULL AND EXISTS (SELECT 1 FROM kegiatan k_act WHERE k_act.kode = pk.kode AND k_act.deleted_at IS NULL)";
                                 $resGP = mysqli_query($conn, $sqlGrandPend);
                                 $rowGP = mysqli_fetch_assoc($resGP);
                                 $grand_total_pendapatan = $rowGP['total'] ?? 0;

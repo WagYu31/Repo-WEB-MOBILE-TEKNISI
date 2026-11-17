@@ -25,6 +25,16 @@ if (isset($_GET['kode'])) {
         mysqli_stmt_bind_param($stmt, "sss", $now, $now, $kodeTransaksi);
         if (mysqli_stmt_execute($stmt)) {
             if (mysqli_stmt_affected_rows($stmt) > 0) {
+                if ($stmt_pl = mysqli_prepare($conn, "UPDATE pelaksanaan_kegiatan SET deleted_at = ? WHERE kode = ? AND deleted_at IS NULL")) {
+                    mysqli_stmt_bind_param($stmt_pl, "ss", $now, $kodeTransaksi);
+                    mysqli_stmt_execute($stmt_pl);
+                    mysqli_stmt_close($stmt_pl);
+                }
+                if ($stmt_pk = mysqli_prepare($conn, "UPDATE pendapatan_kegiatan SET deleted_at = ? WHERE kode = ? AND deleted_at IS NULL")) {
+                    mysqli_stmt_bind_param($stmt_pk, "ss", $now, $kodeTransaksi);
+                    mysqli_stmt_execute($stmt_pk);
+                    mysqli_stmt_close($stmt_pk);
+                }
                 $user_display = (!empty($nmUser)) ? $nmUser : "System/Admin";
                 $jenis_aksi = "Delete";
                 $log_kode = $kodeTransaksi . " - " . $namaCustomer;

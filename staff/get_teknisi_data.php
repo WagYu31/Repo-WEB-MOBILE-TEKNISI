@@ -35,7 +35,7 @@ $sql = "SELECT
                 SELECT COUNT(*) FROM pendapatan_kegiatan pk2 
                 WHERE pk2.kode = pk.kode AND DATE_FORMAT(pk2.tanggal, '%Y-%m') IN ($monthPlaceholders) AND pk2.deleted_at IS NULL
             ))), 0) FROM pendapatan_kegiatan pk 
-             WHERE pk.teknisi_id = t.id AND DATE_FORMAT(pk.tanggal, '%Y-%m') IN ($monthPlaceholders) AND pk.deleted_at IS NULL) AS total_pendapatan
+             WHERE pk.teknisi_id = t.id AND DATE_FORMAT(pk.tanggal, '%Y-%m') IN ($monthPlaceholders) AND pk.deleted_at IS NULL AND EXISTS (SELECT 1 FROM kegiatan k_act WHERE k_act.kode = pk.kode AND k_act.deleted_at IS NULL)) AS total_pendapatan
         FROM teknisi t
         WHERE t.deleted_at IS NULL
         ORDER BY t.nama ASC";

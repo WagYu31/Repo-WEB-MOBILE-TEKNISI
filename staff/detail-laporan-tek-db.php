@@ -50,7 +50,7 @@ if (isset($_GET['cariBulanTahun']) && !empty($_GET['cariBulanTahun'])) {
                         AND tk3.deleted_at IS NULL
                        ) AS surveyor
                 FROM pendapatan_kegiatan pk
-                JOIN kegiatan k ON k.kode = pk.kode
+                JOIN kegiatan k ON k.kode = pk.kode AND k.deleted_at IS NULL
                 JOIN customer c ON c.id = k.customer_id
                 JOIN teknisi t ON t.id = pk.teknisi_id
                 WHERE pk.deleted_at IS NULL
