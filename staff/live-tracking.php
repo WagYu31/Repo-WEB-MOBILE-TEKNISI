@@ -982,7 +982,7 @@ $todayStr = date("Y-m-d");
               <i class="fa-solid fa-tag" aria-hidden="true"></i> <span class="d-none d-sm-inline">Label Nama</span>
             </button>
             <button type="button" class="map-action-btn" id="btnMapStyle" onclick="cycleMapLayer()">
-              <i class="fa-solid fa-layer-group" aria-hidden="true"></i> <span id="mapStyleLabel" class="d-none d-sm-inline">Peta Jelas</span>
+              <i class="fa-solid fa-layer-group" aria-hidden="true"></i> <span id="mapStyleLabel" class="d-none d-sm-inline">Google Maps</span>
             </button>
             <button type="button" class="map-action-btn" onclick="fitAllMapBounds()">
               <i class="fa-solid fa-expand" aria-hidden="true"></i> <span class="d-none d-sm-inline">Semua Titik</span>
@@ -1025,33 +1025,38 @@ $todayStr = date("Y-m-d");
 
     const tilePresets = [
       {
-        name: 'Peta Jelas',
-        url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-        attr: '&copy; OpenStreetMap &copy; CARTO'
+        name: 'Google Maps',
+        url: 'https://{s}.google.com/vt/lyrs=m&hl=id&x={x}&y={y}&z={z}',
+        subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+        attr: 'Map data &copy; Google'
       },
       {
         name: 'Jalan OSM',
         url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        subdomains: ['a', 'b', 'c'],
         attr: '&copy; OpenStreetMap contributors'
       },
       {
         name: 'Satelit',
-        url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-        attr: 'Tiles &copy; Esri'
+        url: 'https://{s}.google.com/vt/lyrs=y&hl=id&x={x}&y={y}&z={z}',
+        subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+        attr: 'Imagery &copy; Google'
       }
     ];
     let currentTileIdx = 0;
     let activeTileLayer = L.tileLayer(tilePresets[0].url, {
+      subdomains: tilePresets[0].subdomains,
       attribution: tilePresets[0].attr,
-      maxZoom: 19
+      maxZoom: 20
     }).addTo(map);
 
     function cycleMapLayer() {
       currentTileIdx = (currentTileIdx + 1) % tilePresets.length;
       map.removeLayer(activeTileLayer);
       activeTileLayer = L.tileLayer(tilePresets[currentTileIdx].url, {
+        subdomains: tilePresets[currentTileIdx].subdomains,
         attribution: tilePresets[currentTileIdx].attr,
-        maxZoom: 19
+        maxZoom: 20
       }).addTo(map);
       const lbl = document.getElementById('mapStyleLabel');
       if (lbl) lbl.textContent = tilePresets[currentTileIdx].name;
