@@ -48,6 +48,7 @@ $sql_income = "SELECT COALESCE(SUM(sub.nominal), 0) as total
                    FROM pendapatan_kegiatan pk
                    WHERE MONTH(pk.tanggal) = ? AND YEAR(pk.tanggal) = ?
                    AND pk.deleted_at IS NULL
+                   AND EXISTS (SELECT 1 FROM kegiatan k2 WHERE k2.kode = pk.kode AND k2.deleted_at IS NULL)
                    GROUP BY pk.kode
                ) sub";
 $stmt_income = $conn->prepare($sql_income);
@@ -205,10 +206,15 @@ if (!empty($all_rows)) {
         $card_type = $is_lunas ? 'll-lunas' : ($is_manual ? 'll-manual' : 'll-unpaid');
         $overlay = $is_lunas ? 'll-lunas-overlay' : '';
 
-        // Fetch invoice details early for card attribute
-        $sql_inv = "SELECT no_invoice, tanggal, nominal_invoice FROM pendapatan_kegiatan WHERE kode = ? AND deleted_at IS NULL LIMIT 1";
+        // Fetch invoice details matching exact month & MAX(nominal_invoice) used in $sql_income
+        $sql_inv = "SELECT GROUP_CONCAT(DISTINCT no_invoice ORDER BY tanggal ASC, id ASC SEPARATOR ', ') AS no_invoice,
+                           MAX(tanggal) AS tanggal,
+                           MAX(nominal_invoice) AS nominal_invoice
+                    FROM pendapatan_kegiatan
+                    WHERE kode = ? AND MONTH(tanggal) = ? AND YEAR(tanggal) = ? AND deleted_at IS NULL
+                    GROUP BY kode";
         $stmt_inv = $conn->prepare($sql_inv);
-        $stmt_inv->bind_param("s", $kode);
+        $stmt_inv->bind_param("sii", $kode, $bulan, $tahun);
         $stmt_inv->execute();
         $inv = $stmt_inv->get_result()->fetch_assoc();
         $stmt_inv->close();

@@ -441,12 +441,17 @@ $nama_bulan = $daftar_bulan[(int)$bulan];
 
         <?php
         // ── Pre-fetch data ──
-        $sql_main = "SELECT k.id, k.kode AS kode_transaksi, k.keterangan, k.created_at, k.lunas, k.paid, c.nama AS nama_cust
+        $sql_main = "SELECT k.id, k.kode AS kode_transaksi, k.keterangan, k.created_at, k.lunas, k.paid, k.invoice, c.nama AS nama_cust
                     FROM kegiatan k LEFT JOIN customer c ON k.customer_id = c.id
-                    WHERE MONTH(k.created_at) = ? AND YEAR(k.created_at) = ? AND k.deleted_at IS NULL
+                    WHERE (
+                        (EXISTS (SELECT 1 FROM pendapatan_kegiatan pk WHERE pk.kode = k.kode AND MONTH(pk.tanggal) = ? AND YEAR(pk.tanggal) = ? AND pk.deleted_at IS NULL))
+                        OR
+                        (NOT EXISTS (SELECT 1 FROM pendapatan_kegiatan pk WHERE pk.kode = k.kode AND pk.deleted_at IS NULL) AND MONTH(k.created_at) = ? AND YEAR(k.created_at) = ?)
+                    )
+                    AND k.deleted_at IS NULL
                     GROUP BY k.kode ORDER BY k.created_at ASC";
         $stmt_main = $conn->prepare($sql_main);
-        $stmt_main->bind_param("ii", $bulan, $tahun);
+        $stmt_main->bind_param("iiii", $bulan, $tahun, $bulan, $tahun);
         $stmt_main->execute();
         $result_main = $stmt_main->get_result();
 
@@ -466,11 +471,9 @@ $nama_bulan = $daftar_bulan[(int)$bulan];
                        FROM (
                            SELECT pk.kode, MAX(pk.nominal_invoice) as nominal
                            FROM pendapatan_kegiatan pk
-                           WHERE pk.kode IN (
-                               SELECT DISTINCT k2.kode FROM kegiatan k2
-                               WHERE MONTH(k2.created_at) = ? AND YEAR(k2.created_at) = ? AND k2.deleted_at IS NULL
-                           )
+                           WHERE MONTH(pk.tanggal) = ? AND YEAR(pk.tanggal) = ?
                            AND pk.deleted_at IS NULL
+                           AND EXISTS (SELECT 1 FROM kegiatan k2 WHERE k2.kode = pk.kode AND k2.deleted_at IS NULL)
                            GROUP BY pk.kode
                        ) sub";
         $stmt_income = $conn->prepare($sql_income);
@@ -544,9 +547,14 @@ $nama_bulan = $daftar_bulan[(int)$bulan];
                 <!-- Invoice & Status -->
                 <div>
                     <?php
-                    $sql_inv = "SELECT no_invoice, tanggal, nominal_invoice FROM pendapatan_kegiatan WHERE kode = ? AND deleted_at IS NULL LIMIT 1";
+                    $sql_inv = "SELECT GROUP_CONCAT(DISTINCT no_invoice ORDER BY tanggal ASC, id ASC SEPARATOR ', ') AS no_invoice,
+                                       MAX(tanggal) AS tanggal,
+                                       MAX(nominal_invoice) AS nominal_invoice
+                                FROM pendapatan_kegiatan
+                                WHERE kode = ? AND MONTH(tanggal) = ? AND YEAR(tanggal) = ? AND deleted_at IS NULL
+                                GROUP BY kode";
                     $stmt_inv = $conn->prepare($sql_inv);
-                    $stmt_inv->bind_param("s", $kode);
+                    $stmt_inv->bind_param("sii", $kode, $bulan, $tahun);
                     $stmt_inv->execute();
                     $inv = $stmt_inv->get_result()->fetch_assoc();
                     $stmt_inv->close();

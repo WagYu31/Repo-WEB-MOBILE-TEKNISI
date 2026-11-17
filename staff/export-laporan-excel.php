@@ -140,7 +140,11 @@ $sumTargetLunas = 0;
 $sumTargetBelum = 0;
 
 if ($result_main && $result_main->num_rows > 0) {
-    $stmt_invoice = $conn->prepare("SELECT no_invoice, nominal_invoice FROM pendapatan_kegiatan WHERE kode = ? AND deleted_at IS NULL LIMIT 1");
+    $stmt_invoice = $conn->prepare("SELECT GROUP_CONCAT(DISTINCT no_invoice ORDER BY tanggal ASC, id ASC SEPARATOR ', ') AS no_invoice,
+                                           MAX(nominal_invoice) AS nominal_invoice
+                                    FROM pendapatan_kegiatan
+                                    WHERE kode = ? AND MONTH(tanggal) = ? AND YEAR(tanggal) = ? AND deleted_at IS NULL
+                                    GROUP BY kode");
     $stmt_count = $conn->prepare("SELECT COUNT(DISTINCT teknisi_id) as total_aktif FROM pelaksanaan_kegiatan WHERE kode = ? AND waktu_mulai IS NOT NULL AND deleted_at IS NULL");
     $stmt_team = $conn->prepare("SELECT t.id, t.nama AS nama_teknisi
                      FROM (
@@ -175,7 +179,7 @@ if ($result_main && $result_main->num_rows > 0) {
         $kodeTransaksi = $row_main['kode_transaksi'];
         $is_manual_fee = is_numeric($row_main['paid']);
 
-        $stmt_invoice->bind_param("s", $kodeTransaksi);
+        $stmt_invoice->bind_param("sii", $kodeTransaksi, $bulan, $tahun);
         $stmt_invoice->execute();
         $invoice_data = $stmt_invoice->get_result()->fetch_assoc();
 
@@ -227,9 +231,9 @@ if ($result_main && $result_main->num_rows > 0) {
         $ketReq = trim((string)($row_main['keterangan'] ?? ''));
         $kodeKet = '#' . $kodeTransaksi . ($ketReq !== '' ? ' - ' . $ketReq : '');
         $tglReq = !empty($row_main['created_at']) ? date("d/m/Y", strtotime($row_main['created_at'])) : '-';
-        $noInv = (string)($invoice_data['no_invoice'] ?? ($is_manual_fee ? 'Tidak ada Invoice' : '-'));
+        $noInv = (string)($invoice_data['no_invoice'] ?? ($is_manual_fee ? 'Tidak ada Invoice (Fee Manual)' : '-'));
         $hasNominal = ($invoice_data && isset($invoice_data['nominal_invoice']) && is_numeric($invoice_data['nominal_invoice']));
-        $nomVal = $hasNominal ? round((float)$invoice_data['nominal_invoice']) : ($is_manual_fee ? 30000 : null);
+        $nomVal = $hasNominal ? round((float)$invoice_data['nominal_invoice']) : null;
         $isLunasJob = (!empty($row_main['lunas']) && $row_main['lunas'] != '0000-00-00');
         $statusBayar = $isLunasJob
             ? ('Lunas ' . date("d/m/Y", strtotime($row_main['lunas'])))
