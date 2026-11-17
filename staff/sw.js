@@ -1,5 +1,5 @@
-// Loewix Service Worker v1.0
-const CACHE_NAME = 'loewix-cache-v1';
+// Loewix Service Worker v2.0
+const CACHE_NAME = 'loewix-cache-v2';
 const OFFLINE_URL = '/staff/offline.html';
 
 // Assets to cache on install (app shell)
@@ -51,6 +51,9 @@ self.addEventListener('fetch', (event) => {
 
   // Skip Chrome extensions and external URLs
   if (!request.url.startsWith(self.location.origin)) return;
+
+  // Never intercept or cache dynamic exports, prints, or AJAX/API endpoints
+  if (/export-|cetak-|print-|api_|ajax-/i.test(request.url)) return;
 
   // Navigation requests — Network First
   if (request.mode === 'navigate') {

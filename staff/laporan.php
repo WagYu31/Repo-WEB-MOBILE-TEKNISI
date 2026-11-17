@@ -162,7 +162,7 @@ $role = $jabatan;
                 </div>
                 <div class="ll-modal-actions">
                     <button onclick="printLaporanLengkap()" class="ll-btn ll-btn-print"><i class="fa-solid fa-print"></i> Cetak</button>
-                    <a id="ll-export-link" href="#" target="_blank" class="ll-btn ll-btn-excel"><i class="fa-solid fa-file-excel"></i> Export Excel</a>
+                    <button type="button" id="ll-export-link" onclick="downloadLaporanExcel()" class="ll-btn ll-btn-excel"><i class="fa-solid fa-file-excel"></i> Export Excel</button>
                     <button onclick="closeLaporanLengkap()" class="ll-btn ll-btn-close"><i class="fa-solid fa-xmark"></i></button>
                 </div>
             </div>
@@ -437,11 +437,14 @@ $role = $jabatan;
         const llPeriod = document.getElementById('ll-modal-period');
         const llExportLink = document.getElementById('ll-export-link');
         const bulanNames = ['','Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+        let activeLaporanBulan = 0;
+        let activeLaporanTahun = 0;
 
         function openLaporanLengkap(bulan, tahun) {
             currentStatusFilter = 'all';
-            llPeriod.textContent = bulanNames[bulan] + ' ' + tahun;
-            llExportLink.href = 'export-laporan-excel.php?bulan=' + bulan + '&tahun=' + tahun;
+            activeLaporanBulan = parseInt(bulan, 10);
+            activeLaporanTahun = parseInt(tahun, 10);
+            llPeriod.textContent = bulanNames[activeLaporanBulan] + ' ' + activeLaporanTahun;
             llBody.innerHTML = '<div class="ll-loading"><div class="ll-spinner"></div><span>Memuat laporan...</span></div>';
 
             llOverlay.style.display = 'flex';
@@ -468,6 +471,39 @@ $role = $jabatan;
 
         function printLaporanLengkap() {
             window.print();
+        }
+
+        async function downloadLaporanExcel() {
+            if (!activeLaporanBulan || !activeLaporanTahun) return;
+            const btn = llExportLink;
+            const origHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.style.opacity = '0.75';
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Mengunduh...';
+            try {
+                const url = 'export-laporan-excel.php?bulan=' + activeLaporanBulan + '&tahun=' + activeLaporanTahun + '&_t=' + Date.now();
+                const res = await fetch(url, { credentials: 'same-origin', cache: 'no-store' });
+                const ct = (res.headers.get('content-type') || '').toLowerCase();
+                if (!res.ok || ct.includes('text/html')) {
+                    const errTxt = (await res.text()).replace(/<[^>]+>/g, ' ').trim().slice(0, 300);
+                    throw new Error(errTxt || ('HTTP ' + res.status));
+                }
+                const blob = await res.blob();
+                const dlUrl = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = dlUrl;
+                a.download = 'Laporan_Kegiatan_' + (bulanNames[activeLaporanBulan] || activeLaporanBulan) + '_' + activeLaporanTahun + '.xlsx';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                setTimeout(() => URL.revokeObjectURL(dlUrl), 10000);
+            } catch (err) {
+                alert('Gagal mengunduh Excel: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.style.opacity = '';
+                btn.innerHTML = origHtml;
+            }
         }
 
         // Close on overlay click (outside modal)
