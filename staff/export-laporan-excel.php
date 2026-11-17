@@ -8,11 +8,14 @@ if (!isset($_GET['bulan']) || !isset($_GET['tahun']) || !is_numeric($_GET['bulan
 
 $bulan = (int)$_GET['bulan'];
 $tahun = (int)$_GET['tahun'];
-    $daftar_bulan = [1 => 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-    $todayDate = date('d') . ' ' . $daftar_bulan[(int)date('m')] . ' ' . date('Y');
-$nama_bulan = formatTanggal('MMMM', date('Y-m-d', mktime(0, 0, 0, $bulan, 1)));
+$daftar_bulan = [1 => 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+$todayDate = date('d') . ' ' . $daftar_bulan[(int)date('m')] . ' ' . date('Y');
+$nama_bulan = $daftar_bulan[$bulan] ?? '';
 $filename = "Laporan Kegiatan - " . $nama_bulan . " " . $tahun . ".xls";
 
+while (ob_get_level() > 0) {
+    ob_end_clean();
+}
 header("Content-Type: application/vnd.ms-excel; charset=utf-8");
 header("Content-Disposition: attachment; filename=\"$filename\"");
 header("Cache-Control: max-age=0");
@@ -178,11 +181,14 @@ if ($result_main->num_rows > 0) {
             $nom_invoice_td = '<td class="text center">-</td>';
         }
 
+        $custSafe = htmlspecialchars((string)($row_main['nama_cust'] ?? '-'));
+        $invNoSafe = htmlspecialchars((string)($invoice_data['no_invoice'] ?? ($is_manual_fee ? 'Tidak ada Invoice' : '-')));
+
         if (empty($grouped_data)) {
             echo '<tr>';
-            echo '<td class="text">' . htmlspecialchars($row_main['nama_cust']) . '</td>';
+            echo '<td class="text">' . $custSafe . '</td>';
             echo '<td class="date">' . date("d/m/Y", strtotime($row_main['created_at'])) . '</td>';
-            echo '<td class="text">' . ($invoice_data['no_invoice'] ?? ($is_manual_fee ? 'Tidak ada Invoice' : '-')) . '</td>';
+            echo '<td class="text">' . $invNoSafe . '</td>';
             echo $nom_invoice_td;
             echo '<td class="text">' . ((!empty($row_main['lunas']) && $row_main['lunas'] != '0000-00-00') ? 'Lunas ' . date("d/m/Y", strtotime($row_main['lunas'])) : 'Belum Lunas') . '</td>';
             echo '<td colspan="6" class="text center">Tidak ada data teknisi</td>';
@@ -196,9 +202,9 @@ if ($result_main->num_rows > 0) {
                 for ($i = 0; $i < $loop_count; $i++) {
                     echo '<tr>';
                     if ($first_row_job) {
-                        echo '<td class="text" rowspan="' . $total_rows_for_job . '">' . htmlspecialchars($row_main['nama_cust']) . '</td>';
+                        echo '<td class="text" rowspan="' . $total_rows_for_job . '">' . $custSafe . '</td>';
                         echo '<td class="date" rowspan="' . $total_rows_for_job . '">' . date("d/m/Y", strtotime($row_main['created_at'])) . '</td>';
-                        echo '<td class="text" rowspan="' . $total_rows_for_job . '">' . ($invoice_data['no_invoice'] ?? ($is_manual_fee ? 'Tidak ada Invoice' : '-')) . '</td>';
+                        echo '<td class="text" rowspan="' . $total_rows_for_job . '">' . $invNoSafe . '</td>';
                         
                         if ($invoice_data && isset($invoice_data['nominal_invoice']) && is_numeric($invoice_data['nominal_invoice'])) {
                             echo '<td class="num" rowspan="' . $total_rows_for_job . '">' . round((float)$invoice_data['nominal_invoice']) . '</td>';
@@ -213,7 +219,7 @@ if ($result_main->num_rows > 0) {
                     }
 
                     if ($first_row_tech) {
-                        echo '<td class="text" rowspan="' . $g['rowspan_tech'] . '">' . htmlspecialchars($g['nama']) . '</td>';
+                        echo '<td class="text" rowspan="' . $g['rowspan_tech'] . '">' . htmlspecialchars((string)($g['nama'] ?? '-')) . '</td>';
                         echo '<td class="num" rowspan="' . $g['rowspan_tech'] . '">' . round((float)$g['pendapatan']) . '</td>';
                         $first_row_tech = false;
                     }
@@ -221,10 +227,12 @@ if ($result_main->num_rows > 0) {
                     if (!empty($g['absensi'])) {
                         $abs = $g['absensi'][$i];
                         $jamJadwal = (!empty($abs['jadwal']) && $abs['jadwal'] != '0000-00-00 00:00:00') ? date("H:i", strtotime($abs['jadwal'])) : '-';
+                        $jamMulai = (!empty($abs['mulai']) && $abs['mulai'] != '0000-00-00 00:00:00') ? date("H:i", strtotime($abs['mulai'])) : '-';
+                        $jamSelesai = (!empty($abs['selesai']) && $abs['selesai'] != '0000-00-00 00:00:00') ? date("H:i", strtotime($abs['selesai'])) : '-';
                         echo '<td class="date">' . date("d/m/Y", strtotime($abs['tgl'] ?? '')) . '</td>';
                         echo '<td class="time">' . $jamJadwal . '</td>';
-                        echo '<td class="time">' . ($abs['mulai'] ? date("H:i", strtotime($abs['mulai'])) : '-') . '</td>';
-                        echo '<td class="time">' . ($abs['selesai'] ? date("H:i", strtotime($abs['selesai'])) : '-') . '</td>';
+                        echo '<td class="time">' . $jamMulai . '</td>';
+                        echo '<td class="time">' . $jamSelesai . '</td>';
                     } else {
                         echo '<td colspan="4" class="text center" style="color:red;">Tidak ada data pelaksanaan</td>';
                     }
