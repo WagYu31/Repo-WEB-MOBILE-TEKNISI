@@ -1046,6 +1046,7 @@ $pageNow = "Live Tracking";
     fetchTrackingData();
     setInterval(fetchTrackingData, 5000);
   </script>
+  <?php include "js-include.php"; ?>
 </body>
 </html>
 
