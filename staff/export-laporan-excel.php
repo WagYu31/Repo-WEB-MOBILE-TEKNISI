@@ -44,6 +44,11 @@ function xlsxCell(int $col, int $row, $value, int $styleIdx = 0, string $type = 
     return '<c r="' . $ref . '" s="' . $styleIdx . '" t="inlineStr"><is><t xml:space="preserve">' . xlsxEsc($value) . '</t></is></c>';
 }
 
+function xlsxFormulaCell(int $col, int $row, string $formula, $cachedVal, int $styleIdx = 0): string {
+    $ref = xlsxColName($col) . $row;
+    return '<c r="' . $ref . '" s="' . $styleIdx . '"><f>' . xlsxEsc($formula) . '</f><v>' . (0 + $cachedVal) . '</v></c>';
+}
+
 // ── Fetch Report Data ──
 $sql_main = "SELECT k.id, k.kode AS kode_transaksi, k.keterangan, k.created_at, k.lunas, k.paid, c.nama AS nama_cust
             FROM kegiatan k LEFT JOIN customer c ON k.customer_id = c.id
@@ -125,6 +130,14 @@ $merges[] = 'H3:M3';
 
 $curRow = 5;
 $jobNo = 0;
+$cntLunas = 0;
+$cntBelum = 0;
+$sumNominalAll = 0;
+$sumNominalLunas = 0;
+$sumNominalBelum = 0;
+$sumTargetAll = 0;
+$sumTargetLunas = 0;
+$sumTargetBelum = 0;
 
 if ($result_main && $result_main->num_rows > 0) {
     $stmt_invoice = $conn->prepare("SELECT no_invoice, nominal_invoice FROM pendapatan_kegiatan WHERE kode = ? AND deleted_at IS NULL LIMIT 1");
@@ -217,9 +230,27 @@ if ($result_main && $result_main->num_rows > 0) {
         $noInv = (string)($invoice_data['no_invoice'] ?? ($is_manual_fee ? 'Tidak ada Invoice' : '-'));
         $hasNominal = ($invoice_data && isset($invoice_data['nominal_invoice']) && is_numeric($invoice_data['nominal_invoice']));
         $nomVal = $hasNominal ? round((float)$invoice_data['nominal_invoice']) : ($is_manual_fee ? 30000 : null);
-        $statusBayar = (!empty($row_main['lunas']) && $row_main['lunas'] != '0000-00-00')
+        $isLunasJob = (!empty($row_main['lunas']) && $row_main['lunas'] != '0000-00-00');
+        $statusBayar = $isLunasJob
             ? ('Lunas ' . date("d/m/Y", strtotime($row_main['lunas'])))
             : 'Belum Lunas';
+
+        $jobTargetSum = 0;
+        foreach ($grouped_data as $gt) {
+            $jobTargetSum += (float)$gt['pendapatan'];
+        }
+        $nomNumeric = $nomVal !== null ? (float)$nomVal : 0;
+        $sumNominalAll += $nomNumeric;
+        $sumTargetAll += $jobTargetSum;
+        if ($isLunasJob) {
+            $cntLunas++;
+            $sumNominalLunas += $nomNumeric;
+            $sumTargetLunas += $jobTargetSum;
+        } else {
+            $cntBelum++;
+            $sumNominalBelum += $nomNumeric;
+            $sumTargetBelum += $jobTargetSum;
+        }
 
         if (empty($grouped_data)) {
             $r = $curRow++;
@@ -314,6 +345,73 @@ if ($result_main && $result_main->num_rows > 0) {
     $stmt_team->close();
     $stmt_p->close();
     $stmt_a->close();
+
+    // ── Summary / Grand Total Rows at Bottom ──
+    $lastDataRow = $curRow - 1;
+    if ($lastDataRow >= 5) {
+        // 1. TOTAL KESELURUHAN
+        $rTot = $curRow++;
+        $rowsXml .= '<row r="' . $rTot . '" ht="24" customHeight="1">'
+            . xlsxCell(1, $rTot, "TOTAL KESELURUHAN ($jobNo Kegiatan)", 7)
+            . xlsxCell(2, $rTot, '', 7)
+            . xlsxCell(3, $rTot, '', 7)
+            . xlsxCell(4, $rTot, '', 7)
+            . xlsxCell(5, $rTot, '', 7)
+            . xlsxFormulaCell(6, $rTot, "SUM(F5:F{$lastDataRow})", $sumNominalAll, 8)
+            . xlsxCell(7, $rTot, 'TOTAL TARGET TEKNISI', 7)
+            . xlsxCell(8, $rTot, '', 7)
+            . xlsxFormulaCell(9, $rTot, "SUM(I5:I{$lastDataRow})", $sumTargetAll, 8)
+            . xlsxCell(10, $rTot, '', 7)
+            . xlsxCell(11, $rTot, '', 7)
+            . xlsxCell(12, $rTot, '', 7)
+            . xlsxCell(13, $rTot, '', 7)
+            . '</row>';
+        $merges[] = "A{$rTot}:E{$rTot}";
+        $merges[] = "G{$rTot}:H{$rTot}";
+        $merges[] = "J{$rTot}:M{$rTot}";
+
+        // 2. TOTAL SUDAH LUNAS
+        $rLun = $curRow++;
+        $rowsXml .= '<row r="' . $rLun . '" ht="21" customHeight="1">'
+            . xlsxCell(1, $rLun, "Sudah Lunas ($cntLunas Kegiatan)", 9)
+            . xlsxCell(2, $rLun, '', 9)
+            . xlsxCell(3, $rLun, '', 9)
+            . xlsxCell(4, $rLun, '', 9)
+            . xlsxCell(5, $rLun, '', 9)
+            . xlsxFormulaCell(6, $rLun, "SUMIF(G5:G{$lastDataRow},\"Lunas*\",F5:F{$lastDataRow})", $sumNominalLunas, 10)
+            . xlsxCell(7, $rLun, 'Target Teknisi (Lunas)', 9)
+            . xlsxCell(8, $rLun, '', 9)
+            . xlsxCell(9, $rLun, $sumTargetLunas, 10, 'num')
+            . xlsxCell(10, $rLun, '', 9)
+            . xlsxCell(11, $rLun, '', 9)
+            . xlsxCell(12, $rLun, '', 9)
+            . xlsxCell(13, $rLun, '', 9)
+            . '</row>';
+        $merges[] = "A{$rLun}:E{$rLun}";
+        $merges[] = "G{$rLun}:H{$rLun}";
+        $merges[] = "J{$rLun}:M{$rLun}";
+
+        // 3. TOTAL BELUM LUNAS
+        $rBel = $curRow++;
+        $rowsXml .= '<row r="' . $rBel . '" ht="21" customHeight="1">'
+            . xlsxCell(1, $rBel, "Belum Lunas ($cntBelum Kegiatan)", 11)
+            . xlsxCell(2, $rBel, '', 11)
+            . xlsxCell(3, $rBel, '', 11)
+            . xlsxCell(4, $rBel, '', 11)
+            . xlsxCell(5, $rBel, '', 11)
+            . xlsxFormulaCell(6, $rBel, "SUMIF(G5:G{$lastDataRow},\"Belum Lunas\",F5:F{$lastDataRow})", $sumNominalBelum, 12)
+            . xlsxCell(7, $rBel, 'Target Teknisi (Belum Lunas)', 11)
+            . xlsxCell(8, $rBel, '', 11)
+            . xlsxCell(9, $rBel, $sumTargetBelum, 12, 'num')
+            . xlsxCell(10, $rBel, '', 11)
+            . xlsxCell(11, $rBel, '', 11)
+            . xlsxCell(12, $rBel, '', 11)
+            . xlsxCell(13, $rBel, '', 11)
+            . '</row>';
+        $merges[] = "A{$rBel}:E{$rBel}";
+        $merges[] = "G{$rBel}:H{$rBel}";
+        $merges[] = "J{$rBel}:M{$rBel}";
+    }
 }
 
 $stmt_main->close();
@@ -347,16 +445,20 @@ $sheetXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
 $stylesXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
     . '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
     . '<numFmts count="1"><numFmt numFmtId="164" formatCode="#,##0"/></numFmts>'
-    . '<fonts count="4">'
+    . '<fonts count="6">'
     . '<font><sz val="10"/><name val="Calibri"/><color rgb="FF0F172A"/></font>'
     . '<font><b/><sz val="13"/><name val="Calibri"/><color rgb="FF0F172A"/></font>'
     . '<font><b/><sz val="10"/><name val="Calibri"/><color rgb="FFFFFFFF"/></font>'
     . '<font><i/><sz val="10"/><name val="Calibri"/><color rgb="FFDC2626"/></font>'
+    . '<font><b/><sz val="10"/><name val="Calibri"/><color rgb="FF065F46"/></font>'
+    . '<font><b/><sz val="10"/><name val="Calibri"/><color rgb="FF9F1239"/></font>'
     . '</fonts>'
-    . '<fills count="3">'
+    . '<fills count="5">'
     . '<fill><patternFill patternType="none"/></fill>'
     . '<fill><patternFill patternType="gray125"/></fill>'
     . '<fill><patternFill patternType="solid"><fgColor rgb="FF0F172A"/></patternFill></fill>'
+    . '<fill><patternFill patternType="solid"><fgColor rgb="FFECFDF5"/></patternFill></fill>'
+    . '<fill><patternFill patternType="solid"><fgColor rgb="FFFFF1F2"/></patternFill></fill>'
     . '</fills>'
     . '<borders count="2">'
     . '<border><left/><right/><top/><bottom/><diagonal/></border>'
@@ -369,7 +471,7 @@ $stylesXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
     . '</border>'
     . '</borders>'
     . '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'
-    . '<cellXfs count="7">'
+    . '<cellXfs count="13">'
     . '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'
     . '<xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"><alignment vertical="center"/></xf>'
     . '<xf numFmtId="0" fontId="2" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf>'
@@ -377,6 +479,12 @@ $stylesXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
     . '<xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>'
     . '<xf numFmtId="164" fontId="0" fillId="0" borderId="1" xfId="0" applyNumberFormat="1" applyBorder="1" applyAlignment="1"><alignment horizontal="right" vertical="center"/></xf>'
     . '<xf numFmtId="0" fontId="3" fillId="0" borderId="1" xfId="0" applyFont="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>'
+    . '<xf numFmtId="0" fontId="2" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="right" vertical="center"/></xf>'
+    . '<xf numFmtId="164" fontId="2" fillId="2" borderId="1" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="right" vertical="center"/></xf>'
+    . '<xf numFmtId="0" fontId="4" fillId="3" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="right" vertical="center"/></xf>'
+    . '<xf numFmtId="164" fontId="4" fillId="3" borderId="1" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="right" vertical="center"/></xf>'
+    . '<xf numFmtId="0" fontId="5" fillId="4" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="right" vertical="center"/></xf>'
+    . '<xf numFmtId="164" fontId="5" fillId="4" borderId="1" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1" applyAlignment="1"><alignment horizontal="right" vertical="center"/></xf>'
     . '</cellXfs>'
     . '</styleSheet>';
 
