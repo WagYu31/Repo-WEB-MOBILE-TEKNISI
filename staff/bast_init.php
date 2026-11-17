@@ -23,6 +23,14 @@ if (!defined('BAST_INIT_DONE')) {
             @mysqli_query($conn, "ALTER TABLE customer ADD COLUMN wajib_bast TINYINT(1) NOT NULL DEFAULT 0");
         }
 
+        // Detect exact collation of kegiatan.kode so JOINs never hit collation mismatch
+        $targetCollation = 'utf8mb4_unicode_ci';
+        $resCollate = @mysqli_query($conn, "SHOW FULL COLUMNS FROM kegiatan LIKE 'kode'");
+        if ($resCollate && ($rCol = mysqli_fetch_assoc($resCollate)) && !empty($rCol['Collation'])) {
+            $targetCollation = preg_replace('/[^a-zA-Z0-9_]/', '', $rCol['Collation']);
+        }
+        $targetCharset = explode('_', $targetCollation)[0] ?: 'utf8mb4';
+
         // 3. Create bast_laporan table
         $sqlBastLaporan = "CREATE TABLE IF NOT EXISTS bast_laporan (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -52,8 +60,14 @@ if (!defined('BAST_INIT_DONE')) {
             UNIQUE KEY uniq_kode (kode),
             KEY idx_customer (customer_id),
             KEY idx_teknisi (teknisi_id)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+        ) ENGINE=InnoDB DEFAULT CHARSET=$targetCharset COLLATE=$targetCollation";
         @mysqli_query($conn, $sqlBastLaporan);
+
+        // Auto-fix collation if bast_laporan was created earlier with a different collation
+        $chkBastCol = @mysqli_query($conn, "SHOW FULL COLUMNS FROM bast_laporan LIKE 'kode'");
+        if ($chkBastCol && ($rBastCol = mysqli_fetch_assoc($chkBastCol)) && ($rBastCol['Collation'] ?? '') !== $targetCollation) {
+            @mysqli_query($conn, "ALTER TABLE bast_laporan CONVERT TO CHARACTER SET $targetCharset COLLATE $targetCollation");
+        }
 
         // 4. Create bast_titik_kamera table
         $sqlBastTitik = "CREATE TABLE IF NOT EXISTS bast_titik_kamera (
@@ -64,7 +78,7 @@ if (!defined('BAST_INIT_DONE')) {
             keterangan TEXT DEFAULT NULL,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             KEY idx_bast_id (bast_id)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+        ) ENGINE=InnoDB DEFAULT CHARSET=$targetCharset COLLATE=$targetCollation";
         @mysqli_query($conn, $sqlBastTitik);
     }
 }

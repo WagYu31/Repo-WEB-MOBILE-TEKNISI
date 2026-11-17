@@ -117,17 +117,22 @@ if ($action === 'pending_for_teknisi') {
                    COALESCE(c.wajib_bast, 0) AS wajib_bast,
                    b.id AS bast_id, b.foto_display_utama, b.updated_at AS bast_updated_at,
                    (SELECT COUNT(*) FROM bast_titik_kamera bt WHERE bt.bast_id = b.id) AS jumlah_titik
-            FROM pelaksanaan_kegiatan pk
-            JOIN kegiatan k ON pk.kegiatan_id = k.id
+            FROM kegiatan k
+            INNER JOIN (
+                SELECT k2.kode, MAX(k2.id) AS max_keg_id, MAX(pk2.waktu_selesai) AS last_selesai
+                FROM pelaksanaan_kegiatan pk2
+                JOIN kegiatan k2 ON pk2.kegiatan_id = k2.id
+                WHERE pk2.teknisi_id = ?
+                  AND pk2.deleted_at IS NULL
+                  AND k2.deleted_at IS NULL
+                  AND pk2.status IN ('menunggu laporan', 'selesai')
+                GROUP BY k2.kode
+            ) latest ON k.id = latest.max_keg_id
             JOIN customer c ON k.customer_id = c.id
             LEFT JOIN bast_laporan b ON b.kode = k.kode
-            WHERE pk.teknisi_id = ?
-              AND pk.deleted_at IS NULL
-              AND k.deleted_at IS NULL
-              AND pk.status IN ('menunggu laporan', 'selesai')
+            WHERE k.deleted_at IS NULL
               AND (c.wajib_bast = 1 OR b.id IS NOT NULL)
-            GROUP BY k.kode
-            ORDER BY MAX(pk.waktu_selesai) DESC
+            ORDER BY latest.last_selesai DESC
             LIMIT 30";
 
     $stmt = $conn->prepare($sql);
