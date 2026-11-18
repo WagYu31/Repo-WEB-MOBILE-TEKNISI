@@ -60,8 +60,18 @@ $todayStr = date("Y-m-d");
         display: flex !important;
         flex-direction: column !important;
         height: 100vh !important;
+        height: 100dvh !important;
         max-height: 100vh !important;
+        max-height: 100dvh !important;
         overflow: hidden !important;
+    }
+
+    body:has(.btm-nav) .live-tracking-wrapper {
+        margin-bottom: calc(68px + env(safe-area-inset-bottom, 0px)) !important;
+    }
+    body:has(.btm-nav) .navbar-main {
+        padding-top: 0.25rem !important;
+        padding-bottom: 0.25rem !important;
     }
 
     .live-tracking-wrapper {
@@ -886,6 +896,20 @@ $todayStr = date("Y-m-d");
     }
 
     @media (max-width: 991px) {
+        .btn-drawer-map {
+            min-height: 28px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 122, 69, 0.5);
+            background: var(--lt-orange);
+            color: #ffffff;
+            font-size: 11px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+        }
         .live-tracking-wrapper {
             margin: 0 10px 14px 10px;
             border-radius: 14px;
@@ -941,8 +965,13 @@ $todayStr = date("Y-m-d");
                 <div style="font-size: 11px; color: #94a3b8;">Jam pantau wajib: 06:00 – 20:00 WIB</div>
               </div>
             </div>
-            <div class="live-pill" title="Data diperbarui otomatis setiap 5 detik">
-              <span class="live-dot" aria-hidden="true"></span> LIVE
+            <div class="d-flex align-items-center gap-2">
+              <div class="live-pill" title="Data diperbarui otomatis setiap 5 detik">
+                <span class="live-dot" aria-hidden="true"></span> LIVE
+              </div>
+              <button type="button" class="btn-drawer-map d-lg-none" onclick="toggleDrawerMobile()" aria-label="Lihat peta penuh">
+                <i class="fa-solid fa-map" aria-hidden="true"></i> Peta
+              </button>
             </div>
           </div>
 
@@ -1616,6 +1645,13 @@ $todayStr = date("Y-m-d");
       const isHidden = drawer.classList.contains('mobile-hidden');
       drawer.classList.toggle('mobile-hidden', !isHidden);
       if (btnText) btnText.textContent = isHidden ? 'Tutup' : 'Daftar';
+      setTimeout(() => map.invalidateSize(), 310);
+    }
+
+    if (window.innerWidth < 768) {
+      document.getElementById('trackingDrawer')?.classList.add('mobile-hidden');
+      const bt = document.getElementById('btnToggleDrawerText');
+      if (bt) bt.textContent = 'Daftar';
     }
 
     function clearSearchInput() {

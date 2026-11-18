@@ -8,12 +8,19 @@
         padding-bottom: env(safe-area-inset-bottom);
     }
     .btm-nav .nav-link {
-        color: #9CA3AF;
+        color: #6B7280;
         padding: 0.5rem 0;
-        transition: all 0.3s ease;
+        border-top: 3px solid transparent;
+        transition: color 0.2s ease, border-color 0.2s ease;
     }
-    .btm-nav .nav-link.active, .btm-nav .nav-link:hover {
-        color: #3B82F6;
+    .btm-nav .nav-link.active,
+    .btm-nav .nav-link[aria-current="page"],
+    .btm-nav .nav-link:hover {
+        color: #1D4ED8;
+    }
+    .btm-nav .nav-link[aria-current="page"] {
+        border-top-color: #2563EB;
+        font-weight: 700;
     }
     .btm-nav .material-icons {
         font-size: 24px;
@@ -65,6 +72,7 @@ if ($isSalesDir) {
 
 // Check menu access permissions dynamically
 $showDashboard = hasMenuAccess($conn, $idSesi, 'dashboard', ($role == 'Super Admin' || $role == 'Admin'));
+$showLiveTracking = hasMenuAccess($conn, $idSesi, 'live_tracking', ($role == 'Super Admin' || $role == 'Admin'));
 $showTambahKegiatan = hasMenuAccess($conn, $idSesi, 'tambah_kegiatan', ($role == 'Super Admin' || $role == 'Admin'));
 $showWaitingList = hasMenuAccess($conn, $idSesi, 'waiting_list', ($role == 'Super Admin' || $role == 'Admin'));
 
@@ -96,24 +104,36 @@ $showBuatRequest = hasMenuAccess($conn, $idSesi, 'buat_request', ($role == 'Sale
     <ul class="navbar-nav nav-justified w-100 flex-row">
         <?php if ($role == 'Super Admin' || $role == 'Admin') { ?>
             <li class="nav-item">
-                <a href="<?php echo $rootPrefix; ?>index-sa.php" class="nav-link text-center <?php echo ($pageNow == 'Dashboard' && !$isSalesDir) ? 'active' : ''; ?>">
+                <a href="<?php echo $rootPrefix; ?>index-sa.php" class="nav-link text-center <?php echo ($pageNow == 'Dashboard' && !$isSalesDir) ? 'active' : ''; ?>" <?php echo ($pageNow == 'Dashboard' && !$isSalesDir) ? 'aria-current="page"' : ''; ?>>
                     <div class="d-flex align-items-center justify-content-center">
-                        <i class="material-icons">dashboard</i>
+                        <i class="material-icons" aria-hidden="true">dashboard</i>
                     </div>
                     <span class="text-xs d-block">Dashboard</span>
                 </a>
             </li>
 
-            <?php if ($showTambahKegiatan || $showWaitingList || $showKegiatanTeknisi || $showLaporanKegiatan || $showTargetTercapai) { ?>
+            <?php if ($showLiveTracking) { ?>
+            <li class="nav-item">
+                <a href="<?php echo $rootPrefix; ?>live-tracking.php" class="nav-link text-center <?php echo ($pageNow == 'Live Tracking' && !$isSalesDir) ? 'active' : ''; ?>" <?php echo ($pageNow == 'Live Tracking' && !$isSalesDir) ? 'aria-current="page"' : ''; ?>>
+                    <div class="d-flex align-items-center justify-content-center">
+                        <i class="material-icons" aria-hidden="true">my_location</i>
+                    </div>
+                    <span class="text-xs d-block">Tracking</span>
+                </a>
+            </li>
+            <?php } ?>
+
+            <?php if ($showLiveTracking || $showTambahKegiatan || $showWaitingList || $showKegiatanTeknisi || $showLaporanKegiatan || $showTargetTercapai) { ?>
             <li class="nav-item dropup">
                 <a href="#" class="nav-link text-center" role="button" id="dropupOperasional" data-bs-toggle="dropdown" aria-expanded="false">
                     <div class="d-flex align-items-center justify-content-center">
-                        <i class="material-icons">build_circle</i>
+                        <i class="material-icons" aria-hidden="true">build_circle</i>
                     </div>
                     <span class="text-xs d-block">Operasi</span>
                 </a>
                 <div class="dropdown-menu dropup-menu-mobile w-100" aria-labelledby="dropupOperasional">
-                    <?php if ($showTambahKegiatan) { ?><a class="dropdown-item dropup-item-mobile" href="<?php echo $rootPrefix; ?>kegiatan-baru.php"><i class="material-icons">add_task</i> Tambah Kegiatan</a><?php } ?>
+                    <?php if ($showLiveTracking) { ?><a class="dropdown-item dropup-item-mobile" href="<?php echo $rootPrefix; ?>live-tracking.php" <?php echo ($pageNow == 'Live Tracking' && !$isSalesDir) ? 'aria-current="page"' : ''; ?>><i class="material-icons" aria-hidden="true">my_location</i> Live Tracking Teknisi</a><?php } ?>
+                    <?php if ($showTambahKegiatan) { ?><a class="dropdown-item dropup-item-mobile" href="<?php echo $rootPrefix; ?>kegiatan-baru.php"><i class="material-icons" aria-hidden="true">add_task</i> Tambah Kegiatan</a><?php } ?>
                     <?php if ($showWaitingList) { ?><a class="dropdown-item dropup-item-mobile" href="<?php echo $rootPrefix; ?>waiting-list.php"><i class="material-icons">hourglass_empty</i> Waiting List</a><?php } ?>
                     <div class="menu-divider"></div>
                     <?php if ($showKegiatanTeknisi) { ?><a class="dropdown-item dropup-item-mobile" href="<?php echo $rootPrefix; ?>task.php"><i class="material-icons">engineering</i> Kegiatan Teknisi</a><?php } ?>
