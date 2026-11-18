@@ -1426,7 +1426,7 @@ $todayStr = date("Y-m-d");
 
               const tekPhone = String(t.telp || '').replace(/[^0-9]/g, '').replace(/^0/, '');
               const waQuery = t.gps_mati_jam_kerja
-                ? `?text=${encodeURIComponent('Halo ' + (t.nama || '') + ', mohon pastikan GPS & aplikasi Teknisi Loewix tetap aktif selama jam kerja (06:00–20:00 WIB).')}`
+                ? `?text=${encodeURIComponent('Halo ' + (t.nama || '') + ', mohon pastikan GPS & koneksi aplikasi Teknisi Loewix aktif ya untuk kelancaran sinkronisasi tugas.')}`
                 : '';
               const hasLivePin = Boolean(t.live_latitude && t.live_longitude);
 

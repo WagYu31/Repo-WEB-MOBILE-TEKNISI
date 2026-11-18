@@ -59,8 +59,8 @@ class _AppDrawerState extends State<AppDrawer> {
       QuickAlert.show(
         context: context,
         type: QuickAlertType.warning,
-        title: 'Jam Kerja Aktif',
-        text: 'Tidak dapat keluar (Logout) dari aplikasi pada jam kerja (06:00 – 20:00 WIB) agar pemantauan lokasi operasional tetap aktif.',
+        title: 'Sesi Tugas Aktif',
+        text: 'Akun sedang terhubung dengan sinkronisasi tugas hari ini sehingga belum dapat keluar (Logout) saat ini.',
         confirmBtnText: 'Mengerti',
         confirmBtnColor: _rose,
       );

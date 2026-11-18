@@ -112,7 +112,7 @@ class LocationAlwaysSheet extends StatelessWidget {
 
           // Subtitle / Why is it needed
           Text(
-            'Agar rute & pelacakan tugas Anda tetap aktif dan terpantau admin saat layar HP terkunci, sleep, atau saat HP ditaruh di saku celana.',
+            'Agar navigasi rute customer, notifikasi jadwal, dan sinkronisasi absensi tetap lancar meskipun layar HP sedang mati.',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontFamily: 'Poppins',

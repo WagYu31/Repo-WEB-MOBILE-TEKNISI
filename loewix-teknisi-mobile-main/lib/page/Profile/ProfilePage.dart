@@ -5,6 +5,7 @@ import 'package:quickalert/quickalert.dart';
 import 'package:teknisi_loewix/page/reimburse/reimburse_list_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../constants/app_constants.dart';
 import '../../service/model/profile/ProfileTeknisi.dart';
 import '../../service/provider/Auth/AuthProvider.dart';
 import '../../service/provider/Profile/ProfileProvider.dart';
@@ -89,8 +90,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       QuickAlert.show(
         context: context,
         type: QuickAlertType.warning,
-        title: 'Jam Kerja Aktif',
-        text: 'Tidak dapat keluar (Logout) dari aplikasi pada jam kerja (06:00 – 20:00 WIB) agar pemantauan lokasi operasional tetap aktif.',
+        title: 'Sesi Tugas Aktif',
+        text: 'Akun sedang terhubung dengan sinkronisasi tugas hari ini sehingga belum dapat keluar (Logout) saat ini.',
         confirmBtnText: 'Mengerti',
         confirmBtnColor: _rose,
       );
@@ -839,9 +840,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             color: const Color(0xFFE2E8F0).withValues(alpha: 0.5),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: const Text(
-            'LOEWIX TEKNISI • v3.8.0 PRO',
-            style: TextStyle(
+          child: Text(
+            'LOEWIX TEKNISI • v${AppConstants.appVersion}',
+            style: const TextStyle(
               fontFamily: 'Poppins',
               fontSize: 10.5,
               fontWeight: FontWeight.w600,

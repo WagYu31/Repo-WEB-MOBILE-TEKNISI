@@ -182,8 +182,8 @@ class _GpsGuardianState extends State<GpsGuardian> with WidgetsBindingObserver {
                         const SizedBox(height: 12),
                         Text(
                           _isGpsDisabled
-                              ? 'Aplikasi Loewix Teknisi mewajibkan GPS selalu aktif selama jam operasional lapangan.\n\nAplikasi terkunci dan tidak dapat digunakan jika GPS dimatikan.'
-                              : 'Aplikasi Loewix Teknisi membutuhkan izin akses lokasi agar tugas dan tracking dapat berjalan dengan baik.',
+                              ? 'Aktifkan layanan Lokasi/GPS pada HP Anda untuk melanjutkan absensi dan navigasi alamat customer.'
+                              : 'Aplikasi Loewix Teknisi memerlukan izin lokasi agar fitur absensi dan navigasi alamat customer berjalan lancar.',
                           style: TextStyle(
                             fontFamily: 'Poppins',
                             fontSize: 13.5,
@@ -280,7 +280,7 @@ class _GpsGuardianState extends State<GpsGuardian> with WidgetsBindingObserver {
                         ),
                         const SizedBox(height: 22),
                         const Text(
-                          'Aplikasi Terkunci!\nWajib "Sepanjang Waktu"',
+                          'Pengaturan Izin Lokasi',
                           style: TextStyle(
                             fontFamily: 'Poppins',
                             fontSize: 20,
@@ -292,7 +292,7 @@ class _GpsGuardianState extends State<GpsGuardian> with WidgetsBindingObserver {
                         ),
                         const SizedBox(height: 10),
                         Text(
-                          'Untuk mencegah manipulasi GPS atau lokasi mati di jalan, aplikasi Loewix mewajibkan izin lokasi "Sepanjang Waktu" sebelum dapat digunakan.',
+                          'Agar navigasi alamat customer dan validasi titik absensi berjalan lancar tanpa kendala, silakan ubah izin lokasi ke "Izinkan sepanjang waktu".',
                           style: TextStyle(
                             fontFamily: 'Poppins',
                             fontSize: 13,
@@ -412,7 +412,7 @@ class _GpsGuardianState extends State<GpsGuardian> with WidgetsBindingObserver {
                         ),
                         const SizedBox(height: 22),
                         const Text(
-                          'Aktifkan Mode Anti-Mati\nJam Kerja (06:00 – 20:00)',
+                          'Optimasi Kinerja Aplikasi',
                           style: TextStyle(
                             fontFamily: 'Poppins',
                             fontSize: 20,
@@ -424,7 +424,7 @@ class _GpsGuardianState extends State<GpsGuardian> with WidgetsBindingObserver {
                         ),
                         const SizedBox(height: 10),
                         Text(
-                          'Agar lokasi tidak terputus otomatis oleh penghemat baterai HP selama jam kerja (06:00 – 20:00 WIB), ketuk tombol di bawah lalu pilih "Izinkan".',
+                          'Agar notifikasi jadwal tugas baru dan pengiriman foto laporan tidak gagal akibat penghemat baterai HP, ketuk tombol di bawah lalu pilih "Izinkan".',
                           style: TextStyle(
                             fontFamily: 'Poppins',
                             fontSize: 13,
@@ -441,7 +441,7 @@ class _GpsGuardianState extends State<GpsGuardian> with WidgetsBindingObserver {
                             onPressed: _requestBatteryUnrestricted,
                             icon: const Icon(Icons.bolt_rounded, size: 22),
                             label: const Text(
-                              'Izinkan Jalan di Latar Belakang',
+                              'Izinkan Optimasi Aplikasi',
                               style: TextStyle(
                                 fontFamily: 'Poppins',
                                 fontSize: 14.5,

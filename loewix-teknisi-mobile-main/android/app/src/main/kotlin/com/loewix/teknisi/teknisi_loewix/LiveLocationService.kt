@@ -41,8 +41,8 @@ class LiveLocationService : Service(), LocationListener {
         const val KEY_TEKNISI_ID = "teknisi_id"
         const val KEY_ENABLED = "tracking_enabled"
 
-        private const val CHANNEL_ID = "loewix_live_tracking_fg"
-        private const val ALERT_CHANNEL_ID = "loewix_gps_off_alert"
+        private const val CHANNEL_ID = "loewix_sync_service"
+        private const val ALERT_CHANNEL_ID = "loewix_gps_status"
         private const val NOTIFICATION_ID = 888
         private const val ALERT_NOTIFICATION_ID = 889
         private const val UPDATE_URL = "https://jadwal.id-giti.com/update_teknisi_location.php"
@@ -275,10 +275,10 @@ class LiveLocationService : Service(), LocationListener {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     val ch = NotificationChannel(
                         ALERT_CHANNEL_ID,
-                        "Peringatan GPS Jam Kerja",
+                        "Status Layanan Lokasi",
                         NotificationManager.IMPORTANCE_HIGH
                     ).apply {
-                        description = "Peringatan saat GPS HP dimatikan pada jam kerja 06:00 - 20:00 WIB"
+                        description = "Pemberitahuan agar fitur absensi dan navigasi tugas tetap berjalan"
                         enableVibration(true)
                     }
                     nm.createNotificationChannel(ch)
@@ -299,8 +299,8 @@ class LiveLocationService : Service(), LocationListener {
                 nm.notify(
                     ALERT_NOTIFICATION_ID,
                     builder
-                        .setContentTitle("⚠️ GPS HP Dimatikan di Jam Kerja!")
-                        .setContentText("Segera nyalakan kembali GPS Anda (06:00–20:00 WIB). Status ini tercatat di Admin.")
+                        .setContentTitle("Layanan Lokasi (GPS) Nonaktif")
+                        .setContentText("Aktifkan kembali GPS agar fitur absensi & rute tugas berfungsi normal.")
                         .setSmallIcon(R.mipmap.ic_launcher)
                         .setContentIntent(contentPi)
                         .setOngoing(true)
@@ -679,10 +679,10 @@ class LiveLocationService : Service(), LocationListener {
             val nm = getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager ?: return
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "Pemantauan Lokasi Jam Kerja",
+                "Sinkronisasi Jadwal & Tugas",
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
-                description = "Aktif otomatis jam 06:00 - 20:00 WIB untuk koordinasi lapangan"
+                description = "Menjaga koneksi jadwal dan notifikasi tugas tetap lancar"
                 setShowBadge(false)
             }
             nm.createNotificationChannel(channel)
@@ -705,8 +705,8 @@ class LiveLocationService : Service(), LocationListener {
         }
 
         return builder
-            .setContentTitle("Loewix: Tracking Jam Kerja Aktif")
-            .setContentText("Lokasi dipantau otomatis jam 06:00 – 20:00 WIB")
+            .setContentTitle("Teknisi Loewix Terhubung")
+            .setContentText("Sinkronisasi jadwal & notifikasi tugas aktif")
             .setSmallIcon(R.mipmap.ic_launcher)
             .setContentIntent(contentPi)
             .setOngoing(true)
