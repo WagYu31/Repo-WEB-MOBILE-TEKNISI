@@ -399,11 +399,12 @@
     $current_time = date("H:i:s");
     
     // Calculate month range for index-friendly filtering
+    if (function_exists('ensurePorsiKerjaColumn')) ensurePorsiKerjaColumn($conn);
     $monthStart = $current_date . '-01';
     $monthEnd = date('Y-m-t', strtotime($monthStart));
     
     $sql = "SELECT pk.*, 
-                   GROUP_CONCAT(DISTINCT CONCAT('<a href=\"detail-lap-tek.php?cariBulanTahun=$current_date&idTek=', t.id, '\">', t.nama, '</a>') SEPARATOR '<br>') AS nama_teknisi,
+                   GROUP_CONCAT(DISTINCT CONCAT('<a href=\"detail-lap-tek.php?cariBulanTahun=$current_date&idTek=', t.id, '\">', t.nama, IF(pk.porsi_kerja < 1, ' <span style=\"font-size:10px;color:#b45309;font-weight:700;\">(½ Hari)</span>', ''), '</a>') SEPARATOR '<br>') AS nama_teknisi,
                    GROUP_CONCAT(DISTINCT t.nama SEPARATOR ', ') AS nama_teknisi_plain,
                    k.customer_id, 
                    c.nama AS nama_cust,
@@ -411,18 +412,26 @@
                    sv.keterangan_survey,
                    sv.surveyor,
                    counts.tek_count,
-                   counts.uniq_tek_count
+                   counts.uniq_tek_count,
+                   counts.calc_total_share
             FROM pendapatan_kegiatan pk
             JOIN kegiatan k ON k.kode = pk.kode AND k.deleted_at IS NULL
             JOIN customer c ON c.id = k.customer_id
             JOIN teknisi t ON t.id = pk.teknisi_id
             JOIN (
-                SELECT kode, 
-                       COUNT(*) as tek_count,
-                       COUNT(DISTINCT teknisi_id) as uniq_tek_count
-                FROM pendapatan_kegiatan
-                WHERE deleted_at IS NULL
-                GROUP BY kode
+                SELECT p_in.kode, 
+                       c_in.tek_count,
+                       COUNT(DISTINCT p_in.teknisi_id) as uniq_tek_count,
+                       SUM(ROUND((p_in.nominal_invoice / c_in.tek_count) * p_in.porsi_kerja)) as calc_total_share
+                FROM pendapatan_kegiatan p_in
+                JOIN (
+                    SELECT kode, COUNT(*) as tek_count
+                    FROM pendapatan_kegiatan
+                    WHERE deleted_at IS NULL
+                    GROUP BY kode
+                ) c_in ON p_in.kode = c_in.kode
+                WHERE p_in.deleted_at IS NULL
+                GROUP BY p_in.kode, c_in.tek_count
             ) counts ON pk.kode = counts.kode
             LEFT JOIN (
                 SELECT k2.kode,
@@ -449,11 +458,8 @@
 
     if ($result) {
         while ($row = mysqli_fetch_assoc($result)) {
-            // Calculate total share for this invoice to match monthly report
-            $tek_count = intval($row['tek_count'] ?? 1);
-            if ($tek_count <= 0) $tek_count = 1;
-            $share_amount = round($row['nominal_invoice'] / $tek_count);
-            $row['total_share'] = $tek_count * $share_amount;
+            // Calculate total share for this invoice (supports 50% half-day porsi_kerja)
+            $row['total_share'] = floatval($row['calc_total_share'] ?? $row['nominal_invoice']);
 
             $allRows[] = $row;
             $totalNominalAll += $row['nominal_invoice'];

@@ -32,8 +32,9 @@ if (isset($_GET['cariBulanTahun']) && !empty($_GET['cariBulanTahun'])) {
         $current_time = date("H:i:s"); // Current time
 
         if (isset($idTeknis) && $idTeknis !== null) {
+            if (function_exists('ensurePorsiKerjaColumn')) ensurePorsiKerjaColumn($conn);
             $sql = "SELECT pk.*, 
-                       GROUP_CONCAT(DISTINCT CONCAT('<a href=\"detail-lap-tek.php?cariBulanTahun=$current_date&idTek=', t.id, '\">', t.nama, '</a>') SEPARATOR '<br>') AS nama_teknisi, 
+                       GROUP_CONCAT(DISTINCT CONCAT('<a href=\"detail-lap-tek.php?cariBulanTahun=$current_date&idTek=', t.id, '\">', t.nama, IF(pk.porsi_kerja < 1, ' (½ Hari)', ''), '</a>') SEPARATOR '<br>') AS nama_teknisi, 
                        k.customer_id, 
                        c.nama AS nama_cust,
                        (SELECT GROUP_CONCAT(DISTINCT CONCAT(UPPER(k2.kegiatan), ' - ', DATE_FORMAT(k2.jadwal, '%d/%m/%Y')) SEPARATOR ', ')

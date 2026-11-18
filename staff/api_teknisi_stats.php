@@ -14,6 +14,8 @@ header('Pragma: no-cache');
 header('Expires: 0');
 
 include 'conn.php';
+include_once __DIR__ . '/include/format_tanggal.php';
+ensurePorsiKerjaColumn($conn);
 
 $teknisiId = intval($_GET['teknisi_id'] ?? 0);
 $bulan = intval($_GET['bulan'] ?? date('n'));
@@ -81,10 +83,10 @@ $res_selesai = mysqli_query($conn, $sql_selesai);
 $selesai = intval(mysqli_fetch_assoc($res_selesai)['jumlah'] ?? 0);
 
 // 4. Get total pendapatan from pendapatan_kegiatan (SAME LOGIC as web get_teknisi_data.php)
-$sql_pendapatan = "SELECT COALESCE(SUM(ROUND(pk.nominal_invoice / (
+$sql_pendapatan = "SELECT COALESCE(SUM(ROUND((pk.nominal_invoice / (
                     SELECT COUNT(*) FROM pendapatan_kegiatan pk2 
                     WHERE pk2.kode = pk.kode AND DATE_FORMAT(pk2.tanggal, '%Y-%m') IN ($monthConditions) AND pk2.deleted_at IS NULL
-                ))), 0) AS total
+                )) * pk.porsi_kerja)), 0) AS total
                 FROM pendapatan_kegiatan pk 
                 WHERE pk.teknisi_id = $teknisiId 
                 AND DATE_FORMAT(pk.tanggal, '%Y-%m') IN ($monthConditions) 

@@ -65,3 +65,18 @@ if (!function_exists('formatTanggal')) {
         ]);
     }
 }
+
+if (!function_exists('ensurePorsiKerjaColumn')) {
+    function ensurePorsiKerjaColumn($conn): void {
+        static $checked = false;
+        if ($checked || !$conn) return;
+        $checked = true;
+        $chk = @mysqli_query($conn, "SHOW COLUMNS FROM `pendapatan_kegiatan` LIKE 'porsi_kerja'");
+        if ($chk && mysqli_num_rows($chk) === 0) {
+            @mysqli_query($conn, "ALTER TABLE `pendapatan_kegiatan` ADD COLUMN `porsi_kerja` DECIMAL(4,2) NOT NULL DEFAULT 1.00 COMMENT '1.00 = Full Day, 0.50 = Setengah Hari' AFTER `pendapatan`");
+        }
+    }
+}
+if (isset($conn) && $conn) {
+    ensurePorsiKerjaColumn($conn);
+}

@@ -130,6 +130,7 @@ if (isset($idTeknis) && $idTeknis !== null && $conn) {
             $target = $baseTarget * $monthCount;
 
             // --- 2. Calculate Pendapatan ---
+            if (function_exists('ensurePorsiKerjaColumn')) ensurePorsiKerjaColumn($conn);
             $months = [];
             $cur = date('Y-m', $ts1);
             $curEnd = date('Y-m', $ts2);
@@ -139,10 +140,10 @@ if (isset($idTeknis) && $idTeknis !== null && $conn) {
             }
             $monthConditions = implode(',', array_map(function($m) { return "'$m'"; }, $months));
 
-            $sqlPend = "SELECT COALESCE(SUM(ROUND(pk.nominal_invoice / (
+            $sqlPend = "SELECT COALESCE(SUM(ROUND((pk.nominal_invoice / (
                 SELECT COUNT(*) FROM pendapatan_kegiatan pk2 
                 WHERE pk2.kode = pk.kode AND DATE_FORMAT(pk2.tanggal, '%Y-%m') IN ($monthConditions) AND pk2.deleted_at IS NULL
-            ))), 0) AS total 
+            )) * pk.porsi_kerja)), 0) AS total 
             FROM pendapatan_kegiatan pk 
             WHERE pk.teknisi_id = '" . mysqli_real_escape_string($conn, $idTeknis) . "' 
               AND DATE_FORMAT(pk.tanggal, '%Y-%m') IN ($monthConditions) AND EXISTS (SELECT 1 FROM kegiatan k_act WHERE k_act.kode = pk.kode AND k_act.deleted_at IS NULL) 

@@ -596,9 +596,11 @@ $nama_bulan = $daftar_bulan[(int)$bulan];
                     $stmt_cnt->execute();
                     $jml_aktif = $stmt_cnt->get_result()->fetch_assoc()['tot'] ?? 0;
                     $stmt_cnt->close();
+                    if (function_exists('ensurePorsiKerjaColumn')) ensurePorsiKerjaColumn($conn);
 
                     $sql_tek = "SELECT t.id, t.nama AS nama_teknisi,
-                                (SELECT SUM(pendapatan) FROM pendapatan_kegiatan WHERE kode = ? AND teknisi_id = t.id AND deleted_at IS NULL) as total_pendapatan
+                                (SELECT SUM(pendapatan) FROM pendapatan_kegiatan WHERE kode = ? AND teknisi_id = t.id AND deleted_at IS NULL) as total_pendapatan,
+                                (SELECT MIN(porsi_kerja) FROM pendapatan_kegiatan WHERE kode = ? AND teknisi_id = t.id AND deleted_at IS NULL) as min_porsi
                                 FROM (
                                     SELECT tk.teknisi_id
                                     FROM team_kegiatan tk
@@ -617,7 +619,7 @@ $nama_bulan = $daftar_bulan[(int)$bulan];
                                 JOIN teknisi t ON t.id = all_tek.teknisi_id
                                 ORDER BY t.nama ASC";
                     $stmt_tek = $conn->prepare($sql_tek);
-                    $stmt_tek->bind_param("ssss", $kode, $kode, $kode, $kode);
+                    $stmt_tek->bind_param("sssss", $kode, $kode, $kode, $kode, $kode);
                     $stmt_tek->execute();
                     $res_tek = $stmt_tek->get_result();
 
@@ -648,7 +650,7 @@ $nama_bulan = $daftar_bulan[(int)$bulan];
                     ?>
                     <div class="tek-block">
                         <div class="tek-top">
-                            <span class="tek-nm"><i class="material-icons-round">engineering</i> <?= htmlspecialchars($rt['nama_teknisi']); ?></span>
+                            <span class="tek-nm"><i class="material-icons-round">engineering</i> <?= htmlspecialchars($rt['nama_teknisi']); ?><?= ($rt['min_porsi'] !== null && floatval($rt['min_porsi']) < 1) ? ' <span style="font-size:10px;color:#b45309;background:#fef3c7;border:1px solid #fcd34d;padding:1px 6px;border-radius:4px;font-weight:700;margin-left:4px;">½ Hari 50%</span>' : ''; ?></span>
                             <span class="tek-pay">Rp <?= number_format($ptampil, 0, ',', '.'); ?></span>
                         </div>
                         <?php if ($ada_abs) : ?>

@@ -139,11 +139,12 @@ if (!empty($allTekIds)) {
     $stmt->close();
 
     // === Invoice + Pendapatan ===
+    if (function_exists('ensurePorsiKerjaColumn')) ensurePorsiKerjaColumn($conn);
     $invCount = [];
     $pendapatanSum = [];
     $sql = "SELECT pk.teknisi_id, 
                    COUNT(DISTINCT pk.kode) as cnt, 
-                   SUM(ROUND(pk.nominal_invoice / counts.tek_count)) as total
+                   SUM(ROUND((pk.nominal_invoice / counts.tek_count) * pk.porsi_kerja)) as total
             FROM pendapatan_kegiatan pk
             JOIN (
                 SELECT kode, COUNT(*) as tek_count 
@@ -200,7 +201,7 @@ if (!empty($allTekIds)) {
     }
 
     // === Grand Total Pendapatan ===
-    $sqlGrandPend = "SELECT SUM(ROUND(pk.nominal_invoice / counts.tek_count)) as total
+    $sqlGrandPend = "SELECT SUM(ROUND((pk.nominal_invoice / counts.tek_count) * pk.porsi_kerja)) as total
         FROM pendapatan_kegiatan pk
         JOIN (
             SELECT kode, COUNT(*) as tek_count

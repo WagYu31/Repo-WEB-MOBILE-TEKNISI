@@ -164,7 +164,9 @@ if ($result_main && $result_main->num_rows > 0) {
                      ) all_tek
                      JOIN teknisi t ON t.id = all_tek.teknisi_id
                      ORDER BY t.nama ASC");
-    $stmt_p = $conn->prepare("SELECT SUM(pendapatan) as total FROM pendapatan_kegiatan WHERE kode = ? AND teknisi_id = ? AND deleted_at IS NULL");
+    include_once __DIR__ . '/include/format_tanggal.php';
+    ensurePorsiKerjaColumn($conn);
+    $stmt_p = $conn->prepare("SELECT SUM(pendapatan) as total, MIN(porsi_kerja) as min_porsi FROM pendapatan_kegiatan WHERE kode = ? AND teknisi_id = ? AND deleted_at IS NULL");
     $stmt_a = $conn->prepare("SELECT DATE(pk.waktu_mulai) as tgl,
                             COALESCE(MIN(k.jadwal), (SELECT MIN(k2.jadwal) FROM kegiatan k2 WHERE k2.kode = pk.kode AND DATE(k2.jadwal) = DATE(pk.waktu_mulai) AND k2.deleted_at IS NULL)) as jadwal,
                             MIN(pk.waktu_mulai) as mulai,
@@ -199,7 +201,9 @@ if ($result_main && $result_main->num_rows > 0) {
 
             $stmt_p->bind_param("si", $kodeTransaksi, $tid);
             $stmt_p->execute();
-            $pendapatan_db = (float)($stmt_p->get_result()->fetch_assoc()['total'] ?? 0);
+            $row_p = $stmt_p->get_result()->fetch_assoc();
+            $pendapatan_db = (float)($row_p['total'] ?? 0);
+            $min_porsi_db = isset($row_p['min_porsi']) && $row_p['min_porsi'] !== null ? (float)$row_p['min_porsi'] : 1.0;
 
             $stmt_a->bind_param("si", $kodeTransaksi, $tid);
             $stmt_a->execute();
@@ -219,7 +223,7 @@ if ($result_main && $result_main->num_rows > 0) {
 
             $rowspan_tech = max(1, count($absensi_list));
             $grouped_data[] = [
-                'nama' => $t['nama_teknisi'] ?? '-',
+                'nama' => ($t['nama_teknisi'] ?? '-') . ($min_porsi_db < 1 ? ' (½ Hari 50%)' : ''),
                 'pendapatan' => round((float)$final_pendapatan),
                 'absensi' => $absensi_list,
                 'rowspan_tech' => $rowspan_tech,

@@ -2,6 +2,8 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 include "conn.php";
+include_once __DIR__ . '/include/format_tanggal.php';
+ensurePorsiKerjaColumn($conn);
 
 $kode_transaksi = '';
 $result = null;
@@ -11,11 +13,13 @@ if (isset($_POST['kode_transaksi'])) {
 
     $query = "SELECT pk.id, t.nama AS nama_teknisi, pk.waktu_mulai, pk.waktu_selesai,
                      k.kegiatan, k.jadwal, k.invoice, k.garansi, k.keterangan_garansi,
-                     c.nama AS nama_customer
+                     c.nama AS nama_customer,
+                     pd.porsi_kerja AS saved_porsi
               FROM pelaksanaan_kegiatan pk
               JOIN teknisi t ON pk.teknisi_id = t.id
               JOIN kegiatan k ON pk.kegiatan_id = k.id
               LEFT JOIN customer c ON k.customer_id = c.id
+              LEFT JOIN pendapatan_kegiatan pd ON pd.kegiatan_id = pk.id AND pd.kode = pk.kode AND pd.deleted_at IS NULL
               WHERE pk.kode = ? AND pk.deleted_at IS NULL
               ORDER BY t.nama ASC, pk.waktu_mulai ASC";
 
@@ -259,20 +263,69 @@ if ($result && mysqli_num_rows($result) > 0) {
     font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 5px;
 }
 
-/* Card Right Section (Fee Badge) */
+/* Card Right Section (Porsi Toggle + Fee Badge) */
 .inv-card-right {
-    display: flex; flex-direction: column; align-items: flex-end;
+    display: flex; flex-direction: column; align-items: flex-end; gap: 6px;
     margin-left: 14px; flex-shrink: 0;
 }
+.inv-form-wrap .visually-hidden {
+    position: absolute;
+    clip-path: inset(50%);
+    overflow: hidden;
+    width: 1px; height: 1px;
+    margin: -1px; padding: 0; border: 0;
+    white-space: nowrap;
+}
+.inv-porsi-group {
+    display: inline-flex; align-items: center; gap: 2px;
+    background: #e2e8f0; padding: 3px; border-radius: 9px;
+    border: 1px solid #cbd5e1; margin: 0;
+    transition: opacity 0.2s ease;
+}
+.inv-tek-card:not(.active-selected) .inv-porsi-group {
+    opacity: 0.45;
+}
+.inv-porsi-pill {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 11px; font-weight: 700; color: #475569;
+    padding: 4px 9px; border-radius: 6px; margin: 0;
+    cursor: pointer; transition: all 0.15s ease;
+    line-height: 1.2; white-space: nowrap;
+}
+.inv-porsi-pill:hover {
+    color: #0f172a;
+}
+input.inv-porsi-radio[value="1"]:checked + .inv-porsi-pill {
+    background: #4f46e5; color: #ffffff;
+    box-shadow: 0 1px 3px rgba(79,70,229,0.28);
+}
+input.inv-porsi-radio[value="0.5"]:checked + .inv-porsi-pill {
+    background: #d97706; color: #ffffff;
+    box-shadow: 0 1px 3px rgba(217,119,6,0.32);
+}
+input.inv-porsi-radio:focus-visible + .inv-porsi-pill {
+    outline: 2px solid #0b57d0;
+    outline-offset: 2px;
+}
+.inv-tek-card.active-selected.is-half-day {
+    border-color: #f59e0b; background: #fffbeb;
+}
 .inv-fee-badge {
-    font-size: 13.5px; font-weight: 800; color: #047857;
+    font-size: 13px; font-weight: 800; color: #047857;
     background: #ecfdf5; border: 1.5px solid #a7f3d0;
-    padding: 6px 12px; border-radius: 10px;
+    padding: 5px 11px; border-radius: 9px;
     font-variant-numeric: tabular-nums; box-shadow: 0 1px 2px rgba(0,0,0,0.02);
     display: none; align-items: center; gap: 4px;
 }
+.inv-fee-badge.fee-half-day {
+    color: #b45309; background: #fef3c7; border-color: #fcd34d;
+}
 .inv-fee-label {
-    font-size: 10px; font-weight: 600; color: #64748b; margin-top: 2px;
+    font-size: 10px; font-weight: 600; color: #64748b; margin-top: 0;
+    display: none;
+}
+.inv-fee-label.label-half-day {
+    color: #b45309; font-weight: 700;
 }
 
 /* Submit Action Button */
@@ -439,10 +492,12 @@ if ($result && mysqli_num_rows($result) > 0) {
                     } elseif (strpos($cleanRole, 'service') !== false) {
                         $roleClass = 'role-service';
                     }
+                    $rowId = (int)$row['id'];
+                    $isSavedHalf = (isset($row['saved_porsi']) && $row['saved_porsi'] !== null && abs(floatval($row['saved_porsi']) - 0.5) < 0.01);
                     ?>
-                    <div class="inv-tek-card active-selected <?= $isLate ? 'inv-late' : '' ?>" onclick="handleCardClick(event, this)">
+                    <div class="inv-tek-card active-selected <?= $isLate ? 'inv-late' : '' ?> <?= $isSavedHalf ? 'is-half-day' : '' ?>" onclick="handleCardClick(event, this)">
                         <div class="inv-card-left">
-                            <input type="checkbox" name="selected_kegiatan[]" value="<?= $row['id'].'|'.$row['kegiatan'] ?>" class="inv-check inv-tek-check" checked onchange="syncCardState(this)">
+                            <input type="checkbox" name="selected_kegiatan[]" value="<?= $rowId.'|'.$row['kegiatan'] ?>" class="inv-check inv-tek-check" checked onchange="syncCardState(this)">
                             <div class="inv-avatar"><?= $initials ?></div>
                             <div class="inv-card-info">
                                 <div class="inv-name-row">
@@ -475,6 +530,13 @@ if ($result && mysqli_num_rows($result) > 0) {
                         </div>
 
                         <div class="inv-card-right">
+                            <fieldset class="inv-porsi-group">
+                                <legend class="visually-hidden">Porsi kerja <?= htmlspecialchars($row['nama_teknisi']) ?></legend>
+                                <input type="radio" class="visually-hidden inv-porsi-radio" id="porsi_full_<?= $rowId ?>" name="porsi_kegiatan[<?= $rowId ?>]" value="1" <?= !$isSavedHalf ? 'checked' : '' ?> onchange="onPorsiChange(this)">
+                                <label for="porsi_full_<?= $rowId ?>" class="inv-porsi-pill"><i class="fa-solid fa-circle-check"></i> Full 100%</label>
+                                <input type="radio" class="visually-hidden inv-porsi-radio" id="porsi_half_<?= $rowId ?>" name="porsi_kegiatan[<?= $rowId ?>]" value="0.5" <?= $isSavedHalf ? 'checked' : '' ?> onchange="onPorsiChange(this)">
+                                <label for="porsi_half_<?= $rowId ?>" class="inv-porsi-pill"><i class="fa-solid fa-circle-half-stroke"></i> ½ Hari 50%</label>
+                            </fieldset>
                             <div class="inv-fee-badge"><i class="fa-solid fa-wallet"></i> <span class="fee-val">Rp 0</span></div>
                             <span class="inv-fee-label">Hak Fee Teknisi</span>
                         </div>
@@ -506,8 +568,8 @@ function formatRupiah(input) {
 }
 
 function handleCardClick(e, card) {
-    // If the click was directly on the checkbox, let native change event handle it
-    if (e.target.classList.contains('inv-tek-check')) {
+    // Ignore clicks on the checkbox itself or the Full / ½ Hari radio toggle
+    if (e.target.classList.contains('inv-tek-check') || e.target.closest('.inv-porsi-group')) {
         return;
     }
     const cb = card.querySelector('.inv-tek-check');
@@ -515,6 +577,14 @@ function handleCardClick(e, card) {
         cb.checked = !cb.checked;
         syncCardState(cb);
     }
+}
+
+function onPorsiChange(radio) {
+    const card = radio.closest('.inv-tek-card');
+    if (card) {
+        card.classList.toggle('is-half-day', parseFloat(radio.value) === 0.5);
+    }
+    calculateShares();
 }
 
 function syncCardState(cb) {
@@ -568,10 +638,14 @@ function calculateShares() {
     document.querySelectorAll('.inv-tek-check:checked').forEach(cb => {
         const parts = cb.value.split('|');
         if (parts.length === 2) {
+            const card = cb.closest('.inv-tek-card');
+            const selectedRadio = card ? card.querySelector('input.inv-porsi-radio:checked') : null;
+            const porsi = selectedRadio ? (parseFloat(selectedRadio.value) || 1) : 1;
             checkedBoxes.push({
                 element: cb,
                 id: parts[0],
-                type: parts[1].toLowerCase().trim()
+                type: parts[1].toLowerCase().trim(),
+                porsi: porsi
             });
         }
     });
@@ -583,9 +657,14 @@ function calculateShares() {
     // Reset share badge for all cards first
     document.querySelectorAll('.inv-fee-badge').forEach(el => {
         el.style.display = 'none';
+        el.classList.remove('fee-half-day');
         el.querySelector('.fee-val').textContent = 'Rp 0';
     });
-    document.querySelectorAll('.inv-fee-label').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('.inv-fee-label').forEach(el => {
+        el.style.display = 'none';
+        el.classList.remove('label-half-day');
+        el.textContent = 'Hak Fee Teknisi';
+    });
 
     if (nominal <= 0 || checkedBoxes.length === 0) {
         if (summaryBox) summaryBox.style.display = 'none';
@@ -605,28 +684,30 @@ function calculateShares() {
     }
 
     let formulaDesc = 'Dibagi Rata';
+    let totalDistributed = 0;
+    let halfDayCount = 0;
 
     // Calculation Logic matching submit_invoice.php
     if (survey_count > 0 && pasang_baru_count === 0 && service_count === 0) {
         const share = nominal / survey_count;
         formulaDesc = '100% Survey (Rata)';
-        survey_ids.forEach(x => showShare(x.element, share));
+        survey_ids.forEach(x => showShare(x, share));
     } else if (survey_count === 0 && pasang_baru_count > 0 && service_count === 0) {
         const share = nominal / pasang_baru_count;
         formulaDesc = '100% Pasang Baru (Rata)';
-        pasang_baru_ids.forEach(x => showShare(x.element, share));
+        pasang_baru_ids.forEach(x => showShare(x, share));
     } else if (survey_count === 0 && pasang_baru_count === 0 && service_count > 0) {
         const share = nominal / service_count;
         formulaDesc = '100% Service (Rata)';
-        service_ids.forEach(x => showShare(x.element, share));
+        service_ids.forEach(x => showShare(x, share));
     }
     // Mix of survey and pasang baru
     else if (survey_count > 0 && pasang_baru_count > 0 && service_count === 0) {
         const survey_share = (0.1 * nominal) / survey_count;
         const pasang_baru_share = (0.9 * nominal) / pasang_baru_count;
         formulaDesc = '10% Survey (' + formatRp(0.1 * nominal) + ') • 90% Pasang Baru (' + formatRp(0.9 * nominal) + ')';
-        survey_ids.forEach(x => showShare(x.element, survey_share));
-        pasang_baru_ids.forEach(x => showShare(x.element, pasang_baru_share));
+        survey_ids.forEach(x => showShare(x, survey_share));
+        pasang_baru_ids.forEach(x => showShare(x, pasang_baru_share));
     }
     // Mix of all three
     else if (survey_count > 0 && pasang_baru_count > 0 && service_count > 0) {
@@ -634,33 +715,51 @@ function calculateShares() {
         const pasang_baru_share = (0.85 * nominal) / pasang_baru_count;
         const service_share = (0.10 * nominal) / service_count;
         formulaDesc = '5% Survey • 85% Pasang Baru • 10% Service';
-        survey_ids.forEach(x => showShare(x.element, survey_share));
-        pasang_baru_ids.forEach(x => showShare(x.element, pasang_baru_share));
-        service_ids.forEach(x => showShare(x.element, service_share));
+        survey_ids.forEach(x => showShare(x, survey_share));
+        pasang_baru_ids.forEach(x => showShare(x, pasang_baru_share));
+        service_ids.forEach(x => showShare(x, service_share));
     }
     // Other combinations
     else {
         const share = nominal / checkedBoxes.length;
         formulaDesc = 'Dibagi Rata (' + checkedBoxes.length + ' Teknisi)';
-        checkedBoxes.forEach(x => showShare(x.element, share));
+        checkedBoxes.forEach(x => showShare(x, share));
+    }
+
+    if (halfDayCount > 0) {
+        formulaDesc += ' • ' + halfDayCount + ' Teknisi ½ Hari (50%)';
     }
 
     if (summaryBox && totalText && formulaText) {
-        totalText.textContent = 'Total Dialokasikan: ' + formatRp(nominal) + ' (' + checkedBoxes.length + ' Teknisi)';
+        if (halfDayCount > 0) {
+            totalText.textContent = 'Total Komisi Teknisi: ' + formatRp(totalDistributed) + ' dari Invoice ' + formatRp(nominal);
+        } else {
+            totalText.textContent = 'Total Dialokasikan: ' + formatRp(totalDistributed) + ' (' + checkedBoxes.length + ' Teknisi)';
+        }
         formulaText.textContent = formulaDesc;
         summaryBox.style.display = 'flex';
     }
 
-    function showShare(checkboxEl, amount) {
-        const card = checkboxEl.closest('.inv-tek-card');
+    function showShare(item, baseAmount) {
+        const isHalf = item.porsi < 1;
+        const finalAmount = Math.round(baseAmount * item.porsi);
+        totalDistributed += finalAmount;
+        if (isHalf) halfDayCount++;
+
+        const card = item.element.closest('.inv-tek-card');
         if (card) {
             const feeBadge = card.querySelector('.inv-fee-badge');
             const feeLabel = card.querySelector('.inv-fee-label');
             if (feeBadge) {
-                feeBadge.querySelector('.fee-val').textContent = formatRp(amount);
+                feeBadge.querySelector('.fee-val').textContent = formatRp(finalAmount);
+                feeBadge.classList.toggle('fee-half-day', isHalf);
                 feeBadge.style.display = 'inline-flex';
             }
-            if (feeLabel) feeLabel.style.display = 'block';
+            if (feeLabel) {
+                feeLabel.textContent = isHalf ? ('½ Hari (50% dari ' + formatRp(baseAmount) + ')') : 'Hak Fee (Full 100%)';
+                feeLabel.classList.toggle('label-half-day', isHalf);
+                feeLabel.style.display = 'block';
+            }
         }
     }
 }

@@ -31,10 +31,10 @@ $sql = "SELECT
              JOIN customer cust_c ON cust_c.id = k_c.customer_id
              WHERE pk_c.teknisi_id = t.id AND pk_c.deleted_at IS NULL AND k_c.deleted_at IS NULL
              AND DATE(pk_c.waktu_mulai) >= ? AND DATE(pk_c.waktu_mulai) <= ?) AS jumlah_kegiatan,
-            (SELECT COALESCE(SUM(ROUND(pk.nominal_invoice / (
+            (SELECT COALESCE(SUM(ROUND((pk.nominal_invoice / (
                 SELECT COUNT(*) FROM pendapatan_kegiatan pk2 
                 WHERE pk2.kode = pk.kode AND DATE_FORMAT(pk2.tanggal, '%Y-%m') IN ($monthPlaceholders) AND pk2.deleted_at IS NULL
-            ))), 0) FROM pendapatan_kegiatan pk 
+            )) * pk.porsi_kerja)), 0) FROM pendapatan_kegiatan pk 
              WHERE pk.teknisi_id = t.id AND DATE_FORMAT(pk.tanggal, '%Y-%m') IN ($monthPlaceholders) AND pk.deleted_at IS NULL AND EXISTS (SELECT 1 FROM kegiatan k_act WHERE k_act.kode = pk.kode AND k_act.deleted_at IS NULL)) AS total_pendapatan
         FROM teknisi t
         WHERE t.deleted_at IS NULL
@@ -130,17 +130,23 @@ usort($tableData, function($a, $b) {
     return $totalB <=> $totalA;
 });
 
-// ═══ GRAND TOTAL PENDAPATAN: Match Detail Invoice exactly ═══
+// ═══ GRAND TOTAL PENDAPATAN: Match Detail Invoice & Rekapitulasi (supports 50% porsi_kerja) ═══
 $grandMonthPlaceholders = implode(',', array_fill(0, $monthCount, '?'));
-$sqlGrandPend = "SELECT COALESCE(SUM(sub.nominal), 0) as total FROM (
-    SELECT nominal_invoice as nominal
-    FROM pendapatan_kegiatan
-    WHERE DATE_FORMAT(tanggal, '%Y-%m') IN ($grandMonthPlaceholders) AND deleted_at IS NULL
-    GROUP BY kode
-) sub";
+$sqlGrandPend = "SELECT COALESCE(SUM(ROUND((pk.nominal_invoice / counts.tek_count) * pk.porsi_kerja)), 0) as total
+    FROM pendapatan_kegiatan pk
+    JOIN (
+        SELECT kode, COUNT(*) as tek_count
+        FROM pendapatan_kegiatan
+        WHERE DATE_FORMAT(tanggal, '%Y-%m') IN ($grandMonthPlaceholders) AND deleted_at IS NULL
+        GROUP BY kode
+    ) counts ON pk.kode = counts.kode
+    WHERE DATE_FORMAT(pk.tanggal, '%Y-%m') IN ($grandMonthPlaceholders)
+      AND pk.deleted_at IS NULL
+      AND EXISTS (SELECT 1 FROM kegiatan k_act WHERE k_act.kode = pk.kode AND k_act.deleted_at IS NULL)";
 $stmtGP = $conn->prepare($sqlGrandPend);
-$gpTypes = str_repeat('s', $monthCount);
-$stmtGP->bind_param($gpTypes, ...$months);
+$gpParams = array_merge($months, $months);
+$gpTypes = str_repeat('s', count($gpParams));
+$stmtGP->bind_param($gpTypes, ...$gpParams);
 $stmtGP->execute();
 $resGP = $stmtGP->get_result();
 $rowGP = $resGP->fetch_assoc();

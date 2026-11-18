@@ -112,11 +112,12 @@
         $stmt->close();
 
         // ═══ BATCH QUERY 4: Invoice count + pendapatan per teknisi ═══
+        if (function_exists('ensurePorsiKerjaColumn')) ensurePorsiKerjaColumn($conn);
         $invCount = [];
         $pendapatanSum = [];
         $sql = "SELECT pk.teknisi_id, 
                        COUNT(DISTINCT pk.kode) as cnt, 
-                       SUM(ROUND(pk.nominal_invoice / counts.tek_count)) as total
+                       SUM(ROUND((pk.nominal_invoice / counts.tek_count) * pk.porsi_kerja)) as total
                 FROM pendapatan_kegiatan pk
                 JOIN (
                     SELECT kode, COUNT(*) as tek_count 
@@ -211,7 +212,7 @@
     $grand_total_bonus = 0;
 
     // ═══ GRAND TOTAL PENDAPATAN ═══
-    $sqlGrandPend = "SELECT SUM(ROUND(pk.nominal_invoice / counts.tek_count)) as total
+    $sqlGrandPend = "SELECT SUM(ROUND((pk.nominal_invoice / counts.tek_count) * pk.porsi_kerja)) as total
         FROM pendapatan_kegiatan pk
         JOIN (
             SELECT kode, COUNT(*) as tek_count
@@ -256,7 +257,7 @@
 
     // ═══ GRAND TOTAL UNPAID INVOICE ═══
     if ($filterTeknisiId > 0) {
-        $sqlUnpaid = "SELECT SUM(ROUND(pk.nominal_invoice / counts.tek_count)) as total
+        $sqlUnpaid = "SELECT SUM(ROUND((pk.nominal_invoice / counts.tek_count) * pk.porsi_kerja)) as total
             FROM pendapatan_kegiatan pk
             JOIN (
                 SELECT kode, COUNT(*) as tek_count
@@ -275,7 +276,7 @@
               AND pk.deleted_at IS NULL
               AND (k.lunas IS NULL OR k.lunas = '0000-00-00')";
     } else {
-        $sqlUnpaid = "SELECT SUM(ROUND(pk.nominal_invoice / counts.tek_count)) as total
+        $sqlUnpaid = "SELECT SUM(ROUND((pk.nominal_invoice / counts.tek_count) * pk.porsi_kerja)) as total
             FROM pendapatan_kegiatan pk
             JOIN (
                 SELECT kode, COUNT(*) as tek_count

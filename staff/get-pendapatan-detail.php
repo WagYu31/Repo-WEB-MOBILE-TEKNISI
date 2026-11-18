@@ -33,13 +33,13 @@ $sql = "SELECT pk.kode,
                pk.nominal_invoice, 
                counts.tek_count, 
                COUNT(*) as tech_visit_count,
-               ROUND(pk.nominal_invoice / counts.tek_count) as single_share,
-               SUM(ROUND(pk.nominal_invoice / counts.tek_count)) as share_amount,
+               ROUND((pk.nominal_invoice / counts.tek_count) * MIN(pk.porsi_kerja)) as single_share,
+               SUM(ROUND((pk.nominal_invoice / counts.tek_count) * pk.porsi_kerja)) as share_amount,
                c.nama AS nama_cust,
                 (
-                    SELECT GROUP_CONCAT(CONCAT(t.nama, IF(sub.kegiatan_count > 1, CONCAT(' ', sub.kegiatan_count, 'x'), '')) ORDER BY sub.kegiatan_count DESC, t.nama ASC SEPARATOR ', ')
+                    SELECT GROUP_CONCAT(CONCAT(t.nama, IF(sub.kegiatan_count > 1, CONCAT(' ', sub.kegiatan_count, 'x'), ''), IF(sub.min_porsi < 1, ' (½ Hari)', '')) ORDER BY sub.kegiatan_count DESC, t.nama ASC SEPARATOR ', ')
                     FROM (
-                        SELECT pk2.kode, pk2.teknisi_id, COUNT(*) as kegiatan_count
+                        SELECT pk2.kode, pk2.teknisi_id, COUNT(*) as kegiatan_count, MIN(pk2.porsi_kerja) as min_porsi
                         FROM pendapatan_kegiatan pk2
                         WHERE pk2.deleted_at IS NULL
                         GROUP BY pk2.kode, pk2.teknisi_id
