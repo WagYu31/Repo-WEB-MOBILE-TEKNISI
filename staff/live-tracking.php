@@ -1421,7 +1421,7 @@ $todayStr = date("Y-m-d");
                   + (distText ? `<span class="tek-meta-chip" title="Estimasi jarak ke customer"><i class="fa-solid fa-location-arrow" style="color:#ea580c; font-size:9px;" aria-hidden="true"></i>${escHtml(distText)}</span>` : '')
                   + (hasBat ? `<span class="tek-meta-chip ${batNum <= 20 ? 'bat-low' : ''}" title="Sisa baterai HP teknisi"><i class="fa-solid ${batIcon}" style="color:${batNum <= 20 ? '#e11d48' : '#16a34a'}; font-size:10px;" aria-hidden="true"></i>${batNum}%</span>` : '')
                 : (t.gps_mati_jam_kerja
-                  ? `<span class="gps-pill-alert" title="GPS tidak aktif di jam kerja (06:00-20:00 WIB)"><span class="dot-alert" aria-hidden="true"></span>GPS Mati • ${escHtml(formatLastSeen(t.last_seen_seconds))}</span>`
+                  ? `<span class="gps-pill-alert" title="GPS tidak aktif di jam kerja (06:00-20:00 WIB)"><span class="dot-alert" aria-hidden="true"></span>${t.gps_disabled ? 'GPS HP Dimatikan' : 'GPS Mati'} • ${escHtml(formatLastSeen(t.last_seen_seconds))}</span>`
                   : `<span class="gps-pill-offline" title="Waktu sejak sinyal GPS terakhir dikirim"><span class="dot-offline" aria-hidden="true"></span>Aktif ${escHtml(formatLastSeen(t.last_seen_seconds))}</span>`);
 
               const tekPhone = String(t.telp || '').replace(/[^0-9]/g, '').replace(/^0/, '');
@@ -1604,7 +1604,7 @@ $todayStr = date("Y-m-d");
                   ? `<span class="gps-pill-online"><span class="dot-online" aria-hidden="true"></span>Online • ${Math.round(parseFloat(tek.speed || 0))} km/jam</span>`
                     + (tek.battery ? `<span class="tek-meta-chip"><i class="fa-solid fa-battery-three-quarters" style="color:#16a34a;" aria-hidden="true"></i>${escHtml(String(tek.battery))}%</span>` : '')
                   : (tek.gps_mati_jam_kerja
-                    ? `<span class="gps-pill-alert"><span class="dot-alert" aria-hidden="true"></span>GPS Mati • ${escHtml(formatLastSeen(tek.last_seen_seconds))}</span>`
+                    ? `<span class="gps-pill-alert"><span class="dot-alert" aria-hidden="true"></span>${tek.gps_disabled ? 'GPS HP Dimatikan' : 'GPS Mati'} • ${escHtml(formatLastSeen(tek.last_seen_seconds))}</span>`
                     : `<span class="gps-pill-offline"><span class="dot-offline" aria-hidden="true"></span>Aktif ${escHtml(formatLastSeen(tek.last_seen_seconds))}</span>`)
                 }
               </div>

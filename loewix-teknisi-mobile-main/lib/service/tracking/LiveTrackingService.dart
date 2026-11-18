@@ -68,10 +68,12 @@ class LiveTrackingService {
 
       _isTracking = true;
 
-      // Kirim 1 titik segar langsung saat aplikasi dibuka di jam kerja agar pin langsung Oranye
+      // Kirim titik segar & tetap jalankan stream FusedLocation saat app aktif/minimized (optimal di dalam gedung)
       if (isWithinWorkingHoursWib()) {
         unawaited(_captureAndSendCurrentPosition());
       }
+      _startPositionStream();
+      _startHeartbeatTimer();
       return;
     }
 

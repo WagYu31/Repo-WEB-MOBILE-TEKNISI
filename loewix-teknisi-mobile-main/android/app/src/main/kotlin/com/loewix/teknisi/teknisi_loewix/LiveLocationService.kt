@@ -29,7 +29,10 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.util.Calendar
 import java.util.TimeZone
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicReference
 
 class LiveLocationService : Service(), LocationListener {
 
@@ -39,7 +42,9 @@ class LiveLocationService : Service(), LocationListener {
         const val KEY_ENABLED = "tracking_enabled"
 
         private const val CHANNEL_ID = "loewix_live_tracking_fg"
+        private const val ALERT_CHANNEL_ID = "loewix_gps_off_alert"
         private const val NOTIFICATION_ID = 888
+        private const val ALERT_NOTIFICATION_ID = 889
         private const val UPDATE_URL = "https://jadwal.id-giti.com/update_teknisi_location.php"
 
         // Jam kerja pemantauan wajib: 06:00 s/d 20:00 WIB
@@ -59,7 +64,6 @@ class LiveLocationService : Service(), LocationListener {
             if (enabled && !directId.isNullOrEmpty() && directId != "no role") {
                 return directId
             }
-            // Fallback ke FlutterSharedPreferences bila user sudah login sebelumnya
             val flutterPrefs = context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
             val token = flutterPrefs.getString("flutter.USER_TOKEN", null)
             val flutterUserId = flutterPrefs.getString("flutter.USER_ID", null)?.trim()
@@ -92,6 +96,19 @@ class LiveLocationService : Service(), LocationListener {
             }
         }
 
+        fun isLocationProviderEnabled(context: Context): Boolean {
+            val lm = context.getSystemService(Context.LOCATION_SERVICE) as? LocationManager ?: return false
+            return try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    lm.isLocationEnabled
+                } else {
+                    lm.isProviderEnabled(LocationManager.GPS_PROVIDER) || lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
+                }
+            } catch (_: Throwable) {
+                false
+            }
+        }
+
         fun startOrSchedule(context: Context, fromBackground: Boolean = false) {
             val teknisiId = getSavedTeknisiId(context)
             if (teknisiId.isNullOrEmpty()) {
@@ -102,7 +119,7 @@ class LiveLocationService : Service(), LocationListener {
             scheduleNextCheckAlarm(context)
 
             if (!isWithinWorkingHours()) {
-                // Di luar jam 06:00 - 20:00 WIB: matikan service aktif & jadwalkan jam 06:00 pagi
+                dismissGpsOffWarning(context)
                 try {
                     context.stopService(Intent(context, LiveLocationService::class.java))
                 } catch (_: Throwable) {}
@@ -124,19 +141,191 @@ class LiveLocationService : Service(), LocationListener {
                     context.startService(intent)
                 }
             } catch (_: Throwable) {
-                // Android 12+ background start restriction fallback: akan dicoba ulang oleh alarm/workmanager
+                // Jika Android 12+ menolak startForegroundService di background,
+                // TrackingScheduleReceiver tetap mengirim lokasi langsung lewat sendDirectBackgroundPing()
             }
+        }
+
+        /**
+         * Dipanggil langsung oleh TrackingScheduleReceiver di dalam goAsync() setiap ~70 detik.
+         * Tetap berhasil mengirim lokasi walaupun aplikasi di-swipe close & startForegroundService diblokir OEM/Android 12+.
+         */
+        fun sendDirectBackgroundPing(context: Context) {
+            val teknisiId = getSavedTeknisiId(context) ?: return
+            if (!isWithinWorkingHours()) {
+                dismissGpsOffWarning(context)
+                return
+            }
+
+            val bm = context.getSystemService(Context.BATTERY_SERVICE) as? BatteryManager
+            val batPct = bm?.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
+
+            // Deteksi bila teknisi sengaja mematikan tombol GPS di HP
+            if (!isLocationProviderEnabled(context) || !hasForegroundLocationPermission(context)) {
+                showGpsOffWarning(context)
+                postJsonSync(JSONObject().apply {
+                    put("teknisi_id", teknisiId)
+                    put("gps_disabled", 1)
+                    if (batPct != null && batPct in 0..100) put("battery", batPct.toString())
+                })
+                return
+            }
+
+            dismissGpsOffWarning(context)
+
+            val lm = context.getSystemService(Context.LOCATION_SERVICE) as? LocationManager ?: return
+            var freshLoc: Location? = null
+
+            // Coba ambil lokasi aktif terbaru (Android 11+ API 30+)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                val providers = mutableListOf<String>()
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && lm.allProviders.contains("fused")) {
+                    providers.add("fused")
+                }
+                if (lm.allProviders.contains(LocationManager.NETWORK_PROVIDER)) {
+                    providers.add(LocationManager.NETWORK_PROVIDER)
+                }
+                if (lm.allProviders.contains(LocationManager.GPS_PROVIDER)) {
+                    providers.add(LocationManager.GPS_PROVIDER)
+                }
+                for (prov in providers) {
+                    try {
+                        if (!lm.isProviderEnabled(prov) && prov != "fused") continue
+                        val latch = CountDownLatch(1)
+                        val ref = AtomicReference<Location?>(null)
+                        @Suppress("MissingPermission")
+                        lm.getCurrentLocation(prov, null, ContextCompat.getMainExecutor(context)) { loc ->
+                            ref.set(loc)
+                            latch.countDown()
+                        }
+                        latch.await(4500L, TimeUnit.MILLISECONDS)
+                        val got = ref.get()
+                        if (got != null) {
+                            freshLoc = got
+                            break
+                        }
+                    } catch (_: Throwable) {}
+                }
+            }
+
+            // Fallback ke lastKnownLocation terbaik (fused / gps / network / passive)
+            if (freshLoc == null) {
+                val allProvs = listOf("fused", LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER, LocationManager.PASSIVE_PROVIDER)
+                for (prov in allProvs) {
+                    try {
+                        if (!lm.allProviders.contains(prov)) continue
+                        @Suppress("MissingPermission")
+                        val loc = lm.getLastKnownLocation(prov)
+                        if (loc != null && (freshLoc == null || loc.time > freshLoc!!.time)) {
+                            freshLoc = loc
+                        }
+                    } catch (_: Throwable) {}
+                }
+            }
+
+            val chosen = freshLoc ?: return
+            val isMock = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                chosen.isMock
+            } else {
+                @Suppress("DEPRECATION")
+                chosen.isFromMockProvider
+            }
+            val speedKmh = if (chosen.hasSpeed()) (chosen.speed * 3.6f) else 0f
+            val heading = if (chosen.hasBearing()) chosen.bearing else 0f
+
+            postJsonSync(JSONObject().apply {
+                put("teknisi_id", teknisiId)
+                put("latitude", chosen.latitude.toString())
+                put("longitude", chosen.longitude.toString())
+                put("accuracy", String.format("%.1f", chosen.accuracy))
+                put("speed", String.format("%.1f", speedKmh))
+                put("heading", String.format("%.1f", heading))
+                put("is_mock", if (isMock) 1 else 0)
+                put("gps_disabled", 0)
+                if (batPct != null && batPct in 0..100) {
+                    put("battery", batPct.toString())
+                }
+            })
+        }
+
+        fun postJsonSync(payload: JSONObject) {
+            var conn: HttpURLConnection? = null
+            try {
+                conn = (URL(UPDATE_URL).openConnection() as HttpURLConnection).apply {
+                    requestMethod = "POST"
+                    connectTimeout = 9_000
+                    readTimeout = 9_000
+                    doOutput = true
+                    setRequestProperty("Content-Type", "application/json; charset=UTF-8")
+                }
+                OutputStreamWriter(conn.outputStream, Charsets.UTF_8).use { writer ->
+                    writer.write(payload.toString())
+                    writer.flush()
+                }
+                conn.responseCode
+            } catch (_: Throwable) {
+            } finally {
+                conn?.disconnect()
+            }
+        }
+
+        fun showGpsOffWarning(context: Context) {
+            try {
+                val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager ?: return
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    val ch = NotificationChannel(
+                        ALERT_CHANNEL_ID,
+                        "Peringatan GPS Jam Kerja",
+                        NotificationManager.IMPORTANCE_HIGH
+                    ).apply {
+                        description = "Peringatan saat GPS HP dimatikan pada jam kerja 06:00 - 20:00 WIB"
+                        enableVibration(true)
+                    }
+                    nm.createNotificationChannel(ch)
+                }
+                val openIntent = Intent(context, MainActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                }
+                val piFlags = PendingIntent.FLAG_UPDATE_CURRENT or
+                    (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE else 0)
+                val contentPi = PendingIntent.getActivity(context, 889, openIntent, piFlags)
+
+                val builder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    Notification.Builder(context, ALERT_CHANNEL_ID)
+                } else {
+                    @Suppress("DEPRECATION")
+                    Notification.Builder(context)
+                }
+                nm.notify(
+                    ALERT_NOTIFICATION_ID,
+                    builder
+                        .setContentTitle("⚠️ GPS HP Dimatikan di Jam Kerja!")
+                        .setContentText("Segera nyalakan kembali GPS Anda (06:00–20:00 WIB). Status ini tercatat di Admin.")
+                        .setSmallIcon(R.mipmap.ic_launcher)
+                        .setContentIntent(contentPi)
+                        .setOngoing(true)
+                        .build()
+                )
+            } catch (_: Throwable) {}
+        }
+
+        fun dismissGpsOffWarning(context: Context) {
+            try {
+                val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager ?: return
+                nm.cancel(ALERT_NOTIFICATION_ID)
+            } catch (_: Throwable) {}
         }
 
         fun stopAll(context: Context) {
             saveTrackingState(context, "", false)
             cancelWatchdogAlarms(context)
+            dismissGpsOffWarning(context)
             try {
                 context.stopService(Intent(context, LiveLocationService::class.java))
             } catch (_: Throwable) {}
         }
 
-        fun scheduleNextCheckAlarm(context: Context) {
+        fun scheduleNextCheckAlarm(context: Context, delayMsOverride: Long? = null) {
             val am = context.getSystemService(Context.ALARM_SERVICE) as? AlarmManager ?: return
             val intent = Intent(context, TrackingScheduleReceiver::class.java).apply {
                 action = TrackingScheduleReceiver.ACTION_CHECK_TRACKING
@@ -149,10 +338,9 @@ class LiveLocationService : Service(), LocationListener {
             val hour = nowWib.get(Calendar.HOUR_OF_DAY)
 
             val triggerAtMillis: Long = if (hour in WORK_START_HOUR until WORK_END_HOUR) {
-                // Selama jam kerja 06:00-20:00: cek ulang tiap 5 menit (watchdog anti-mati)
-                System.currentTimeMillis() + 5 * 60 * 1000L
+                // Selama jam kerja 06:00-20:00: exact alarm setiap 70 detik agar tetap Online (<120 detik) walau app di-swipe
+                System.currentTimeMillis() + (delayMsOverride ?: 70_000L)
             } else {
-                // Di luar jam kerja: bangunkan tepat jam 06:00:05 WIB berikutnya
                 val nextStart = Calendar.getInstance(TimeZone.getTimeZone("Asia/Jakarta")).apply {
                     if (hour >= WORK_END_HOUR) {
                         add(Calendar.DAY_OF_YEAR, 1)
@@ -167,11 +355,19 @@ class LiveLocationService : Service(), LocationListener {
 
             try {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtMillis, pi)
+                    am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtMillis, pi)
                 } else {
-                    am.set(AlarmManager.RTC_WAKEUP, triggerAtMillis, pi)
+                    am.setExact(AlarmManager.RTC_WAKEUP, triggerAtMillis, pi)
                 }
-            } catch (_: Throwable) {}
+            } catch (_: Throwable) {
+                try {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtMillis, pi)
+                    } else {
+                        am.set(AlarmManager.RTC_WAKEUP, triggerAtMillis, pi)
+                    }
+                } catch (_: Throwable) {}
+            }
         }
 
         private fun cancelWatchdogAlarms(context: Context) {
@@ -208,6 +404,23 @@ class LiveLocationService : Service(), LocationListener {
             }
 
             scheduleNextCheckAlarm(this@LiveLocationService)
+
+            if (!isLocationProviderEnabled(this@LiveLocationService)) {
+                showGpsOffWarning(this@LiveLocationService)
+                val bm = getSystemService(Context.BATTERY_SERVICE) as? BatteryManager
+                val batPct = bm?.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
+                ioExecutor.execute {
+                    postJsonSync(JSONObject().apply {
+                        put("teknisi_id", teknisiId)
+                        put("gps_disabled", 1)
+                        if (batPct != null && batPct in 0..100) put("battery", batPct.toString())
+                    })
+                }
+                mainHandler.postDelayed(this, 25_000L)
+                return
+            }
+
+            dismissGpsOffWarning(this@LiveLocationService)
             ensureLocationListeners()
 
             val candidate = pickBestAvailableLocation()
@@ -255,10 +468,9 @@ class LiveLocationService : Service(), LocationListener {
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
-        // Saat teknisi swipe/tutup aplikasi dari Recent Apps di jam 06:00-20:00 WIB,
-        // jadwalkan hidup kembali otomatis dalam 3 detik
         val teknisiId = getSavedTeknisiId(this)
         if (!teknisiId.isNullOrEmpty() && isWithinWorkingHours()) {
+            scheduleNextCheckAlarm(applicationContext, delayMsOverride = 3_000L)
             val am = getSystemService(Context.ALARM_SERVICE) as? AlarmManager
             val restartIntent = Intent(applicationContext, TrackingScheduleReceiver::class.java).apply {
                 action = TrackingScheduleReceiver.ACTION_CHECK_TRACKING
@@ -273,9 +485,7 @@ class LiveLocationService : Service(), LocationListener {
                     } else {
                         am.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + 3_000L, pi)
                     }
-                } catch (_: Throwable) {
-                    am.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + 3_000L, pi)
-                }
+                } catch (_: Throwable) {}
             }
         }
         super.onTaskRemoved(rootIntent)
@@ -296,6 +506,7 @@ class LiveLocationService : Service(), LocationListener {
             stopSelfCleanly()
             return
         }
+        dismissGpsOffWarning(this)
         updateBestLocation(location)
         val teknisiId = getSavedTeknisiId(this) ?: return
         val chosen = bestLocation ?: location
@@ -304,8 +515,14 @@ class LiveLocationService : Service(), LocationListener {
 
     @Deprecated("Deprecated in Java")
     override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
-    override fun onProviderEnabled(provider: String) {}
-    override fun onProviderDisabled(provider: String) {}
+    override fun onProviderEnabled(provider: String) {
+        dismissGpsOffWarning(this)
+    }
+    override fun onProviderDisabled(provider: String) {
+        if (isWithinWorkingHours() && !isLocationProviderEnabled(this)) {
+            showGpsOffWarning(this)
+        }
+    }
 
     private fun updateBestLocation(incoming: Location) {
         val current = bestLocation
@@ -316,7 +533,6 @@ class LiveLocationService : Service(), LocationListener {
         val timeDelta = incoming.time - current.time
         val isMuchNewer = timeDelta > 30_000L
         val isMoreAccurate = incoming.accuracy <= current.accuracy
-        // Jangan timpa titik GPS akurat (<35m) yang masih segar (<25 dtk) dengan titik kasar BTS (>100m)
         if (!isMuchNewer && current.accuracy < 35f && incoming.accuracy > 100f) {
             return
         }
@@ -326,21 +542,16 @@ class LiveLocationService : Service(), LocationListener {
     }
 
     private fun pickBestAvailableLocation(): Location? {
-        val current = bestLocation
-        if (current != null && System.currentTimeMillis() - current.time < 120_000L) {
-            return current
-        }
-        val lm = locationManager ?: (getSystemService(Context.LOCATION_SERVICE) as? LocationManager) ?: return current
-        var candidate: Location? = current
-        for (provider in listOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER, LocationManager.PASSIVE_PROVIDER)) {
+        val lm = locationManager ?: (getSystemService(Context.LOCATION_SERVICE) as? LocationManager) ?: return bestLocation
+        var candidate: Location? = bestLocation
+        for (provider in listOf("fused", LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER, LocationManager.PASSIVE_PROVIDER)) {
             try {
+                if (!lm.allProviders.contains(provider)) continue
                 if (hasForegroundLocationPermission(this)) {
                     @Suppress("MissingPermission")
                     val loc = lm.getLastKnownLocation(provider)
-                    if (loc != null) {
-                        if (candidate == null || loc.time > candidate.time) {
-                            candidate = loc
-                        }
+                    if (loc != null && (candidate == null || loc.time > candidate.time)) {
+                        candidate = loc
                     }
                 }
             } catch (_: Throwable) {}
@@ -353,6 +564,14 @@ class LiveLocationService : Service(), LocationListener {
         if (listenersRegistered || !hasForegroundLocationPermission(this)) return
         val lm = (getSystemService(Context.LOCATION_SERVICE) as? LocationManager) ?: return
         locationManager = lm
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            try {
+                @Suppress("MissingPermission")
+                if (lm.allProviders.contains("fused")) {
+                    lm.requestLocationUpdates("fused", 15_000L, 10f, this, Looper.getMainLooper())
+                }
+            } catch (_: Throwable) {}
+        }
         try {
             @Suppress("MissingPermission")
             if (lm.allProviders.contains(LocationManager.GPS_PROVIDER)) {
@@ -405,36 +624,19 @@ class LiveLocationService : Service(), LocationListener {
         val batPct = bm?.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
 
         ioExecutor.execute {
-            var conn: HttpURLConnection? = null
-            try {
-                val payload = JSONObject().apply {
-                    put("teknisi_id", teknisiId)
-                    put("latitude", location.latitude.toString())
-                    put("longitude", location.longitude.toString())
-                    put("accuracy", String.format("%.1f", location.accuracy))
-                    put("speed", String.format("%.1f", speedKmh))
-                    put("heading", String.format("%.1f", heading))
-                    put("is_mock", if (isMock) 1 else 0)
-                    if (batPct != null && batPct in 0..100) {
-                        put("battery", batPct.toString())
-                    }
+            postJsonSync(JSONObject().apply {
+                put("teknisi_id", teknisiId)
+                put("latitude", location.latitude.toString())
+                put("longitude", location.longitude.toString())
+                put("accuracy", String.format("%.1f", location.accuracy))
+                put("speed", String.format("%.1f", speedKmh))
+                put("heading", String.format("%.1f", heading))
+                put("is_mock", if (isMock) 1 else 0)
+                put("gps_disabled", 0)
+                if (batPct != null && batPct in 0..100) {
+                    put("battery", batPct.toString())
                 }
-                conn = (URL(UPDATE_URL).openConnection() as HttpURLConnection).apply {
-                    requestMethod = "POST"
-                    connectTimeout = 10_000
-                    readTimeout = 10_000
-                    doOutput = true
-                    setRequestProperty("Content-Type", "application/json; charset=UTF-8")
-                }
-                OutputStreamWriter(conn.outputStream, Charsets.UTF_8).use { writer ->
-                    writer.write(payload.toString())
-                    writer.flush()
-                }
-                conn.responseCode
-            } catch (_: Throwable) {
-            } finally {
-                conn?.disconnect()
-            }
+            })
         }
     }
 
@@ -444,7 +646,7 @@ class LiveLocationService : Service(), LocationListener {
             val pm = getSystemService(Context.POWER_SERVICE) as? PowerManager ?: return
             wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "LoewixTeknisi::LiveGpsWakeLock").apply {
                 setReferenceCounted(false)
-                acquire(14 * 60 * 60 * 1000L) // Maks 14 jam (06:00 - 20:00)
+                acquire(14 * 60 * 60 * 1000L)
             }
         } catch (_: Throwable) {}
     }
@@ -511,4 +713,3 @@ class LiveLocationService : Service(), LocationListener {
             .build()
     }
 }
-

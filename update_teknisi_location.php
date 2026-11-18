@@ -21,12 +21,19 @@ $createTableQuery = "CREATE TABLE IF NOT EXISTS `teknisi_live_location` (
     `speed` VARCHAR(50) DEFAULT NULL,
     `heading` VARCHAR(50) DEFAULT NULL,
     `is_mock` TINYINT(1) DEFAULT 0,
+    `gps_disabled` TINYINT(1) DEFAULT 0,
     `battery` VARCHAR(20) DEFAULT NULL,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX (`teknisi_id`),
     INDEX (`updated_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
 $conn->query($createTableQuery);
+
+// Auto-add gps_disabled column on existing table if not yet present
+$colCheck = $conn->query("SHOW COLUMNS FROM `teknisi_live_location` LIKE 'gps_disabled'");
+if ($colCheck && $colCheck->num_rows === 0) {
+    $conn->query("ALTER TABLE `teknisi_live_location` ADD COLUMN `gps_disabled` TINYINT(1) DEFAULT 0 AFTER `is_mock`");
+}
 
 // Auto-create history log table for trip trail
 $createLogQuery = "CREATE TABLE IF NOT EXISTS `teknisi_location_log` (
@@ -53,7 +60,23 @@ $accuracy = isset($data['accuracy']) ? $data['accuracy'] : ($_POST['accuracy'] ?
 $speed = isset($data['speed']) ? $data['speed'] : ($_POST['speed'] ?? null);
 $heading = isset($data['heading']) ? $data['heading'] : ($_POST['heading'] ?? null);
 $isMock = isset($data['is_mock']) ? ($data['is_mock'] ? 1 : 0) : ($_POST['is_mock'] ?? 0);
+$gpsDisabled = isset($data['gps_disabled']) ? ($data['gps_disabled'] ? 1 : 0) : (int)($_POST['gps_disabled'] ?? 0);
 $battery = isset($data['battery']) ? $data['battery'] : ($_POST['battery'] ?? null);
+
+// Jika HP teknisi melapor bahwa GPS HP sengaja dimatikan (tanpa koordinat baru),
+// tandai gps_disabled = 1 tanpa mengubah updated_at agar durasi mati tetap akurat
+if ($teknisiId && $gpsDisabled === 1 && (!$latitude || !$longitude)) {
+    $tid = (int)$teknisiId;
+    $batStr = $battery !== null ? (string)$battery : null;
+    $stmtOff = $conn->prepare("UPDATE `teknisi_live_location` SET `gps_disabled` = 1, `battery` = COALESCE(?, `battery`), `updated_at` = `updated_at` WHERE `teknisi_id` = ?");
+    if ($stmtOff) {
+        $stmtOff->bind_param("si", $batStr, $tid);
+        $stmtOff->execute();
+        $stmtOff->close();
+    }
+    echo json_encode(['status' => true, 'message' => 'Status GPS dimatikan tercatat']);
+    exit();
+}
 
 if (!$teknisiId || !$latitude || !$longitude) {
     http_response_code(400);
@@ -75,8 +98,8 @@ $battery = $battery !== null ? (string)$battery : null;
 
 // Upsert live location
 $stmt = $conn->prepare("INSERT INTO `teknisi_live_location` 
-    (`teknisi_id`, `latitude`, `longitude`, `accuracy`, `speed`, `heading`, `is_mock`, `battery`, `updated_at`)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())
+    (`teknisi_id`, `latitude`, `longitude`, `accuracy`, `speed`, `heading`, `is_mock`, `gps_disabled`, `battery`, `updated_at`)
+    VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, NOW())
     ON DUPLICATE KEY UPDATE 
     `latitude` = VALUES(`latitude`),
     `longitude` = VALUES(`longitude`),
@@ -84,7 +107,8 @@ $stmt = $conn->prepare("INSERT INTO `teknisi_live_location`
     `speed` = VALUES(`speed`),
     `heading` = VALUES(`heading`),
     `is_mock` = VALUES(`is_mock`),
-    `battery` = VALUES(`battery`),
+    `gps_disabled` = 0,
+    `battery` = COALESCE(VALUES(`battery`), `battery`),
     `updated_at` = NOW()");
 
 if (!$stmt) {

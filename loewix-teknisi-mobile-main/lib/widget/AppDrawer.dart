@@ -55,6 +55,17 @@ class _AppDrawerState extends State<AppDrawer> {
   }
 
   void _showLogoutConfirmation() {
+    if (LiveTrackingService.isWithinWorkingHoursWib()) {
+      QuickAlert.show(
+        context: context,
+        type: QuickAlertType.warning,
+        title: 'Jam Kerja Aktif',
+        text: 'Tidak dapat keluar (Logout) dari aplikasi pada jam kerja (06:00 – 20:00 WIB) agar pemantauan lokasi operasional tetap aktif.',
+        confirmBtnText: 'Mengerti',
+        confirmBtnColor: _rose,
+      );
+      return;
+    }
     QuickAlert.show(
       context: context,
       type: QuickAlertType.confirm,

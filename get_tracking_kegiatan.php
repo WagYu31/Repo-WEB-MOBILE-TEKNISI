@@ -50,6 +50,11 @@ try {
         INDEX (`updated_at`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
 
+    $colCheckGps = $conn->query("SHOW COLUMNS FROM `teknisi_live_location` LIKE 'gps_disabled'");
+    if ($colCheckGps && $colCheckGps->num_rows === 0) {
+        $conn->query("ALTER TABLE `teknisi_live_location` ADD COLUMN `gps_disabled` TINYINT(1) DEFAULT 0");
+    }
+
     // 2. Query Kegiatan Hari Ini
     $sqlToday = "SELECT 
         k.id, k.kode, k.customer_id, k.kegiatan, k.jadwal, k.status, k.keterangan, 
@@ -137,14 +142,14 @@ try {
         $tListStr = implode(',', $teknisiIdList);
         $resLoc = $conn->query("
             SELECT 
-                teknisi_id, latitude, longitude, accuracy, speed, heading, battery, updated_at,
+                teknisi_id, latitude, longitude, accuracy, speed, heading, gps_disabled, battery, updated_at,
                 TIMESTAMPDIFF(SECOND, updated_at, NOW()) AS last_seen_seconds
             FROM teknisi_live_location
             WHERE teknisi_id IN ($tListStr)
         ");
         if ($resLoc) {
             while ($rl = $resLoc->fetch_assoc()) {
-                $rl['is_online'] = ($rl['last_seen_seconds'] !== null && $rl['last_seen_seconds'] <= 120);
+                $rl['is_online'] = ((int)($rl['gps_disabled'] ?? 0) === 0 && $rl['last_seen_seconds'] !== null && $rl['last_seen_seconds'] <= 120);
                 $liveLocations[$rl['teknisi_id']] = $rl;
             }
             $resLoc->free();
@@ -191,8 +196,9 @@ try {
             $lastSeenSec = $live['last_seen_seconds'] ?? null;
             $speed = $live['speed'] ?? 0;
             $battery = $live['battery'] ?? null;
+            $gpsDisabled = ((int)($live['gps_disabled'] ?? 0) === 1);
             $isSelesaiKerja = (stripos($statusKerja, 'selesai') !== false);
-            $gpsMatiJamKerja = ($isJamKerja && !$isOnline && !$isSelesaiKerja);
+            $gpsMatiJamKerja = ($isJamKerja && (!$isOnline || $gpsDisabled) && !$isSelesaiKerja);
 
             if ($isOnline && !isset($countedOnlineTeknisi[$tekId])) {
                 $totalOnlineTeknisi++;
@@ -221,6 +227,7 @@ try {
                 'speed'              => $speed,
                 'battery'            => $battery,
                 'is_online'          => $isOnline,
+                'gps_disabled'       => $gpsDisabled,
                 'gps_mati_jam_kerja' => $gpsMatiJamKerja,
                 'last_seen_seconds'  => $lastSeenSec,
                 'jarak_ke_lokasi_km' => $distToCust,

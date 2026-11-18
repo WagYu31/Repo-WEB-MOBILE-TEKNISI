@@ -8,6 +8,7 @@ import 'package:teknisi_loewix/widget/AppDrawer.dart';
 
 import '../../service/provider/preferences/PreferencesIDProvider.dart';
 import '../../service/tracking/LiveTrackingService.dart';
+import '../../service/update/ForceUpdateService.dart';
 import '../../widget/GpsGuardian.dart';
 import '../Dashboard/DashboardPage.dart';
 import '../Garansi/CekGaransiPage.dart';
@@ -27,6 +28,8 @@ class HomePageAdmin extends StatefulWidget {
 class _HomePageAdminState extends State<HomePageAdmin> with WidgetsBindingObserver {
   int _currentIndex = 0;
   bool _isLocationAlwaysGranted = true;
+  bool _isCheckingForceUpdate = false;
+  DateTime? _lastVersionCheckAt;
 
   @override
   void initState() {
@@ -34,6 +37,7 @@ class _HomePageAdminState extends State<HomePageAdmin> with WidgetsBindingObserv
     WidgetsBinding.instance.addObserver(this);
     _checkLocationAlwaysStatus();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _verifyAppVersionIfNeeded();
       final idProvider = Provider.of<PreferencesIDProvider>(context, listen: false);
       await idProvider.getUserRolePreferences();
       final teknisiId = idProvider.isUserRole;
@@ -53,6 +57,24 @@ class _HomePageAdminState extends State<HomePageAdmin> with WidgetsBindingObserv
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       _checkLocationAlwaysStatus();
+      _verifyAppVersionIfNeeded();
+      LiveTrackingService().refreshNativeServiceIfNeeded();
+    }
+  }
+
+  Future<void> _verifyAppVersionIfNeeded() async {
+    if (_isCheckingForceUpdate || !mounted) return;
+    final now = DateTime.now();
+    if (_lastVersionCheckAt != null && now.difference(_lastVersionCheckAt!).inSeconds < 60) {
+      return;
+    }
+    _isCheckingForceUpdate = true;
+    _lastVersionCheckAt = now;
+    try {
+      await ForceUpdateService().checkVersion(context);
+    } catch (_) {
+    } finally {
+      _isCheckingForceUpdate = false;
     }
   }
 
