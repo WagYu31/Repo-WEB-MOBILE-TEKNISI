@@ -167,18 +167,35 @@ $todayStr = date("Y-m-d");
         background: rgba(255, 255, 255, 0.07);
         border: 1px solid rgba(255, 255, 255, 0.12);
         border-radius: 10px;
-        padding: 6px 10px;
+        padding: 6px 11px;
+    }
+
+    .date-chip-left {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        min-inline-size: 0;
     }
 
     .date-input-clean {
+        position: relative;
         background: transparent;
         border: none;
+        padding: 0;
         color: #f8fafc;
         font-size: 11.5px;
         font-weight: 600;
         font-family: inherit;
         cursor: pointer;
         color-scheme: dark;
+    }
+    .date-input-clean::-webkit-calendar-picker-indicator {
+        position: absolute;
+        inset: 0;
+        inline-size: 100%;
+        block-size: 100%;
+        opacity: 0;
+        cursor: pointer;
     }
 
     .sync-time-lbl {
@@ -246,16 +263,14 @@ $todayStr = date("Y-m-d");
 
     .tracking-type-pills {
         display: flex;
-        gap: 6px;
-        overflow-x: auto;
-        scrollbar-width: none;
-        padding-bottom: 1px;
+        flex-wrap: wrap;
+        flex-wrap: balance;
+        gap: 5px;
     }
-    .tracking-type-pills::-webkit-scrollbar { display: none; }
 
     .type-pill {
-        padding: 5px 10px;
-        border-radius: 20px;
+        padding: 4px 9px;
+        border-radius: 999px;
         font-size: 11px;
         font-weight: 600;
         cursor: pointer;
@@ -263,8 +278,11 @@ $todayStr = date("Y-m-d");
         background: #ffffff;
         color: #475569;
         white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
         transition: background 0.15s, color 0.15s, border-color 0.15s;
-        min-height: 28px;
+        min-height: 27px;
     }
     .type-pill:hover {
         border-color: #cbd5e1;
@@ -296,6 +314,8 @@ $todayStr = date("Y-m-d");
         flex: 1;
         min-height: 0;
         overflow-y: auto;
+        scrollbar-gutter: stable;
+        overscroll-behavior: contain;
         padding: 12px;
         display: flex;
         flex-direction: column;
@@ -324,6 +344,7 @@ $todayStr = date("Y-m-d");
 
     /* ─── Semantic Card (<article>) with Stretched Primary Button ─── */
     .kegiatan-card {
+        container: keg-card / inline-size;
         position: relative;
         background: #ffffff;
         border: 2px solid #e2e8f0;
@@ -453,39 +474,60 @@ $todayStr = date("Y-m-d");
     .keg-teknisi-box {
         background: #f8fafc;
         border: 1px solid #e2e8f0;
-        border-radius: 10px;
-        padding: 8px 10px;
-        margin-bottom: 9px;
+        border-radius: 11px;
+        padding: 8px 9px;
+        margin-bottom: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
     }
     .keg-teknisi-title {
         font-size: 10px;
         font-weight: 700;
         color: #64748b;
         text-transform: uppercase;
-        letter-spacing: 0.45px;
-        margin-bottom: 5px;
-        display: flex;
-        justify-content: space-between;
-    }
-    .tek-row {
+        letter-spacing: 0.4px;
+        padding: 0 2px;
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 6px;
-        padding: 5px 0;
-        border-bottom: 1px dashed #e2e8f0;
-        font-size: 11.5px;
     }
-    .tek-row:last-child {
-        border-bottom: none;
-        padding-bottom: 0;
+    .keg-teknisi-hint {
+        font-size: 10px;
+        font-weight: 500;
+        color: #94a3b8;
+        text-transform: none;
+        letter-spacing: 0;
+    }
+    .tek-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 9px;
+        padding: 7px 9px;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+    .tek-card.tek-card-alert {
+        border-color: #fecdd3;
+        background: #fffafa;
+    }
+    .tek-top-line {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        min-inline-size: 0;
     }
     .btn-tek-jump {
         background: none;
         border: none;
-        padding: 2px 4px;
-        margin: -2px -4px;
+        padding: 2px 5px;
+        margin: -2px -5px;
         border-radius: 6px;
+        flex: 1 1 auto;
+        min-inline-size: 0;
         display: inline-flex;
         align-items: center;
         gap: 6px;
@@ -494,27 +536,47 @@ $todayStr = date("Y-m-d");
         transition: background 0.15s;
     }
     .btn-tek-jump:hover {
-        background: #e2e8f0;
+        background: #f1f5f9;
     }
     .tek-name {
         font-weight: 600;
-        color: #1e293b;
-        font-size: 11.5px;
+        color: #0f172a;
+        font-size: 12px;
+        min-inline-size: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .tek-right-actions {
+        flex-shrink: 0;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+    .tek-meta-line {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 5px;
+        padding-inline-start: 18px;
     }
     .badge-ketua {
+        flex-shrink: 0;
         font-size: 9px;
         font-weight: 700;
         background: #fef3c7;
         color: #92400e;
-        padding: 1px 5px;
+        padding: 1.5px 5px;
         border-radius: 4px;
     }
     .badge-status-work {
+        flex-shrink: 0;
         font-size: 9.5px;
         font-weight: 700;
-        padding: 2px 6px;
+        padding: 2px 7px;
         border-radius: 5px;
         text-transform: capitalize;
+        white-space: nowrap;
     }
     .status-dkj  { background: #dbeafe; color: #1d4ed8; }
     .status-mlap { background: #ffedd5; color: #c2410c; }
@@ -531,8 +593,26 @@ $todayStr = date("Y-m-d");
         font-size: 10px;
         font-weight: 700;
         padding: 2px 7px;
-        border-radius: 12px;
+        border-radius: 999px;
         white-space: nowrap;
+    }
+    .tek-meta-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        background: #f1f5f9;
+        border: 1px solid #e2e8f0;
+        color: #334155;
+        font-size: 10px;
+        font-weight: 600;
+        padding: 2px 7px;
+        border-radius: 999px;
+        white-space: nowrap;
+    }
+    .tek-meta-chip.bat-low {
+        background: #fff1f2;
+        border-color: #fecdd3;
+        color: #be123c;
     }
     .gps-pill-offline {
         display: inline-flex;
@@ -543,7 +623,7 @@ $todayStr = date("Y-m-d");
         font-size: 10px;
         font-weight: 600;
         padding: 2px 7px;
-        border-radius: 12px;
+        border-radius: 999px;
         white-space: nowrap;
     }
     .gps-pill-alert {
@@ -556,7 +636,7 @@ $todayStr = date("Y-m-d");
         font-size: 10px;
         font-weight: 700;
         padding: 2px 7px;
-        border-radius: 12px;
+        border-radius: 999px;
         white-space: nowrap;
     }
     .dot-online {
@@ -976,7 +1056,7 @@ $todayStr = date("Y-m-d");
           </div>
 
           <div class="drawer-date-bar">
-            <div class="d-flex align-items-center gap-2">
+            <div class="date-chip-left">
               <i class="fa-regular fa-calendar" style="color:#ff7a45; font-size:12px;" aria-hidden="true"></i>
               <label for="trackingDate" class="visually-hidden">Pilih tanggal jadwal tracking</label>
               <input type="date" id="trackingDate" class="date-input-clean" value="<?php echo htmlspecialchars($todayStr); ?>">
@@ -1332,12 +1412,17 @@ $todayStr = date("Y-m-d");
                 ? `${t.jarak_ke_lokasi_km} km`
                 : '';
 
-              const batTxt = t.battery ? ` • 🔋${escHtml(String(t.battery))}%` : '';
-              const gpsBadge = t.is_online
-                ? `<span class="gps-pill-online" title="GPS aktif real-time"><span class="dot-online" aria-hidden="true"></span>${Math.round(parseFloat(t.speed || 0))} km/j${distText ? ' • ' + distText : ''}${batTxt}</span>`
+              const batNum = t.battery !== null && t.battery !== undefined && t.battery !== '' ? parseInt(t.battery, 10) : null;
+              const hasBat = batNum !== null && !isNaN(batNum);
+              const batIcon = !hasBat ? '' : (batNum >= 75 ? 'fa-battery-full' : (batNum >= 45 ? 'fa-battery-three-quarters' : (batNum >= 20 ? 'fa-battery-half' : 'fa-battery-quarter')));
+
+              const metaChipsHtml = t.is_online
+                ? `<span class="gps-pill-online" title="GPS aktif real-time"><span class="dot-online" aria-hidden="true"></span>Online • ${Math.round(parseFloat(t.speed || 0))} km/j</span>`
+                  + (distText ? `<span class="tek-meta-chip" title="Estimasi jarak ke customer"><i class="fa-solid fa-location-arrow" style="color:#ea580c; font-size:9px;" aria-hidden="true"></i>${escHtml(distText)}</span>` : '')
+                  + (hasBat ? `<span class="tek-meta-chip ${batNum <= 20 ? 'bat-low' : ''}" title="Sisa baterai HP teknisi"><i class="fa-solid ${batIcon}" style="color:${batNum <= 20 ? '#e11d48' : '#16a34a'}; font-size:10px;" aria-hidden="true"></i>${batNum}%</span>` : '')
                 : (t.gps_mati_jam_kerja
                   ? `<span class="gps-pill-alert" title="GPS tidak aktif di jam kerja (06:00-20:00 WIB)"><span class="dot-alert" aria-hidden="true"></span>GPS Mati • ${escHtml(formatLastSeen(t.last_seen_seconds))}</span>`
-                  : `<span class="gps-pill-offline" title="Waktu sejak sinyal GPS terakhir dikirim"><span class="dot-offline" aria-hidden="true"></span>${escHtml(formatLastSeen(t.last_seen_seconds))}</span>`);
+                  : `<span class="gps-pill-offline" title="Waktu sejak sinyal GPS terakhir dikirim"><span class="dot-offline" aria-hidden="true"></span>Aktif ${escHtml(formatLastSeen(t.last_seen_seconds))}</span>`);
 
               const tekPhone = String(t.telp || '').replace(/[^0-9]/g, '').replace(/^0/, '');
               const waQuery = t.gps_mati_jam_kerja
@@ -1346,16 +1431,20 @@ $todayStr = date("Y-m-d");
               const hasLivePin = Boolean(t.live_latitude && t.live_longitude);
 
               return `
-                <div class="tek-row">
-                  <button type="button" class="btn-tek-jump" onclick="focusTeknisi(${ parseInt(t.teknisi_id, 10) }, '${safeKodeJs}')" title="${hasLivePin ? 'Klik untuk lihat posisi ' + escHtml(t.nama) + ' di peta' : 'Teknisi belum mengirim titik GPS'}">
-                    <i class="fa-solid fa-motorcycle" style="color: ${t.is_online ? '#ff5b22' : (t.gps_mati_jam_kerja ? '#e11d48' : '#94a3b8')}; font-size: 11.5px;" aria-hidden="true"></i>
-                    <span class="tek-name">${escHtml(t.nama)}</span>
-                    ${t.is_ketua ? '<span class="badge-ketua">Ketua</span>' : ''}
-                    <span class="badge-status-work ${statusClass}">${escHtml(t.status_kerja)}</span>
-                  </button>
-                  <div style="display:flex; align-items:center; gap:5px;">
-                    ${gpsBadge}
-                    ${tekPhone ? `<a href="https://wa.me/62${tekPhone}${waQuery}" target="_blank" rel="noopener" class="btn-wa-mini" aria-label="WhatsApp ${escHtml(t.nama)}"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i></a>` : ''}
+                <div class="tek-card ${t.gps_mati_jam_kerja ? 'tek-card-alert' : ''}">
+                  <div class="tek-top-line">
+                    <button type="button" class="btn-tek-jump" onclick="focusTeknisi(${ parseInt(t.teknisi_id, 10) }, '${safeKodeJs}')" title="${hasLivePin ? 'Klik untuk lihat posisi ' + escHtml(t.nama) + ' di peta' : 'Teknisi belum mengirim titik GPS'}">
+                      <i class="fa-solid fa-motorcycle" style="color: ${t.is_online ? '#ff5b22' : (t.gps_mati_jam_kerja ? '#e11d48' : '#94a3b8')}; font-size: 12px; flex-shrink:0;" aria-hidden="true"></i>
+                      <span class="tek-name">${escHtml(t.nama)}</span>
+                      ${t.is_ketua ? '<span class="badge-ketua">Ketua</span>' : ''}
+                    </button>
+                    <div class="tek-right-actions">
+                      <span class="badge-status-work ${statusClass}">${escHtml(t.status_kerja)}</span>
+                      ${tekPhone ? `<a href="https://wa.me/62${tekPhone}${waQuery}" target="_blank" rel="noopener" class="btn-wa-mini" aria-label="WhatsApp ${escHtml(t.nama)}"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i></a>` : ''}
+                    </div>
+                  </div>
+                  <div class="tek-meta-line">
+                    ${metaChipsHtml}
                   </div>
                 </div>`;
             }).join('')
@@ -1388,8 +1477,8 @@ $todayStr = date("Y-m-d");
 
             <div class="keg-teknisi-box">
               <div class="keg-teknisi-title">
-                <span><i class="fa-solid fa-users-gear" aria-hidden="true"></i> Tim Teknisi (${keg.teknisi_count}) — klik nama ke motor</span>
-                <span>GPS Terakhir</span>
+                <span><i class="fa-solid fa-users-gear" aria-hidden="true"></i> Tim Teknisi (${keg.teknisi_count})</span>
+                <span class="keg-teknisi-hint">Klik nama → fokus peta</span>
               </div>
               ${teknisiHtml}
             </div>
@@ -1510,9 +1599,10 @@ $todayStr = date("Y-m-d");
               <div style="font-size: 13.5px; font-weight:700; color:#0f172a; margin-bottom:2px;">
                 ${escHtml(tek.nama)} ${tek.is_ketua ? '<span class="badge-ketua">Ketua</span>' : ''}
               </div>
-              <div style="margin-bottom:6px;">
+              <div style="margin-bottom:6px; display:flex; flex-wrap:wrap; gap:4px; align-items:center;">
                 ${tek.is_online
-                  ? `<span class="gps-pill-online"><span class="dot-online" aria-hidden="true"></span>Online • ${Math.round(parseFloat(tek.speed || 0))} km/jam${tek.battery ? ' • 🔋' + escHtml(String(tek.battery)) + '%' : ''}</span>`
+                  ? `<span class="gps-pill-online"><span class="dot-online" aria-hidden="true"></span>Online • ${Math.round(parseFloat(tek.speed || 0))} km/jam</span>`
+                    + (tek.battery ? `<span class="tek-meta-chip"><i class="fa-solid fa-battery-three-quarters" style="color:#16a34a;" aria-hidden="true"></i>${escHtml(String(tek.battery))}%</span>` : '')
                   : (tek.gps_mati_jam_kerja
                     ? `<span class="gps-pill-alert"><span class="dot-alert" aria-hidden="true"></span>GPS Mati • ${escHtml(formatLastSeen(tek.last_seen_seconds))}</span>`
                     : `<span class="gps-pill-offline"><span class="dot-offline" aria-hidden="true"></span>Aktif ${escHtml(formatLastSeen(tek.last_seen_seconds))}</span>`)
