@@ -20,7 +20,7 @@ if (!function_exists('dispatchGetAreaCatalog')) {
             ['kw' => ['kelapa gading', 'pegangsaan dua', 'moi', 'boulevard raya'], 'zone' => 'JAKUT', 'sub' => 'Klp. Gading', 'lat' => -6.1575, 'lon' => 106.9055],
             ['kw' => ['tanjung priok', 'warakas', 'kebon bawang', 'sungai bambu'], 'zone' => 'JAKUT', 'sub' => 'Tj. Priok', 'lat' => -6.1185, 'lon' => 106.8830],
             ['kw' => ['koja', 'rawa badak', 'tugu utara', 'tugu selatan'], 'zone' => 'JAKUT', 'sub' => 'Koja', 'lat' => -6.1180, 'lon' => 106.9120],
-            ['kw' => ['cilincing', 'marunda', 'semper', 'rorotan', 'sukapura', 'kbn'], 'zone' => 'JAKUT', 'sub' => 'Cilincing', 'lat' => -6.1155, 'lon' => 106.9450],
+            ['kw' => ['cilincing', 'marunda', 'semper', 'rorotan', 'sukapura', 'kbn marunda'], 'zone' => 'JAKUT', 'sub' => 'Cilincing', 'lat' => -6.1155, 'lon' => 106.9450],
 
             // JAKARTA BARAT
             ['kw' => ['puri indah', 'kembangan', 'meruya', 'joglo', 'srengseng', 'lippo puri'], 'zone' => 'JAKBAR', 'sub' => 'Puri/Kembangan', 'lat' => -6.1885, 'lon' => 106.7385],

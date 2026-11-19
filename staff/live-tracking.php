@@ -1348,6 +1348,10 @@ $todayStr = date("Y-m-d");
       return remHours > 0 ? `${days}hr ${remHours}j lalu` : `${days} hari lalu`;
     }
 
+    function kegKey(keg) {
+      return String(keg.track_key || (keg.category || 'keg') + '_' + (keg.id || keg.kode));
+    }
+
     function shortLabel(name, maxLen = 15) {
       const s = String(name || '').trim();
       return s.length > maxLen ? s.slice(0, maxLen - 1) + '…' : s;
@@ -1531,8 +1535,9 @@ $todayStr = date("Y-m-d");
         else if (kegLower.includes('service')) typeClass = 'type-service';
         else if (kegLower.includes('survey')) typeClass = 'type-survey';
 
-        const isSelected = selectedKegiatanKode === keg.kode;
-        const safeKodeJs = escHtml(keg.kode);
+        const uKey = kegKey(keg);
+        const isSelected = selectedKegiatanKode === uKey;
+        const safeKeyJs = escHtml(uKey);
 
         const teknisiHtml = (keg.teknisi_list || []).length > 0
           ? keg.teknisi_list.map(t => {
@@ -1568,7 +1573,7 @@ $todayStr = date("Y-m-d");
               return `
                 <div class="tek-card ${t.gps_mati_jam_kerja ? 'tek-card-alert' : ''}">
                   <div class="tek-top-line">
-                    <button type="button" class="btn-tek-jump" onclick="focusTeknisi(${ parseInt(t.teknisi_id, 10) }, '${safeKodeJs}')" title="${hasLivePin ? 'Klik untuk lihat posisi ' + escHtml(t.nama) + ' di peta' : 'Teknisi belum mengirim titik GPS'}">
+                    <button type="button" class="btn-tek-jump" onclick="focusTeknisi(${ parseInt(t.teknisi_id, 10) }, '${safeKeyJs}')" title="${hasLivePin ? 'Klik untuk lihat posisi ' + escHtml(t.nama) + ' di peta' : 'Teknisi belum mengirim titik GPS'}">
                       <i class="fa-solid fa-motorcycle" style="color: ${t.is_online ? '#ff5b22' : (t.gps_mati_jam_kerja ? '#e11d48' : '#94a3b8')}; font-size: 12px; flex-shrink:0;" aria-hidden="true"></i>
                       <span class="tek-name">${escHtml(t.nama)}</span>
                       ${t.is_ketua ? '<span class="badge-ketua">Ketua</span>' : ''}
@@ -1611,7 +1616,7 @@ $todayStr = date("Y-m-d");
             </div>
 
             <h2 class="keg-customer">
-              <button type="button" class="card-link" onclick="focusKegiatan('${safeKodeJs}')">
+              <button type="button" class="card-link" onclick="focusKegiatan('${safeKeyJs}')">
                 ${escHtml(keg.nama_customer || 'Customer')}
               </button>
             </h2>
@@ -1632,7 +1637,7 @@ $todayStr = date("Y-m-d");
             </div>
 
             <footer class="keg-actions">
-              <button type="button" class="btn-focus-map" onclick="focusKegiatan('${safeKodeJs}')">
+              <button type="button" class="btn-focus-map" onclick="focusKegiatan('${safeKeyJs}')">
                 <i class="fa-solid ${isSelected ? 'fa-route' : 'fa-crosshairs'}" aria-hidden="true"></i>
                 ${isSelected ? 'Sedang Dipantau di Peta' : 'Lihat Rute & Posisi'}
               </button>
@@ -1664,17 +1669,18 @@ $todayStr = date("Y-m-d");
       const activeTekIds = new Set();
       const boundsList = [];
 
-      const visibleKodes = new Set(getFilteredKegiatan().map(k => k.kode));
+      const visibleKeys = new Set(getFilteredKegiatan().map(k => kegKey(k)));
 
       kegiatanData.forEach(keg => {
-        const isSelected = selectedKegiatanKode === keg.kode;
-        const showCustPin = visibleKodes.has(keg.kode) || isSelected;
+        const uKey = kegKey(keg);
+        const isSelected = selectedKegiatanKode === uKey;
+        const showCustPin = visibleKeys.has(uKey) || isSelected;
         const cLat = parseFloat(keg.latitude);
         const cLon = parseFloat(keg.longitude);
         const hasCustCoord = !isNaN(cLat) && !isNaN(cLon) && cLat !== 0 && cLon !== 0;
 
         if (hasCustCoord && showCustPin) {
-          activeCustKodes.add(keg.kode);
+          activeCustKodes.add(uKey);
           boundsList.push([cLat, cLon]);
 
           const isWaitingPin = Boolean(keg.is_waiting);
@@ -1709,16 +1715,16 @@ $todayStr = date("Y-m-d");
               </div>
             </div>`;
 
-          if (customerMarkers[keg.kode]) {
-            customerMarkers[keg.kode].setLatLng([cLat, cLon]);
-            customerMarkers[keg.kode].setIcon(createCustomerIcon(keg.nama_customer, pinCategory));
-            customerMarkers[keg.kode].getPopup().setContent(custPopup);
+          if (customerMarkers[uKey]) {
+            customerMarkers[uKey].setLatLng([cLat, cLon]);
+            customerMarkers[uKey].setIcon(createCustomerIcon(keg.nama_customer, pinCategory));
+            customerMarkers[uKey].getPopup().setContent(custPopup);
           } else {
             const marker = L.marker([cLat, cLon], { icon: createCustomerIcon(keg.nama_customer, pinCategory) })
               .addTo(map)
               .bindPopup(custPopup);
-            marker.on('click', () => focusKegiatan(keg.kode));
-            customerMarkers[keg.kode] = marker;
+            marker.on('click', () => focusKegiatan(uKey));
+            customerMarkers[uKey] = marker;
           }
         }
 
@@ -1750,7 +1756,7 @@ $todayStr = date("Y-m-d");
                     line.setStyle({ dashArray: null, weight: 4.5, opacity: 0.95 });
                     const km = (rt.distance / 1000).toFixed(1);
                     const etaMin = Math.max(1, Math.round(rt.duration / 60));
-                    if (selectedKegiatanKode === keg.kode) {
+                    if (selectedKegiatanKode === uKey) {
                       updateFocusBanner(keg, `<span class="focus-eta-pill"><i class="fa-solid fa-route"></i> ${km} km (~${etaMin} mnt)</span>`);
                     }
                   }
@@ -1815,9 +1821,9 @@ $todayStr = date("Y-m-d");
       }
     }
 
-    function focusKegiatan(kode) {
-      selectedKegiatanKode = kode;
-      const keg = kegiatanData.find(k => k.kode === kode);
+    function focusKegiatan(trackKey) {
+      selectedKegiatanKode = trackKey;
+      const keg = kegiatanData.find(k => kegKey(k) === trackKey);
       updateFocusBanner(keg || null);
       renderKegiatanSidebar();
       renderMapLayers();
@@ -1836,7 +1842,7 @@ $todayStr = date("Y-m-d");
         const wLat = parseFloat(keg.latitude);
         const wLon = parseFloat(keg.longitude);
         targets.push([wLat, wLon]);
-        if (customerMarkers[kode]) customerMarkers[kode].openPopup();
+        if (customerMarkers[trackKey]) customerMarkers[trackKey].openPopup();
 
         // Jika kartu Waiting List diklik, tampilkan teknisi terjadwal terdekat di banner atas sebagai referensi arah
         if (keg.is_waiting) {
@@ -1876,9 +1882,9 @@ $todayStr = date("Y-m-d");
       }
     }
 
-    function focusTeknisi(tekId, kode) {
-      selectedKegiatanKode = kode;
-      const keg = kegiatanData.find(k => k.kode === kode);
+    function focusTeknisi(tekId, trackKey) {
+      selectedKegiatanKode = trackKey;
+      const keg = kegiatanData.find(k => kegKey(k) === trackKey);
       updateFocusBanner(keg || null);
       renderKegiatanSidebar();
       renderMapLayers();
@@ -1891,7 +1897,7 @@ $todayStr = date("Y-m-d");
         map.flyTo(marker.getLatLng(), 16, { duration: 0.9 });
         setTimeout(() => marker.openPopup(), 350);
       } else {
-        focusKegiatan(kode);
+        focusKegiatan(trackKey);
       }
     }
 
