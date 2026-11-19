@@ -214,10 +214,82 @@ $todayStr = date("Y-m-d");
         gap: 9px;
     }
 
+    .tracking-search-row {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+    }
+
     .tracking-search-wrap {
         position: relative;
         display: flex;
         align-items: center;
+        flex: 1;
+        min-width: 0;
+    }
+
+    .btn-toggle-filter {
+        flex-shrink: 0;
+        height: 35px;
+        padding: 0 11px;
+        border-radius: 10px;
+        border: 1.5px solid #cbd5e1;
+        background: #ffffff;
+        color: #334155;
+        font-size: 11.5px;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        transition: all 0.15s;
+        white-space: nowrap;
+    }
+    .btn-toggle-filter:hover {
+        border-color: #94a3b8;
+        color: #0f172a;
+    }
+    .btn-toggle-filter.has-active-filter {
+        border-color: var(--lt-orange);
+        background: #fff7ed;
+        color: #c2410c;
+    }
+
+    .left-filter-body {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+    }
+    .left-filter-body[hidden] {
+        display: none !important;
+    }
+    .cat-vis-row {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 5px;
+        padding-bottom: 6px;
+        border-bottom: 1px dashed #e2e8f0;
+    }
+    .cat-vis-lbl {
+        font-size: 10px;
+        font-weight: 700;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        margin-right: 2px;
+    }
+    .type-pill.cat-hidden {
+        background: #f1f5f9 !important;
+        border-color: #cbd5e1 !important;
+        color: #94a3b8 !important;
+        border-style: dashed !important;
+        text-decoration: line-through;
+        opacity: 0.8;
+    }
+    button.stat-item.stat-active {
+        background: rgba(255, 255, 255, 0.22);
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
     }
 
     .tracking-search-wrap .search-ico {
@@ -1161,25 +1233,47 @@ $todayStr = date("Y-m-d");
 
         <!-- Search & Filter Pills -->
         <div class="tracking-filter-pane">
-          <div class="tracking-search-wrap">
-            <label for="searchInput" class="visually-hidden">Cari nama customer, teknisi, atau kode kegiatan</label>
-            <i class="fa-solid fa-magnifying-glass search-ico" aria-hidden="true"></i>
-            <input type="text" id="searchInput" class="tracking-search-input" placeholder="Cari customer, nama teknisi, #kode...">
-            <button type="button" id="btnClearSearch" class="btn-clear-search" aria-label="Hapus pencarian" onclick="clearSearchInput()">
-              <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+          <div class="tracking-search-row">
+            <div class="tracking-search-wrap">
+              <label for="searchInput" class="visually-hidden">Cari nama customer, teknisi, atau kode kegiatan</label>
+              <i class="fa-solid fa-magnifying-glass search-ico" aria-hidden="true"></i>
+              <input type="text" id="searchInput" class="tracking-search-input" placeholder="Cari customer, teknisi, #kode...">
+              <button type="button" id="btnClearSearch" class="btn-clear-search" aria-label="Hapus pencarian" onclick="clearSearchInput()">
+                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+              </button>
+            </div>
+            <button type="button" id="btnToggleFilterPane" class="btn-toggle-filter" aria-expanded="true" onclick="toggleLeftFilterPane()" title="Sembunyikan atau tampilkan kotak filter">
+              <i class="fa-solid fa-sliders" aria-hidden="true"></i>
+              <span id="lblToggleFilter">Hide Filter</span>
+              <i class="fa-solid fa-chevron-up" id="icoToggleFilter" style="font-size:10px;" aria-hidden="true"></i>
             </button>
           </div>
-          <div class="tracking-type-pills" role="group" aria-label="Filter kegiatan">
-            <button type="button" class="type-pill" data-type="all" aria-pressed="true" onclick="filterType('all', this)">Semua (<span id="countAll">0</span>)</button>
-            <button type="button" class="type-pill pill-today" data-type="today" aria-pressed="false" onclick="filterType('today', this)"><i class="fa-solid fa-store" aria-hidden="true"></i> Hari Ini (<span id="countToday">0</span>)</button>
-            <button type="button" class="type-pill pill-upcoming" data-type="upcoming" aria-pressed="false" onclick="filterType('upcoming', this)"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i> Akan Datang (<span id="countUpcoming">0</span>)</button>
-            <button type="button" class="type-pill pill-waiting" data-type="waiting" aria-pressed="false" onclick="filterType('waiting', this)"><i class="fa-solid fa-hourglass-half" aria-hidden="true"></i> Waiting (<span id="countWaiting">0</span>)</button>
-            <button type="button" class="type-pill pill-online" data-type="online" aria-pressed="false" onclick="filterType('online', this)"><i class="fa-solid fa-satellite-dish" aria-hidden="true"></i> GPS Online (<span id="countOnlineCard">0</span>)</button>
-            <button type="button" class="type-pill pill-alert" id="pillGpsMati" data-type="gps_mati" aria-pressed="false" hidden onclick="filterType('gps_mati', this)"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> GPS Mati (<span id="countGpsMati">0</span>)</button>
-            <button type="button" class="type-pill" data-type="berjalan" aria-pressed="false" onclick="filterType('berjalan', this)">Dikerjakan (<span id="countBerjalan">0</span>)</button>
-            <button type="button" class="type-pill" data-type="pasang" aria-pressed="false" onclick="filterType('pasang', this)">Pasang (<span id="countPasang">0</span>)</button>
-            <button type="button" class="type-pill" data-type="service" aria-pressed="false" onclick="filterType('service', this)">Service (<span id="countService">0</span>)</button>
-            <button type="button" class="type-pill" data-type="survey" aria-pressed="false" onclick="filterType('survey', this)">Survey (<span id="countSurvey">0</span>)</button>
+
+          <div id="leftFilterBody" class="left-filter-body">
+            <!-- Baris Show / Hide Kategori di Peta & Daftar -->
+            <div class="cat-vis-row" role="group" aria-label="Tampilkan atau sembunyikan kategori jadwal">
+              <span class="cat-vis-lbl">Tampil:</span>
+              <button type="button" class="type-pill pill-today" id="visBtnToday" aria-pressed="true" onclick="toggleCategoryVisibility('today')" title="Klik untuk sembunyikan / tampilkan Kegiatan Hari Ini">
+                <i class="fa-solid fa-eye" id="visIcoToday" aria-hidden="true"></i> Hari Ini (<span id="countToday">0</span>)
+              </button>
+              <button type="button" class="type-pill pill-upcoming" id="visBtnUpcoming" aria-pressed="true" onclick="toggleCategoryVisibility('upcoming')" title="Klik untuk sembunyikan / tampilkan Kegiatan Akan Datang">
+                <i class="fa-solid fa-eye" id="visIcoUpcoming" aria-hidden="true"></i> Akan Datang (<span id="countUpcoming">0</span>)
+              </button>
+              <button type="button" class="type-pill pill-waiting" id="visBtnWaiting" aria-pressed="true" onclick="toggleCategoryVisibility('waiting')" title="Klik untuk sembunyikan / tampilkan Waiting List">
+                <i class="fa-solid fa-eye" id="visIcoWaiting" aria-hidden="true"></i> Waiting (<span id="countWaiting">0</span>)
+              </button>
+            </div>
+
+            <!-- Baris Filter Jenis & Status -->
+            <div class="tracking-type-pills" role="group" aria-label="Filter jenis kegiatan">
+              <button type="button" class="type-pill" data-type="all" aria-pressed="true" onclick="filterType('all', this)">Semua (<span id="countAll">0</span>)</button>
+              <button type="button" class="type-pill pill-online" data-type="online" aria-pressed="false" onclick="filterType('online', this)"><i class="fa-solid fa-satellite-dish" aria-hidden="true"></i> GPS Online (<span id="countOnlineCard">0</span>)</button>
+              <button type="button" class="type-pill pill-alert" id="pillGpsMati" data-type="gps_mati" aria-pressed="false" hidden onclick="filterType('gps_mati', this)"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> GPS Mati (<span id="countGpsMati">0</span>)</button>
+              <button type="button" class="type-pill" data-type="berjalan" aria-pressed="false" onclick="filterType('berjalan', this)">Dikerjakan (<span id="countBerjalan">0</span>)</button>
+              <button type="button" class="type-pill" data-type="pasang" aria-pressed="false" onclick="filterType('pasang', this)">Pasang (<span id="countPasang">0</span>)</button>
+              <button type="button" class="type-pill" data-type="service" aria-pressed="false" onclick="filterType('service', this)">Service (<span id="countService">0</span>)</button>
+              <button type="button" class="type-pill" data-type="survey" aria-pressed="false" onclick="filterType('survey', this)">Survey (<span id="countSurvey">0</span>)</button>
+            </div>
           </div>
         </div>
 
@@ -1197,19 +1291,14 @@ $todayStr = date("Y-m-d");
         <!-- Top Floating Bar -->
         <div class="map-floating-bar">
           <div class="map-stats-pill">
-            <button type="button" class="stat-item" onclick="quickToggleCategoryFilter('today')" title="Klik untuk memfilter jadwal Hari Ini">
+            <button type="button" class="stat-item" id="btnStatToday" onclick="selectTopScope('today')" title="Klik untuk menampilkan Kegiatan Hari Ini saja (klik lagi untuk semua)">
               <i class="fa-solid fa-store" style="color: #f87171;" aria-hidden="true"></i>
               <span id="statKegiatan">0 Hari Ini</span>
             </button>
             <div class="stat-divider"></div>
-            <button type="button" class="stat-item" onclick="quickToggleCategoryFilter('upcoming')" title="Klik untuk memfilter Kegiatan Akan Datang">
-              <i class="fa-solid fa-calendar-days" style="color: #60a5fa;" aria-hidden="true"></i>
-              <span id="statUpcoming">0 Akan Datang</span>
-            </button>
-            <div class="stat-divider"></div>
-            <button type="button" class="stat-item" onclick="quickToggleCategoryFilter('waiting')" title="Klik untuk memfilter lokasi Waiting List (Belum dapat teknisi)">
-              <i class="fa-solid fa-hourglass-half" style="color: #c4b5fd;" aria-hidden="true"></i>
-              <span id="statWaiting">0 Waiting</span>
+            <button type="button" class="stat-item" id="btnStatNext" onclick="selectTopScope('next')" title="Klik untuk menampilkan Kegiatan Selanjutnya (gabungan Akan Datang + Waiting List)">
+              <i class="fa-solid fa-calendar-days" style="color: #93c5fd;" aria-hidden="true"></i>
+              <span id="statSelanjutnya">0 Selanjutnya</span>
             </button>
             <div class="stat-divider"></div>
             <div class="stat-item">
@@ -1315,6 +1404,9 @@ $todayStr = date("Y-m-d");
 
     let kegiatanData = [];
     let activeTypeFilter = 'all';
+    const visibleCats = { today: true, upcoming: true, waiting: true };
+    let filterPaneCollapsed = false;
+    try { filterPaneCollapsed = localStorage.getItem('lt_hide_filter_pane') === '1'; } catch (_) {}
     let customerMarkers = {};
     let teknisiMarkers = {};
     let routePolylines = [];
@@ -1432,41 +1524,111 @@ $todayStr = date("Y-m-d");
     function updateTopStats(summary) {
       if (!summary) return;
       document.getElementById('statKegiatan').textContent = `${summary.total_kegiatan} Hari Ini`;
-      const statUpEl = document.getElementById('statUpcoming');
-      if (statUpEl) statUpEl.textContent = `${summary.total_upcoming || 0} Akan Datang`;
-      const statWaitEl = document.getElementById('statWaiting');
-      if (statWaitEl) statWaitEl.textContent = `${summary.total_waiting || 0} Waiting`;
+      const nextCount = Number(summary.total_upcoming || 0) + Number(summary.total_waiting || 0);
+      const statNextEl = document.getElementById('statSelanjutnya');
+      if (statNextEl) statNextEl.textContent = `${nextCount} Selanjutnya`;
       document.getElementById('statTeknisi').textContent = `${summary.total_teknisi_terjadwal} Teknisi`;
       document.getElementById('statOnline').textContent = `${summary.teknisi_online} Online`;
     }
 
+    function syncFilterUiState() {
+      const mapCfg = [
+        { key: 'today', btn: 'visBtnToday', ico: 'visIcoToday' },
+        { key: 'upcoming', btn: 'visBtnUpcoming', ico: 'visIcoUpcoming' },
+        { key: 'waiting', btn: 'visBtnWaiting', ico: 'visIcoWaiting' }
+      ];
+      mapCfg.forEach(({ key, btn, ico }) => {
+        const b = document.getElementById(btn);
+        const i = document.getElementById(ico);
+        const on = Boolean(visibleCats[key]);
+        if (b) {
+          b.setAttribute('aria-pressed', on ? 'true' : 'false');
+          b.classList.toggle('cat-hidden', !on);
+        }
+        if (i) {
+          i.className = on ? 'fa-solid fa-eye' : 'fa-solid fa-eye-slash';
+        }
+      });
+
+      const onlyToday = visibleCats.today && !visibleCats.upcoming && !visibleCats.waiting;
+      const onlyNext = !visibleCats.today && (visibleCats.upcoming || visibleCats.waiting);
+      document.getElementById('btnStatToday')?.classList.toggle('stat-active', onlyToday);
+      document.getElementById('btnStatNext')?.classList.toggle('stat-active', onlyNext);
+
+      const body = document.getElementById('leftFilterBody');
+      const toggleBtn = document.getElementById('btnToggleFilterPane');
+      const lbl = document.getElementById('lblToggleFilter');
+      const ico = document.getElementById('icoToggleFilter');
+      const hasCustom = activeTypeFilter !== 'all' || !visibleCats.today || !visibleCats.upcoming || !visibleCats.waiting;
+
+      if (body) body.hidden = filterPaneCollapsed;
+      if (toggleBtn) {
+        toggleBtn.setAttribute('aria-expanded', filterPaneCollapsed ? 'false' : 'true');
+        toggleBtn.classList.toggle('has-active-filter', hasCustom);
+      }
+      if (lbl) lbl.textContent = filterPaneCollapsed ? 'Filter' : 'Hide';
+      if (ico) ico.className = filterPaneCollapsed ? 'fa-solid fa-chevron-down' : 'fa-solid fa-chevron-up';
+    }
+
+    function toggleLeftFilterPane() {
+      filterPaneCollapsed = !filterPaneCollapsed;
+      try { localStorage.setItem('lt_hide_filter_pane', filterPaneCollapsed ? '1' : '0'); } catch (_) {}
+      syncFilterUiState();
+    }
+
+    function toggleCategoryVisibility(cat) {
+      visibleCats[cat] = !visibleCats[cat];
+      // Jika ketiganya dimatikan, otomatis nyalakan kembali ketiganya agar peta tidak kosong total tanpa sengaja
+      if (!visibleCats.today && !visibleCats.upcoming && !visibleCats.waiting) {
+        visibleCats.today = true;
+        visibleCats.upcoming = true;
+        visibleCats.waiting = true;
+      }
+      syncFilterUiState();
+      renderKegiatanSidebar();
+      renderMapLayers();
+    }
+
+    function selectTopScope(scope) {
+      if (scope === 'today') {
+        const alreadyOnlyToday = visibleCats.today && !visibleCats.upcoming && !visibleCats.waiting;
+        visibleCats.today = true;
+        visibleCats.upcoming = alreadyOnlyToday;
+        visibleCats.waiting = alreadyOnlyToday;
+      } else if (scope === 'next') {
+        const alreadyOnlyNext = !visibleCats.today && visibleCats.upcoming && visibleCats.waiting;
+        visibleCats.today = alreadyOnlyNext;
+        visibleCats.upcoming = true;
+        visibleCats.waiting = true;
+      }
+      syncFilterUiState();
+      renderKegiatanSidebar();
+      renderMapLayers();
+    }
+
     function filterType(type, el) {
       activeTypeFilter = type;
-      document.querySelectorAll('.type-pill').forEach(p => p.setAttribute('aria-pressed', 'false'));
+      if (type === 'all' && !visibleCats.today && !visibleCats.upcoming && !visibleCats.waiting) {
+        visibleCats.today = true; visibleCats.upcoming = true; visibleCats.waiting = true;
+      }
+      document.querySelectorAll('.tracking-type-pills .type-pill').forEach(p => p.setAttribute('aria-pressed', 'false'));
       if (el) el.setAttribute('aria-pressed', 'true');
+      syncFilterUiState();
       renderKegiatanSidebar();
       renderMapLayers();
     }
 
     function quickToggleOnlineFilter() {
       const next = activeTypeFilter === 'online' ? 'all' : 'online';
-      const btn = document.querySelector(`.type-pill[data-type="${next}"]`);
-      filterType(next, btn);
-    }
-
-    function quickToggleCategoryFilter(cat) {
-      const next = activeTypeFilter === cat ? 'all' : cat;
-      const btn = document.querySelector(`.type-pill[data-type="${next}"]`);
+      const btn = document.querySelector(`.tracking-type-pills .type-pill[data-type="${next}"]`);
       filterType(next, btn);
     }
 
     function matchesActiveCategory(k) {
       const kegLower = (k.kegiatan || '').toLowerCase();
       const cat = k.category || (k.is_waiting ? 'waiting' : (k.is_upcoming ? 'upcoming' : 'today'));
+      if (!visibleCats[cat]) return false;
       if (activeTypeFilter === 'all') return true;
-      if (activeTypeFilter === 'today' || activeTypeFilter === 'upcoming' || activeTypeFilter === 'waiting') {
-        return cat === activeTypeFilter;
-      }
       if (activeTypeFilter === 'online') {
         return (k.teknisi_list || []).some(t => t.is_online);
       }
@@ -1499,24 +1661,29 @@ $todayStr = date("Y-m-d");
       const listEl = document.getElementById('kegiatanList');
       const filtered = getFilteredKegiatan();
 
-      document.getElementById('countAll').textContent = kegiatanData.length;
+      const catBase = kegiatanData.filter(k => {
+        const c = k.category || (k.is_waiting ? 'waiting' : (k.is_upcoming ? 'upcoming' : 'today'));
+        return Boolean(visibleCats[c]);
+      });
+
+      document.getElementById('countAll').textContent = catBase.length;
       const countTodayEl = document.getElementById('countToday');
       if (countTodayEl) countTodayEl.textContent = kegiatanData.filter(k => !k.is_waiting && !k.is_upcoming).length;
       const countUpEl = document.getElementById('countUpcoming');
       if (countUpEl) countUpEl.textContent = kegiatanData.filter(k => k.is_upcoming).length;
       const countWaitEl = document.getElementById('countWaiting');
       if (countWaitEl) countWaitEl.textContent = kegiatanData.filter(k => k.is_waiting).length;
-      document.getElementById('countOnlineCard').textContent = kegiatanData.filter(k => (k.teknisi_list || []).some(t => t.is_online)).length;
-      const gpsMatiCards = kegiatanData.filter(k => (k.teknisi_list || []).some(t => t.gps_mati_jam_kerja)).length;
+      document.getElementById('countOnlineCard').textContent = catBase.filter(k => (k.teknisi_list || []).some(t => t.is_online)).length;
+      const gpsMatiCards = catBase.filter(k => (k.teknisi_list || []).some(t => t.gps_mati_jam_kerja)).length;
       document.getElementById('countGpsMati').textContent = gpsMatiCards;
       const pillGpsMati = document.getElementById('pillGpsMati');
       if (pillGpsMati) {
         pillGpsMati.hidden = (gpsMatiCards === 0 && activeTypeFilter !== 'gps_mati');
       }
-      document.getElementById('countBerjalan').textContent = kegiatanData.filter(k => (k.teknisi_list || []).some(t => /berjalan|dikerjakan/i.test(t.status_kerja || ''))).length;
-      document.getElementById('countPasang').textContent = kegiatanData.filter(k => (k.kegiatan || '').toLowerCase().includes('pasang')).length;
-      document.getElementById('countService').textContent = kegiatanData.filter(k => (k.kegiatan || '').toLowerCase().includes('service')).length;
-      document.getElementById('countSurvey').textContent = kegiatanData.filter(k => (k.kegiatan || '').toLowerCase().includes('survey')).length;
+      document.getElementById('countBerjalan').textContent = catBase.filter(k => (k.teknisi_list || []).some(t => /berjalan|dikerjakan/i.test(t.status_kerja || ''))).length;
+      document.getElementById('countPasang').textContent = catBase.filter(k => (k.kegiatan || '').toLowerCase().includes('pasang')).length;
+      document.getElementById('countService').textContent = catBase.filter(k => (k.kegiatan || '').toLowerCase().includes('service')).length;
+      document.getElementById('countSurvey').textContent = catBase.filter(k => (k.kegiatan || '').toLowerCase().includes('survey')).length;
 
       if (filtered.length === 0) {
         listEl.innerHTML = `
@@ -1966,6 +2133,7 @@ $todayStr = date("Y-m-d");
       fetchTrackingData(false);
     });
 
+    syncFilterUiState();
     fetchTrackingData(false);
     setInterval(() => fetchTrackingData(true), 5000);
   </script>
