@@ -308,6 +308,16 @@ $todayStr = date("Y-m-d");
         border-color: #e11d48;
         color: #ffffff;
     }
+    .type-pill.pill-waiting {
+        border-color: #ddd6fe;
+        color: #6d28d9;
+        background: #f5f3ff;
+    }
+    .type-pill.pill-waiting[aria-pressed="true"] {
+        background: #7c3aed;
+        border-color: #7c3aed;
+        color: #ffffff;
+    }
 
     /* ─── Scrollable Activity List (Standard Scrollbar + Fallback) ─── */
     .tracking-cards-list {
@@ -362,6 +372,31 @@ $todayStr = date("Y-m-d");
         border-color: var(--lt-orange);
         background: #fffaf7;
         box-shadow: 0 6px 18px rgba(255, 91, 34, 0.15);
+    }
+    .kegiatan-card.card-waiting {
+        border-color: #ddd6fe;
+        border-left: 4.5px solid #7c3aed;
+        background: #fdfcff;
+    }
+    .kegiatan-card.card-waiting:hover,
+    .kegiatan-card.card-waiting:has(.card-link:hover) {
+        border-color: #a78bfa;
+        border-left-color: #7c3aed;
+        box-shadow: 0 6px 16px rgba(124, 58, 237, 0.12);
+    }
+    .kegiatan-card.card-waiting.selected {
+        border-color: #7c3aed;
+        background: #faf5ff;
+        box-shadow: 0 6px 18px rgba(124, 58, 237, 0.2);
+    }
+    .kegiatan-card.card-waiting .btn-focus-map {
+        background: #7c3aed;
+    }
+    .kegiatan-card.card-waiting .btn-focus-map:hover {
+        background: #6d28d9;
+    }
+    .kegiatan-card.card-waiting.selected .btn-focus-map {
+        background: #4c1d95;
     }
     .kegiatan-card:has(.card-link:focus-visible) {
         outline: 2px solid var(--lt-orange);
@@ -915,6 +950,10 @@ $todayStr = date("Y-m-d");
         background: linear-gradient(135deg, #ef4444, #dc2626);
         box-shadow: 0 4px 12px rgba(239, 68, 68, 0.45);
     }
+    .pin-waiting {
+        background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+        box-shadow: 0 4px 14px rgba(124, 58, 237, 0.55);
+    }
     .pin-online {
         background: linear-gradient(135deg, #ff7a00, #ff5b22);
         box-shadow: 0 4px 14px rgba(255, 91, 34, 0.55);
@@ -959,6 +998,9 @@ $todayStr = date("Y-m-d");
     }
     .marker-name-tag.tag-cust {
         background: rgba(153, 27, 27, 0.9);
+    }
+    .marker-name-tag.tag-waiting {
+        background: rgba(91, 33, 182, 0.92);
     }
     .hide-map-labels .marker-name-tag {
         display: none !important;
@@ -1077,6 +1119,7 @@ $todayStr = date("Y-m-d");
           </div>
           <div class="tracking-type-pills" role="group" aria-label="Filter kegiatan">
             <button type="button" class="type-pill" data-type="all" aria-pressed="true" onclick="filterType('all', this)">Semua (<span id="countAll">0</span>)</button>
+            <button type="button" class="type-pill pill-waiting" data-type="waiting" aria-pressed="false" onclick="filterType('waiting', this)"><i class="fa-solid fa-hourglass-half" aria-hidden="true"></i> Waiting (<span id="countWaiting">0</span>)</button>
             <button type="button" class="type-pill pill-online" data-type="online" aria-pressed="false" onclick="filterType('online', this)"><i class="fa-solid fa-satellite-dish" aria-hidden="true"></i> GPS Online (<span id="countOnlineCard">0</span>)</button>
             <button type="button" class="type-pill pill-alert" id="pillGpsMati" data-type="gps_mati" aria-pressed="false" hidden onclick="filterType('gps_mati', this)"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> GPS Mati (<span id="countGpsMati">0</span>)</button>
             <button type="button" class="type-pill" data-type="berjalan" aria-pressed="false" onclick="filterType('berjalan', this)">Dikerjakan (<span id="countBerjalan">0</span>)</button>
@@ -1104,6 +1147,11 @@ $todayStr = date("Y-m-d");
               <i class="fa-solid fa-store" style="color: #f87171;" aria-hidden="true"></i>
               <span id="statKegiatan">0 Lokasi</span>
             </div>
+            <div class="stat-divider"></div>
+            <button type="button" class="stat-item" onclick="quickToggleWaitingFilter()" title="Klik untuk memfilter lokasi Waiting List (Belum dapat teknisi)">
+              <i class="fa-solid fa-hourglass-half" style="color: #c4b5fd;" aria-hidden="true"></i>
+              <span id="statWaiting">0 Waiting</span>
+            </button>
             <div class="stat-divider"></div>
             <div class="stat-item">
               <i class="fa-solid fa-users" style="color: #a78bfa;" aria-hidden="true"></i>
@@ -1148,6 +1196,7 @@ $todayStr = date("Y-m-d");
           <span class="legend-item"><span class="legend-dot" style="background:#ff5b22;"></span> Motor Online (&le;2 mnt)</span>
           <span class="legend-item"><span class="legend-dot" style="background:#64748b;"></span> Lokasi Terakhir (&gt;2 mnt)</span>
           <span class="legend-item"><span class="legend-dot" style="background:#ef4444;"></span> Lokasi Customer</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#7c3aed;"></span> Waiting (Belum Teknisi)</span>
         </div>
 
         <div id="map"></div>
@@ -1252,12 +1301,12 @@ $todayStr = date("Y-m-d");
       if (btn) btn.setAttribute('aria-pressed', showLabels ? 'true' : 'false');
     }
 
-    function createCustomerIcon(custName) {
+    function createCustomerIcon(custName, isWaiting = false) {
       return L.divIcon({
         className: 'custom-icon',
         html: `<div class="marker-wrap">
-                 <div class="marker-pin-circle pin-customer"><i class="fa-solid fa-store"></i></div>
-                 <span class="marker-name-tag tag-cust">${escHtml(shortLabel(custName, 16))}</span>
+                 <div class="marker-pin-circle ${isWaiting ? 'pin-waiting' : 'pin-customer'}"><i class="fa-solid ${isWaiting ? 'fa-hourglass-half' : 'fa-store'}"></i></div>
+                 <span class="marker-name-tag ${isWaiting ? 'tag-waiting' : 'tag-cust'}">${escHtml(shortLabel(custName, 16))}</span>
                </div>`,
         iconSize: [38, 38],
         iconAnchor: [19, 19],
@@ -1315,7 +1364,9 @@ $todayStr = date("Y-m-d");
 
     function updateTopStats(summary) {
       if (!summary) return;
-      document.getElementById('statKegiatan').textContent = `${summary.total_kegiatan} Lokasi`;
+      document.getElementById('statKegiatan').textContent = `${summary.total_kegiatan} Terjadwal`;
+      const statWaitEl = document.getElementById('statWaiting');
+      if (statWaitEl) statWaitEl.textContent = `${summary.total_waiting || 0} Waiting`;
       document.getElementById('statTeknisi').textContent = `${summary.total_teknisi_terjadwal} Teknisi`;
       document.getElementById('statOnline').textContent = `${summary.teknisi_online} Online`;
     }
@@ -1333,9 +1384,18 @@ $todayStr = date("Y-m-d");
       filterType(next, btn);
     }
 
+    function quickToggleWaitingFilter() {
+      const next = activeTypeFilter === 'waiting' ? 'all' : 'waiting';
+      const btn = document.querySelector(`.type-pill[data-type="${next}"]`);
+      filterType(next, btn);
+    }
+
     function matchesActiveCategory(k) {
       const kegLower = (k.kegiatan || '').toLowerCase();
       if (activeTypeFilter === 'all') return true;
+      if (activeTypeFilter === 'waiting') {
+        return Boolean(k.is_waiting);
+      }
       if (activeTypeFilter === 'online') {
         return (k.teknisi_list || []).some(t => t.is_online);
       }
@@ -1369,6 +1429,8 @@ $todayStr = date("Y-m-d");
       const filtered = getFilteredKegiatan();
 
       document.getElementById('countAll').textContent = kegiatanData.length;
+      const countWaitEl = document.getElementById('countWaiting');
+      if (countWaitEl) countWaitEl.textContent = kegiatanData.filter(k => k.is_waiting).length;
       document.getElementById('countOnlineCard').textContent = kegiatanData.filter(k => (k.teknisi_list || []).some(t => t.is_online)).length;
       const gpsMatiCards = kegiatanData.filter(k => (k.teknisi_list || []).some(t => t.gps_mati_jam_kerja)).length;
       document.getElementById('countGpsMati').textContent = gpsMatiCards;
@@ -1448,16 +1510,27 @@ $todayStr = date("Y-m-d");
                   </div>
                 </div>`;
             }).join('')
-          : `<div style="font-size:11px; color:#94a3b8; font-style:italic;">Belum ada teknisi ditugaskan</div>`;
+          : `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;background:#f5f3ff;border:1px dashed #c4b5fd;border-radius:8px;padding:7px 10px;">
+               <span style="font-size:11px;font-weight:700;color:#6d28d9;"><i class="fa-solid fa-hourglass-half" aria-hidden="true"></i> Belum dapat teknisi</span>
+               <a href="waiting-list.php" style="font-size:10.5px;font-weight:700;color:#fff;background:#7c3aed;padding:3px 9px;border-radius:6px;text-decoration:none;">Jadwalkan &rarr;</a>
+             </div>`;
 
         const custPhone = String(keg.cust_nomor || '').replace(/[^0-9]/g, '').replace(/^0/, '');
+        const isWaitingCard = Boolean(keg.is_waiting);
+        const zoneChipHtml = keg.zone_label
+          ? `<span style="font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:999px;background:${escHtml(keg.zone_bg || '#f1f5f9')};color:${escHtml(keg.zone_color || '#475569')};">📍 ${escHtml(keg.zone_label)}</span>`
+          : '';
 
         return `
-          <article class="kegiatan-card ${isSelected ? 'selected' : ''}">
+          <article class="kegiatan-card ${isWaitingCard ? 'card-waiting' : ''} ${isSelected ? 'selected' : ''}">
             <div class="keg-top">
-              <span class="badge-type ${typeClass}">${escHtml(keg.kegiatan)}</span>
+              <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
+                <span class="badge-type ${typeClass}">${escHtml(keg.kegiatan)}</span>
+                ${isWaitingCard ? '<span class="badge-type" style="background:#ede9fe;color:#6d28d9;">⏳ WAITING</span>' : ''}
+                ${zoneChipHtml}
+              </div>
               <div class="keg-meta-right">
-                <span class="keg-time"><i class="fa-regular fa-clock" aria-hidden="true"></i> ${escHtml(keg.jadwal)} WIB</span>
+                <span class="keg-time"><i class="fa-regular fa-clock" aria-hidden="true"></i> ${escHtml(keg.jadwal)}</span>
                 <span class="keg-kode">#${escHtml(keg.kode)}</span>
               </div>
             </div>
@@ -1468,17 +1541,17 @@ $todayStr = date("Y-m-d");
               </button>
             </h2>
 
-            ${keg.keterangan ? `<div class="keg-keterangan">"${escHtml(keg.keterangan)}"</div>` : ''}
+            ${keg.keterangan ? `<div class="keg-keterangan" style="${isWaitingCard ? 'border-left-color:#7c3aed;' : ''}">"${escHtml(keg.keterangan)}"</div>` : ''}
 
             <div class="keg-alamat">
-              <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
-              <div>${escHtml(keg.alamat || 'Alamat belum diisi')}</div>
+              <i class="fa-solid fa-location-dot" style="${isWaitingCard ? 'color:#7c3aed;' : ''}" aria-hidden="true"></i>
+              <div>${escHtml(keg.alamat || 'Alamat belum diisi')}${keg.coord_estimated ? ' <span style="font-size:9.5px;color:#7c3aed;font-weight:600;">(~Estimasi Wilayah)</span>' : ''}</div>
             </div>
 
             <div class="keg-teknisi-box">
               <div class="keg-teknisi-title">
-                <span><i class="fa-solid fa-users-gear" aria-hidden="true"></i> Tim Teknisi (${keg.teknisi_count})</span>
-                <span class="keg-teknisi-hint">Klik nama → fokus peta</span>
+                <span><i class="fa-solid fa-users-gear" aria-hidden="true"></i> ${isWaitingCard ? 'Status Penugasan' : `Tim Teknisi (${keg.teknisi_count})`}</span>
+                ${!isWaitingCard ? '<span class="keg-teknisi-hint">Klik nama → fokus peta</span>' : ''}
               </div>
               ${teknisiHtml}
             </div>
@@ -1526,29 +1599,34 @@ $todayStr = date("Y-m-d");
           activeCustKodes.add(keg.kode);
           boundsList.push([cLat, cLon]);
 
+          const isWaitingPin = Boolean(keg.is_waiting);
           const gmapsUrl = `https://www.google.com/maps?q=${cLat},${cLon}`;
           const custPopup = `
-            <div style="min-width: 215px; font-size: 12px;">
-              <div style="display:flex; justify-content:space-between; align-items:center; gap:6px; margin-bottom:4px;">
-                <span class="badge-type type-pasang" style="font-size:9px;">${escHtml(keg.kegiatan)}</span>
-                <span style="font-size:11px; color:#64748b; font-weight:600;">${escHtml(keg.jadwal)} WIB</span>
+            <div style="min-width: 225px; font-size: 12px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; gap:6px; margin-bottom:4px; flex-wrap:wrap;">
+                <span class="badge-type ${isWaitingPin ? '' : 'type-pasang'}" style="font-size:9px; ${isWaitingPin ? 'background:#ede9fe;color:#6d28d9;' : ''}">${isWaitingPin ? '⏳ WAITING • ' : ''}${escHtml(keg.kegiatan)}</span>
+                <span style="font-size:11px; color:#64748b; font-weight:600;">${escHtml(keg.jadwal)}</span>
               </div>
               <div style="font-size: 14px; font-weight:700; color:#0f172a; margin-bottom:3px;">${escHtml(keg.nama_customer)}</div>
+              ${keg.zone_label ? `<div style="margin-bottom:4px;"><span style="font-size:10px;font-weight:700;padding:1.5px 7px;border-radius:999px;background:${escHtml(keg.zone_bg || '#f1f5f9')};color:${escHtml(keg.zone_color || '#475569')};">📍 ${escHtml(keg.zone_label)}${keg.coord_estimated ? ' (~Estimasi)' : ''}</span></div>` : ''}
               <div style="color:#64748b; font-size:11px; line-height:1.4; margin-bottom:8px;">${escHtml(keg.alamat)}</div>
-              <div style="font-size:11px; color:#1e293b; background:#f8fafc; padding:6px 8px; border-radius:8px; border:1px solid #e2e8f0; margin-bottom:8px;">
-                <b>Tim:</b> ${escHtml((keg.teknisi_list || []).map(t => t.nama).join(', ') || '-')}
+              <div style="font-size:11px; color:${isWaitingPin ? '#6d28d9' : '#1e293b'}; background:${isWaitingPin ? '#f5f3ff' : '#f8fafc'}; padding:6px 8px; border-radius:8px; border:1px solid ${isWaitingPin ? '#ddd6fe' : '#e2e8f0'}; margin-bottom:8px; font-weight:${isWaitingPin ? '700' : '400'};">
+                ${isWaitingPin ? '⏳ Belum dapat teknisi (Waiting List)' : `<b>Tim:</b> ${escHtml((keg.teknisi_list || []).map(t => t.nama).join(', ') || '-')}`}
               </div>
-              <a href="${gmapsUrl}" target="_blank" rel="noopener" style="display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:700; color:#2563eb; text-decoration:none;">
-                <i class="fa-solid fa-up-right-from-square"></i> Buka di Google Maps
-              </a>
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+                <a href="${gmapsUrl}" target="_blank" rel="noopener" style="display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:700; color:#2563eb; text-decoration:none;">
+                  <i class="fa-solid fa-up-right-from-square"></i> Google Maps
+                </a>
+                ${isWaitingPin ? `<a href="waiting-list.php" style="display:inline-flex; align-items:center; gap:4px; font-size:11px; font-weight:700; color:#fff; background:#7c3aed; padding:3px 9px; border-radius:6px; text-decoration:none;"><i class="fa-regular fa-calendar-check"></i> Jadwalkan</a>` : ''}
+              </div>
             </div>`;
 
           if (customerMarkers[keg.kode]) {
             customerMarkers[keg.kode].setLatLng([cLat, cLon]);
-            customerMarkers[keg.kode].setIcon(createCustomerIcon(keg.nama_customer));
+            customerMarkers[keg.kode].setIcon(createCustomerIcon(keg.nama_customer, isWaitingPin));
             customerMarkers[keg.kode].getPopup().setContent(custPopup);
           } else {
-            const marker = L.marker([cLat, cLon], { icon: createCustomerIcon(keg.nama_customer) })
+            const marker = L.marker([cLat, cLon], { icon: createCustomerIcon(keg.nama_customer, isWaitingPin) })
               .addTo(map)
               .bindPopup(custPopup);
             marker.on('click', () => focusKegiatan(keg.kode));
@@ -1667,8 +1745,35 @@ $todayStr = date("Y-m-d");
 
       const targets = [];
       if (keg.latitude && keg.longitude && !isNaN(parseFloat(keg.latitude))) {
-        targets.push([parseFloat(keg.latitude), parseFloat(keg.longitude)]);
+        const wLat = parseFloat(keg.latitude);
+        const wLon = parseFloat(keg.longitude);
+        targets.push([wLat, wLon]);
         if (customerMarkers[kode]) customerMarkers[kode].openPopup();
+
+        // Jika kartu Waiting List diklik, tampilkan teknisi terjadwal terdekat di banner atas sebagai referensi arah
+        if (keg.is_waiting) {
+          let bestTekName = null;
+          let bestKm = Infinity;
+          kegiatanData.forEach(other => {
+            if (other.is_waiting) return;
+            const oLat = parseFloat(other.latitude);
+            const oLon = parseFloat(other.longitude);
+            (other.teknisi_list || []).forEach(tk => {
+              const refLat = (tk.live_latitude && !isNaN(parseFloat(tk.live_latitude))) ? parseFloat(tk.live_latitude) : oLat;
+              const refLon = (tk.live_longitude && !isNaN(parseFloat(tk.live_longitude))) ? parseFloat(tk.live_longitude) : oLon;
+              if (!isNaN(refLat) && !isNaN(refLon)) {
+                const d = map.distance([wLat, wLon], [refLat, refLon]) / 1000;
+                if (d < bestKm) {
+                  bestKm = d;
+                  bestTekName = tk.nama;
+                }
+              }
+            });
+          });
+          if (bestTekName && isFinite(bestKm)) {
+            updateFocusBanner(keg, `<span class="focus-eta-pill" style="background:#f5f3ff;color:#6d28d9;border-color:#ddd6fe;">🟣 Teknisi Terdekat: ${escHtml(bestTekName)} (~${(bestKm * 1.35).toFixed(1)} km)</span>`);
+          }
+        }
       }
       (keg.teknisi_list || []).forEach(t => {
         if (t.live_latitude && t.live_longitude && !isNaN(parseFloat(t.live_latitude))) {

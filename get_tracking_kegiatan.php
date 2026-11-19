@@ -10,6 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 include_once __DIR__ . '/conn.php';
+include_once __DIR__ . '/staff/include/geo_dispatch_helper.php';
 
 // Haversine formula for distance between 2 coordinates in km
 function calculateDistanceKm($lat1, $lon1, $lat2, $lon2) {
@@ -76,14 +77,58 @@ try {
     $allKegiatanIds = [];
     $allKodes = [];
     $allTeknisiIds = [];
+    $allCustomerIds = [];
 
     while ($r = $resultToday->fetch_assoc()) {
         $kode = $r['kode'];
         $groupedKegiatan[$kode][] = $r;
         $allKegiatanIds[$r['id']] = true;
         $allKodes[$kode] = true;
+        if (!empty($r['customer_id'])) {
+            $allCustomerIds[intval($r['customer_id'])] = true;
+        }
     }
     $stmt->close();
+
+    // 2b. Query Waiting List (ditampilkan pada tanggal hari ini & tanggal mendatang agar admin mudah melihat sebaran lokasi belum dapat teknisi)
+    $waitingRows = [];
+    if ($currentDate >= date('Y-m-d')) {
+        $sqlWaiting = "SELECT 
+            k.id, k.kode, k.customer_id, k.kegiatan, k.jadwal, k.status, k.keterangan, 
+            k.lat, k.lon, k.rad, k.alamat_lokasi, k.created_at,
+            c.nama AS nama_customer, c.telp AS cust_nomor, c.alamat AS cust_alamat
+        FROM kegiatan k 
+        LEFT JOIN customer c ON k.customer_id = c.id 
+        WHERE k.status = 'waiting' 
+          AND k.deleted_at IS NULL 
+        ORDER BY k.created_at ASC";
+        $resWaiting = $conn->query($sqlWaiting);
+        if ($resWaiting) {
+            while ($rw = $resWaiting->fetch_assoc()) {
+                $waitingRows[] = $rw;
+                if (!empty($rw['customer_id'])) {
+                    $allCustomerIds[intval($rw['customer_id'])] = true;
+                }
+            }
+            $resWaiting->free();
+        }
+    }
+
+    // Bulk load saved customer coordinates for fallback
+    $custCoordsMap = [];
+    if (!empty($allCustomerIds)) {
+        $cIdStr = implode(',', array_keys($allCustomerIds));
+        $resCC = @$conn->query("SELECT cust_id, lat, lon, address FROM cust_coordinate WHERE cust_id IN ($cIdStr) AND deleted_at IS NULL ORDER BY id DESC");
+        if ($resCC) {
+            while ($cc = $resCC->fetch_assoc()) {
+                $cid = intval($cc['cust_id']);
+                if (!isset($custCoordsMap[$cid]) && dispatchIsValidIndoCoord($cc['lat'], $cc['lon'])) {
+                    $custCoordsMap[$cid] = $cc;
+                }
+            }
+            $resCC->free();
+        }
+    }
 
     // 3. Bulk fetch Team Teknisi
     $teknisiByKegiatan = [];
@@ -158,9 +203,12 @@ try {
 
     // 6. Assemble response data per Kegiatan
     $kegiatanList = [];
+    $totalScheduledKegiatan = 0;
+    $totalWaitingKegiatan = 0;
     $totalOnlineTeknisi = 0;
     $countedOnlineTeknisi = [];
     $countedGpsMatiTeknisi = [];
+    $usedCoordBuckets = [];
     $nowHourWib = (int)date('G');
     $isJamKerja = ($currentDate === date('Y-m-d') && $nowHourWib >= 6 && $nowHourWib < 20);
 
@@ -168,8 +216,22 @@ try {
         usort($groupRows, fn($a, $b) => $b['id'] - $a['id']);
         $keg = $groupRows[0];
 
-        $custLat = !empty($keg['lat']) && is_numeric($keg['lat']) ? floatval($keg['lat']) : null;
-        $custLon = !empty($keg['lon']) && is_numeric($keg['lon']) ? floatval($keg['lon']) : null;
+        $cid = intval($keg['customer_id'] ?? 0);
+        $zoneInfo = dispatchResolveZoneAndCoords(
+            $keg['lat'],
+            $keg['lon'],
+            $keg['alamat_lokasi'] ?? '',
+            $keg['cust_alamat'] ?? '',
+            '',
+            $custCoordsMap[$cid] ?? null
+        );
+
+        $custLat = $zoneInfo['lat'];
+        $custLon = $zoneInfo['lon'];
+        if ($custLat !== null && $custLon !== null) {
+            $bKey = round($custLat, 4) . ',' . round($custLon, 4);
+            $usedCoordBuckets[$bKey] = ($usedCoordBuckets[$bKey] ?? 0) + 1;
+        }
         $alamatDisplay = !empty($keg['alamat_lokasi']) ? $keg['alamat_lokasi'] : ($keg['cust_alamat'] ?? '');
 
         // List Assigned Technicians
@@ -234,22 +296,96 @@ try {
             ];
         }
 
+        $isUnassigned = (count($assignedTeknisi) === 0);
+        if ($isUnassigned) {
+            $totalWaitingKegiatan++;
+        } else {
+            $totalScheduledKegiatan++;
+        }
+
         $kegiatanList[] = [
-            'id'             => intval($keg['id']),
-            'kode'           => $kodeTransaksi,
-            'kegiatan'       => $keg['kegiatan'],
-            'jadwal'         => date("H:i", strtotime($keg['jadwal'])),
-            'customer_id'    => intval($keg['customer_id']),
-            'nama_customer'  => $keg['nama_customer'],
-            'cust_nomor'     => $keg['cust_nomor'],
-            'keterangan'     => $keg['keterangan'] ?? '',
-            'alamat'         => $alamatDisplay,
-            'latitude'       => $custLat,
-            'longitude'      => $custLon,
-            'radius'         => intval($keg['rad'] ?? 50),
-            'status'         => $keg['status'],
-            'teknisi_list'   => $assignedTeknisi,
-            'teknisi_count'  => count($assignedTeknisi),
+            'id'              => intval($keg['id']),
+            'kode'            => $kodeTransaksi,
+            'kegiatan'        => $keg['kegiatan'],
+            'jadwal'          => date("H:i", strtotime($keg['jadwal'])) . ' WIB',
+            'customer_id'     => intval($keg['customer_id']),
+            'nama_customer'   => $keg['nama_customer'],
+            'cust_nomor'      => $keg['cust_nomor'],
+            'keterangan'      => $keg['keterangan'] ?? '',
+            'alamat'          => $alamatDisplay,
+            'zone_label'      => $zoneInfo['label'],
+            'zone_bg'         => $zoneInfo['bg'],
+            'zone_color'      => $zoneInfo['color'],
+            'latitude'        => $custLat,
+            'longitude'       => $custLon,
+            'coord_estimated' => !$zoneInfo['is_exact'],
+            'radius'          => intval($keg['rad'] ?? 50),
+            'status'          => $keg['status'],
+            'is_waiting'      => $isUnassigned,
+            'teknisi_list'    => $assignedTeknisi,
+            'teknisi_count'   => count($assignedTeknisi),
+        ];
+    }
+
+    // 7. Append Waiting List (belum dapat teknisi)
+    foreach ($waitingRows as $wRow) {
+        if (isset($groupedKegiatan[$wRow['kode']])) {
+            continue;
+        }
+        $cidW = intval($wRow['customer_id'] ?? 0);
+        $zW = dispatchResolveZoneAndCoords(
+            $wRow['lat'],
+            $wRow['lon'],
+            $wRow['alamat_lokasi'] ?? '',
+            $wRow['cust_alamat'] ?? '',
+            '',
+            $custCoordsMap[$cidW] ?? null
+        );
+
+        $wLat = $zW['lat'];
+        $wLon = $zW['lon'];
+        // shortcut: slight ~220m ring offset when multiple unpinned waiting items share the same sub-district centroid so pins don't stack invisibly
+        if ($wLat !== null && $wLon !== null) {
+            $bKey = round($wLat, 4) . ',' . round($wLon, 4);
+            $dupIdx = $usedCoordBuckets[$bKey] ?? 0;
+            $usedCoordBuckets[$bKey] = $dupIdx + 1;
+            if (!$zW['is_exact'] && $dupIdx > 0) {
+                $angle = ($dupIdx * 1.15);
+                $radiusDeg = 0.0022 * ceil($dupIdx / 5);
+                $wLat = round($wLat + sin($angle) * $radiusDeg, 6);
+                $wLon = round($wLon + cos($angle) * $radiusDeg, 6);
+            }
+        }
+
+        $jadwalWaiting = 'Waiting List';
+        if (!empty($wRow['jadwal']) && $wRow['jadwal'] !== '0000-00-00 00:00:00') {
+            $jadwalWaiting = date('d/m H:i', strtotime($wRow['jadwal']));
+        }
+
+        $alamatW = !empty($wRow['alamat_lokasi']) ? $wRow['alamat_lokasi'] : ($wRow['cust_alamat'] ?? '');
+        $totalWaitingKegiatan++;
+
+        $kegiatanList[] = [
+            'id'              => intval($wRow['id']),
+            'kode'            => $wRow['kode'],
+            'kegiatan'        => $wRow['kegiatan'],
+            'jadwal'          => $jadwalWaiting,
+            'customer_id'     => $cidW,
+            'nama_customer'   => $wRow['nama_customer'],
+            'cust_nomor'      => $wRow['cust_nomor'],
+            'keterangan'      => $wRow['keterangan'] ?? '',
+            'alamat'          => $alamatW,
+            'zone_label'      => $zW['label'],
+            'zone_bg'         => $zW['bg'],
+            'zone_color'      => $zW['color'],
+            'latitude'        => $wLat,
+            'longitude'       => $wLon,
+            'coord_estimated' => !$zW['is_exact'],
+            'radius'          => intval($wRow['rad'] ?? 50),
+            'status'          => 'waiting',
+            'is_waiting'      => true,
+            'teknisi_list'    => [],
+            'teknisi_count'   => 0,
         ];
     }
 
@@ -257,7 +393,9 @@ try {
         'status' => true,
         'tanggal' => $currentDate,
         'summary' => [
-            'total_kegiatan'          => count($kegiatanList),
+            'total_kegiatan'          => $totalScheduledKegiatan,
+            'total_waiting'           => $totalWaitingKegiatan,
+            'total_semua_titik'       => count($kegiatanList),
             'total_teknisi_terjadwal' => count($allTeknisiIds),
             'teknisi_online'          => $totalOnlineTeknisi,
             'teknisi_gps_mati'        => count($countedGpsMatiTeknisi),
