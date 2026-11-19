@@ -19,17 +19,32 @@ if ($tech_id <= 0 || empty($period)) {
     exit;
 }
 
-// Validate period format YYYY-MM
-if (!preg_match('/^\d{4}-\d{2}$/', $period)) {
+// Validate period format: single YYYY-MM or comma-separated YYYY-MM list
+$periods = array_values(array_filter(array_map('trim', explode(',', $period)), function ($m) {
+    return (bool)preg_match('/^\d{4}-\d{2}$/', $m);
+}));
+if (empty($periods)) {
     http_response_code(400);
     echo json_encode(['success' => false, 'message' => 'Invalid period format. Use YYYY-MM']);
     exit;
 }
 
+ensurePorsiKerjaColumn($conn);
+$periodWhereSql = targetTercapaiPeriodWhereSql($periods, 'pk.tanggal', 'k_lunas.tgl_lunas');
+$hasLunasPeriod = false;
+foreach ($periods as $pm) {
+    if (targetTercapaiUsesLunas($pm)) {
+        $hasLunasPeriod = true;
+        break;
+    }
+}
+$orderBySql = $hasLunasPeriod ? 'COALESCE(k_lunas.tgl_lunas, pk.tanggal) ASC, pk.tanggal ASC' : 'pk.tanggal ASC';
+
 // Query to get detail of invoices contributing to technician's revenue
 $sql = "SELECT pk.kode, 
                pk.no_invoice, 
                pk.tanggal, 
+               k_lunas.tgl_lunas,
                pk.nominal_invoice, 
                counts.tek_count, 
                COUNT(*) as tech_visit_count,
@@ -51,18 +66,16 @@ $sql = "SELECT pk.kode,
         JOIN (
             SELECT kode, COUNT(*) as tek_count 
             FROM pendapatan_kegiatan 
-            WHERE DATE_FORMAT(tanggal, '%Y-%m') = ? AND deleted_at IS NULL
+            WHERE deleted_at IS NULL
             GROUP BY kode
         ) counts ON pk.kode = counts.kode
-        JOIN pelaksanaan_kegiatan pl ON pl.id = pk.kegiatan_id
-        JOIN kegiatan k ON k.id = pl.kegiatan_id
-        JOIN customer c ON c.id = k.customer_id
+        JOIN " . targetTercapaiLunasSubquerySql('k_lunas') . " ON k_lunas.kode = pk.kode
+        LEFT JOIN customer c ON c.id = k_lunas.customer_id
         WHERE pk.teknisi_id = ? 
-          AND DATE_FORMAT(pk.tanggal, '%Y-%m') = ? 
           AND pk.deleted_at IS NULL
-          AND EXISTS (SELECT 1 FROM kegiatan k_act WHERE k_act.kode = pk.kode AND k_act.deleted_at IS NULL)
+          AND $periodWhereSql
         GROUP BY pk.kode
-        ORDER BY pk.tanggal ASC";
+        ORDER BY $orderBySql";
 
 $stmt = $conn->prepare($sql);
 if (!$stmt) {
@@ -71,7 +84,7 @@ if (!$stmt) {
     exit;
 }
 
-$stmt->bind_param('sis', $period, $tech_id, $period);
+$stmt->bind_param('i', $tech_id);
 $stmt->execute();
 $res = $stmt->get_result();
 
@@ -86,8 +99,16 @@ while ($row = $res->fetch_assoc()) {
     $row['tek_count'] = intval($row['tek_count']);
     $total_share += $row['share_amount'];
     
-    // Format date nicely
-    $row['formatted_date'] = date('d M Y', strtotime($row['tanggal']));
+    $tglInvFmt = date('d M Y', strtotime($row['tanggal']));
+    $tglLunasFmt = !empty($row['tgl_lunas']) ? date('d M Y', strtotime($row['tgl_lunas'])) : '';
+    $lunasYm = !empty($row['tgl_lunas']) ? substr($row['tgl_lunas'], 0, 7) : '';
+
+    if ($tglLunasFmt !== '' && in_array($lunasYm, $periods, true) && targetTercapaiUsesLunas($lunasYm)) {
+        $row['formatted_date'] = $tglLunasFmt . ($tglLunasFmt !== $tglInvFmt ? " (Inv: $tglInvFmt)" : '');
+    } else {
+        $row['formatted_date'] = $tglInvFmt;
+    }
+    $row['formatted_lunas'] = $tglLunasFmt ?: 'Belum Lunas';
     
     $data[] = $row;
 }

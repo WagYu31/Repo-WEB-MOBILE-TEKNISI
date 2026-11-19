@@ -23,6 +23,8 @@ $monthCount = count($months);
 $monthPlaceholders = implode(',', array_fill(0, $monthCount, '?'));
 $monthTypes = str_repeat('s', $monthCount);
 
+$targetPeriodWhereSql = targetTercapaiPeriodWhereSql($months, 'pk.tanggal', 'k_lunas.tgl_lunas');
+
 // === Main query: teknisi + kegiatan count + pendapatan across range ===
 $sql = "SELECT 
             t.id, t.nik, t.nama, t.telp, t.target,
@@ -33,18 +35,17 @@ $sql = "SELECT
              AND DATE(pk_c.waktu_mulai) >= ? AND DATE(pk_c.waktu_mulai) <= ?) AS jumlah_kegiatan,
             (SELECT COALESCE(SUM(ROUND((pk.nominal_invoice / (
                 SELECT COUNT(*) FROM pendapatan_kegiatan pk2 
-                WHERE pk2.kode = pk.kode AND DATE_FORMAT(pk2.tanggal, '%Y-%m') IN ($monthPlaceholders) AND pk2.deleted_at IS NULL
-            )) * pk.porsi_kerja)), 0) FROM pendapatan_kegiatan pk 
-             WHERE pk.teknisi_id = t.id AND DATE_FORMAT(pk.tanggal, '%Y-%m') IN ($monthPlaceholders) AND pk.deleted_at IS NULL AND EXISTS (SELECT 1 FROM kegiatan k_act WHERE k_act.kode = pk.kode AND k_act.deleted_at IS NULL)) AS total_pendapatan
+                WHERE pk2.kode = pk.kode AND pk2.deleted_at IS NULL
+            )) * pk.porsi_kerja)), 0)
+             FROM pendapatan_kegiatan pk 
+             JOIN " . targetTercapaiLunasSubquerySql('k_lunas') . " ON k_lunas.kode = pk.kode
+             WHERE pk.teknisi_id = t.id AND pk.deleted_at IS NULL AND $targetPeriodWhereSql) AS total_pendapatan
         FROM teknisi t
         WHERE t.deleted_at IS NULL
         ORDER BY t.nama ASC";
 
 $stmt = $conn->prepare($sql);
-// Bind: 2 dates (kegiatan count) + months x2 (pendapatan subquery count, pendapatan main)
-$allParams = array_merge([$rangeStart, $rangeEnd], $months, $months);
-$allTypes = 'ss' . str_repeat('s', count($months) * 2);
-$stmt->bind_param($allTypes, ...$allParams);
+$stmt->bind_param('ss', $rangeStart, $rangeEnd);
 $stmt->execute();
 $result = $stmt->get_result();
 $technicians = $result->fetch_all(MYSQLI_ASSOC);
@@ -131,27 +132,20 @@ usort($tableData, function($a, $b) {
 });
 
 // ═══ GRAND TOTAL PENDAPATAN: Match Detail Invoice & Rekapitulasi (supports 50% porsi_kerja) ═══
-$grandMonthPlaceholders = implode(',', array_fill(0, $monthCount, '?'));
 $sqlGrandPend = "SELECT COALESCE(SUM(ROUND((pk.nominal_invoice / counts.tek_count) * pk.porsi_kerja)), 0) as total
     FROM pendapatan_kegiatan pk
     JOIN (
         SELECT kode, COUNT(*) as tek_count
         FROM pendapatan_kegiatan
-        WHERE DATE_FORMAT(tanggal, '%Y-%m') IN ($grandMonthPlaceholders) AND deleted_at IS NULL
+        WHERE deleted_at IS NULL
         GROUP BY kode
     ) counts ON pk.kode = counts.kode
-    WHERE DATE_FORMAT(pk.tanggal, '%Y-%m') IN ($grandMonthPlaceholders)
-      AND pk.deleted_at IS NULL
-      AND EXISTS (SELECT 1 FROM kegiatan k_act WHERE k_act.kode = pk.kode AND k_act.deleted_at IS NULL)";
-$stmtGP = $conn->prepare($sqlGrandPend);
-$gpParams = array_merge($months, $months);
-$gpTypes = str_repeat('s', count($gpParams));
-$stmtGP->bind_param($gpTypes, ...$gpParams);
-$stmtGP->execute();
-$resGP = $stmtGP->get_result();
-$rowGP = $resGP->fetch_assoc();
+    JOIN " . targetTercapaiLunasSubquerySql('k_lunas') . " ON k_lunas.kode = pk.kode
+    WHERE pk.deleted_at IS NULL
+      AND $targetPeriodWhereSql";
+$resGP = mysqli_query($conn, $sqlGrandPend);
+$rowGP = $resGP ? mysqli_fetch_assoc($resGP) : null;
 $grandTotalPendapatan = floatval($rowGP['total'] ?? 0);
-$stmtGP->close();
 
 echo json_encode([
     'tableData' => $tableData,

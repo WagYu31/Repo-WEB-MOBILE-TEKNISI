@@ -140,14 +140,16 @@ if (isset($idTeknis) && $idTeknis !== null && $conn) {
             }
             $monthConditions = implode(',', array_map(function($m) { return "'$m'"; }, $months));
 
+            $targetPeriodWhereSql = targetTercapaiPeriodWhereSql($months, 'pk.tanggal', 'k_lunas.tgl_lunas');
             $sqlPend = "SELECT COALESCE(SUM(ROUND((pk.nominal_invoice / (
                 SELECT COUNT(*) FROM pendapatan_kegiatan pk2 
-                WHERE pk2.kode = pk.kode AND DATE_FORMAT(pk2.tanggal, '%Y-%m') IN ($monthConditions) AND pk2.deleted_at IS NULL
+                WHERE pk2.kode = pk.kode AND pk2.deleted_at IS NULL
             )) * pk.porsi_kerja)), 0) AS total 
             FROM pendapatan_kegiatan pk 
+            JOIN " . targetTercapaiLunasSubquerySql('k_lunas') . " ON k_lunas.kode = pk.kode
             WHERE pk.teknisi_id = '" . mysqli_real_escape_string($conn, $idTeknis) . "' 
-              AND DATE_FORMAT(pk.tanggal, '%Y-%m') IN ($monthConditions) AND EXISTS (SELECT 1 FROM kegiatan k_act WHERE k_act.kode = pk.kode AND k_act.deleted_at IS NULL) 
-              AND pk.deleted_at IS NULL";
+              AND pk.deleted_at IS NULL
+              AND $targetPeriodWhereSql";
             $resPend = mysqli_query($conn, $sqlPend);
             if ($resPend) {
                 $rowPend = mysqli_fetch_assoc($resPend);

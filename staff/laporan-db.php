@@ -113,6 +113,7 @@
 
         // ═══ BATCH QUERY 4: Invoice count + pendapatan per teknisi ═══
         if (function_exists('ensurePorsiKerjaColumn')) ensurePorsiKerjaColumn($conn);
+        $targetPeriodWhereSql = targetTercapaiPeriodWhereSql($ymList, 'pk.tanggal', 'k_lunas.tgl_lunas');
         $invCount = [];
         $pendapatanSum = [];
         $sql = "SELECT pk.teknisi_id, 
@@ -122,13 +123,13 @@
                 JOIN (
                     SELECT kode, COUNT(*) as tek_count 
                     FROM pendapatan_kegiatan 
-                    WHERE DATE_FORMAT(tanggal, '%Y-%m') IN ($ymCondition) AND deleted_at IS NULL
+                    WHERE deleted_at IS NULL
                     GROUP BY kode
                 ) counts ON pk.kode = counts.kode
+                JOIN " . targetTercapaiLunasSubquerySql('k_lunas') . " ON k_lunas.kode = pk.kode
                 WHERE pk.teknisi_id IN ($placeholders) 
-                AND DATE_FORMAT(pk.tanggal, '%Y-%m') IN ($ymCondition) 
                 AND pk.deleted_at IS NULL
-                AND EXISTS (SELECT 1 FROM kegiatan k_act WHERE k_act.kode = pk.kode AND k_act.deleted_at IS NULL)
+                AND $targetPeriodWhereSql
                 GROUP BY pk.teknisi_id";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param($types, ...$allTekIds);
@@ -144,16 +145,11 @@
         $unpaidInvCount = [];
         $sql = "SELECT pk.teknisi_id, COUNT(DISTINCT pk.kode) as total 
                 FROM pendapatan_kegiatan pk
-                JOIN (
-                    SELECT kode, lunas
-                    FROM kegiatan
-                    WHERE deleted_at IS NULL
-                    GROUP BY kode
-                ) k ON pk.kode = k.kode
+                JOIN " . targetTercapaiLunasSubquerySql('k_lunas') . " ON pk.kode = k_lunas.kode
                 WHERE pk.teknisi_id IN ($placeholders) 
                 AND DATE_FORMAT(pk.tanggal, '%Y-%m') IN ($ymCondition)
                 AND pk.deleted_at IS NULL
-                AND (k.lunas IS NULL OR k.lunas = '0000-00-00')
+                AND k_lunas.tgl_lunas IS NULL
                 GROUP BY pk.teknisi_id";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param($types, ...$allTekIds);
@@ -212,17 +208,18 @@
     $grand_total_bonus = 0;
 
     // ═══ GRAND TOTAL PENDAPATAN ═══
+    $targetGrandWhereSql = targetTercapaiPeriodWhereSql($ymList, 'pk.tanggal', 'k_lunas.tgl_lunas');
     $sqlGrandPend = "SELECT SUM(ROUND((pk.nominal_invoice / counts.tek_count) * pk.porsi_kerja)) as total
         FROM pendapatan_kegiatan pk
         JOIN (
             SELECT kode, COUNT(*) as tek_count
             FROM pendapatan_kegiatan
-            WHERE DATE_FORMAT(tanggal, '%Y-%m') IN ($ymCondition) AND deleted_at IS NULL
+            WHERE deleted_at IS NULL
             GROUP BY kode
         ) counts ON pk.kode = counts.kode
-        WHERE DATE_FORMAT(pk.tanggal, '%Y-%m') IN ($ymCondition)
-        AND pk.deleted_at IS NULL
-        AND EXISTS (SELECT 1 FROM kegiatan k_act WHERE k_act.kode = pk.kode AND k_act.deleted_at IS NULL)";
+        JOIN " . targetTercapaiLunasSubquerySql('k_lunas') . " ON k_lunas.kode = pk.kode
+        WHERE pk.deleted_at IS NULL
+        AND $targetGrandWhereSql";
     $resGP = mysqli_query($conn, $sqlGrandPend);
     $rowGP = mysqli_fetch_assoc($resGP);
     $grand_total_pendapatan = $rowGP['total'] ?? 0;
@@ -256,44 +253,19 @@
     $grand_total_all = $grand_total_fee + $grand_total_pendapatan + $grand_total_bonus;
 
     // ═══ GRAND TOTAL UNPAID INVOICE ═══
-    if ($filterTeknisiId > 0) {
-        $sqlUnpaid = "SELECT SUM(ROUND((pk.nominal_invoice / counts.tek_count) * pk.porsi_kerja)) as total
-            FROM pendapatan_kegiatan pk
-            JOIN (
-                SELECT kode, COUNT(*) as tek_count
-                FROM pendapatan_kegiatan
-                WHERE DATE_FORMAT(tanggal, '%Y-%m') IN ($ymCondition) AND deleted_at IS NULL
-                GROUP BY kode
-            ) counts ON pk.kode = counts.kode
-            JOIN (
-                SELECT kode, lunas
-                FROM kegiatan
-                WHERE deleted_at IS NULL
-                GROUP BY kode
-            ) k ON pk.kode = k.kode
-            WHERE pk.teknisi_id = $filterTeknisiId
-              AND DATE_FORMAT(pk.tanggal, '%Y-%m') IN ($ymCondition)
-              AND pk.deleted_at IS NULL
-              AND (k.lunas IS NULL OR k.lunas = '0000-00-00')";
-    } else {
-        $sqlUnpaid = "SELECT SUM(ROUND((pk.nominal_invoice / counts.tek_count) * pk.porsi_kerja)) as total
-            FROM pendapatan_kegiatan pk
-            JOIN (
-                SELECT kode, COUNT(*) as tek_count
-                FROM pendapatan_kegiatan
-                WHERE DATE_FORMAT(tanggal, '%Y-%m') IN ($ymCondition) AND deleted_at IS NULL
-                GROUP BY kode
-            ) counts ON pk.kode = counts.kode
-            JOIN (
-                SELECT kode, lunas
-                FROM kegiatan
-                WHERE deleted_at IS NULL
-                GROUP BY kode
-            ) k ON pk.kode = k.kode
-            WHERE DATE_FORMAT(pk.tanggal, '%Y-%m') IN ($ymCondition)
-              AND pk.deleted_at IS NULL
-              AND (k.lunas IS NULL OR k.lunas = '0000-00-00')";
-    }
+    $unpaidTekWhere = ($filterTeknisiId > 0) ? "pk.teknisi_id = " . intval($filterTeknisiId) . " AND " : "";
+    $sqlUnpaid = "SELECT SUM(ROUND((pk.nominal_invoice / counts.tek_count) * pk.porsi_kerja)) as total
+        FROM pendapatan_kegiatan pk
+        JOIN (
+            SELECT kode, COUNT(*) as tek_count
+            FROM pendapatan_kegiatan
+            WHERE deleted_at IS NULL
+            GROUP BY kode
+        ) counts ON pk.kode = counts.kode
+        JOIN " . targetTercapaiLunasSubquerySql('k_lunas') . " ON pk.kode = k_lunas.kode
+        WHERE {$unpaidTekWhere}DATE_FORMAT(pk.tanggal, '%Y-%m') IN ($ymCondition)
+          AND pk.deleted_at IS NULL
+          AND k_lunas.tgl_lunas IS NULL";
     $resUnpaid = mysqli_query($conn, $sqlUnpaid);
     $rowUnpaid = mysqli_fetch_assoc($resUnpaid);
     $grand_total_unpaid = $rowUnpaid['total'] ?? 0;
@@ -464,7 +436,7 @@
                         <td class="text-center">
                             <?php if ($tr['pend'] > 0): ?>
                                 <span class="money-val money-positive money-clickable" 
-                                      onclick="showRevenueDetail(<?= $tr['idT'] ?>, '<?= htmlspecialchars($tr['namaT'], ENT_QUOTES) ?>', '<?= $ym ?>')">
+                                      onclick="showRevenueDetail(<?= $tr['idT'] ?>, '<?= htmlspecialchars($tr['namaT'], ENT_QUOTES) ?>', '<?= implode(',', $ymList) ?>')">
                                     Rp <?= number_format($tr['pend'], 0, ',', '.') ?>
                                 </span>
                             <?php else: ?>

@@ -27,16 +27,23 @@ while ($row = mysqli_fetch_assoc($result)) {
     $namaT = $row['nama'];
     $target = $row['target'];
 
-    // Hitung total bonus dari pendapatan kegiatan
+    // Hitung total target tercapai dari pendapatan kegiatan (mulai Sep 2026 ikut tanggal lunas)
+    if (function_exists('ensurePorsiKerjaColumn')) ensurePorsiKerjaColumn($conn);
+    $targetPeriodWhereSql = targetTercapaiPeriodWhereSql([$current_date], 'pk.tanggal', 'k_lunas.tgl_lunas');
     $sqlBns = "
         SELECT 
-            SUM(pendapatan) AS total_bonus
-        FROM 
-            pendapatan_kegiatan
-        WHERE 
-            teknisi_id = $idT
-            AND deleted_at IS NULL AND EXISTS (SELECT 1 FROM kegiatan k_act WHERE k_act.kode = pendapatan_kegiatan.kode AND k_act.deleted_at IS NULL)
-            AND DATE_FORMAT(tanggal, '%Y-%m') = '$current_date'
+            COALESCE(SUM(ROUND((pk.nominal_invoice / counts.tek_count) * pk.porsi_kerja)), 0) AS total_bonus
+        FROM pendapatan_kegiatan pk
+        JOIN (
+            SELECT kode, COUNT(*) AS tek_count
+            FROM pendapatan_kegiatan
+            WHERE deleted_at IS NULL
+            GROUP BY kode
+        ) counts ON pk.kode = counts.kode
+        JOIN " . targetTercapaiLunasSubquerySql('k_lunas') . " ON k_lunas.kode = pk.kode
+        WHERE pk.teknisi_id = " . intval($idT) . "
+          AND pk.deleted_at IS NULL
+          AND $targetPeriodWhereSql
     ";
     $resultBns = mysqli_query($conn, $sqlBns);
     $totalBonus = ($resultBns) ? mysqli_fetch_assoc($resultBns)['total_bonus'] ?? 0 : 0;

@@ -83,15 +83,16 @@ $res_selesai = mysqli_query($conn, $sql_selesai);
 $selesai = intval(mysqli_fetch_assoc($res_selesai)['jumlah'] ?? 0);
 
 // 4. Get total pendapatan from pendapatan_kegiatan (SAME LOGIC as web get_teknisi_data.php)
+$targetPeriodWhereSql = targetTercapaiPeriodWhereSql($months, 'pk.tanggal', 'k_lunas.tgl_lunas');
 $sql_pendapatan = "SELECT COALESCE(SUM(ROUND((pk.nominal_invoice / (
                     SELECT COUNT(*) FROM pendapatan_kegiatan pk2 
-                    WHERE pk2.kode = pk.kode AND DATE_FORMAT(pk2.tanggal, '%Y-%m') IN ($monthConditions) AND pk2.deleted_at IS NULL
+                    WHERE pk2.kode = pk.kode AND pk2.deleted_at IS NULL
                 )) * pk.porsi_kerja)), 0) AS total
                 FROM pendapatan_kegiatan pk 
+                JOIN " . targetTercapaiLunasSubquerySql('k_lunas') . " ON k_lunas.kode = pk.kode
                 WHERE pk.teknisi_id = $teknisiId 
-                AND DATE_FORMAT(pk.tanggal, '%Y-%m') IN ($monthConditions) 
                 AND pk.deleted_at IS NULL
-                AND EXISTS (SELECT 1 FROM kegiatan k_act WHERE k_act.kode = pk.kode AND k_act.deleted_at IS NULL)";
+                AND $targetPeriodWhereSql";
 $res_pendapatan = mysqli_query($conn, $sql_pendapatan);
 $totalPendapatan = floatval(mysqli_fetch_assoc($res_pendapatan)['total'] ?? 0);
 

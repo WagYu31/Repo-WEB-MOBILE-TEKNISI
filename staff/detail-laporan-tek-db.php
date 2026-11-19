@@ -33,10 +33,16 @@ if (isset($_GET['cariBulanTahun']) && !empty($_GET['cariBulanTahun'])) {
 
         if (isset($idTeknis) && $idTeknis !== null) {
             if (function_exists('ensurePorsiKerjaColumn')) ensurePorsiKerjaColumn($conn);
+            $usesLunasRule = targetTercapaiUsesLunas($current_date);
+            $periodWhereSql = targetTercapaiPeriodWhereSql([$current_date], 'pk.tanggal', 'k_lunas.tgl_lunas');
+            $orderBySql = $usesLunasRule ? 'k_lunas.tgl_lunas ASC, pk.tanggal ASC' : 'pk.tanggal ASC';
+            $idTekEsc = intval($idTeknis);
             $sql = "SELECT pk.*, 
                        GROUP_CONCAT(DISTINCT CONCAT('<a href=\"detail-lap-tek.php?cariBulanTahun=$current_date&idTek=', t.id, '\">', t.nama, IF(pk.porsi_kerja < 1, ' (½ Hari)', ''), '</a>') SEPARATOR '<br>') AS nama_teknisi, 
-                       k.customer_id, 
+                       k_lunas.customer_id, 
+                       k_lunas.tgl_lunas,
                        c.nama AS nama_cust,
+                       SUM(ROUND((pk.nominal_invoice / counts.tek_count) * pk.porsi_kerja)) AS calc_tek_share,
                        (SELECT GROUP_CONCAT(DISTINCT CONCAT(UPPER(k2.kegiatan), ' - ', DATE_FORMAT(k2.jadwal, '%d/%m/%Y')) SEPARATOR ', ')
                         FROM kegiatan k2
                         WHERE k2.kode = pk.kode 
@@ -51,15 +57,21 @@ if (isset($_GET['cariBulanTahun']) && !empty($_GET['cariBulanTahun'])) {
                         AND tk3.deleted_at IS NULL
                        ) AS surveyor
                 FROM pendapatan_kegiatan pk
-                JOIN kegiatan k ON k.kode = pk.kode AND k.deleted_at IS NULL
-                JOIN customer c ON c.id = k.customer_id
+                JOIN (
+                    SELECT kode, COUNT(*) AS tek_count
+                    FROM pendapatan_kegiatan
+                    WHERE deleted_at IS NULL
+                    GROUP BY kode
+                ) counts ON counts.kode = pk.kode
+                JOIN " . targetTercapaiLunasSubquerySql('k_lunas') . " ON k_lunas.kode = pk.kode
+                JOIN customer c ON c.id = k_lunas.customer_id
                 JOIN teknisi t ON t.id = pk.teknisi_id
                 WHERE pk.deleted_at IS NULL
-                AND DATE_FORMAT(pk.tanggal, '%Y-%m') = '$current_date'
+                AND $periodWhereSql
                 AND pk.pendapatan != 0
-                AND pk.teknisi_id = '$idTeknis'
+                AND pk.teknisi_id = $idTekEsc
                 GROUP BY pk.kode
-                ORDER BY pk.tanggal ASC";
+                ORDER BY $orderBySql";
 
             $result = mysqli_query($conn, $sql);
 
@@ -140,18 +152,14 @@ if (isset($_GET['cariBulanTahun']) && !empty($_GET['cariBulanTahun'])) {
                     $namaC = $row['nama_cust'];
                     $invoice = $row['no_invoice'];
                     $kodeTran = $row['kode'];
-                    $nominal = 0;
-                    $tglInv = date('d M Y', strtotime($row['tanggal']));
+                    $nominal = floatval($row['calc_tek_share'] ?? 0);
+                    $tglInvRaw = date('d M Y', strtotime($row['tanggal']));
+                    $tglLunasRaw = !empty($row['tgl_lunas']) ? date('d M Y', strtotime($row['tgl_lunas'])) : '';
+                    $tglInv = (!empty($usesLunasRule) && $tglLunasRaw !== '')
+                        ? $tglLunasRaw . ($tglLunasRaw !== $tglInvRaw ? '<div class="text-xs text-muted">Inv: ' . $tglInvRaw . '</div>' : '')
+                        : $tglInvRaw;
                     $ketSurvey = $row['keterangan_survey'] ?? '-';
                     $surveyor = $row['surveyor'] ?? '-';
-
-                    $getPendapatan = "SELECT pendapatan FROM pendapatan_kegiatan
-                                        WHERE kode = '$kodeTran' AND teknisi_id = '$idT' AND deleted_at IS NULL";
-                    $resultPendapatan = mysqli_query($conn, $getPendapatan);
-                    while($rowPendapatan = mysqli_fetch_assoc($resultPendapatan)){
-                        // $nominal = $rowPendapatan['pendapatan'];
-                        $nominal += $rowPendapatan['pendapatan'];
-                    } 
 
                 ?>
                     <li class="list-group-item border-0 d-flex flex-column justify-content-between align-items-center ps-0 mb-2 border-radius-lg d-md-block d-block">

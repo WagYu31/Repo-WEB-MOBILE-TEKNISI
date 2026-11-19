@@ -80,3 +80,57 @@ if (!function_exists('ensurePorsiKerjaColumn')) {
 if (isset($conn) && $conn) {
     ensurePorsiKerjaColumn($conn);
 }
+
+if (!defined('TARGET_LUNAS_CUTOFF_YM')) {
+    // Mulai September 2026, laporan Target Tercapai Teknisi ditarik dari tanggal lunas saja.
+    define('TARGET_LUNAS_CUTOFF_YM', '2026-09');
+}
+
+if (!function_exists('targetTercapaiUsesLunas')) {
+    function targetTercapaiUsesLunas(string $ym): bool {
+        return trim($ym) >= TARGET_LUNAS_CUTOFF_YM;
+    }
+}
+
+if (!function_exists('targetTercapaiLunasSubquerySql')) {
+    function targetTercapaiLunasSubquerySql(string $alias = 'k_lunas'): string {
+        return "(SELECT kode,
+                        MAX(customer_id) AS customer_id,
+                        MAX(CASE
+                            WHEN lunas IS NOT NULL
+                             AND CAST(lunas AS CHAR) NOT IN ('', '0000-00-00', '0000-00-00 00:00:00')
+                            THEN SUBSTR(CAST(lunas AS CHAR), 1, 10)
+                            ELSE NULL
+                        END) AS tgl_lunas
+                 FROM kegiatan
+                 WHERE deleted_at IS NULL
+                 GROUP BY kode) AS $alias";
+    }
+}
+
+if (!function_exists('targetTercapaiPeriodWhereSql')) {
+    function targetTercapaiPeriodWhereSql(array $months, string $pkDateCol = 'pk.tanggal', string $lunasDateCol = 'k_lunas.tgl_lunas'): string {
+        $legacy = [];
+        $lunas = [];
+        foreach ($months as $m) {
+            $m = trim((string)$m);
+            if (!preg_match('/^\d{4}-\d{2}$/', $m)) continue;
+            if (targetTercapaiUsesLunas($m)) {
+                $lunas[] = "'$m'";
+            } else {
+                $legacy[] = "'$m'";
+            }
+        }
+        $clauses = [];
+        if (!empty($legacy)) {
+            $clauses[] = "SUBSTR(CAST($pkDateCol AS CHAR), 1, 7) IN (" . implode(',', $legacy) . ")";
+        }
+        if (!empty($lunas)) {
+            $clauses[] = "($lunasDateCol IS NOT NULL AND SUBSTR($lunasDateCol, 1, 7) IN (" . implode(',', $lunas) . "))";
+        }
+        if (empty($clauses)) {
+            return '1=0';
+        }
+        return count($clauses) === 1 ? $clauses[0] : '(' . implode(' OR ', $clauses) . ')';
+    }
+}

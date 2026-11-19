@@ -200,6 +200,7 @@ $role = $jabatan;
 
                                 // === Invoice + Pendapatan ===
                                 if (function_exists('ensurePorsiKerjaColumn')) ensurePorsiKerjaColumn($conn);
+                                $targetPeriodWhereSql = targetTercapaiPeriodWhereSql($ymList, 'pk.tanggal', 'k_lunas.tgl_lunas');
                                 $invCount = [];
                                 $pendapatanSum = [];
                                 $sql = "SELECT pk.teknisi_id, 
@@ -209,12 +210,13 @@ $role = $jabatan;
                                         JOIN (
                                             SELECT kode, COUNT(*) as tek_count 
                                             FROM pendapatan_kegiatan 
-                                            WHERE DATE_FORMAT(tanggal, '%Y-%m') IN ($ymCondition) AND deleted_at IS NULL
+                                            WHERE deleted_at IS NULL
                                             GROUP BY kode
                                         ) counts ON pk.kode = counts.kode
+                                        JOIN " . targetTercapaiLunasSubquerySql('k_lunas') . " ON k_lunas.kode = pk.kode
                                         WHERE pk.teknisi_id IN ($placeholders) 
-                                        AND DATE_FORMAT(pk.tanggal, '%Y-%m') IN ($ymCondition) 
-                                        AND pk.deleted_at IS NULL AND EXISTS (SELECT 1 FROM kegiatan k_act WHERE k_act.kode = pk.kode AND k_act.deleted_at IS NULL)
+                                        AND pk.deleted_at IS NULL
+                                        AND $targetPeriodWhereSql
                                         GROUP BY pk.teknisi_id";
                                 $stmt = $conn->prepare($sql);
                                 $stmt->bind_param($types, ...$allTekIds);
@@ -266,10 +268,11 @@ $role = $jabatan;
                                     JOIN (
                                         SELECT kode, COUNT(*) as tek_count
                                         FROM pendapatan_kegiatan
-                                        WHERE DATE_FORMAT(tanggal, '%Y-%m') IN ($ymCondition) AND deleted_at IS NULL
+                                        WHERE deleted_at IS NULL
                                         GROUP BY kode
                                     ) counts ON pk.kode = counts.kode
-                                    WHERE DATE_FORMAT(pk.tanggal, '%Y-%m') IN ($ymCondition) AND pk.deleted_at IS NULL AND EXISTS (SELECT 1 FROM kegiatan k_act WHERE k_act.kode = pk.kode AND k_act.deleted_at IS NULL)";
+                                    JOIN " . targetTercapaiLunasSubquerySql('k_lunas') . " ON k_lunas.kode = pk.kode
+                                    WHERE pk.deleted_at IS NULL AND $targetPeriodWhereSql";
                                 $resGP = mysqli_query($conn, $sqlGrandPend);
                                 $rowGP = mysqli_fetch_assoc($resGP);
                                 $grand_total_pendapatan = $rowGP['total'] ?? 0;

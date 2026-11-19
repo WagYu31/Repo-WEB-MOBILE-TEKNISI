@@ -398,25 +398,26 @@
     $tomorrow_date = date("Y-m-d", strtotime("+1 day"));
     $current_time = date("H:i:s");
     
-    // Calculate month range for index-friendly filtering
+    // Calculate month range & cutoff rule (mulai Sep 2026 tarik dari tanggal lunas saja)
     if (function_exists('ensurePorsiKerjaColumn')) ensurePorsiKerjaColumn($conn);
-    $monthStart = $current_date . '-01';
-    $monthEnd = date('Y-m-t', strtotime($monthStart));
+    $usesLunasRule = targetTercapaiUsesLunas($current_date);
+    $periodWhereSql = targetTercapaiPeriodWhereSql([$current_date], 'pk.tanggal', 'k_lunas.tgl_lunas');
+    $orderBySql = $usesLunasRule ? 'k_lunas.tgl_lunas ASC, pk.tanggal ASC' : 'pk.tanggal ASC';
     
     $sql = "SELECT pk.*, 
                    GROUP_CONCAT(DISTINCT CONCAT('<a href=\"detail-lap-tek.php?cariBulanTahun=$current_date&idTek=', t.id, '\">', t.nama, IF(pk.porsi_kerja < 1, ' <span style=\"font-size:10px;color:#b45309;font-weight:700;\">(½ Hari)</span>', ''), '</a>') SEPARATOR '<br>') AS nama_teknisi,
                    GROUP_CONCAT(DISTINCT t.nama SEPARATOR ', ') AS nama_teknisi_plain,
-                   k.customer_id, 
+                   k_lunas.customer_id, 
                    c.nama AS nama_cust,
-                   k.lunas,
+                   k_lunas.tgl_lunas AS lunas,
                    sv.keterangan_survey,
                    sv.surveyor,
                    counts.tek_count,
                    counts.uniq_tek_count,
                    counts.calc_total_share
             FROM pendapatan_kegiatan pk
-            JOIN kegiatan k ON k.kode = pk.kode AND k.deleted_at IS NULL
-            JOIN customer c ON c.id = k.customer_id
+            JOIN " . targetTercapaiLunasSubquerySql('k_lunas') . " ON k_lunas.kode = pk.kode
+            JOIN customer c ON c.id = k_lunas.customer_id
             JOIN teknisi t ON t.id = pk.teknisi_id
             JOIN (
                 SELECT p_in.kode, 
@@ -444,9 +445,9 @@
                 GROUP BY k2.kode
             ) sv ON sv.kode = pk.kode
             WHERE pk.deleted_at IS NULL
-            AND pk.tanggal >= '$monthStart' AND pk.tanggal <= '$monthEnd 23:59:59'
+            AND $periodWhereSql
             GROUP BY pk.kode
-            ORDER BY pk.tanggal ASC";
+            ORDER BY $orderBySql";
             
     $result = mysqli_query($conn, $sql);
     $totalNominalAll = 0;
