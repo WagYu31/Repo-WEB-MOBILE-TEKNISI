@@ -1725,7 +1725,7 @@ if (isset($_GET['export'])) {
         $('#jam').val(p[1]);
       }
       checkJadwal();
-      new bootstrap.Modal($('#jadwalkanModal')[0]).show();
+      bootstrap.Modal.getOrCreateInstance($('#jadwalkanModal')[0], { backdrop: false, focus: false }).show();
     });
 
     async function checkJadwal() {

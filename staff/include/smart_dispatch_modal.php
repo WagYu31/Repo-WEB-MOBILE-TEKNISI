@@ -404,6 +404,47 @@
     flex-wrap: wrap;
     flex-shrink: 0;
   }
+
+  /* ── Floating Draggable Jadwalkan Kegiatan Modal ── */
+  #jadwalkanModal {
+    pointer-events: none !important;
+  }
+  #jadwalkanModal .modal-dialog {
+    pointer-events: none !important;
+    transition: transform 0.08s ease-out;
+  }
+  #jadwalkanModal .modal-dialog.sd-is-dragging {
+    transition: none !important;
+  }
+  #jadwalkanModal .modal-content {
+    pointer-events: auto !important;
+    box-shadow: 0 24px 64px rgba(15, 23, 42, 0.34), 0 0 0 1.5px rgba(99, 102, 241, 0.38) !important;
+  }
+  .sd-draggable-header {
+    cursor: grab !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    touch-action: none !important;
+  }
+  .sd-draggable-header.sd-grabbing {
+    cursor: grabbing !important;
+  }
+  .sd-drag-hint-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.2);
+    color: inherit;
+    opacity: 0.85;
+    margin-left: auto;
+    margin-right: 8px;
+    pointer-events: none;
+    white-space: nowrap;
+  }
 </style>
 
 <div class="modal fade" id="smartDispatchModal" tabindex="-1" aria-hidden="true">
@@ -1700,5 +1741,110 @@
       }
     }
   };
+
+  /* ═══════════════════════════════════════════════════════════════════════
+     4. DRAGGABLE FLOATING POPUP MODAL (Geser Bebas + Daftar Belakang Terlihat)
+     ═══════════════════════════════════════════════════════════════════════ */
+  function makeModalDraggable(modalSelector, nonBlocking = false) {
+    const modalEl = document.querySelector(modalSelector);
+    if (!modalEl) return;
+    const dialogEl = modalEl.querySelector('.modal-dialog');
+    const headerEl = modalEl.querySelector('.modal-header');
+    if (!dialogEl || !headerEl) return;
+
+    headerEl.classList.add('sd-draggable-header');
+    headerEl.setAttribute('title', 'Tahan & geser untuk memindahkan posisi kotak (klik 2x untuk kembali ke tengah)');
+
+    if (!headerEl.querySelector('.sd-drag-hint-pill')) {
+      const hint = document.createElement('span');
+      hint.className = 'sd-drag-hint-pill';
+      hint.innerHTML = '&#8942;&#8942; Geser';
+      const closeBtn = headerEl.querySelector('.btn-close');
+      if (closeBtn) headerEl.insertBefore(hint, closeBtn);
+      else headerEl.appendChild(hint);
+    }
+
+    let offsetX = 0;
+    let offsetY = 0;
+    let startX = 0;
+    let startY = 0;
+    let baseLeft = 0;
+    let baseTop = 0;
+    let width = 0;
+    let headerHeight = 52;
+    let dragging = false;
+
+    function applyOffset(x, y) {
+      offsetX = x;
+      offsetY = y;
+      dialogEl.style.transform = `translate3d(${Math.round(offsetX)}px, ${Math.round(offsetY)}px, 0)`;
+    }
+
+    headerEl.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0 && e.pointerType === 'mouse') return;
+      if (e.target.closest('button, a, input, select, textarea, .btn-close')) return;
+
+      const rect = dialogEl.getBoundingClientRect();
+      baseLeft = rect.left - offsetX;
+      baseTop = rect.top - offsetY;
+      width = rect.width;
+      headerHeight = headerEl.getBoundingClientRect().height || 52;
+
+      startX = e.clientX - offsetX;
+      startY = e.clientY - offsetY;
+      dragging = true;
+
+      dialogEl.classList.add('sd-is-dragging');
+      headerEl.classList.add('sd-grabbing');
+      try { headerEl.setPointerCapture(e.pointerId); } catch (_) {}
+      e.preventDefault();
+    });
+
+    headerEl.addEventListener('pointermove', (e) => {
+      if (!dragging) return;
+      const rawX = e.clientX - startX;
+      const rawY = e.clientY - startY;
+
+      // Keep at least 100px horizontally & header vertically inside viewport
+      const minX = 100 - (baseLeft + width);
+      const maxX = window.innerWidth - 100 - baseLeft;
+      const minY = 6 - baseTop;
+      const maxY = window.innerHeight - headerHeight - 6 - baseTop;
+
+      applyOffset(
+        Math.min(maxX, Math.max(minX, rawX)),
+        Math.min(maxY, Math.max(minY, rawY))
+      );
+    });
+
+    function stopDrag(e) {
+      if (!dragging) return;
+      dragging = false;
+      dialogEl.classList.remove('sd-is-dragging');
+      headerEl.classList.remove('sd-grabbing');
+      try { headerEl.releasePointerCapture(e.pointerId); } catch (_) {}
+    }
+
+    headerEl.addEventListener('pointerup', stopDrag);
+    headerEl.addEventListener('pointercancel', stopDrag);
+
+    // Double-click header resets back to center
+    headerEl.addEventListener('dblclick', (e) => {
+      if (e.target.closest('button, a, input, .btn-close')) return;
+      applyOffset(0, 0);
+    });
+
+    if (nonBlocking) {
+      modalEl.addEventListener('shown.bs.modal', () => {
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+        document.body.style.paddingRight = '';
+      });
+    }
+  }
+
+  makeModalDraggable('#jadwalkanModal', true);
+  makeModalDraggable('#locationModal', false);
+  makeModalDraggable('#reasonModal', false);
 })();
 </script>
