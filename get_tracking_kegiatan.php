@@ -90,9 +90,41 @@ try {
     }
     $stmt->close();
 
-    // 2b. Query Waiting List (ditampilkan pada tanggal hari ini & tanggal mendatang agar admin mudah melihat sebaran lokasi belum dapat teknisi)
+    // 2b. Query Kegiatan Akan Datang & Waiting List (ditampilkan pada tanggal hari ini & tanggal mendatang)
+    $upcomingRows = [];
+    $upcomingKegIds = [];
     $waitingRows = [];
     if ($currentDate >= date('Y-m-d')) {
+        $sqlUpcoming = "SELECT 
+            k.id, k.kode, k.customer_id, k.kegiatan, k.jadwal, k.status, k.keterangan, 
+            k.lat, k.lon, k.rad, k.alamat_lokasi, k.created_at,
+            c.nama AS nama_customer, c.telp AS cust_nomor, c.alamat AS cust_alamat
+        FROM kegiatan k 
+        LEFT JOIN customer c ON k.customer_id = c.id 
+        WHERE k.id IN (
+            SELECT MAX(id) 
+            FROM kegiatan 
+            WHERE deleted_at IS NULL 
+            GROUP BY kode
+        ) 
+        AND k.status NOT IN ('waiting', 'selesai by admin') 
+        AND DATE(k.jadwal) > ? 
+        ORDER BY k.jadwal ASC";
+        $stmtUp = $conn->prepare($sqlUpcoming);
+        if ($stmtUp) {
+            $stmtUp->bind_param("s", $currentDate);
+            $stmtUp->execute();
+            $resUp = $stmtUp->get_result();
+            while ($ru = $resUp->fetch_assoc()) {
+                $upcomingRows[] = $ru;
+                $upcomingKegIds[intval($ru['id'])] = true;
+                if (!empty($ru['customer_id'])) {
+                    $allCustomerIds[intval($ru['customer_id'])] = true;
+                }
+            }
+            $stmtUp->close();
+        }
+
         $sqlWaiting = "SELECT 
             k.id, k.kode, k.customer_id, k.kegiatan, k.jadwal, k.status, k.keterangan, 
             k.lat, k.lon, k.rad, k.alamat_lokasi, k.created_at,
@@ -130,10 +162,11 @@ try {
         }
     }
 
-    // 3. Bulk fetch Team Teknisi
+    // 3. Bulk fetch Team Teknisi (untuk Hari Ini + Akan Datang sekaligus)
     $teknisiByKegiatan = [];
-    if (!empty($allKegiatanIds)) {
-        $idList = implode(',', array_map('intval', array_keys($allKegiatanIds)));
+    $combinedKegIds = array_keys($allKegiatanIds + $upcomingKegIds);
+    if (!empty($combinedKegIds)) {
+        $idList = implode(',', array_map('intval', $combinedKegIds));
         $resTek = $conn->query("
             SELECT 
                 tk.kegiatan_id, 
@@ -148,8 +181,11 @@ try {
         ");
         if ($resTek) {
             while ($rt = $resTek->fetch_assoc()) {
-                $teknisiByKegiatan[$rt['kegiatan_id']][] = $rt;
-                $allTeknisiIds[$rt['teknisi_id']] = true;
+                $kidInt = intval($rt['kegiatan_id']);
+                $teknisiByKegiatan[$kidInt][] = $rt;
+                if (isset($allKegiatanIds[$kidInt])) {
+                    $allTeknisiIds[$rt['teknisi_id']] = true;
+                }
             }
             $resTek->free();
         }
@@ -204,11 +240,13 @@ try {
     // 6. Assemble response data per Kegiatan
     $kegiatanList = [];
     $totalScheduledKegiatan = 0;
+    $totalUpcomingKegiatan = 0;
     $totalWaitingKegiatan = 0;
     $totalOnlineTeknisi = 0;
     $countedOnlineTeknisi = [];
     $countedGpsMatiTeknisi = [];
     $usedCoordBuckets = [];
+    $seenKodes = array_fill_keys(array_keys($groupedKegiatan), true);
     $nowHourWib = (int)date('G');
     $isJamKerja = ($currentDate === date('Y-m-d') && $nowHourWib >= 6 && $nowHourWib < 20);
 
@@ -321,17 +359,110 @@ try {
             'coord_estimated' => !$zoneInfo['is_exact'],
             'radius'          => intval($keg['rad'] ?? 50),
             'status'          => $keg['status'],
+            'category'        => $isUnassigned ? 'waiting' : 'today',
+            'is_upcoming'     => false,
             'is_waiting'      => $isUnassigned,
             'teknisi_list'    => $assignedTeknisi,
             'teknisi_count'   => count($assignedTeknisi),
         ];
     }
 
-    // 7. Append Waiting List (belum dapat teknisi)
-    foreach ($waitingRows as $wRow) {
-        if (isset($groupedKegiatan[$wRow['kode']])) {
+    // 6b. Append Kegiatan Akan Datang (Biru jika sudah ada teknisi, Ungu jika belum ada teknisi)
+    foreach ($upcomingRows as $uRow) {
+        if (isset($seenKodes[$uRow['kode']])) {
             continue;
         }
+        $seenKodes[$uRow['kode']] = true;
+        $cidU = intval($uRow['customer_id'] ?? 0);
+        $zU = dispatchResolveZoneAndCoords(
+            $uRow['lat'],
+            $uRow['lon'],
+            $uRow['alamat_lokasi'] ?? '',
+            $uRow['cust_alamat'] ?? '',
+            '',
+            $custCoordsMap[$cidU] ?? null
+        );
+
+        $uLat = $zU['lat'];
+        $uLon = $zU['lon'];
+        if ($uLat !== null && $uLon !== null) {
+            $bKey = round($uLat, 4) . ',' . round($uLon, 4);
+            $dupIdx = $usedCoordBuckets[$bKey] ?? 0;
+            $usedCoordBuckets[$bKey] = $dupIdx + 1;
+            if ($dupIdx > 0) {
+                $angle = ($dupIdx * 1.15);
+                $radiusDeg = ($zU['is_exact'] ? 0.00075 : 0.0022) * ceil($dupIdx / 5);
+                $uLat = round($uLat + sin($angle) * $radiusDeg, 6);
+                $uLon = round($uLon + cos($angle) * $radiusDeg, 6);
+            }
+        }
+
+        $jadwalUpStr = date('d/m H:i', strtotime($uRow['jadwal']));
+        $tglOnlyStr = date('d/m/y', strtotime($uRow['jadwal']));
+        $rawTekUp = $teknisiByKegiatan[intval($uRow['id'])] ?? [];
+        $assignedUp = [];
+        foreach ($rawTekUp as $tu) {
+            $assignedUp[] = [
+                'teknisi_id'         => intval($tu['teknisi_id']),
+                'nama'               => $tu['nama_teknisi'],
+                'telp'               => $tu['no_hp'],
+                'is_ketua'           => intval($tu['is_ketua']),
+                'status_kerja'       => 'Jadwal ' . $tglOnlyStr,
+                'waktu_mulai'        => null,
+                'waktu_selesai'      => null,
+                'live_latitude'      => null,
+                'live_longitude'     => null,
+                'speed'              => 0,
+                'battery'            => null,
+                'is_online'          => false,
+                'gps_disabled'       => false,
+                'gps_mati_jam_kerja' => false,
+                'last_seen_seconds'  => null,
+                'jarak_ke_lokasi_km' => null,
+                'is_upcoming_only'   => true,
+            ];
+        }
+
+        $isUpUnassigned = (count($assignedUp) === 0);
+        if ($isUpUnassigned) {
+            $totalWaitingKegiatan++;
+        } else {
+            $totalUpcomingKegiatan++;
+        }
+
+        $alamatU = !empty($uRow['alamat_lokasi']) ? $uRow['alamat_lokasi'] : ($uRow['cust_alamat'] ?? '');
+        $kegiatanList[] = [
+            'id'              => intval($uRow['id']),
+            'kode'            => $uRow['kode'],
+            'kegiatan'        => $uRow['kegiatan'],
+            'jadwal'          => $jadwalUpStr,
+            'customer_id'     => $cidU,
+            'nama_customer'   => $uRow['nama_customer'],
+            'cust_nomor'      => $uRow['cust_nomor'],
+            'keterangan'      => $uRow['keterangan'] ?? '',
+            'alamat'          => $alamatU,
+            'zone_label'      => $zU['label'],
+            'zone_bg'         => $zU['bg'],
+            'zone_color'      => $zU['color'],
+            'latitude'        => $uLat,
+            'longitude'       => $uLon,
+            'coord_estimated' => !$zU['is_exact'],
+            'radius'          => intval($uRow['rad'] ?? 50),
+            'status'          => $uRow['status'],
+            'category'        => $isUpUnassigned ? 'waiting' : 'upcoming',
+            'is_upcoming'     => !$isUpUnassigned,
+            'is_waiting'      => $isUpUnassigned,
+            'teknisi_list'    => $assignedUp,
+            'teknisi_count'   => count($assignedUp),
+        ];
+    }
+
+    // 7. Append Waiting List (belum dapat teknisi)
+    foreach ($waitingRows as $wRow) {
+        if (isset($seenKodes[$wRow['kode']])) {
+            continue;
+        }
+        $seenKodes[$wRow['kode']] = true;
         $cidW = intval($wRow['customer_id'] ?? 0);
         $zW = dispatchResolveZoneAndCoords(
             $wRow['lat'],
@@ -344,14 +475,14 @@ try {
 
         $wLat = $zW['lat'];
         $wLon = $zW['lon'];
-        // shortcut: slight ~220m ring offset when multiple unpinned waiting items share the same sub-district centroid so pins don't stack invisibly
+        // shortcut: slight ~80-220m ring offset when multiple items share the same coordinate bucket so pins don't stack invisibly
         if ($wLat !== null && $wLon !== null) {
             $bKey = round($wLat, 4) . ',' . round($wLon, 4);
             $dupIdx = $usedCoordBuckets[$bKey] ?? 0;
             $usedCoordBuckets[$bKey] = $dupIdx + 1;
-            if (!$zW['is_exact'] && $dupIdx > 0) {
+            if ($dupIdx > 0) {
                 $angle = ($dupIdx * 1.15);
-                $radiusDeg = 0.0022 * ceil($dupIdx / 5);
+                $radiusDeg = ($zW['is_exact'] ? 0.00075 : 0.0022) * ceil($dupIdx / 5);
                 $wLat = round($wLat + sin($angle) * $radiusDeg, 6);
                 $wLon = round($wLon + cos($angle) * $radiusDeg, 6);
             }
@@ -383,6 +514,8 @@ try {
             'coord_estimated' => !$zW['is_exact'],
             'radius'          => intval($wRow['rad'] ?? 50),
             'status'          => 'waiting',
+            'category'        => 'waiting',
+            'is_upcoming'     => false,
             'is_waiting'      => true,
             'teknisi_list'    => [],
             'teknisi_count'   => 0,
@@ -394,6 +527,7 @@ try {
         'tanggal' => $currentDate,
         'summary' => [
             'total_kegiatan'          => $totalScheduledKegiatan,
+            'total_upcoming'          => $totalUpcomingKegiatan,
             'total_waiting'           => $totalWaitingKegiatan,
             'total_semua_titik'       => count($kegiatanList),
             'total_teknisi_terjadwal' => count($allTeknisiIds),

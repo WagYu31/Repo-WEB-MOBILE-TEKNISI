@@ -308,6 +308,26 @@ $todayStr = date("Y-m-d");
         border-color: #e11d48;
         color: #ffffff;
     }
+    .type-pill.pill-today {
+        border-color: #fecaca;
+        color: #b91c1c;
+        background: #fef2f2;
+    }
+    .type-pill.pill-today[aria-pressed="true"] {
+        background: #ef4444;
+        border-color: #ef4444;
+        color: #ffffff;
+    }
+    .type-pill.pill-upcoming {
+        border-color: #bfdbfe;
+        color: #1d4ed8;
+        background: #eff6ff;
+    }
+    .type-pill.pill-upcoming[aria-pressed="true"] {
+        background: #2563eb;
+        border-color: #2563eb;
+        color: #ffffff;
+    }
     .type-pill.pill-waiting {
         border-color: #ddd6fe;
         color: #6d28d9;
@@ -372,6 +392,31 @@ $todayStr = date("Y-m-d");
         border-color: var(--lt-orange);
         background: #fffaf7;
         box-shadow: 0 6px 18px rgba(255, 91, 34, 0.15);
+    }
+    .kegiatan-card.card-upcoming {
+        border-color: #dbeafe;
+        border-left: 4.5px solid #2563eb;
+        background: #fbfdff;
+    }
+    .kegiatan-card.card-upcoming:hover,
+    .kegiatan-card.card-upcoming:has(.card-link:hover) {
+        border-color: #93c5fd;
+        border-left-color: #2563eb;
+        box-shadow: 0 6px 16px rgba(37, 99, 235, 0.12);
+    }
+    .kegiatan-card.card-upcoming.selected {
+        border-color: #2563eb;
+        background: #eff6ff;
+        box-shadow: 0 6px 18px rgba(37, 99, 235, 0.2);
+    }
+    .kegiatan-card.card-upcoming .btn-focus-map {
+        background: #2563eb;
+    }
+    .kegiatan-card.card-upcoming .btn-focus-map:hover {
+        background: #1d4ed8;
+    }
+    .kegiatan-card.card-upcoming.selected .btn-focus-map {
+        background: #1e3a8a;
     }
     .kegiatan-card.card-waiting {
         border-color: #ddd6fe;
@@ -950,6 +995,10 @@ $todayStr = date("Y-m-d");
         background: linear-gradient(135deg, #ef4444, #dc2626);
         box-shadow: 0 4px 12px rgba(239, 68, 68, 0.45);
     }
+    .pin-upcoming {
+        background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.5);
+    }
     .pin-waiting {
         background: linear-gradient(135deg, #8b5cf6, #6d28d9);
         box-shadow: 0 4px 14px rgba(124, 58, 237, 0.55);
@@ -998,6 +1047,9 @@ $todayStr = date("Y-m-d");
     }
     .marker-name-tag.tag-cust {
         background: rgba(153, 27, 27, 0.9);
+    }
+    .marker-name-tag.tag-upcoming {
+        background: rgba(30, 64, 175, 0.92);
     }
     .marker-name-tag.tag-waiting {
         background: rgba(91, 33, 182, 0.92);
@@ -1119,6 +1171,8 @@ $todayStr = date("Y-m-d");
           </div>
           <div class="tracking-type-pills" role="group" aria-label="Filter kegiatan">
             <button type="button" class="type-pill" data-type="all" aria-pressed="true" onclick="filterType('all', this)">Semua (<span id="countAll">0</span>)</button>
+            <button type="button" class="type-pill pill-today" data-type="today" aria-pressed="false" onclick="filterType('today', this)"><i class="fa-solid fa-store" aria-hidden="true"></i> Hari Ini (<span id="countToday">0</span>)</button>
+            <button type="button" class="type-pill pill-upcoming" data-type="upcoming" aria-pressed="false" onclick="filterType('upcoming', this)"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i> Akan Datang (<span id="countUpcoming">0</span>)</button>
             <button type="button" class="type-pill pill-waiting" data-type="waiting" aria-pressed="false" onclick="filterType('waiting', this)"><i class="fa-solid fa-hourglass-half" aria-hidden="true"></i> Waiting (<span id="countWaiting">0</span>)</button>
             <button type="button" class="type-pill pill-online" data-type="online" aria-pressed="false" onclick="filterType('online', this)"><i class="fa-solid fa-satellite-dish" aria-hidden="true"></i> GPS Online (<span id="countOnlineCard">0</span>)</button>
             <button type="button" class="type-pill pill-alert" id="pillGpsMati" data-type="gps_mati" aria-pressed="false" hidden onclick="filterType('gps_mati', this)"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> GPS Mati (<span id="countGpsMati">0</span>)</button>
@@ -1143,12 +1197,17 @@ $todayStr = date("Y-m-d");
         <!-- Top Floating Bar -->
         <div class="map-floating-bar">
           <div class="map-stats-pill">
-            <div class="stat-item">
+            <button type="button" class="stat-item" onclick="quickToggleCategoryFilter('today')" title="Klik untuk memfilter jadwal Hari Ini">
               <i class="fa-solid fa-store" style="color: #f87171;" aria-hidden="true"></i>
-              <span id="statKegiatan">0 Lokasi</span>
-            </div>
+              <span id="statKegiatan">0 Hari Ini</span>
+            </button>
             <div class="stat-divider"></div>
-            <button type="button" class="stat-item" onclick="quickToggleWaitingFilter()" title="Klik untuk memfilter lokasi Waiting List (Belum dapat teknisi)">
+            <button type="button" class="stat-item" onclick="quickToggleCategoryFilter('upcoming')" title="Klik untuk memfilter Kegiatan Akan Datang">
+              <i class="fa-solid fa-calendar-days" style="color: #60a5fa;" aria-hidden="true"></i>
+              <span id="statUpcoming">0 Akan Datang</span>
+            </button>
+            <div class="stat-divider"></div>
+            <button type="button" class="stat-item" onclick="quickToggleCategoryFilter('waiting')" title="Klik untuk memfilter lokasi Waiting List (Belum dapat teknisi)">
               <i class="fa-solid fa-hourglass-half" style="color: #c4b5fd;" aria-hidden="true"></i>
               <span id="statWaiting">0 Waiting</span>
             </button>
@@ -1195,7 +1254,8 @@ $todayStr = date("Y-m-d");
         <div class="map-legend-card" aria-label="Keterangan ikon peta">
           <span class="legend-item"><span class="legend-dot" style="background:#ff5b22;"></span> Motor Online (&le;2 mnt)</span>
           <span class="legend-item"><span class="legend-dot" style="background:#64748b;"></span> Lokasi Terakhir (&gt;2 mnt)</span>
-          <span class="legend-item"><span class="legend-dot" style="background:#ef4444;"></span> Lokasi Customer</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#ef4444;"></span> Hari Ini</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#2563eb;"></span> Akan Datang</span>
           <span class="legend-item"><span class="legend-dot" style="background:#7c3aed;"></span> Waiting (Belum Teknisi)</span>
         </div>
 
@@ -1301,12 +1361,15 @@ $todayStr = date("Y-m-d");
       if (btn) btn.setAttribute('aria-pressed', showLabels ? 'true' : 'false');
     }
 
-    function createCustomerIcon(custName, isWaiting = false) {
+    function createCustomerIcon(custName, category = 'today') {
+      const pinCls = category === 'waiting' ? 'pin-waiting' : (category === 'upcoming' ? 'pin-upcoming' : 'pin-customer');
+      const tagCls = category === 'waiting' ? 'tag-waiting' : (category === 'upcoming' ? 'tag-upcoming' : 'tag-cust');
+      const icoCls = category === 'waiting' ? 'fa-hourglass-half' : (category === 'upcoming' ? 'fa-calendar-days' : 'fa-store');
       return L.divIcon({
         className: 'custom-icon',
         html: `<div class="marker-wrap">
-                 <div class="marker-pin-circle ${isWaiting ? 'pin-waiting' : 'pin-customer'}"><i class="fa-solid ${isWaiting ? 'fa-hourglass-half' : 'fa-store'}"></i></div>
-                 <span class="marker-name-tag ${isWaiting ? 'tag-waiting' : 'tag-cust'}">${escHtml(shortLabel(custName, 16))}</span>
+                 <div class="marker-pin-circle ${pinCls}"><i class="fa-solid ${icoCls}"></i></div>
+                 <span class="marker-name-tag ${tagCls}">${escHtml(shortLabel(custName, 16))}</span>
                </div>`,
         iconSize: [38, 38],
         iconAnchor: [19, 19],
@@ -1364,7 +1427,9 @@ $todayStr = date("Y-m-d");
 
     function updateTopStats(summary) {
       if (!summary) return;
-      document.getElementById('statKegiatan').textContent = `${summary.total_kegiatan} Terjadwal`;
+      document.getElementById('statKegiatan').textContent = `${summary.total_kegiatan} Hari Ini`;
+      const statUpEl = document.getElementById('statUpcoming');
+      if (statUpEl) statUpEl.textContent = `${summary.total_upcoming || 0} Akan Datang`;
       const statWaitEl = document.getElementById('statWaiting');
       if (statWaitEl) statWaitEl.textContent = `${summary.total_waiting || 0} Waiting`;
       document.getElementById('statTeknisi').textContent = `${summary.total_teknisi_terjadwal} Teknisi`;
@@ -1376,6 +1441,7 @@ $todayStr = date("Y-m-d");
       document.querySelectorAll('.type-pill').forEach(p => p.setAttribute('aria-pressed', 'false'));
       if (el) el.setAttribute('aria-pressed', 'true');
       renderKegiatanSidebar();
+      renderMapLayers();
     }
 
     function quickToggleOnlineFilter() {
@@ -1384,17 +1450,18 @@ $todayStr = date("Y-m-d");
       filterType(next, btn);
     }
 
-    function quickToggleWaitingFilter() {
-      const next = activeTypeFilter === 'waiting' ? 'all' : 'waiting';
+    function quickToggleCategoryFilter(cat) {
+      const next = activeTypeFilter === cat ? 'all' : cat;
       const btn = document.querySelector(`.type-pill[data-type="${next}"]`);
       filterType(next, btn);
     }
 
     function matchesActiveCategory(k) {
       const kegLower = (k.kegiatan || '').toLowerCase();
+      const cat = k.category || (k.is_waiting ? 'waiting' : (k.is_upcoming ? 'upcoming' : 'today'));
       if (activeTypeFilter === 'all') return true;
-      if (activeTypeFilter === 'waiting') {
-        return Boolean(k.is_waiting);
+      if (activeTypeFilter === 'today' || activeTypeFilter === 'upcoming' || activeTypeFilter === 'waiting') {
+        return cat === activeTypeFilter;
       }
       if (activeTypeFilter === 'online') {
         return (k.teknisi_list || []).some(t => t.is_online);
@@ -1429,6 +1496,10 @@ $todayStr = date("Y-m-d");
       const filtered = getFilteredKegiatan();
 
       document.getElementById('countAll').textContent = kegiatanData.length;
+      const countTodayEl = document.getElementById('countToday');
+      if (countTodayEl) countTodayEl.textContent = kegiatanData.filter(k => !k.is_waiting && !k.is_upcoming).length;
+      const countUpEl = document.getElementById('countUpcoming');
+      if (countUpEl) countUpEl.textContent = kegiatanData.filter(k => k.is_upcoming).length;
       const countWaitEl = document.getElementById('countWaiting');
       if (countWaitEl) countWaitEl.textContent = kegiatanData.filter(k => k.is_waiting).length;
       document.getElementById('countOnlineCard').textContent = kegiatanData.filter(k => (k.teknisi_list || []).some(t => t.is_online)).length;
@@ -1478,13 +1549,15 @@ $todayStr = date("Y-m-d");
               const hasBat = batNum !== null && !isNaN(batNum);
               const batIcon = !hasBat ? '' : (batNum >= 75 ? 'fa-battery-full' : (batNum >= 45 ? 'fa-battery-three-quarters' : (batNum >= 20 ? 'fa-battery-half' : 'fa-battery-quarter')));
 
-              const metaChipsHtml = t.is_online
-                ? `<span class="gps-pill-online" title="GPS aktif real-time"><span class="dot-online" aria-hidden="true"></span>Online • ${Math.round(parseFloat(t.speed || 0))} km/j</span>`
-                  + (distText ? `<span class="tek-meta-chip" title="Estimasi jarak ke customer"><i class="fa-solid fa-location-arrow" style="color:#ea580c; font-size:9px;" aria-hidden="true"></i>${escHtml(distText)}</span>` : '')
-                  + (hasBat ? `<span class="tek-meta-chip ${batNum <= 20 ? 'bat-low' : ''}" title="Sisa baterai HP teknisi"><i class="fa-solid ${batIcon}" style="color:${batNum <= 20 ? '#e11d48' : '#16a34a'}; font-size:10px;" aria-hidden="true"></i>${batNum}%</span>` : '')
-                : (t.gps_mati_jam_kerja
-                  ? `<span class="gps-pill-alert" title="GPS tidak aktif di jam kerja (06:00-20:00 WIB)"><span class="dot-alert" aria-hidden="true"></span>${t.gps_disabled ? 'GPS HP Dimatikan' : 'GPS Mati'} • ${escHtml(formatLastSeen(t.last_seen_seconds))}</span>`
-                  : `<span class="gps-pill-offline" title="Waktu sejak sinyal GPS terakhir dikirim"><span class="dot-offline" aria-hidden="true"></span>Aktif ${escHtml(formatLastSeen(t.last_seen_seconds))}</span>`);
+              const metaChipsHtml = t.is_upcoming_only
+                ? ''
+                : (t.is_online
+                  ? `<span class="gps-pill-online" title="GPS aktif real-time"><span class="dot-online" aria-hidden="true"></span>Online • ${Math.round(parseFloat(t.speed || 0))} km/j</span>`
+                    + (distText ? `<span class="tek-meta-chip" title="Estimasi jarak ke customer"><i class="fa-solid fa-location-arrow" style="color:#ea580c; font-size:9px;" aria-hidden="true"></i>${escHtml(distText)}</span>` : '')
+                    + (hasBat ? `<span class="tek-meta-chip ${batNum <= 20 ? 'bat-low' : ''}" title="Sisa baterai HP teknisi"><i class="fa-solid ${batIcon}" style="color:${batNum <= 20 ? '#e11d48' : '#16a34a'}; font-size:10px;" aria-hidden="true"></i>${batNum}%</span>` : '')
+                  : (t.gps_mati_jam_kerja
+                    ? `<span class="gps-pill-alert" title="GPS tidak aktif di jam kerja (06:00-20:00 WIB)"><span class="dot-alert" aria-hidden="true"></span>${t.gps_disabled ? 'GPS HP Dimatikan' : 'GPS Mati'} • ${escHtml(formatLastSeen(t.last_seen_seconds))}</span>`
+                    : `<span class="gps-pill-offline" title="Waktu sejak sinyal GPS terakhir dikirim"><span class="dot-offline" aria-hidden="true"></span>Aktif ${escHtml(formatLastSeen(t.last_seen_seconds))}</span>`));
 
               const tekPhone = String(t.telp || '').replace(/[^0-9]/g, '').replace(/^0/, '');
               const waQuery = t.gps_mati_jam_kerja
@@ -1505,9 +1578,7 @@ $todayStr = date("Y-m-d");
                       ${tekPhone ? `<a href="https://wa.me/62${tekPhone}${waQuery}" target="_blank" rel="noopener" class="btn-wa-mini" aria-label="WhatsApp ${escHtml(t.nama)}"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i></a>` : ''}
                     </div>
                   </div>
-                  <div class="tek-meta-line">
-                    ${metaChipsHtml}
-                  </div>
+                  ${metaChipsHtml ? `<div class="tek-meta-line">${metaChipsHtml}</div>` : ''}
                 </div>`;
             }).join('')
           : `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;background:#f5f3ff;border:1px dashed #c4b5fd;border-radius:8px;padding:7px 10px;">
@@ -1517,15 +1588,19 @@ $todayStr = date("Y-m-d");
 
         const custPhone = String(keg.cust_nomor || '').replace(/[^0-9]/g, '').replace(/^0/, '');
         const isWaitingCard = Boolean(keg.is_waiting);
+        const isUpcomingCard = Boolean(keg.is_upcoming);
+        const cardCatCls = isWaitingCard ? 'card-waiting' : (isUpcomingCard ? 'card-upcoming' : '');
+        const accentHex = isWaitingCard ? '#7c3aed' : (isUpcomingCard ? '#2563eb' : '');
         const zoneChipHtml = keg.zone_label
           ? `<span style="font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:999px;background:${escHtml(keg.zone_bg || '#f1f5f9')};color:${escHtml(keg.zone_color || '#475569')};">📍 ${escHtml(keg.zone_label)}</span>`
           : '';
 
         return `
-          <article class="kegiatan-card ${isWaitingCard ? 'card-waiting' : ''} ${isSelected ? 'selected' : ''}">
+          <article class="kegiatan-card ${cardCatCls} ${isSelected ? 'selected' : ''}">
             <div class="keg-top">
               <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
                 <span class="badge-type ${typeClass}">${escHtml(keg.kegiatan)}</span>
+                ${isUpcomingCard ? '<span class="badge-type" style="background:#dbeafe;color:#1d4ed8;">📅 AKAN DATANG</span>' : ''}
                 ${isWaitingCard ? '<span class="badge-type" style="background:#ede9fe;color:#6d28d9;">⏳ WAITING</span>' : ''}
                 ${zoneChipHtml}
               </div>
@@ -1541,17 +1616,17 @@ $todayStr = date("Y-m-d");
               </button>
             </h2>
 
-            ${keg.keterangan ? `<div class="keg-keterangan" style="${isWaitingCard ? 'border-left-color:#7c3aed;' : ''}">"${escHtml(keg.keterangan)}"</div>` : ''}
+            ${keg.keterangan ? `<div class="keg-keterangan" style="${accentHex ? 'border-left-color:' + accentHex + ';' : ''}">"${escHtml(keg.keterangan)}"</div>` : ''}
 
             <div class="keg-alamat">
-              <i class="fa-solid fa-location-dot" style="${isWaitingCard ? 'color:#7c3aed;' : ''}" aria-hidden="true"></i>
-              <div>${escHtml(keg.alamat || 'Alamat belum diisi')}${keg.coord_estimated ? ' <span style="font-size:9.5px;color:#7c3aed;font-weight:600;">(~Estimasi Wilayah)</span>' : ''}</div>
+              <i class="fa-solid fa-location-dot" style="${accentHex ? 'color:' + accentHex + ';' : ''}" aria-hidden="true"></i>
+              <div>${escHtml(keg.alamat || 'Alamat belum diisi')}${keg.coord_estimated ? ` <span style="font-size:9.5px;color:${accentHex || '#64748b'};font-weight:600;">(~Estimasi Wilayah)</span>` : ''}</div>
             </div>
 
             <div class="keg-teknisi-box">
               <div class="keg-teknisi-title">
                 <span><i class="fa-solid fa-users-gear" aria-hidden="true"></i> ${isWaitingCard ? 'Status Penugasan' : `Tim Teknisi (${keg.teknisi_count})`}</span>
-                ${!isWaitingCard ? '<span class="keg-teknisi-hint">Klik nama → fokus peta</span>' : ''}
+                ${(!isWaitingCard && !isUpcomingCard) ? '<span class="keg-teknisi-hint">Klik nama → fokus peta</span>' : ''}
               </div>
               ${teknisiHtml}
             </div>
@@ -1589,28 +1664,41 @@ $todayStr = date("Y-m-d");
       const activeTekIds = new Set();
       const boundsList = [];
 
+      const visibleKodes = new Set(getFilteredKegiatan().map(k => k.kode));
+
       kegiatanData.forEach(keg => {
         const isSelected = selectedKegiatanKode === keg.kode;
+        const showCustPin = visibleKodes.has(keg.kode) || isSelected;
         const cLat = parseFloat(keg.latitude);
         const cLon = parseFloat(keg.longitude);
         const hasCustCoord = !isNaN(cLat) && !isNaN(cLon) && cLat !== 0 && cLon !== 0;
 
-        if (hasCustCoord) {
+        if (hasCustCoord && showCustPin) {
           activeCustKodes.add(keg.kode);
           boundsList.push([cLat, cLon]);
 
           const isWaitingPin = Boolean(keg.is_waiting);
+          const isUpcomingPin = Boolean(keg.is_upcoming);
+          const pinCategory = isWaitingPin ? 'waiting' : (isUpcomingPin ? 'upcoming' : 'today');
           const gmapsUrl = `https://www.google.com/maps?q=${cLat},${cLon}`;
+          const badgeStyle = isWaitingPin
+            ? 'background:#ede9fe;color:#6d28d9;'
+            : (isUpcomingPin ? 'background:#dbeafe;color:#1d4ed8;' : '');
+          const badgePrefix = isWaitingPin ? '⏳ WAITING • ' : (isUpcomingPin ? '📅 AKAN DATANG • ' : '');
+          const boxColor = isWaitingPin ? '#6d28d9' : (isUpcomingPin ? '#1e40af' : '#1e293b');
+          const boxBg = isWaitingPin ? '#f5f3ff' : (isUpcomingPin ? '#eff6ff' : '#f8fafc');
+          const boxBorder = isWaitingPin ? '#ddd6fe' : (isUpcomingPin ? '#bfdbfe' : '#e2e8f0');
+
           const custPopup = `
             <div style="min-width: 225px; font-size: 12px;">
               <div style="display:flex; justify-content:space-between; align-items:center; gap:6px; margin-bottom:4px; flex-wrap:wrap;">
-                <span class="badge-type ${isWaitingPin ? '' : 'type-pasang'}" style="font-size:9px; ${isWaitingPin ? 'background:#ede9fe;color:#6d28d9;' : ''}">${isWaitingPin ? '⏳ WAITING • ' : ''}${escHtml(keg.kegiatan)}</span>
+                <span class="badge-type ${(!isWaitingPin && !isUpcomingPin) ? 'type-pasang' : ''}" style="font-size:9px; ${badgeStyle}">${badgePrefix}${escHtml(keg.kegiatan)}</span>
                 <span style="font-size:11px; color:#64748b; font-weight:600;">${escHtml(keg.jadwal)}</span>
               </div>
               <div style="font-size: 14px; font-weight:700; color:#0f172a; margin-bottom:3px;">${escHtml(keg.nama_customer)}</div>
               ${keg.zone_label ? `<div style="margin-bottom:4px;"><span style="font-size:10px;font-weight:700;padding:1.5px 7px;border-radius:999px;background:${escHtml(keg.zone_bg || '#f1f5f9')};color:${escHtml(keg.zone_color || '#475569')};">📍 ${escHtml(keg.zone_label)}${keg.coord_estimated ? ' (~Estimasi)' : ''}</span></div>` : ''}
               <div style="color:#64748b; font-size:11px; line-height:1.4; margin-bottom:8px;">${escHtml(keg.alamat)}</div>
-              <div style="font-size:11px; color:${isWaitingPin ? '#6d28d9' : '#1e293b'}; background:${isWaitingPin ? '#f5f3ff' : '#f8fafc'}; padding:6px 8px; border-radius:8px; border:1px solid ${isWaitingPin ? '#ddd6fe' : '#e2e8f0'}; margin-bottom:8px; font-weight:${isWaitingPin ? '700' : '400'};">
+              <div style="font-size:11px; color:${boxColor}; background:${boxBg}; padding:6px 8px; border-radius:8px; border:1px solid ${boxBorder}; margin-bottom:8px; font-weight:${isWaitingPin ? '700' : '400'};">
                 ${isWaitingPin ? '⏳ Belum dapat teknisi (Waiting List)' : `<b>Tim:</b> ${escHtml((keg.teknisi_list || []).map(t => t.nama).join(', ') || '-')}`}
               </div>
               <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
@@ -1623,10 +1711,10 @@ $todayStr = date("Y-m-d");
 
           if (customerMarkers[keg.kode]) {
             customerMarkers[keg.kode].setLatLng([cLat, cLon]);
-            customerMarkers[keg.kode].setIcon(createCustomerIcon(keg.nama_customer, isWaitingPin));
+            customerMarkers[keg.kode].setIcon(createCustomerIcon(keg.nama_customer, pinCategory));
             customerMarkers[keg.kode].getPopup().setContent(custPopup);
           } else {
-            const marker = L.marker([cLat, cLon], { icon: createCustomerIcon(keg.nama_customer, isWaitingPin) })
+            const marker = L.marker([cLat, cLon], { icon: createCustomerIcon(keg.nama_customer, pinCategory) })
               .addTo(map)
               .bindPopup(custPopup);
             marker.on('click', () => focusKegiatan(keg.kode));
@@ -1854,12 +1942,14 @@ $todayStr = date("Y-m-d");
       inp.value = '';
       document.getElementById('btnClearSearch').classList.remove('visible');
       renderKegiatanSidebar();
+      renderMapLayers();
       inp.focus();
     }
 
     document.getElementById('searchInput').addEventListener('input', (e) => {
       document.getElementById('btnClearSearch').classList.toggle('visible', e.target.value.length > 0);
       renderKegiatanSidebar();
+      renderMapLayers();
     });
 
     document.getElementById('trackingDate').addEventListener('change', () => {
