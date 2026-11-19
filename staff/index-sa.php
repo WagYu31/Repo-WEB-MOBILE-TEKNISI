@@ -4,6 +4,7 @@ include "session.php";
 include "get-user-data.php";
 
 include_once "menu-access-helper.php";
+include_once __DIR__ . "/include/geo_dispatch_helper.php";
 if (!hasMenuAccess($conn, $idSesi, 'dashboard', ($role == 'Super Admin' || $role == 'Admin'))) {
     if (hasMenuAccess($conn, $idSesi, 'dashboard_sales', ($role == 'Super Admin' || $role == 'Admin' || $role == 'Sales Manager' || $role == 'Sales'))) {
         header("Location: sales/index-sa.php");
@@ -819,6 +820,9 @@ if (isset($_GET['export'])) {
                         <?php } ?>
                       </div>
                       <div class="col-md-3">
+                        <div style="margin-bottom:4px;">
+                          <?= dispatchRenderZoneBadge(dispatchResolveZoneAndCoords($data['lat'] ?? null, $data['lon'] ?? null, $data['alamat_lokasi'] ?? '', $data['alamat'] ?? '')) ?>
+                        </div>
                         <div class="premium-address-box">
                           <i class="material-icons" style="font-size:14px; color:#f43f5e; margin-top:2px; flex-shrink:0;">location_on</i>
                           <div>
@@ -987,6 +991,9 @@ if (isset($_GET['export'])) {
                         <?php } ?>
                       </div>
                       <div class="col-md-3">
+                        <div style="margin-bottom:4px;">
+                          <?= dispatchRenderZoneBadge(dispatchResolveZoneAndCoords($data['lat'] ?? null, $data['lon'] ?? null, $data['alamat_lokasi'] ?? '', $data['alamat'] ?? '')) ?>
+                        </div>
                         <div class="premium-address-box">
                           <i class="material-icons" style="font-size:14px; color:#f43f5e; margin-top:2px; flex-shrink:0;">location_on</i>
                           <div>
@@ -1020,13 +1027,60 @@ if (isset($_GET['export'])) {
           </div>
         </div>
 
+        <?php
+        $sql_waiting = "SELECT k.*, c.nama AS nama_customer, c.telp AS cust_nomor, c.alamat, c.id as customer_id, (SELECT COUNT(*) FROM kegiatan_reasons kr WHERE kr.kegiatan_id = k.id) as reason_count, (SELECT MAX(created_at) FROM kegiatan_reasons kr WHERE kr.kegiatan_id = k.id) as latest_reason_date FROM kegiatan k LEFT JOIN customer c ON k.customer_id = c.id WHERE k.status = 'waiting' AND k.deleted_at IS NULL ORDER BY k.created_at ASC";
+        $result_waiting = mysqli_query($conn, $sql_waiting);
+        $waitingRowsDash = [];
+        $dashWCustIds = [];
+        while ($rWD = mysqli_fetch_assoc($result_waiting)) {
+          $waitingRowsDash[] = $rWD;
+          if (!empty($rWD['customer_id'])) $dashWCustIds[intval($rWD['customer_id'])] = true;
+        }
+        $totalW = count($waitingRowsDash);
+
+        $dashWCustCoords = [];
+        if (!empty($dashWCustIds)) {
+          $cListDash = implode(',', array_keys($dashWCustIds));
+          $resCCDash = @$conn->query("SELECT cust_id, lat, lon, address FROM cust_coordinate WHERE cust_id IN ($cListDash) AND deleted_at IS NULL ORDER BY id DESC");
+          if ($resCCDash) {
+            while ($ccd = $resCCDash->fetch_assoc()) {
+              $cidD = intval($ccd['cust_id']);
+              if (!isset($dashWCustCoords[$cidD]) && dispatchIsValidIndoCoord($ccd['lat'], $ccd['lon'])) {
+                $dashWCustCoords[$cidD] = $ccd;
+              }
+            }
+            $resCCDash->free();
+          }
+        }
+
+        $dashZoneCounts = [];
+        foreach ($waitingRowsDash as $idxD => $rD) {
+          $zD = dispatchResolveZoneAndCoords(
+            $rD['lat'],
+            $rD['lon'],
+            $rD['alamat_lokasi'] ?? '',
+            $rD['alamat'] ?? '',
+            '',
+            $dashWCustCoords[intval($rD['customer_id'] ?? 0)] ?? null
+          );
+          $waitingRowsDash[$idxD]['_zone_info'] = $zD;
+          $dashZoneCounts[$zD['zone']] = ($dashZoneCounts[$zD['zone']] ?? 0) + 1;
+        }
+        ?>
         <div class="col-lg-12 mt-4 mb-0">
           <div class="d-flex justify-content-between align-items-center section-header" id="toggleLoadMoreWaiting">
             <div class="d-flex align-items-center gap-2">
               <i class="material-icons">hourglass_empty</i>
               <h6>Waiting List</h6>
             </div>
-            <div class="d-flex align-items-center gap-2">
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+              <?php if ($totalW > 0): ?>
+              <button type="button" class="sd-btn-trigger" onclick="event.stopPropagation(); SmartDispatchApp.openModal();">
+                <i class="material-icons" style="font-size:15px;color:#fff;margin:0;">alt_route</i>
+                Auto-Susun Rute Searah
+                <span class="sd-sel-count">Semua</span>
+              </button>
+              <?php endif; ?>
               <div style="position:relative;" onclick="event.stopPropagation();">
                 <i class="material-icons" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:16px;color:#94a3b8;pointer-events:none;">search</i>
                 <input type="text" placeholder="Cari..." style="background:#fff;border:2px solid #e2e8f0;border-radius:8px;padding:7px 12px 7px 32px;font-size:12px;color:#1e293b;outline:none;width:200px;transition:border-color 0.2s;" onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#e2e8f0'" oninput="event.stopPropagation();filterRows(this.value,'data-waiting','waiting')">
@@ -1052,13 +1106,20 @@ if (isset($_GET['export'])) {
                 <i class="material-icons" style="font-size:13px;">router</i> Pasang Baru <span class="pill-count" id="count-pasang-waiting">0</span>
               </span>
             </div>
+            <?php if (!empty($dashZoneCounts)): ?>
+            <div class="sd-zone-filter-bar">
+              <span style="font-size:11px;font-weight:700;color:#64748b;margin-right:4px;">Filter Arah:</span>
+              <button type="button" class="sd-zone-pill-btn active" onclick="filterWaitingByZone('ALL', this, '#data-waiting', '.waiting-card')">Semua Wilayah (<?= $totalW ?>)</button>
+              <?php foreach ($dashZoneCounts as $zKeyD => $zCntD): ?>
+              <button type="button" class="sd-zone-pill-btn" onclick="filterWaitingByZone('<?= htmlspecialchars($zKeyD) ?>', this, '#data-waiting', '.waiting-card')"><?= htmlspecialchars($zKeyD) ?> (<?= $zCntD ?>)</button>
+              <?php endforeach; ?>
+            </div>
+            <?php endif; ?>
             <div id="data-waiting" style="padding:12px;">
             <?php
-            $sql_waiting = "SELECT k.*, c.nama AS nama_customer, c.telp AS cust_nomor, c.alamat, c.id as customer_id, (SELECT COUNT(*) FROM kegiatan_reasons kr WHERE kr.kegiatan_id = k.id) as reason_count, (SELECT MAX(created_at) FROM kegiatan_reasons kr WHERE kr.kegiatan_id = k.id) as latest_reason_date FROM kegiatan k LEFT JOIN customer c ON k.customer_id = c.id WHERE k.status = 'waiting' AND k.deleted_at IS NULL ORDER BY k.created_at ASC";
-            $result_waiting = mysqli_query($conn, $sql_waiting);
-            $totalW = mysqli_num_rows($result_waiting);
             if ($totalW > 0) {
-              while ($row = mysqli_fetch_assoc($result_waiting)) {
+              foreach ($waitingRowsDash as $row) {
+                $zoneInfo = $row['_zone_info'];
                 $status_display = "Dilaporkan";
                 $status_css = "background:#fef3c7;color:#92400e;";
                 $card_border = "border-left:4px solid #f59e0b;";
@@ -1107,13 +1168,15 @@ if (isset($_GET['export'])) {
                 elseif (strpos($kegL, 'service') !== false) $type_class_premium = "badge-premium-type-service";
                 elseif (strpos($kegL, 'pasang') !== false) $type_class_premium = "badge-premium-type-pasang";
             ?>
-            <div class="waiting-card <?= $card_class_premium ?>" data-type="<?= strtolower($row['kegiatan']) ?>">
+            <div class="waiting-card <?= $card_class_premium ?>" data-type="<?= strtolower($row['kegiatan']) ?>" data-zone="<?= htmlspecialchars($zoneInfo['zone']) ?>">
               <div style="padding:18px 20px;">
                 <!-- Top: Badges + Customer + Actions -->
                 <div class="d-flex align-items-center justify-content-between" style="margin-bottom:12px;">
-                  <div class="d-flex align-items-center gap-2" style="flex:1;min-width:0;">
+                  <div class="d-flex align-items-center gap-2 flex-wrap" style="flex:1;min-width:0;">
+                    <input type="checkbox" class="sd-wl-check" value="<?= $row['id'] ?>" title="Pilih untuk Auto-Susun Rute Searah">
                     <span class="badge-premium-status <?= $status_class_premium ?>"><?= $status_display ?></span>
                     <span class="badge-premium-type <?= $type_class_premium ?>"><?= htmlspecialchars($row['kegiatan']) ?></span>
+                    <?= dispatchRenderZoneBadge($zoneInfo) ?>
                     <a href="customer-detail.php?id_cust=<?= $row['customer_id'] ?>" style="font-size:15px; font-weight:700; color:#0f172a; text-decoration:none; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; transition:color 0.2s;" onmouseover="this.style.color='#3b82f6'" onmouseout="this.style.color='#0f172a'"><?= htmlspecialchars($row['nama_customer']) ?></a>
                   </div>
                   <div class="d-flex align-items-center gap-2" style="flex-shrink:0;margin-left:12px;">
@@ -1269,6 +1332,7 @@ if (isset($_GET['export'])) {
               </div>
               <div class="modal-body" style="padding:20px 24px;">
                 <form id="jadwalkanForm">
+                  <div id="targetZoneBannerDash" style="display:none;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:8px 12px;margin-bottom:14px;"></div>
                   <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
                     <div>
                       <label style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;display:block;">Tanggal</label>
@@ -1285,8 +1349,9 @@ if (isset($_GET['export'])) {
                         Pilih Teknisi
                         <span id="tekSelectedBadge" style="display:none;background:#eef2ff;color:#4f46e5;border:1px solid #c7d2fe;font-size:10px;font-weight:700;padding:1px 8px;border-radius:12px;text-transform:none;letter-spacing:0;">0 Terpilih</span>
                       </label>
-                      <div style="display:flex;gap:4px;" id="tekQuickFilterGroup">
+                      <div style="display:flex;gap:4px;flex-wrap:wrap;" id="tekQuickFilterGroup">
                         <button type="button" class="tek-qfilter active" data-mode="all" onclick="setTekQuickFilter('all', this)" style="border:1px solid #6366f1;background:#eef2ff;color:#4f46e5;font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:12px;cursor:pointer;">Semua</button>
+                        <button type="button" class="tek-qfilter" data-mode="searah" onclick="setTekQuickFilter('searah', this)" style="border:1px solid #e2e8f0;background:#fff;color:#64748b;font-size:10.5px;font-weight:600;padding:3px 9px;border-radius:12px;cursor:pointer;">🟢 Searah</button>
                         <button type="button" class="tek-qfilter" data-mode="free" onclick="setTekQuickFilter('free', this)" style="border:1px solid #e2e8f0;background:#fff;color:#64748b;font-size:10.5px;font-weight:600;padding:3px 9px;border-radius:12px;cursor:pointer;">Kosong</button>
                         <button type="button" class="tek-qfilter" data-mode="selected" onclick="setTekQuickFilter('selected', this)" style="border:1px solid #e2e8f0;background:#fff;color:#64748b;font-size:10.5px;font-weight:600;padding:3px 9px;border-radius:12px;cursor:pointer;">Terpilih</button>
                       </div>
@@ -1604,12 +1669,13 @@ if (isset($_GET['export'])) {
         const tekId = item.getAttribute('data-tek-id');
         const cb = item.querySelector('.teknisi-checkbox');
         const isChecked = cb && cb.checked;
-        const jadwalEl = document.getElementById('jadwal-teknisi-' + tekId);
-        const isBusy = jadwalEl && jadwalEl.innerHTML.trim() !== '';
+        const isBusy = item.getAttribute('data-has-jobs') === '1';
+        const proxStatus = item.getAttribute('data-prox-status') || '';
 
         const matchName = q === '' || nama.indexOf(q) !== -1;
         let matchMode = true;
         if (currentTekQuickMode === 'free') matchMode = !isBusy;
+        else if (currentTekQuickMode === 'searah') matchMode = (proxStatus === 'searah' || proxStatus === 'sedang');
         else if (currentTekQuickMode === 'selected') matchMode = isChecked;
 
         if (matchName && matchMode) {
@@ -1665,14 +1731,21 @@ if (isset($_GET['export'])) {
     async function checkJadwal() {
       const tgl = $('#tanggal').val();
       if(!tgl) return;
-      const res = await fetch(`cek_jadwal_teknisi.php?tanggal=${tgl}`);
-      const data = await res.json();
-      $('[id^="jadwal-teknisi-"]').html('');
-      for (const id in data) {
-        const badges = data[id].map(i => `<span style="display:inline-block;background:#fef3c7;color:#92400e;font-size:10px;font-weight:600;padding:2px 8px;border-radius:4px;margin:2px 3px 2px 0;">${i.customer} | ${i.waktu}</span>`).join('');
-        $(`#jadwal-teknisi-${id}`).html(badges);
+      if (window.SmartDispatchSingle) {
+        await SmartDispatchSingle.loadProximity({
+          tanggal: tgl,
+          kegiatanId: $('#jadwalkanForm').data('id'),
+          bannerId: 'targetZoneBannerDash',
+          listContainerSelector: '#technician-list-container',
+          itemSelector: '.tek-modal-item',
+          infoPrefix: 'jadwal-teknisi-',
+          checkboxSelector: '.teknisi-checkbox',
+          ketuaRadioName: 'ketua_id',
+          jamInputId: 'jam',
+          noResultId: 'tekModalNoResult',
+          filterFn: filterTeknisiModal
+        });
       }
-      filterTeknisiModal();
     }
 
     $('#tanggal').change(checkJadwal);
@@ -1843,5 +1916,6 @@ if (isset($_GET['export'])) {
       });
     });
   </script>
+  <?php include __DIR__ . "/include/smart_dispatch_modal.php"; ?>
 </body>
 </html>

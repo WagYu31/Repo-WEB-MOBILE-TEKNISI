@@ -2,6 +2,7 @@
 include "conn.php";
 include "session.php";
 include "get-user-data.php";
+include_once __DIR__ . "/include/geo_dispatch_helper.php";
 
 if (!function_exists('getAddressFromCoordinates')) {
     function getAddressFromCoordinates($lat, $lon) {
@@ -172,7 +173,42 @@ $pageNow = "Waiting List";
                 WHERE k.status = 'waiting' AND k.deleted_at IS NULL 
                 ORDER BY k.created_at ASC";
         $result = mysqli_query($conn, $sql);
-        $totalWaiting = mysqli_num_rows($result);
+        $waitingRows = [];
+        $wlCustIds = [];
+        while ($rTmp = mysqli_fetch_assoc($result)) {
+            $waitingRows[] = $rTmp;
+            if (!empty($rTmp['customer_id'])) $wlCustIds[intval($rTmp['customer_id'])] = true;
+        }
+        $totalWaiting = count($waitingRows);
+
+        $wlCustCoords = [];
+        if (!empty($wlCustIds)) {
+            $cListWL = implode(',', array_keys($wlCustIds));
+            $resCCWL = @$conn->query("SELECT cust_id, lat, lon, address FROM cust_coordinate WHERE cust_id IN ($cListWL) AND deleted_at IS NULL ORDER BY id DESC");
+            if ($resCCWL) {
+                while ($ccw = $resCCWL->fetch_assoc()) {
+                    $cidW = intval($ccw['cust_id']);
+                    if (!isset($wlCustCoords[$cidW]) && dispatchIsValidIndoCoord($ccw['lat'], $ccw['lon'])) {
+                        $wlCustCoords[$cidW] = $ccw;
+                    }
+                }
+                $resCCWL->free();
+            }
+        }
+
+        $wlZoneCounts = [];
+        foreach ($waitingRows as $idxW => $rW) {
+            $zInfoW = dispatchResolveZoneAndCoords(
+                $rW['lat'],
+                $rW['lon'],
+                $rW['alamat_lokasi'] ?? '',
+                $rW['alamat'] ?? '',
+                '',
+                $wlCustCoords[intval($rW['customer_id'] ?? 0)] ?? null
+            );
+            $waitingRows[$idxW]['_zone_info'] = $zInfoW;
+            $wlZoneCounts[$zInfoW['zone']] = ($wlZoneCounts[$zInfoW['zone']] ?? 0) + 1;
+        }
         ?>
         <div class="container-fluid py-4">
             <div class="row mb-4">
@@ -183,19 +219,35 @@ $pageNow = "Waiting List";
                             <h6>Waiting List</h6>
                             <span class="wl-counter"><?= $totalWaiting ?></span>
                         </div>
-                        <div class="d-flex align-items-center gap-2">
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
                             <span style="font-size:11px;color:#94a3b8;"><?= $todayDate ?></span>
+                            <?php if ($totalWaiting > 0): ?>
+                            <button type="button" class="sd-btn-trigger" onclick="event.stopPropagation(); SmartDispatchApp.openModal();">
+                                <i class="material-icons" style="font-size:15px;color:#fff;margin:0;">alt_route</i>
+                                Auto-Susun Rute Searah
+                                <span class="sd-sel-count">Semua</span>
+                            </button>
+                            <?php endif; ?>
                             <a href="?export=waiting" class="wl-export" onclick="event.stopPropagation();"><i class="material-icons" style="font-size:14px;">download</i> Export</a>
                         </div>
                     </div>
                 </div>
 
                 <div class="col-lg-12 mt-0 mb-4">
-                    <div class="wl-wrap">
+                    <?php if (!empty($wlZoneCounts)): ?>
+                    <div class="sd-zone-filter-bar" style="border-left:1px solid #e2e8f0;border-right:1px solid #e2e8f0;">
+                        <span style="font-size:11px;font-weight:700;color:#64748b;margin-right:4px;">Filter Arah:</span>
+                        <button type="button" class="sd-zone-pill-btn active" onclick="filterWaitingByZone('ALL', this, '#wlCardsWrap', '.wl-card')">Semua Wilayah (<?= $totalWaiting ?>)</button>
+                        <?php foreach ($wlZoneCounts as $zKey => $zCnt): ?>
+                        <button type="button" class="sd-zone-pill-btn" onclick="filterWaitingByZone('<?= htmlspecialchars($zKey) ?>', this, '#wlCardsWrap', '.wl-card')"><?= htmlspecialchars($zKey) ?> (<?= $zCnt ?>)</button>
+                        <?php endforeach; ?>
+                    </div>
+                    <?php endif; ?>
+                    <div class="wl-wrap" id="wlCardsWrap">
                         <?php
                         if ($totalWaiting > 0) {
-                            mysqli_data_seek($result, 0);
-                            while ($row = mysqli_fetch_assoc($result)) {
+                            foreach ($waitingRows as $row) {
+                                $zoneInfo = $row['_zone_info'];
                                 $status_display = "Dilaporkan";
                                 $status_class = "wl-s-reported";
                                 $card_class = "wl-card-reported";
@@ -225,7 +277,7 @@ $pageNow = "Waiting List";
                                 elseif (strpos($kegLower, 'service') !== false) $typeClass = 'wl-type wl-t-service';
                                 elseif (strpos($kegLower, 'pasang') !== false) $typeClass = 'wl-type wl-t-pasang';
 
-                                $fullAddr = $row['alamat'] ?? '';
+                                $fullAddr = !empty($row['alamat_lokasi']) ? $row['alamat_lokasi'] : ($row['alamat'] ?? '');
                                 // If stored address is short and lat/lon exist, get full address from coordinates
                                 if (strlen($fullAddr) < 40 && !empty($row['lat']) && !empty($row['lon'])) {
                                     $geoAddr = getAddressFromCoordinates($row['lat'], $row['lon']);
@@ -249,13 +301,15 @@ $pageNow = "Waiting List";
                             elseif (strpos($kegLower, 'pasang') !== false) $type_class_premium = "badge-premium-type-pasang";
                         ?>
                         <!-- CARD ITEM -->
-                        <div class="wl-card <?= $card_class_premium ?>">
+                        <div class="wl-card <?= $card_class_premium ?>" data-zone="<?= htmlspecialchars($zoneInfo['zone']) ?>">
                             <div class="wl-card-body">
                                 <!-- Top: Status + Customer + Actions -->
                                 <div class="wl-top">
-                                    <div class="wl-top-left">
+                                    <div class="wl-top-left" style="flex-wrap:wrap;">
+                                        <input type="checkbox" class="sd-wl-check" value="<?= $row['id'] ?>" title="Pilih untuk Auto-Susun Rute Searah">
                                         <span class="badge-premium-status <?= $status_class_premium ?>"><?= $status_display ?></span>
                                         <span class="<?= $type_class_premium ?>"><?= htmlspecialchars($row['kegiatan']) ?></span>
+                                        <?= dispatchRenderZoneBadge($zoneInfo) ?>
                                         <a href="customer-detail.php?id_cust=<?= $row['customer_id'] ?>" class="wl-cust"><?= htmlspecialchars($row['nama_customer']) ?></a>
                                     </div>
                                     <div class="wl-top-right">
@@ -349,9 +403,10 @@ $pageNow = "Waiting List";
                 <div class="modal-body">
                     <form id="jadwalkanForm">
                         <input type="hidden" id="modalKegiatanId">
+                        <div id="targetZoneBannerWL" style="display:none;background:#f8fafc;border:1px solid #e2e8f0;border-radius:9px;padding:8px 12px;margin-bottom:12px;"></div>
                         <div class="mb-3">
                             <label class="form-label" style="font-size:13px;font-weight:600;">Tanggal</label>
-                            <input type="date" class="form-control border p-2" id="tanggal" required>
+                            <input type="date" class="form-control border p-2" id="tanggal" value="<?= date('Y-m-d') ?>" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label" style="font-size:13px;font-weight:600;">Jam</label>
@@ -363,8 +418,9 @@ $pageNow = "Waiting List";
                                     Pilih Teknisi
                                     <span id="tekSelectedBadgeWL" style="display:none;background:#eef2ff;color:#4f46e5;border:1px solid #c7d2fe;font-size:10px;font-weight:700;padding:1px 8px;border-radius:12px;">0 Terpilih</span>
                                 </label>
-                                <div style="display:flex;gap:4px;" id="tekQuickFilterGroupWL">
+                                <div style="display:flex;gap:4px;flex-wrap:wrap;" id="tekQuickFilterGroupWL">
                                     <button type="button" class="tek-qfilter-wl active" data-mode="all" onclick="setTekQuickFilterWL('all', this)" style="border:1px solid #6366f1;background:#eef2ff;color:#4f46e5;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:12px;cursor:pointer;">Semua</button>
+                                    <button type="button" class="tek-qfilter-wl" data-mode="searah" onclick="setTekQuickFilterWL('searah', this)" style="border:1px solid #e2e8f0;background:#fff;color:#64748b;font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:12px;cursor:pointer;">🟢 Searah</button>
                                     <button type="button" class="tek-qfilter-wl" data-mode="free" onclick="setTekQuickFilterWL('free', this)" style="border:1px solid #e2e8f0;background:#fff;color:#64748b;font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:12px;cursor:pointer;">Kosong</button>
                                     <button type="button" class="tek-qfilter-wl" data-mode="selected" onclick="setTekQuickFilterWL('selected', this)" style="border:1px solid #e2e8f0;background:#fff;color:#64748b;font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:12px;cursor:pointer;">Terpilih</button>
                                 </div>
@@ -373,19 +429,23 @@ $pageNow = "Waiting List";
                                 <input type="text" id="searchTeknisiWL" autocomplete="off" class="form-control border" placeholder="Cari nama teknisi..." oninput="filterTeknisiWL()" style="padding:7px 30px 7px 12px;font-size:12.5px;border-radius:8px;">
                                 <button type="button" id="clearSearchTeknisiWL" onclick="clearTeknisiSearchWL()" style="display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);border:none;background:transparent;color:#94a3b8;font-size:14px;cursor:pointer;">&times;</button>
                             </div>
-                            <div id="technician-list" class="border p-2 rounded" style="max-height:240px;overflow-y:auto;">
+                            <div id="technician-list" class="border p-2 rounded" style="max-height:280px;overflow-y:auto;">
                                 <?php
                                 $st = mysqli_query($conn, "SELECT id, nama FROM teknisi WHERE deleted_at IS NULL ORDER BY nama ASC");
                                 while ($rt = mysqli_fetch_assoc($st)) {
                                     $safeNamaWL = htmlspecialchars(strtolower($rt['nama']), ENT_QUOTES);
                                     $dispNamaWL = htmlspecialchars($rt['nama']);
-                                    echo "<div class='form-check tek-wl-item' data-nama='{$safeNamaWL}' data-tek-id='{$rt['id']}' style='display:flex;align-items:center;gap:6px;padding:6px 4px;'>
-                                            <input class='form-check-input tek-check' type='checkbox' value='{$rt['id']}' id='tk{$rt['id']}' onchange='updateKetuaRadiosWL()'>
-                                            <label class='form-check-label' for='tk{$rt['id']}' style='flex:1;cursor:pointer;'>{$dispNamaWL}</label>
-                                            <label class='ketua-radio-wl' id='ketua-wl-{$rt['id']}' style='display:none;align-items:center;gap:3px;cursor:pointer;padding:2px 6px;border-radius:10px;background:#fef3c7;border:1px solid #fde68a;font-size:10px;font-weight:700;color:#92400e;white-space:nowrap;' onclick='event.stopPropagation()'>
-                                              <input type='radio' name='ketua_id_wl' value='{$rt['id']}' class='ketua-radio-wl-input' style='width:11px;height:11px;accent-color:#f59e0b;'> 👑 Ketua
-                                            </label>
-                                            <div class='text-xs text-danger' id='info-tk-{$rt['id']}'></div>
+                                    echo "<div class='form-check tek-wl-item' data-nama='{$safeNamaWL}' data-tek-id='{$rt['id']}' style='display:flex;align-items:flex-start;gap:8px;padding:7px 6px;border-bottom:1px solid #f1f5f9;'>
+                                            <input class='form-check-input tek-check' type='checkbox' value='{$rt['id']}' id='tk{$rt['id']}' onchange='updateKetuaRadiosWL()' style='margin-top:3px;flex-shrink:0;'>
+                                            <div style='flex:1;min-width:0;'>
+                                              <div style='display:flex;align-items:center;justify-content:space-between;gap:6px;'>
+                                                <label class='form-check-label' for='tk{$rt['id']}' style='font-weight:600;font-size:12.5px;color:#1e293b;cursor:pointer;'>{$dispNamaWL}</label>
+                                                <label class='ketua-radio-wl' id='ketua-wl-{$rt['id']}' style='display:none;align-items:center;gap:3px;cursor:pointer;padding:2px 6px;border-radius:10px;background:#fef3c7;border:1px solid #fde68a;font-size:10px;font-weight:700;color:#92400e;white-space:nowrap;' onclick='event.stopPropagation()'>
+                                                  <input type='radio' name='ketua_id_wl' value='{$rt['id']}' class='ketua-radio-wl-input' style='width:11px;height:11px;accent-color:#f59e0b;'> 👑 Ketua
+                                                </label>
+                                              </div>
+                                              <div class='text-xs' id='info-tk-{$rt['id']}' style='margin-top:2px;line-height:1.4;'></div>
+                                            </div>
                                           </div>";
                                 }
                                 ?>
@@ -489,6 +549,8 @@ $pageNow = "Waiting List";
                 if(tglFull && tglFull !== '0000-00-00 00:00:00') {
                     const parts = tglFull.split(' ');
                     $('#tanggal').val(parts[0]); $('#jam').val(parts[1].substring(0,5));
+                } else if (!$('#tanggal').val()) {
+                    $('#tanggal').val('<?= date('Y-m-d') ?>');
                 }
                 fetchSchedules(); modalJadwal.show();
             });
@@ -540,12 +602,13 @@ $pageNow = "Waiting List";
                 const tekId = item.getAttribute('data-tek-id');
                 const cb = item.querySelector('.tek-check');
                 const isChecked = cb && cb.checked;
-                const infoEl = document.getElementById('info-tk-' + tekId);
-                const isBusy = infoEl && infoEl.innerHTML.trim() !== '';
+                const isBusy = item.getAttribute('data-has-jobs') === '1';
+                const proxStatus = item.getAttribute('data-prox-status') || '';
 
                 const matchName = q === '' || nama.indexOf(q) !== -1;
                 let matchMode = true;
                 if (currentTekQuickModeWL === 'free') matchMode = !isBusy;
+                else if (currentTekQuickModeWL === 'searah') matchMode = (proxStatus === 'searah' || proxStatus === 'sedang');
                 else if (currentTekQuickModeWL === 'selected') matchMode = isChecked;
 
                 if (matchName && matchMode) {
@@ -604,11 +667,21 @@ $pageNow = "Waiting List";
 
         function fetchSchedules() {
             const tgl = $('#tanggal').val(); if(!tgl) return;
-            $.getJSON('cek_jadwal_teknisi.php?tanggal=' + tgl, function(data) {
-                $('[id^="info-tk-"]').html('');
-                for(let id in data) { $(`#info-tk-${id}`).html(data[id].map(i => `${i.customer} (${i.waktu})`).join(', ')); }
-                filterTeknisiWL();
-            });
+            if (window.SmartDispatchSingle) {
+                SmartDispatchSingle.loadProximity({
+                    tanggal: tgl,
+                    kegiatanId: $('#modalKegiatanId').val(),
+                    bannerId: 'targetZoneBannerWL',
+                    listContainerSelector: '#technician-list',
+                    itemSelector: '.tek-wl-item',
+                    infoPrefix: 'info-tk-',
+                    checkboxSelector: '.tek-check',
+                    ketuaRadioName: 'ketua_id_wl',
+                    jamInputId: 'jam',
+                    noResultId: 'tekWLNoResult',
+                    filterFn: filterTeknisiWL
+                });
+            }
         }
 
         function initMap() {
@@ -709,5 +782,6 @@ $pageNow = "Waiting List";
             });
         });
     </script>
+    <?php include __DIR__ . "/include/smart_dispatch_modal.php"; ?>
 </body>
 </html>
