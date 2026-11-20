@@ -193,7 +193,7 @@ if (isset($idTeknis) && $idTeknis !== null && $conn) {
             $totalEarning = $totalPendapatan + $totalFee;
             $bonus = 0;
             if ($totalEarning > $target && $target > 0) {
-                $bonus = ($totalEarning - $target) * 0.60;
+                $bonus = round(($totalEarning - $target) * 0.60);
             }
 
             // --- 4. Count kegiatan (= jumlah baris di tabel detail) ---

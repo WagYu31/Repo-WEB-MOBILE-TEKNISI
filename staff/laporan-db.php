@@ -225,6 +225,7 @@
     $grand_total_pendapatan = $rowGP['total'] ?? 0;
 
     // Pre-calculate all rows
+    $monthCount = max(1, count($ymList));
     $tableRows = [];
     foreach ($teknisiList as $idT => $namaT) {
         // Filter by teknisi if set
@@ -236,9 +237,9 @@
         $unpaidInv = $unpaidInvCount[$idT] ?? 0;
         $fee = $feeMap[$idT] ?? 0;
         $pend = $pendapatanSum[$idT] ?? 0;
-        $target = $teknisiTargets[$idT] ?? 0;
+        $target = ($teknisiTargets[$idT] ?? 0) * $monthCount;
         $totalEarning = $fee + $pend;
-        $bon = ($target > 0 && $totalEarning > $target) ? ($totalEarning - $target) * 0.60 : 0;
+        $bon = ($target > 0 && $totalEarning > $target) ? round(($totalEarning - $target) * 0.60) : 0;
         $total = $fee + $pend + $bon;
 
         $grand_total_fee += $fee;
@@ -411,7 +412,7 @@
                     ?>
                     <tr>
                         <td class="ps-4">
-                            <a href="list-kegiatan-teknisi.php?cariBulanTahun=<?= $current_date ?>&idTek=<?= $tr['idT'] ?>" class="tek-name">
+                            <a href="list-kegiatan-teknisi.php?start_date=<?= $monthStart ?>&end_date=<?= $monthEnd ?>&idTek=<?= $tr['idT'] ?>" class="tek-name">
                                 <span class="tek-avatar-circle" style="background: linear-gradient(135deg, <?= $selectedGrad['from'] ?>, <?= $selectedGrad['to'] ?>); color: <?= $selectedGrad['color'] ?>;"><?= $char ?></span>
                                 <?= htmlspecialchars($tr['namaT']) ?>
                             </a>

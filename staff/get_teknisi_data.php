@@ -104,8 +104,8 @@ foreach ($technicians as $row) {
     $target = floatval($row['target'] ?? 0) * $monthCount;
     $bonus = 0;
 
-    if ($total_penghasilan > $target) {
-        $bonus = ($total_penghasilan - $target) * 0.60;
+    if ($total_penghasilan > $target && $target > 0) {
+        $bonus = round(($total_penghasilan - $target) * 0.60);
     }
 
     $tableData[] = [

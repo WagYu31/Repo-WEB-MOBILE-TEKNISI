@@ -279,6 +279,7 @@ $role = $jabatan;
                             }
 
                             // Build rows
+                            $monthCount = max(1, count($ymList));
                             foreach ($teknisiList as $idT => $namaT) {
                                 if ($filterTeknisiId > 0 && $idT != $filterTeknisiId) continue;
 
@@ -287,9 +288,9 @@ $role = $jabatan;
                                 $inv = $invCount[$idT] ?? 0;
                                 $fee = $feeMap[$idT] ?? 0;
                                 $pend = $pendapatanSum[$idT] ?? 0;
-                                $target = $teknisiTargets[$idT] ?? 0;
+                                $target = ($teknisiTargets[$idT] ?? 0) * $monthCount;
                                 $totalEarning = $fee + $pend;
-                                $bon = ($target > 0 && $totalEarning > $target) ? ($totalEarning - $target) * 0.60 : 0;
+                                $bon = ($target > 0 && $totalEarning > $target) ? round(($totalEarning - $target) * 0.60) : 0;
                                 $total = $fee + $pend + $bon;
 
                                 $grand_total_fee += $fee;

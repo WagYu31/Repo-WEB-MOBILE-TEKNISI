@@ -136,7 +136,7 @@ $target = floatval($teknisiInfo['target'] ?? 0) * $monthCount;
 $totalKeseluruhan = $totalPendapatan + $totalFee;
 $bonus = 0;
 if ($totalKeseluruhan > $target && $target > 0) {
-    $bonus = ($totalKeseluruhan - $target) * 0.60;
+    $bonus = round(($totalKeseluruhan - $target) * 0.60);
 }
 
 $quarterLabel = '';
