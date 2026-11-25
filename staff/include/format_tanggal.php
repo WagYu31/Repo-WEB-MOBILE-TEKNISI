@@ -71,10 +71,13 @@ if (!function_exists('ensurePorsiKerjaColumn')) {
         static $checked = false;
         if ($checked || !$conn) return;
         $checked = true;
+        $flag = sys_get_temp_dir() . '/loewix_porsi_kerja_v1.flag';
+        if (is_file($flag)) return;
         $chk = @mysqli_query($conn, "SHOW COLUMNS FROM `pendapatan_kegiatan` LIKE 'porsi_kerja'");
         if ($chk && mysqli_num_rows($chk) === 0) {
             @mysqli_query($conn, "ALTER TABLE `pendapatan_kegiatan` ADD COLUMN `porsi_kerja` DECIMAL(4,2) NOT NULL DEFAULT 1.00 COMMENT '1.00 = Full Day, 0.50 = Setengah Hari' AFTER `pendapatan`");
         }
+        @file_put_contents($flag, '1');
     }
 }
 if (isset($conn) && $conn) {
