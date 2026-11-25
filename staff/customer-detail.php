@@ -239,6 +239,45 @@ $totalActivities = count($activitiesList);
             color: #0f172a;
             border-color: #94a3b8;
         }
+
+        /* ── Professional Header & Toolbar ── */
+        .riwayat-toolbar-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04);
+        }
+        .riwayat-search-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .riwayat-search-icon {
+            position: absolute;
+            left: 14px;
+            color: #94a3b8;
+            font-size: 13.5px;
+            pointer-events: none;
+            z-index: 3;
+        }
+        .riwayat-search-input {
+            width: 100%;
+            height: 42px;
+            padding: 0 38px 0 40px;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 11px;
+            font-size: 13.5px;
+            font-weight: 500;
+            color: #0f172a;
+            background: #f8fafc;
+            transition: all 0.2s ease;
+        }
+        .riwayat-search-input:focus {
+            outline: none;
+            background: #ffffff;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+        }
         .search-clear-btn {
             position: absolute;
             right: 10px;
@@ -257,21 +296,26 @@ $totalActivities = count($activitiesList);
             cursor: pointer;
             z-index: 5;
             padding: 0;
+            transition: all 0.15s ease;
         }
         .search-clear-btn:hover {
             background: #cbd5e1;
             color: #0f172a;
         }
         .filter-pill-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
             border: 1px solid #e2e8f0;
             background: #f8fafc;
             color: #475569;
-            font-size: 11.5px;
+            font-size: 12px;
             font-weight: 700;
-            padding: 4px 12px;
+            padding: 6px 12px;
             border-radius: 999px;
             cursor: pointer;
             transition: all 0.15s ease;
+            line-height: 1.2;
         }
         .filter-pill-btn:hover {
             background: #eff6ff;
@@ -279,9 +323,164 @@ $totalActivities = count($activitiesList);
             color: #1d4ed8;
         }
         .filter-pill-btn.active {
-            background: #1e293b;
-            border-color: #1e293b;
+            background: #0f172a;
+            border-color: #0f172a;
             color: #ffffff;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.18);
+        }
+        .filter-pill-count {
+            font-size: 10.5px;
+            font-weight: 800;
+            padding: 1px 6px;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 0.08);
+            color: #334155;
+        }
+        .filter-pill-btn.active .filter-pill-count {
+            background: rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+        }
+
+        /* ── Compact Page Size & Sort Controls ── */
+        .ctrl-chip-wrap {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 4px 10px;
+            font-size: 12px;
+            color: #475569;
+            font-weight: 600;
+        }
+        .pg-select {
+            appearance: auto;
+            border: 1px solid #cbd5e1;
+            border-radius: 7px;
+            background: #ffffff;
+            color: #0f172a;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 3px 8px;
+            cursor: pointer;
+            transition: border-color 0.15s ease;
+        }
+        .pg-select:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+        }
+
+        /* ── Professional Bottom Pagination Bar ── */
+        .pagination-bar-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 14px 20px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04);
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+        }
+        .pg-info-text {
+            font-size: 12.5px;
+            color: #475569;
+            font-weight: 500;
+        }
+        .pg-info-text strong {
+            color: #0f172a;
+            font-weight: 800;
+        }
+        .pg-nav-group {
+            display: inline-flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        .pg-btn {
+            min-width: 34px;
+            height: 34px;
+            padding: 0 10px;
+            border-radius: 9px;
+            border: 1px solid #e2e8f0;
+            background: #ffffff;
+            color: #334155;
+            font-size: 12.5px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            user-select: none;
+        }
+        .pg-btn:hover:not(:disabled):not(.active) {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+            color: #0f172a;
+        }
+        .pg-btn.active {
+            background: #0f172a;
+            border-color: #0f172a;
+            color: #ffffff;
+            box-shadow: 0 3px 10px rgba(15, 23, 42, 0.22);
+        }
+        .pg-btn:disabled {
+            opacity: 0.42;
+            cursor: not-allowed;
+            background: #f8fafc;
+        }
+        .pg-ellipsis {
+            min-width: 26px;
+            text-align: center;
+            color: #94a3b8;
+            font-weight: 700;
+            font-size: 13px;
+            user-select: none;
+        }
+        .pg-jump-wrap {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-left: 6px;
+            padding-left: 10px;
+            border-left: 1px solid #e2e8f0;
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 600;
+        }
+        .pg-jump-input {
+            width: 52px;
+            height: 32px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 12.5px;
+            font-weight: 700;
+            color: #0f172a;
+            background: #f8fafc;
+        }
+        .pg-jump-input:focus {
+            outline: none;
+            background: #ffffff;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.14);
+        }
+        @media (max-width: 768px) {
+            .pagination-bar-card {
+                justify-content: center;
+                text-align: center;
+            }
+            .pg-jump-wrap {
+                border-left: none;
+                padding-left: 0;
+                margin-left: 0;
+            }
         }
     </style>
 </head>
@@ -292,56 +491,109 @@ $totalActivities = count($activitiesList);
         <div class="container-fluid py-4">
             <div class="row justify-content-center">
                 <div class="col-xl-12 col-lg-12">
-                    <div class="card mb-4">
-                        <div class="card-body">
+                    <div class="card riwayat-toolbar-card mb-4">
+                        <div class="card-body p-4">
                             <div class="row align-items-center g-3">
-                                <div class="col-md-6">
+                                <div class="col-lg-6">
                                     <div class="d-flex align-items-center flex-wrap gap-2">
-                                        <h5 class="mb-0 text-uppercase">Riwayat Kegiatan</h5>
-                                        <span class="badge bg-light text-dark border" style="font-size:11px; font-weight:700;">
-                                            <?= number_format($totalActivities) ?> Kegiatan
+                                        <h5 class="mb-0 text-uppercase fw-bold" style="color:#0f172a; letter-spacing:0.02em;">Riwayat Kegiatan</h5>
+                                        <span class="badge rounded-pill" style="background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; font-size:11.5px; font-weight:800; padding:4px 10px;">
+                                            <?= number_format($totalActivities) ?> Total
                                         </span>
                                     </div>
-                                    <p class="text-sm mb-0 mt-1"><strong><?= htmlspecialchars($customerName) ?></strong></p>
+                                    <p class="text-sm mb-0 mt-1" style="color:#475569;"><strong><?= htmlspecialchars($customerName) ?></strong></p>
                                 </div>
-                                <div class="col-md-6">
-                                    <div class="position-relative">
-                                        <div class="input-group">
-                                            <span class="input-group-text text-body bg-white border"><i class="fas fa-search" aria-hidden="true"></i></span>
-                                            <input type="text" id="searchInput" class="form-control p-2 border pe-5" placeholder="Cari kegiatan, no. SO, invoice, teknisi, atau catatan..." autocomplete="off">
-                                        </div>
+                                <div class="col-lg-6">
+                                    <div class="riwayat-search-wrap">
+                                        <i class="fas fa-search riwayat-search-icon" aria-hidden="true"></i>
+                                        <input type="text" id="searchInput" class="riwayat-search-input" placeholder="Cari kegiatan, no. SO, invoice, teknisi, atau catatan..." autocomplete="off">
                                         <button type="button" id="btnClearSearch" class="search-clear-btn" title="Hapus pencarian" aria-label="Hapus pencarian">
                                             <i class="fa-solid fa-xmark"></i>
                                         </button>
                                     </div>
                                     <div class="d-flex justify-content-between align-items-center mt-1 px-1">
-                                        <small class="text-muted" id="searchCounter" style="font-size:11.5px;"></small>
-                                        <small class="text-muted" style="font-size:11px;">Pencarian instan aktif</small>
+                                        <small class="text-muted fw-semibold" id="searchCounter" style="font-size:11.5px;"></small>
+                                        <small class="text-muted" style="font-size:11px;"><i class="fa-solid fa-bolt text-warning me-1"></i>Pencarian instan</small>
                                     </div>
                                 </div>
                             </div>
+
                             <?php if ($totalActivities > 0): ?>
-                            <div class="d-flex flex-wrap align-items-center gap-2 mt-3 pt-3 border-top">
-                                <button type="button" class="filter-pill-btn active" data-filter="all" onclick="setStatusFilter('all', this)">Semua (<?= $totalActivities ?>)</button>
-                                <button type="button" class="filter-pill-btn" data-filter="has_so" onclick="setStatusFilter('has_so', this)">Ada No. SO</button>
-                                <button type="button" class="filter-pill-btn" data-filter="belum_input" onclick="setStatusFilter('belum_input', this)">Belum Input Invoice</button>
-                                <button type="button" class="filter-pill-btn" data-filter="belum_lunas" onclick="setStatusFilter('belum_lunas', this)">Belum Lunas</button>
-                                <button type="button" class="filter-pill-btn" data-filter="lunas" onclick="setStatusFilter('lunas', this)">Lunas</button>
-                                <button type="button" class="filter-pill-btn" data-filter="no_pay" onclick="setStatusFilter('no_pay', this)">No Payment</button>
+                            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mt-3 pt-3 border-top">
+                                <div class="d-flex flex-wrap align-items-center gap-2" id="statusFilterGroup">
+                                    <button type="button" class="filter-pill-btn active" data-filter="all" onclick="setStatusFilter('all', this)">
+                                        Semua <span class="filter-pill-count" id="cnt_all"><?= $totalActivities ?></span>
+                                    </button>
+                                    <button type="button" class="filter-pill-btn" data-filter="has_so" onclick="setStatusFilter('has_so', this)">
+                                        Ada No. SO <span class="filter-pill-count" id="cnt_has_so">0</span>
+                                    </button>
+                                    <button type="button" class="filter-pill-btn" data-filter="belum_input" onclick="setStatusFilter('belum_input', this)">
+                                        Belum Input <span class="filter-pill-count" id="cnt_belum_input">0</span>
+                                    </button>
+                                    <button type="button" class="filter-pill-btn" data-filter="belum_lunas" onclick="setStatusFilter('belum_lunas', this)">
+                                        Belum Lunas <span class="filter-pill-count" id="cnt_belum_lunas">0</span>
+                                    </button>
+                                    <button type="button" class="filter-pill-btn" data-filter="lunas" onclick="setStatusFilter('lunas', this)">
+                                        Lunas <span class="filter-pill-count" id="cnt_lunas">0</span>
+                                    </button>
+                                    <button type="button" class="filter-pill-btn" data-filter="no_pay" onclick="setStatusFilter('no_pay', this)">
+                                        No Payment <span class="filter-pill-count" id="cnt_no_pay">0</span>
+                                    </button>
+                                </div>
+
+                                <div class="d-flex flex-wrap align-items-center gap-2">
+                                    <div class="ctrl-chip-wrap">
+                                        <i class="fa-solid fa-arrow-down-wide-short text-secondary"></i>
+                                        <label for="sortOrderSelect" class="mb-0">Urutkan:</label>
+                                        <select id="sortOrderSelect" class="pg-select" onchange="changeSortOrder(this.value)">
+                                            <option value="newest">Terbaru</option>
+                                            <option value="oldest">Terlama</option>
+                                        </select>
+                                    </div>
+                                    <div class="ctrl-chip-wrap">
+                                        <i class="fa-solid fa-list-ol text-primary"></i>
+                                        <label for="pageSizeTop" class="mb-0">Tampilkan:</label>
+                                        <select id="pageSizeTop" class="pg-select" onchange="changePageSize(this.value)">
+                                            <option value="10">10 baris</option>
+                                            <option value="25">25 baris</option>
+                                            <option value="50">50 baris</option>
+                                            <option value="100">100 baris</option>
+                                            <option value="all">Semua</option>
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
                             <?php endif; ?>
                         </div>
                     </div>
 
+                    <div id="activityListAnchor"></div>
                     <div id="activityList"></div>
-                    <div id="loadMoreWrap" class="text-center mb-4" style="display:none;">
-                        <button type="button" id="btnLoadMore" class="btn btn-outline-primary btn-sm px-4 fw-bold me-2" onclick="loadMoreActivities()">
-                            Tampilkan Lebih Banyak
-                        </button>
-                        <button type="button" id="btnShowAll" class="btn btn-light border btn-sm px-3 fw-bold" onclick="showAllActivities()">
-                            Tampilkan Semua
-                        </button>
+
+                    <!-- Professional Pagination Bar -->
+                    <div id="paginationBar" class="pagination-bar-card" style="display:none;">
+                        <div class="d-flex flex-wrap align-items-center gap-3">
+                            <div class="pg-info-text" id="pgInfoText"></div>
+                            <div class="ctrl-chip-wrap">
+                                <label for="pageSizeBottom" class="mb-0">Per halaman:</label>
+                                <select id="pageSizeBottom" class="pg-select" onchange="changePageSize(this.value)">
+                                    <option value="10">10</option>
+                                    <option value="25">25</option>
+                                    <option value="50">50</option>
+                                    <option value="100">100</option>
+                                    <option value="all">Semua</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="d-flex flex-wrap align-items-center gap-2">
+                            <div class="pg-nav-group" id="pgNavGroup"></div>
+                            <div class="pg-jump-wrap" id="pgJumpWrap" style="display:none;">
+                                <span>Ke hal.</span>
+                                <input type="number" id="pgJumpInput" class="pg-jump-input" min="1" placeholder="1" title="Ketik nomor halaman lalu tekan Enter">
+                            </div>
+                        </div>
                     </div>
+
                     <div id="emptyStateBox" class="alert alert-info text-white text-center" style="display:none;">
                         Tidak ada riwayat kegiatan untuk pelanggan ini.
                     </div>
@@ -396,10 +648,12 @@ $totalActivities = count($activitiesList);
     const CUSTOMER_NAME = <?= json_encode($customerName, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
     const ACTIVITIES_DATA = <?= json_encode($activitiesList, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
 
-    const BATCH_SIZE = 25;
+    const PAGE_SIZE_STORAGE_KEY = 'loewix_cust_detail_page_size';
+    let pageSize = 10; // Default 10 baris per halaman (bisa pilih 10 / 25 / 50 / 100 / Semua)
+    let currentPage = 1;
+    let sortOrder = 'newest';
     let activeStatusFilter = 'all';
     let filteredList = [];
-    let renderedCount = 0;
     let searchTimer = null;
 
     function escapeHtml(str) {
@@ -450,6 +704,19 @@ $totalActivities = count($activitiesList);
         ].join(' ').toLowerCase();
     }
 
+    function updateFilterBadgeCounts() {
+        const counts = { all: ACTIVITIES_DATA.length, has_so: 0, belum_input: 0, belum_lunas: 0, lunas: 0, no_pay: 0 };
+        for (let i = 0; i < ACTIVITIES_DATA.length; i++) {
+            const it = ACTIVITIES_DATA[i];
+            if (it.no_so) counts.has_so++;
+            if (counts[it._statusKey] !== undefined) counts[it._statusKey]++;
+        }
+        Object.keys(counts).forEach(k => {
+            const el = document.getElementById('cnt_' + k);
+            if (el) el.textContent = counts[k];
+        });
+    }
+
     // Bangun index pencarian 1 kali di memori (instan < 2ms bahkan untuk ribuan kegiatan)
     for (let i = 0; i < ACTIVITIES_DATA.length; i++) {
         buildSearchIndex(ACTIVITIES_DATA[i]);
@@ -458,7 +725,6 @@ $totalActivities = count($activitiesList);
     function renderCardHtml(act) {
         const kodeEsc = escapeHtml(act.kode);
         const soEsc = escapeHtml(act.no_so);
-        const custEsc = escapeHtml(CUSTOMER_NAME);
 
         const headerSoHtml = act.no_so
             ? `<span class="badge" style="background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;font-family:monospace;font-size:11px;font-weight:700;letter-spacing:0.02em;padding:3px 8px;">
@@ -573,52 +839,174 @@ $totalActivities = count($activitiesList);
             </div>`;
     }
 
-    function updateLoadMoreControls() {
-        const remaining = filteredList.length - renderedCount;
-        const wrap = document.getElementById('loadMoreWrap');
-        const btnMore = document.getElementById('btnLoadMore');
-        const btnAll = document.getElementById('btnShowAll');
+    function getTotalPages() {
+        if (filteredList.length === 0) return 1;
+        if (pageSize === 'all') return 1;
+        return Math.max(1, Math.ceil(filteredList.length / pageSize));
+    }
+
+    function buildPageNumbers(current, total) {
+        if (total <= 7) {
+            const arr = [];
+            for (let p = 1; p <= total; p++) arr.push(p);
+            return arr;
+        }
+        const pages = [1];
+        let start = Math.max(2, current - 1);
+        let end = Math.min(total - 1, current + 1);
+        if (current <= 3) { start = 2; end = 4; }
+        if (current >= total - 2) { start = total - 3; end = total - 1; }
+        if (start > 2) pages.push('...');
+        for (let p = start; p <= end; p++) pages.push(p);
+        if (end < total - 1) pages.push('...');
+        pages.push(total);
+        return pages;
+    }
+
+    function renderCurrentPage(shouldScrollTop) {
+        const container = document.getElementById('activityList');
+        const pgBar = document.getElementById('paginationBar');
+        const pgInfo = document.getElementById('pgInfoText');
+        const pgNav = document.getElementById('pgNavGroup');
+        const pgJumpWrap = document.getElementById('pgJumpWrap');
+        const pgJumpInput = document.getElementById('pgJumpInput');
         const counter = document.getElementById('searchCounter');
+        const emptyBox = document.getElementById('emptyStateBox');
+        const noResBox = document.getElementById('noResultsMessage');
         const term = (document.getElementById('searchInput').value || '').trim();
 
         if (ACTIVITIES_DATA.length === 0) {
+            container.innerHTML = '';
+            emptyBox.style.display = 'block';
+            noResBox.style.display = 'none';
+            pgBar.style.display = 'none';
             counter.textContent = '0 kegiatan';
-        } else if (term !== '' || activeStatusFilter !== 'all') {
-            counter.textContent = `Ditemukan ${filteredList.length} dari ${ACTIVITIES_DATA.length} kegiatan (ditampilkan ${renderedCount})`;
-        } else {
-            counter.textContent = `Menampilkan ${renderedCount} dari ${ACTIVITIES_DATA.length} kegiatan`;
+            return;
         }
 
-        if (remaining > 0) {
-            const nextStep = Math.min(BATCH_SIZE, remaining);
-            btnMore.textContent = `Tampilkan ${nextStep} Kegiatan Lainnya (Sisa ${remaining})`;
-            btnAll.style.display = remaining > BATCH_SIZE ? 'inline-block' : 'none';
-            wrap.style.display = 'block';
-        } else {
-            wrap.style.display = 'none';
-        }
-    }
+        emptyBox.style.display = 'none';
 
-    function appendNextBatch(count) {
-        const container = document.getElementById('activityList');
-        const end = Math.min(renderedCount + count, filteredList.length);
+        if (filteredList.length === 0) {
+            container.innerHTML = '';
+            noResBox.style.display = 'block';
+            pgBar.style.display = 'none';
+            counter.textContent = `Ditemukan 0 dari ${ACTIVITIES_DATA.length} kegiatan`;
+            return;
+        }
+
+        noResBox.style.display = 'none';
+
+        const totalPages = getTotalPages();
+        if (currentPage > totalPages) currentPage = totalPages;
+        if (currentPage < 1) currentPage = 1;
+
+        const isAll = (pageSize === 'all');
+        const startIdx = isAll ? 0 : (currentPage - 1) * pageSize;
+        const endIdx = isAll ? filteredList.length : Math.min(startIdx + pageSize, filteredList.length);
+
         let html = '';
-        for (let i = renderedCount; i < end; i++) {
+        for (let i = startIdx; i < endIdx; i++) {
             html += renderCardHtml(filteredList[i]);
         }
-        if (html) {
-            container.insertAdjacentHTML('beforeend', html);
+        container.innerHTML = html;
+
+        const startHuman = startIdx + 1;
+        const endHuman = endIdx;
+        if (term !== '' || activeStatusFilter !== 'all') {
+            counter.textContent = `Menampilkan ${startHuman}–${endHuman} dari ${filteredList.length} hasil (total ${ACTIVITIES_DATA.length} kegiatan)`;
+        } else {
+            counter.textContent = `Menampilkan ${startHuman}–${endHuman} dari ${filteredList.length} kegiatan`;
         }
-        renderedCount = end;
-        updateLoadMoreControls();
+
+        pgInfo.innerHTML = `Menampilkan <strong>${startHuman}–${endHuman}</strong> dari <strong>${filteredList.length}</strong> kegiatan` +
+            (!isAll ? ` <span class="text-muted">(Halaman ${currentPage} dari ${totalPages})</span>` : '');
+
+        // Render tombol pagination
+        if (totalPages > 1) {
+            const pageItems = buildPageNumbers(currentPage, totalPages);
+            let navHtml = `
+                <button type="button" class="pg-btn" onclick="goToPage(1)" ${currentPage === 1 ? 'disabled' : ''} title="Halaman Pertama">
+                    <i class="fa-solid fa-angles-left"></i>
+                </button>
+                <button type="button" class="pg-btn" onclick="goToPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>
+                    <i class="fa-solid fa-chevron-left"></i> <span class="d-none d-sm-inline">Prev</span>
+                </button>`;
+
+            for (let i = 0; i < pageItems.length; i++) {
+                const p = pageItems[i];
+                if (p === '...') {
+                    navHtml += '<span class="pg-ellipsis">…</span>';
+                } else {
+                    navHtml += `<button type="button" class="pg-btn ${p === currentPage ? 'active' : ''}" onclick="goToPage(${p})">${p}</button>`;
+                }
+            }
+
+            navHtml += `
+                <button type="button" class="pg-btn" onclick="goToPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>
+                    <span class="d-none d-sm-inline">Next</span> <i class="fa-solid fa-chevron-right"></i>
+                </button>
+                <button type="button" class="pg-btn" onclick="goToPage(${totalPages})" ${currentPage === totalPages ? 'disabled' : ''} title="Halaman Terakhir">
+                    <i class="fa-solid fa-angles-right"></i>
+                </button>`;
+
+            pgNav.innerHTML = navHtml;
+            pgNav.style.display = 'inline-flex';
+            if (totalPages > 5) {
+                pgJumpWrap.style.display = 'inline-flex';
+                pgJumpInput.max = totalPages;
+                pgJumpInput.value = '';
+                pgJumpInput.placeholder = String(currentPage);
+            } else {
+                pgJumpWrap.style.display = 'none';
+            }
+        } else {
+            pgNav.innerHTML = '';
+            pgNav.style.display = 'none';
+            pgJumpWrap.style.display = 'none';
+        }
+
+        pgBar.style.display = 'flex';
+
+        if (shouldScrollTop) {
+            const anchor = document.getElementById('activityListAnchor');
+            if (anchor) {
+                anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
     }
 
-    function loadMoreActivities() {
-        appendNextBatch(BATCH_SIZE);
+    function goToPage(pageNum) {
+        const total = getTotalPages();
+        const target = Math.max(1, Math.min(total, parseInt(pageNum, 10) || 1));
+        if (target === currentPage) return;
+        currentPage = target;
+        renderCurrentPage(true);
     }
 
-    function showAllActivities() {
-        appendNextBatch(filteredList.length - renderedCount);
+    function syncPageSizeDropdowns(val) {
+        const topSel = document.getElementById('pageSizeTop');
+        const botSel = document.getElementById('pageSizeBottom');
+        if (topSel) topSel.value = String(val);
+        if (botSel) botSel.value = String(val);
+    }
+
+    function changePageSize(val) {
+        if (val === 'all') {
+            pageSize = 'all';
+        } else {
+            const num = parseInt(val, 10);
+            pageSize = [10, 25, 50, 100].includes(num) ? num : 10;
+        }
+        try { localStorage.setItem(PAGE_SIZE_STORAGE_KEY, String(pageSize)); } catch (e) {}
+        syncPageSizeDropdowns(pageSize);
+        currentPage = 1;
+        renderCurrentPage(false);
+    }
+
+    function changeSortOrder(val) {
+        sortOrder = (val === 'oldest') ? 'oldest' : 'newest';
+        currentPage = 1;
+        applyFilterAndRender();
     }
 
     function applyFilterAndRender() {
@@ -628,22 +1016,6 @@ $totalActivities = count($activitiesList);
         if (clearBtn) {
             clearBtn.style.display = rawTerm ? 'flex' : 'none';
         }
-
-        const emptyBox = document.getElementById('emptyStateBox');
-        const noResBox = document.getElementById('noResultsMessage');
-        const container = document.getElementById('activityList');
-
-        if (ACTIVITIES_DATA.length === 0) {
-            container.innerHTML = '';
-            emptyBox.style.display = 'block';
-            noResBox.style.display = 'none';
-            filteredList = [];
-            renderedCount = 0;
-            updateLoadMoreControls();
-            return;
-        }
-
-        emptyBox.style.display = 'none';
 
         filteredList = [];
         for (let i = 0; i < ACTIVITIES_DATA.length; i++) {
@@ -668,17 +1040,12 @@ $totalActivities = count($activitiesList);
             filteredList.push(item);
         }
 
-        container.innerHTML = '';
-        renderedCount = 0;
-
-        if (filteredList.length === 0) {
-            noResBox.style.display = 'block';
-            updateLoadMoreControls();
-            return;
+        if (sortOrder === 'oldest') {
+            filteredList.reverse();
         }
 
-        noResBox.style.display = 'none';
-        appendNextBatch(BATCH_SIZE);
+        currentPage = 1;
+        renderCurrentPage(false);
     }
 
     function setStatusFilter(filterKey, btnEl) {
@@ -742,6 +1109,7 @@ $totalActivities = count($activitiesList);
                 if (act) {
                     act.no_so = noSO;
                     buildSearchIndex(act);
+                    updateFilterBadgeCounts();
                 }
 
                 const kodeEsc = escapeHtml(kode);
@@ -786,8 +1154,21 @@ $totalActivities = count($activitiesList);
     }
 
     document.addEventListener('DOMContentLoaded', function() {
+        // Muat preferensi jumlah baris per halaman dari localStorage (default: 10 baris)
+        try {
+            const savedSize = localStorage.getItem(PAGE_SIZE_STORAGE_KEY);
+            if (savedSize === 'all') {
+                pageSize = 'all';
+            } else if (savedSize && [10, 25, 50, 100].includes(parseInt(savedSize, 10))) {
+                pageSize = parseInt(savedSize, 10);
+            }
+        } catch (e) {}
+        syncPageSizeDropdowns(pageSize);
+        updateFilterBadgeCounts();
+
         const searchInput = document.getElementById('searchInput');
         const clearBtn = document.getElementById('btnClearSearch');
+        const pgJumpInput = document.getElementById('pgJumpInput');
 
         if (searchInput) {
             searchInput.addEventListener('input', function() {
@@ -806,6 +1187,14 @@ $totalActivities = count($activitiesList);
                 searchInput.value = '';
                 searchInput.focus();
                 applyFilterAndRender();
+            });
+        }
+        if (pgJumpInput) {
+            pgJumpInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    goToPage(pgJumpInput.value);
+                }
             });
         }
 
